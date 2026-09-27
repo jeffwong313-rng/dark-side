@@ -4523,7 +4523,7 @@ try{ui.slot=+localStorage.getItem(SLOT_KEY)||1}catch(e){ui.slot=1}
 function slotInfo(i){try{const o=JSON.parse(localStorage.getItem(slotKey(i))||'null');if(!o||o.v!==1)return null;
   return {week:o.week,gold:o.gold,heroes:(o.heroes||[]).length,top:Math.max(0,...(o.heroes||[]).map(h=>h.level)),moon:Math.round(o.moonMax||0),bosses:o.bossKills||0,run:!!o.run,won:!!o.won,setup:!!o.govSetup,gov:o.gov?((o.gov.name||'Governor')+', '+((GOV_PROFS[o.gov.prof]||{}).n||'')):''}}catch(e){return null}}
 function menuView(){
-  return `<div class="mainmenu"><div class="mm-title"><span class="disp logo">DARK SIDE <small>OF THE</small> MOON</span>${moonImg(60,4)}</div>
+  return `<div class="mainmenu"><div class="mm-title"><span class="disp logo">DARK SIDE <small>OF THE</small> MOON</span>${moonImg(5,4)}</div>
     ${(()=>{const S=ui.erased===ui.slot?null:slotInfo(ui.slot||1);return S?`<div class="row" style="justify-content:center"><button class="btn gold big" data-a="menuContinue">Continue</button><span class="muted">Slot ${ui.slot||1} · Week ${S.week}${S.setup?' · choosing a governor':S.gov?' · Governor '+esc(S.gov.split(',')[0]):''}${S.run?' · <span class="warn">on an adventure</span>':''}</span></div>`:''})()}
     <p class="muted" style="text-align:center">Three towns, each saved automatically as you play. There is no manual saving.</p>
     <div class="slots">${[1,2,3].map(i=>{const S=slotInfo(i),cur=i===ui.slot&&ui.erased!==i;return `<div class="slotcard ${cur?'cur':''}"><div class="row" style="justify-content:space-between"><h2>Slot ${i}</h2>${cur?'<span class="lvpill">Current</span>':''}</div>
