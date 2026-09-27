@@ -2541,16 +2541,18 @@ const powerScore=h=>statMix(h,{str:.4,agi:.2,int:.2,per:.2});
 const aimScore=h=>statMix(h,{per:.45,agi:.3,int:.15,str:.1});
 const ATK_KINDS={
   normal:{n:'Attack',d:'A standard blow.'},
-  power:{n:'Power Attack',d:'Heavier damage and crits, but easier to dodge. Scales with your power mix (mostly the main attribute plus STR).'},
-  aim:{n:'Accurate Attack',d:'Rarely misses and finds weak spots, but hits a little softer. Scales with your precision mix (mostly the main attribute plus PER and AGI).'},
+  power:{n:'Power Attack',d:'A last-resort haymaker: much heavier damage, more crits and bigger crits, but it misses far more often. Better power stats (mostly the main attribute plus STR) hit harder and miss less.'},
+  aim:{n:'Accurate Attack',d:'Almost never misses, but hits softer and crits less than a normal attack. Better precision stats (mostly the main attribute plus PER and AGI) soften the drawbacks a little.'},
 };
 // Skills cost mana, so they are built to beat every basic attack: higher multipliers, better accuracy,
 // and they scale with the same power mix (+2% per point) that Power Attack uses.
 const skillMult=(h,sk)=>(sk.mult||0)*(1+tr(h,'skillDmg')/100)*(1+powerScore(h)*.02);
 function atkOpts(h,kind){
   const A=ATTACK[h.cls],o={...A,el:atkEl(h,A.el),label:'attacks'};
-  if(kind==='power'){const P=powerScore(h);return {...o,mult:A.mult*(1.25+P*.02),acc:A.acc-Math.max(8,32-P*1.2),crit:(A.crit||0)-3,cdmg:Math.round(10+P*3),label:'power-attacks'}}
-  if(kind==='aim'){const Q=aimScore(h);return {...o,mult:A.mult*clamp(.72+Q*.008,.72,.95),acc:A.acc+12+Q*1.2,critMul:clamp(.6+Q*.035,.6,1.4),label:'takes careful aim at'}}
+  // Power: much more damage (1.6x, +1% per power point), +10% crit chance and +40% crit damage (more with power), but a big accuracy penalty (-45, shrinking to -32 with power). A gamble, not the new default.
+  if(kind==='power'){const P=powerScore(h);return {...o,mult:A.mult*(1.6+P*.01),acc:A.acc-Math.max(32,45-P*.5),crit:(A.crit||0)+10,cdmg:Math.round(40+P*2),label:'power-attacks'}}
+  // Accurate: close to a sure hit (+30 accuracy, more with precision), but always softer than a normal attack (70-85% damage) and half the crit chance (up to 70% of normal).
+  if(kind==='aim'){const Q=aimScore(h);return {...o,mult:A.mult*clamp(.7+Q*.006,.7,.85),acc:A.acc+30+Q*1.2,critMul:clamp(.5+Q*.01,.5,.7),label:'takes careful aim at'}}
   return o;
 }
 function heroAction(act,allyId){
