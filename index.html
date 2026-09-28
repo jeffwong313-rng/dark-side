@@ -2662,8 +2662,8 @@ const ATK_KINDS={
 const skillMult=(h,sk)=>(sk.mult||0)*(1+tr(h,'skillDmg')/100)*(1+powerScore(h)*.02);
 function atkOpts(h,kind){
   const A=ATTACK[h.cls],o={...A,el:atkEl(h,A.el),label:'attacks'};
-  // Power: much more damage (1.6x, +1% per power point), +10% crit chance and +40% crit damage (more with power), but a big accuracy penalty (-45, shrinking to -32 with power). A gamble, not the new default.
-  if(kind==='power'){const P=powerScore(h);return {...o,mult:A.mult*(1.6+P*.01),acc:A.acc-Math.max(32,45-P*.5),crit:(A.crit||0)+10,cdmg:Math.round(40+P*2),label:'power-attacks'}}
+  // Power: much more damage (2.2x, +1% per power point, so the average beats a normal attack despite the misses), +10% crit chance and +40% crit damage (more with power), but a big accuracy penalty (-45, shrinking to -32 with power). A gamble, not the new default.
+  if(kind==='power'){const P=powerScore(h);return {...o,mult:A.mult*(2.2+P*.01),acc:A.acc-Math.max(32,45-P*.5),crit:(A.crit||0)+10,cdmg:Math.round(40+P*2),label:'power-attacks'}}
   // Accurate: close to a sure hit (+30 accuracy, more with precision), but always softer than a normal attack (70-85% damage) and half the crit chance (up to 70% of normal).
   if(kind==='aim'){const Q=aimScore(h);return {...o,mult:A.mult*clamp(.7+Q*.006,.7,.85),acc:A.acc+30+Q*1.2,critMul:clamp(.5+Q*.01,.5,.7),label:'takes careful aim at'}}
   return o;
