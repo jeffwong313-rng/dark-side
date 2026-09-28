@@ -467,10 +467,7 @@ body.inbattle{overflow:hidden;overscroll-behavior:none}
 .unit.big{--us:clamp(64px,10.5vw,126px)}
 .unit.foe{cursor:pointer}
 .unit .fo{line-height:0}
-.unit .fo img.px{width:min(calc(var(--us) * 1.5),calc((100cqw - 80px) / 6),calc(100cqh - 22px));height:auto;max-width:none}
-.unit.big .fo img.px{width:min(calc(var(--us) * 1.5),calc((100cqw - 80px) / 4),calc(100cqh - 18px))}
-body.lay-stack .unit .fo img.px{width:min(calc(var(--us) * 1.5),calc((100cqw - 24px) / 3),calc(60cqh - 14px))}
-body.lay-stack .unit.big .fo img.px{width:min(calc(var(--us) * 1.5),calc((100cqw - 24px) / 2.2),calc(64cqh - 10px))}
+.unit .fo img.px{width:var(--us);height:auto;max-width:none}
 .unit .pop{bottom:calc(100% + var(--dy,0px))}
 .uinfo{width:100%;display:flex;flex-direction:column;gap:2px;background:#0a0810e0;box-shadow:0 0 0 2px #000,inset 0 0 0 1px var(--edge2);padding:3px 4px 4px;min-width:0}
 .unit.act .uinfo{box-shadow:0 0 0 2px #000,inset 0 0 0 2px var(--gold)}
@@ -684,9 +681,9 @@ span.dslot{cursor:default}
 .fstep.on{opacity:1;box-shadow:inset 0 0 0 2px var(--moss)}
 .fpips{display:flex;gap:3px}.fpips i{width:8px;height:8px;background:#2a2234;box-shadow:0 0 0 1px #000}.fpips i.on{background:var(--moss)}
 @media (max-width:520px){.farmroad{grid-template-columns:repeat(3,minmax(0,1fr))}}
-.townwrap{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,1fr);gap:12px;align-items:start}
+.townwrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,360px);gap:12px;align-items:start}
 .townwrap>.tmain{min-width:0}
-.hrail{container-type:inline-size;min-width:0;position:sticky;top:8px;display:flex;flex-direction:column;max-height:calc(100dvh / var(--z,1) - 16px);background:linear-gradient(#1d1726,#140f1b);box-shadow:0 0 0 2px #060509,inset 0 0 0 2px var(--gold);padding:10px}
+.hrail{position:sticky;top:8px;display:flex;flex-direction:column;max-height:calc(100dvh / var(--z,1) - 16px);background:linear-gradient(#1d1726,#140f1b);box-shadow:0 0 0 2px #060509,inset 0 0 0 2px var(--gold);padding:10px}
 .hrhead{display:flex;align-items:baseline;justify-content:space-between;padding:0 4px 6px;border-bottom:2px solid #3a3245;margin-bottom:8px}
 .hrhead h2{margin:0;color:var(--gold)}
 .hrlist{overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:2px;overscroll-behavior:contain}
@@ -700,8 +697,6 @@ span.dslot{cursor:default}
 .hrcls{font-size:16px;color:var(--muted,#a99)}
 .hrcard .bar{display:block;height:16px;font-size:13px}
 .hrxp{display:block;height:5px;background:#231c2b;box-shadow:0 0 0 1px #060509}.hrxp i{display:block;height:100%;background:#7fb3e0}
-@container (max-width:280px){.hrcard{gap:7px;padding:6px}.hrport{width:52px;height:52px}.hrport .sprite,.hrport canvas,.hrport img{max-width:48px;max-height:48px}.hrname{font-size:18px}.hrcls{font-size:15px}.hrtraits{font-size:14px}}
-@container (max-width:200px){.hrcard{flex-direction:column;align-items:stretch}.hrport{width:100%;height:56px}}
 .hrtraits{display:flex;flex-wrap:wrap;gap:4px;font-size:15px}.hrtraits>span{padding:0 5px;box-shadow:inset 0 0 0 1px #3a3245;background:#18131e}
 .herosheet .sheetcols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .modal.layer .panel.herosheet{max-width:820px}
@@ -750,7 +745,7 @@ body{padding-block:8px 16px}
 .res{gap:5px;justify-content:flex-end}
 .top .chip{padding:1px 7px 2px 4px;font-size:20px}
 @media (max-width:640px){
-  .top{flex-wrap:wrap}.top .chip .lbl{display:none}.logo small{font-size:15px}
+  .top{flex-wrap:wrap}.top .chip .lbl{display:none}.logo small{display:none}
   .res{flex-wrap:wrap}
 }
 .panel{padding:12px 14px;gap:10px}
@@ -900,16 +895,13 @@ body.lay-stack .roster .umeta{display:none}
 .mark{font-family:'Pixelify Sans',monospace;font-size:20px;padding:1px 4px 2px;background:#0a0810d0;box-shadow:0 0 0 1px #000;color:#fff;text-shadow:1px 1px 0 #000}
 .mark.dmgin{color:#ff8a7a}
 .mark.dmgout{color:#fff3dc}
-.mark.crit{color:#ffd84a;font-size:36px;line-height:.95;padding:2px 7px 4px;background:#3a0d10e8;box-shadow:0 0 0 2px #000,0 0 0 4px #e3b341,0 0 14px #ffb13b;text-shadow:2px 2px 0 #000,0 0 8px #ff8a2a;display:inline-flex;flex-direction:column;align-items:center;z-index:4}
-.mark.crit small{font-size:14px;letter-spacing:.14em;color:#fff3dc;line-height:1.1}
-.mark.crit.fresh{animation:critin .55s cubic-bezier(.2,1.6,.4,1)}
-@keyframes critin{0%{transform:scale(2.6) rotate(-8deg);opacity:0}35%{transform:scale(.9) rotate(3deg);opacity:1}60%{transform:scale(1.12) rotate(-2deg)}100%{transform:none}}
+.mark.crit{color:var(--gold);font-size:22px}
 .mark.heal{color:#8fe08a}
 .mark.miss{color:#b9b1a3;font-size:17px}
 .mark.lvl{color:var(--gold);font-size:16px}
 .mark.fresh{animation:markin .35s steps(3)}
 @keyframes markin{0%{transform:translateY(8px) scale(1.4);opacity:0}100%{transform:none;opacity:1}}
-body.lay-stack .mark{font-size:17px}body.lay-stack .mark.crit{font-size:25px}body.lay-stack .mark.crit small{font-size:12px}
+body.lay-stack .mark{font-size:17px}body.lay-stack .mark.crit{font-size:19px}
 /* attack buttons */
 .skgrid.atk3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .skgrid .btn.power{box-shadow:0 0 0 2px #060509,inset 0 0 0 2px #8a3a2a,inset 2px 2px 0 rgba(255,255,255,.1)}
@@ -1089,102 +1081,88 @@ body.dragging [data-drop]{outline:2px dashed #e3b34166;outline-offset:1px}
 .govhint{font-size:22px;margin:0}.govhint.small{font-size:19px;color:var(--ash)}
 .storycard.govresult{flex-direction:column}
 .march{gap:8px;flex-wrap:wrap}.mslot{display:flex;flex-direction:column;gap:4px;padding:8px 10px;background:var(--stone);box-shadow:inset 0 0 0 2px var(--edge);min-width:180px;flex:1}
-/* ---------- skill animations (see SK_FX) ---------- */
-.skfx{position:absolute;inset:0;pointer-events:none;z-index:2;line-height:0}
-.skfx i{position:absolute;display:block;opacity:0}
-.skfx::before,.skfx::after{content:"";position:absolute;opacity:0}
-.lunge-big{animation:lungeBig .5s cubic-bezier(.3,1.4,.5,1)}
-@keyframes lungeBig{0%{transform:none}25%{transform:translateX(-8px) translateY(-4px)}55%{transform:translateX(38px) translateY(-6px)}100%{transform:none}}
-.castpose{animation:castPose .6s ease-out}
-@keyframes castPose{0%{transform:none}30%{transform:translateY(-8px)}100%{transform:none}}
-@keyframes skIn{0%{opacity:0}15%{opacity:1}75%{opacity:1}100%{opacity:0}}
-@keyframes skRing{0%{transform:translate(-50%,-50%) scale(.15);opacity:1}100%{transform:translate(-50%,-50%) scale(1.8);opacity:0}}
-@keyframes skRise{0%{transform:translateY(0) scale(.6);opacity:0}20%{opacity:1}100%{transform:translateY(-70px) scale(1);opacity:0}}
-@keyframes skBurst{0%{transform:translate(-50%,-50%) scale(.2);opacity:1}100%{transform:translate(-50%,-50%) scale(2.4);opacity:0}}
-@keyframes skSpin{0%{transform:translate(-50%,-50%) rotate(0) scale(.5);opacity:0}25%{opacity:1}100%{transform:translate(-50%,-50%) rotate(260deg) scale(1.15);opacity:0}}
-/* melee: slashes, smashes, the Titan's golden X, the ground-shaking quake */
-.t-slash::before,.t-smash::before,.t-titan::before,.t-titan::after{left:-15%;top:46%;width:130%;height:7px;background:linear-gradient(90deg,transparent,#fff 30%,var(--c) 60%,transparent);box-shadow:0 0 10px var(--c);animation:skSlash .45s ease-out forwards}
-.t-smash::before{animation-name:skSlashDown}
-.t-titan::after{animation-name:skSlashB;animation-delay:.12s}
-@keyframes skSlash{0%{transform:rotate(-35deg) scaleX(0);opacity:1}45%{transform:rotate(-35deg) scaleX(1);opacity:1}100%{transform:rotate(-35deg) scaleX(1.1);opacity:0}}
-@keyframes skSlashB{0%{transform:rotate(35deg) scaleX(0);opacity:1}45%{transform:rotate(35deg) scaleX(1);opacity:1}100%{transform:rotate(35deg) scaleX(1.1);opacity:0}}
-@keyframes skSlashDown{0%{transform:rotate(-70deg) scaleX(0);opacity:1}45%{transform:rotate(-70deg) scaleX(1);opacity:1}100%{transform:rotate(-70deg) scaleX(1.1);opacity:0}}
-.t-smash::after,.t-titan i:nth-child(1){left:50%;top:50%;width:70%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#fff 0 18%,var(--c) 35%,transparent 70%);animation:skBurst .5s .15s ease-out forwards;mix-blend-mode:screen}
-.t-titan i:nth-child(2){left:50%;top:92%;width:160%;height:26%;border-radius:50%;border:4px solid var(--c);animation:skRing .6s .2s ease-out forwards}
-.v-stunblow i:nth-child(1),.v-stunblow i:nth-child(2),.v-stunblow i:nth-child(3){top:-6%;width:10px;height:10px;background:#ffe66a;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);animation:skStar .8s .2s ease-out forwards}
-.v-stunblow i:nth-child(1){left:20%}.v-stunblow i:nth-child(2){left:46%;animation-delay:.28s}.v-stunblow i:nth-child(3){left:72%;animation-delay:.36s}
-@keyframes skStar{0%{opacity:0;transform:translateY(8px) scale(.4)}30%{opacity:1;transform:translateY(0) scale(1.3) rotate(90deg)}100%{opacity:0;transform:translateY(-10px) rotate(260deg)}}
-.v-coup::before{background:linear-gradient(90deg,transparent,#fff 30%,#c4463f 60%,transparent);box-shadow:0 0 12px #c4463f}
-.t-quake::before{left:50%;top:94%;width:170%;height:30%;border-radius:50%;border:4px solid var(--c);box-shadow:0 0 10px var(--c);animation:skRing .6s ease-out forwards}
-.t-quake i{bottom:2%;width:9px;height:9px;background:var(--c);box-shadow:inset -2px -2px 0 #0006;animation:skRock .6s ease-out forwards}
-.t-quake i:nth-child(1){left:12%}.t-quake i:nth-child(2){left:38%;animation-delay:.05s}.t-quake i:nth-child(3){left:62%;animation-delay:.1s}.t-quake i:nth-child(4){left:84%;animation-delay:.03s}
-@keyframes skRock{0%{transform:translateY(0);opacity:1}45%{transform:translateY(-40px) rotate(120deg);opacity:1}100%{transform:translateY(0) rotate(240deg);opacity:0}}
-.c-melee::before{right:-8%;top:18%;width:34%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#fff 0 20%,var(--c) 40%,transparent 70%);animation:skIn .35s .1s ease-out forwards;mix-blend-mode:screen}
-.c-melee::after{left:-10%;bottom:0;width:120%;height:14%;background:radial-gradient(ellipse,#ffffff55,transparent 70%);animation:skIn .4s forwards}
-/* arrows: a streak flying in, sniper crosshairs, and arrow rain */
-.t-shot::before,.t-snipe::before,.t-shot i:nth-child(1){left:-40%;top:46%;width:90%;height:4px;background:linear-gradient(90deg,transparent,var(--c) 60%,#fff);box-shadow:0 0 6px var(--c);animation:skStreak .32s ease-in forwards}
-.t-shot i:nth-child(1){display:none;top:34%}.v-double i:nth-child(1){display:block;animation-delay:.14s}
-.v-cripple::before{background:linear-gradient(90deg,transparent,#8fcf6f 60%,#fff)}
-@keyframes skStreak{0%{transform:translateX(-120%);opacity:1}85%{transform:translateX(40%);opacity:1}100%{transform:translateX(50%);opacity:0}}
-.t-shot::after,.t-snipe::after{left:50%;top:48%;width:55%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#fff 0 18%,var(--c) 38%,transparent 70%);animation:skBurst .4s .28s ease-out forwards;mix-blend-mode:screen}
-.t-snipe::before{animation-delay:.3s}.t-snipe::after{animation-delay:.58s;width:80%}
-.t-snipe i:nth-child(1){left:50%;top:48%;width:70%;aspect-ratio:1;border-radius:50%;border:3px solid var(--c);box-shadow:0 0 6px var(--c);transform:translate(-50%,-50%);animation:skAim .55s ease-out forwards}
-.t-snipe i:nth-child(2),.t-snipe i:nth-child(3){left:50%;top:48%;background:var(--c);animation:skAimLine .55s ease-out forwards}
-.t-snipe i:nth-child(2){width:100%;height:2px;transform:translate(-50%,-50%)}.t-snipe i:nth-child(3){width:2px;height:100%;transform:translate(-50%,-50%)}
-@keyframes skAim{0%{transform:translate(-50%,-50%) scale(2.2);opacity:0}40%{opacity:1}75%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(-50%,-50%) scale(.8);opacity:0}}
-@keyframes skAimLine{0%{opacity:0}40%{opacity:.9}90%{opacity:.9}100%{opacity:0}}
-.t-rain i{top:-10%;width:3px;height:32%;background:linear-gradient(transparent,var(--c) 60%,#fff);box-shadow:0 0 4px var(--c);animation:skFall .38s ease-in forwards}
-.t-rain i:nth-child(1){left:18%}.t-rain i:nth-child(2){left:42%;animation-delay:.1s}.t-rain i:nth-child(3){left:64%;animation-delay:.05s}.t-rain i:nth-child(4){left:84%;animation-delay:.16s}
-.t-rain::after{left:50%;top:70%;width:100%;height:30%;border-radius:50%;background:radial-gradient(ellipse,var(--c),transparent 70%);animation:skIn .5s .2s forwards;mix-blend-mode:screen}
-@keyframes skFall{0%{transform:translateY(-80px);opacity:1}85%{transform:translateY(60px);opacity:1}100%{transform:translateY(70px);opacity:0}}
-.c-bow::before{right:-14%;top:30%;width:44%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#fff 0 15%,var(--c) 35%,transparent 70%);animation:skIn .4s ease-out forwards;mix-blend-mode:screen}
-.c-bow::after{right:-6%;top:22%;width:6px;height:56%;background:var(--c);box-shadow:0 0 8px var(--c);animation:skIn .35s forwards}
-/* spells: bolts, storms, chain lightning, hexes, life drain */
-.t-blast::before{left:0;top:40%;width:30%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#fff 0 25%,var(--c) 50%,transparent 72%);box-shadow:0 0 14px var(--c);animation:skOrb .34s ease-in forwards}
-@keyframes skOrb{0%{transform:translateX(-260%) scale(.7);opacity:1}100%{transform:translateX(120%) scale(1.1);opacity:1}}
-.t-blast::after,.t-storm::after{left:50%;top:50%;width:90%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#fff 0 15%,var(--c) 38%,transparent 70%);animation:skBurst .55s .3s ease-out forwards;mix-blend-mode:screen}
-.v-combo i:nth-child(1),.t-storm i:nth-child(1){left:50%;top:50%;width:110%;aspect-ratio:1;border-radius:50%;border:3px dashed var(--c);animation:skSpin .8s ease-out forwards}
-.t-storm::before{left:-20%;top:-10%;width:140%;height:120%;background:radial-gradient(ellipse,var(--c),transparent 65%);animation:skIn .7s forwards;mix-blend-mode:screen}
-.t-storm::after{animation-delay:.15s}
-.t-storm i:nth-child(2),.t-storm i:nth-child(3),.t-storm i:nth-child(4){width:8px;height:8px;background:var(--c);box-shadow:0 0 6px var(--c);animation:skRise .7s ease-out forwards}
-.t-storm i:nth-child(2){left:20%;top:70%}.t-storm i:nth-child(3){left:70%;top:60%;animation-delay:.1s}.t-storm i:nth-child(4){left:45%;top:80%;animation-delay:.2s}
-.v-cataclysm::before{background:radial-gradient(ellipse,#fff,var(--c) 30%,transparent 70%)}.v-cataclysm i:nth-child(1){border-width:5px}
-.t-lightning::before{left:30%;top:-40%;width:40%;height:120%;background:var(--c);box-shadow:0 0 12px var(--c);clip-path:polygon(40% 0,70% 0,52% 38%,78% 38%,30% 100%,44% 52%,20% 52%);animation:skFlick .5s steps(1) forwards}
-.t-lightning::after{left:50%;top:50%;width:90%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#fff 0 15%,var(--c) 38%,transparent 70%);animation:skBurst .45s .1s ease-out forwards;mix-blend-mode:screen}
-@keyframes skFlick{0%{opacity:1}20%{opacity:.2}35%{opacity:1}60%{opacity:.4}75%{opacity:1}100%{opacity:0}}
-.t-hex::before{left:50%;top:55%;width:120%;aspect-ratio:1;border-radius:50%;border:3px dashed var(--c);box-shadow:0 0 10px var(--c),inset 0 0 10px var(--c);animation:skSpin .9s ease-out forwards}
-.t-hex::after{inset:0;background:radial-gradient(circle,color-mix(in srgb,var(--c) 60%,transparent),transparent 65%);animation:skIn .8s forwards;mix-blend-mode:screen}
-.t-hex i{width:9px;height:9px;border:2px solid var(--c);transform:rotate(45deg);animation:skRise .8s ease-out forwards}
-.t-hex i:nth-child(1){left:15%;top:60%}.t-hex i:nth-child(2){left:75%;top:50%;animation-delay:.15s}.t-hex i:nth-child(3){left:45%;top:75%;animation-delay:.3s}.t-hex i:nth-child(4){display:none}
-.t-drain::after{inset:0;background:radial-gradient(circle,color-mix(in srgb,var(--c) 70%,transparent),transparent 65%);animation:skIn .8s forwards}
-.t-drain i{width:10px;height:10px;border-radius:50%;background:var(--c);box-shadow:0 0 8px #d9a8ff;animation:skPull .75s ease-in forwards}
-.t-drain i:nth-child(1){left:40%;top:30%}.t-drain i:nth-child(2){left:55%;top:55%;animation-delay:.12s}.t-drain i:nth-child(3){left:35%;top:70%;animation-delay:.24s}.t-drain i:nth-child(4){left:60%;top:40%;animation-delay:.36s}
-@keyframes skPull{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(-110px,-10px) scale(.3);opacity:0}}
-.c-cast::before{left:50%;top:96%;width:130%;height:26%;border-radius:50%;border:3px dashed var(--c);box-shadow:0 0 8px var(--c);transform:translate(-50%,-50%);animation:skIn .7s forwards}
-.c-cast::after{right:-12%;top:-2%;width:44%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#fff 0 15%,var(--c) 38%,transparent 70%);animation:skPulse .7s ease-out forwards;mix-blend-mode:screen}
-@keyframes skPulse{0%{transform:scale(.3);opacity:0}25%{transform:scale(1.2);opacity:1}50%{transform:scale(.9)}75%{transform:scale(1.1);opacity:1}100%{transform:scale(1.4);opacity:0}}
-/* heals and revives: light gathers in the hands, then sparkles rise from whoever is healed */
-.c-heal::after{left:50%;top:55%;width:70%;aspect-ratio:1;margin:-35% 0 0 -35%;border-radius:50%;background:radial-gradient(circle,#fff 0 12%,#ffe9a0 28%,var(--c) 45%,transparent 70%);animation:skPulse .85s ease-out forwards;mix-blend-mode:screen}
-.c-heal::before{left:25%;top:-30%;width:50%;height:130%;background:linear-gradient(to top,transparent,#fff5c8aa 40%,transparent);animation:skIn .8s forwards;mix-blend-mode:screen}
-.t-heal::before{inset:-10%;background:radial-gradient(circle,color-mix(in srgb,var(--c) 70%,transparent),transparent 65%);animation:skIn .9s forwards;mix-blend-mode:screen}
-.t-heal i{width:8px;height:8px;background:#eaffd8;box-shadow:0 0 6px var(--c);clip-path:polygon(38% 0,62% 0,62% 38%,100% 38%,100% 62%,62% 62%,62% 100%,38% 100%,38% 62%,0 62%,0 38%,38% 38%);animation:skRise .9s ease-out forwards}
-.t-heal i:nth-child(1){left:18%;top:70%}.t-heal i:nth-child(2){left:62%;top:78%;animation-delay:.12s}.t-heal i:nth-child(3){left:40%;top:60%;animation-delay:.24s}.t-heal i:nth-child(4){left:78%;top:55%;animation-delay:.36s}
-.v-revive.t-heal::before,.v-resurrect.t-heal::before{background:radial-gradient(circle,#fff8,#ffe9a0aa 30%,transparent 65%)}
-/* guards: a shimmering dome over the protected heroes */
-.c-shield::before,.t-shield::before,.t-shieldgold::before{left:-14%;right:-14%;top:-10%;bottom:-4%;border-radius:50% 50% 16% 16%;border:3px solid var(--c);background:color-mix(in srgb,var(--c) 18%,transparent);box-shadow:0 0 12px var(--c),inset 0 0 14px var(--c);animation:skDome .9s ease-out forwards}
-@keyframes skDome{0%{transform:scale(.3);opacity:0}30%{transform:scale(1.06);opacity:1}45%{transform:scale(1)}80%{opacity:.9}100%{opacity:0}}
-/* War Cry: rings roar out and allies flash red */
-.c-shout i:nth-child(1),.c-shout i:nth-child(2){left:50%;top:40%;width:80%;aspect-ratio:1;border-radius:50%;border:4px solid var(--c);animation:skRing .6s ease-out forwards}
-.c-shout i:nth-child(2){animation-delay:.18s}
-.t-shout::before{inset:-6%;background:radial-gradient(circle,color-mix(in srgb,var(--c) 60%,transparent),transparent 65%);animation:skIn .7s .1s forwards;mix-blend-mode:screen}
-/* self buffs: a colored aura swirls up around the hero */
-.c-aura::before{left:50%;top:55%;width:120%;aspect-ratio:1;border-radius:50%;border:3px solid var(--c);box-shadow:0 0 10px var(--c);animation:skSpin .8s ease-out forwards}
-.c-aura::after{inset:-8%;background:radial-gradient(circle,color-mix(in srgb,var(--c) 50%,transparent),transparent 65%);animation:skIn .8s forwards;mix-blend-mode:screen}
-.c-aura i{width:7px;height:7px;background:var(--c);box-shadow:0 0 6px var(--c);animation:skRise .8s ease-out forwards}
-.c-aura i:nth-child(1){left:15%;top:75%}.c-aura i:nth-child(2){left:70%;top:80%;animation-delay:.12s}.c-aura i:nth-child(3){left:40%;top:65%;animation-delay:.24s}.c-aura i:nth-child(4){left:85%;top:60%;animation-delay:.3s}
-.side.foes .skfx.t-shot,.side.foes .skfx.t-snipe,.side.foes .skfx.t-blast{transform:none}
-body.nomotion .skfx{display:none}
-@media (prefers-reduced-motion:reduce){.skfx{display:none}.lunge-big,.castpose,.mark.crit.fresh{animation:none}}
+.lands{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}.land{font:inherit;color:var(--bone);display:flex;gap:8px;align-items:center;padding:6px 10px;border:0;cursor:pointer;background:var(--stone);box-shadow:inset 0 0 0 2px var(--edge);text-align:left}.land span{display:flex;flex-direction:column;line-height:1.05}.land small{color:var(--c)}.land.cur{box-shadow:inset 0 0 0 2px var(--c);background:#241c2c}
+.stranger p{margin:6px 0 2px}.stranger ul{margin:0 0 4px 20px;padding:0}.stranger li{font-size:19px;color:var(--ash)}
+.spot.mystery{cursor:default}.spot.mystery .plaque{color:var(--ash)}
+.scrapline{flex-basis:100%;display:flex;gap:4px 10px;flex-wrap:wrap;justify-content:flex-end;font-size:17px;color:var(--ash);cursor:help}
+.scrapline .matchip{display:inline-flex;align-items:center;gap:3px}.scrapline b{color:var(--bone)}.scrapline small{font-size:15px}
+.runhdr .scrapline{margin-top:4px}
+@keyframes guidepulse{0%,100%{box-shadow:0 0 0 2px var(--gold),0 0 6px 2px #e3b34166}50%{box-shadow:0 0 0 3px #ffe08a,0 0 18px 6px #e3b341aa}}
+.guide{animation:guidepulse 1.1s ease-in-out infinite;position:relative;z-index:2}
+.spot.guide{border-radius:6px}.spot.guide .plaque{color:#ffe08a;box-shadow:0 0 0 2px var(--gold)}
+.guidehint{color:#ffe08a;font-weight:bold;margin:2px 0;animation:govfade .6s ease both}
+@media (prefers-reduced-motion:reduce){.guide{animation:none;box-shadow:0 0 0 3px var(--gold)}}
+.top:has(> .scrapline){padding-bottom:24px}.top>.scrapline{position:absolute;right:0;bottom:0;left:0}
+@media (max-width:700px){.top:has(> .scrapline){padding-bottom:0;flex-wrap:wrap}.top>.scrapline{position:static;flex:1 0 100%}}
+.coach{padding:10px 12px;margin:6px 0 10px;background:#f1e6cf;color:#241a14;box-shadow:0 0 0 2px #060509,4px 4px 0 #000a}
+.coach .who{font-weight:bold;color:#7a3b1c;font-size:17px}.coach p{margin:0;font-size:20px;line-height:1.2}.coach .btn{color:var(--bone)}
+.coach .tk-good{color:#2f7a1e}.coach .tk-neutral{color:#8a6a10}.coach .tk-bad{color:#a8322a}.coach .hpc{color:#a8322a}.coach .mpc{color:#2a4ea8}
+.hpc{color:#e0736c}.mpc{color:#7a9ae8}
+.card.tut-card{animation:guidepulse 1.1s ease-in-out infinite}
+.tut-top [data-tut=top],.tut-vit [data-tut=vit],.tut-traits [data-tut=traits],.tut-skills [data-tut=skills],.tut-xp [data-tut=xp],.tut-stats [data-tut=stats],.tut-el [data-tut=el],.tut-go [data-tut=go]{animation:guidepulse 1.1s ease-in-out infinite;position:relative;z-index:2;border-radius:2px}
+.tut-go [data-tut=go] .btn{animation:guidepulse 1.1s ease-in-out infinite}
+.bup{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:3px;text-align:right;padding:6px 10px;background:#171320;box-shadow:inset 0 0 0 2px var(--gold);max-width:48%;cursor:help}
+.bup .bup-eff{font-size:17px;color:var(--ash)}.bup .needs{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end}
+@media (max-width:640px){.bhead{flex-wrap:wrap}.bup{max-width:none;flex:1 0 100%;align-items:stretch;text-align:left}}
+
+/* ===== landscape layouts: Computer (wide) and Phone (side) ===== */
+.rotate{display:none}
+@media (orientation:portrait) and (max-width:700px){
+  .rotate{display:flex;position:fixed;inset:0;z-index:200;background:var(--void);flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:20px}
+  .rotate p{font-size:28px;color:var(--gold)}.rot-ph{width:46px;height:80px;border:4px solid var(--bone);border-radius:8px;animation:rotph 2s ease-in-out infinite}
+  @keyframes rotph{0%,20%{transform:rotate(0)}50%,80%{transform:rotate(90deg)}100%{transform:rotate(90deg)}}
+}
+/* battle: fighters on top, then actions (left) beside a tall battle log (right) */
+body .bscreen{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(240px,34%)!important;
+  grid-template-rows:auto auto clamp(200px,40dvh,440px) auto minmax(0,1fr)!important;
+  grid-template-areas:"hdr hdr" "turn turn" "stage stage" "roster roster" "act log"!important}
+body .bscreen .actbar{grid-area:act;overflow-y:auto;min-height:0}
+body .bscreen .blogpanel{grid-area:log;height:auto!important;min-height:0;overflow-y:auto;display:block;cursor:default;white-space:normal;padding:4px 8px;font-size:17px;line-height:1.2}
+.blogpanel .blogtitle{display:block;position:sticky;top:-4px;background:#0f0c13;color:var(--gold);font-size:16px;letter-spacing:1px;text-transform:uppercase;padding:2px 0}
+.blogpanel p{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;padding:1px 0;border-bottom:1px solid #1f1a26}
+.blogpanel p:nth-child(2){color:#fff3dc}.blogpanel p:nth-child(n+8){opacity:.7}
+body .bscreen .skgrid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:4px}body .bscreen .skgrid .btn{min-width:0;width:100%}
+body .bscreen .skgrid .sub2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:normal!important}
+body .bscreen .skgrid .btn{padding:2px 6px 4px;font-size:18px}
+body .bscreen .skgrid .sub2{font-size:15px}
+/* phone (landscape): shorter stage, the unit bars live inside it, everything tighter */
+body.lay-side .bscreen{grid-template-rows:auto auto clamp(120px,44dvh,260px) minmax(0,1fr)!important;grid-template-areas:"hdr hdr" "turn turn" "stage stage" "act log"!important;grid-template-columns:minmax(0,1fr) minmax(170px,32%)!important;gap:4px!important}
+body.lay-side .bscreen .roster{display:none!important}
+body.lay-side .bscreen .skgrid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+body.lay-side .bscreen .skgrid .btn{font-size:16px}body.lay-side .bscreen .skgrid .sub2{font-size:13px}
+body.lay-side .bscreen .blogpanel{font-size:14px}
+body.lay-side .bscreen .acthead .tinfo{display:none}
+/* damage, heals and crits are drawn over the fighter so they never fall off the top of the stage */
+.bscreen .marks{bottom:auto!important;top:4%;flex-wrap:wrap;justify-content:center;max-width:180%;row-gap:2px}
+.bscreen .mark{font-size:22px}.bscreen .mark.crit{font-size:28px;color:#ffd35a;box-shadow:0 0 0 2px var(--gold);animation:markin .35s steps(3),critglow 1s ease-in-out 2}
+@keyframes critglow{50%{box-shadow:0 0 0 2px #fff3a0,0 0 12px 3px #e3b341}}
+body.lay-side .bscreen .mark{font-size:17px}body.lay-side .bscreen .mark.crit{font-size:21px}
+
+/* Computer: use the whole landscape window */
+body.dev-pc .wrap{max-width:min(1680px,100%)}
+body.dev-pc .townwrap{grid-template-columns:minmax(0,1fr) minmax(320px,380px)}
+body.dev-pc .runlay{grid-template-columns:minmax(0,1fr) 380px}
+body.dev-pc .iso{width:min(100%,calc((100dvh - 210px / var(--z,1)) * 326 / 214))}
+.linkbtn{white-space:nowrap}
+/* Phone (landscape): a slim header, the town and map sized to the short screen */
+body.dev-phone{padding-inline:8px;padding-block:6px 20px}
+body.dev-phone .wrap{max-width:none;gap:6px}
+body.dev-phone .top{flex-wrap:nowrap;gap:6px}
+body.dev-phone .top .logo{font-size:18px}body.dev-phone .top .logo small,body.dev-phone .top .sub{font-size:15px}
+body.dev-phone .top .toplogo{width:26px;height:26px}
+body.dev-phone .top .chip{font-size:16px;padding:0 5px}body.dev-phone .top .chip .lbl{display:none}
+body.dev-phone .top .res{flex-wrap:nowrap;gap:4px}body.dev-phone .top .btn.small{font-size:16px;padding:1px 6px 3px}
+body.dev-phone .govface img{width:26px;height:39px}
+body.dev-phone .townwrap{grid-template-columns:minmax(0,1fr) minmax(230px,34%);gap:6px}
+body.dev-phone .hrail{max-height:calc(100dvh / var(--z,1) - 70px)}
+body.dev-phone .panel{padding:6px 8px}
+body.dev-phone .iso{width:min(100%,calc((100dvh / var(--z,1) - 150px) * 326 / 214));min-width:0}
+body.dev-phone .nextstep{padding:4px 10px}body.dev-phone .nextstep b{font-size:18px}
+body.dev-phone .runlay{grid-template-columns:minmax(0,1fr) minmax(230px,34%);gap:6px}
+body.dev-phone .partycol{max-height:calc(100dvh / var(--z,1) - 90px)}
+body.dev-phone.onrun .top{display:none}
+body.dev-phone .runhdr{padding:4px 8px}body.dev-phone .runhdr h2{font-size:18px}
+body.dev-phone footer{display:none!important}
 </style>
 
 </head>
@@ -1402,9 +1380,17 @@ function drawGate(R,ox,oy,gx,gy,lights){
 // Buildings open over the first weeks: the Barracks, Town Hall and Gate are ready on week 1.
 // Buildings under construction are finished with scrap your parties bring home (any kind counts).
 // The Barracks, Town Hall and Gate are ready from the start.
-const OPEN_WEEK={bank:.5,smith:.5,farm:3,witch:4};
+const OPEN_WEEK={bank:1,smith:1,farm:4,witch:5};
 const buildCost=k=>Math.round(OPEN_WEEK[k]*govCut('engineer',.25,.4)*10)/10;
 const bldOpen=k=>!state||!OPEN_WEEK[k]||!!(state.built&&state.built[k]);
+// New towns hide what each building site will be: the Bank and Weaponsmith show once a mage comes home alive,
+// the Farm and Witch once the first Short final boss falls. Until then they read "?".
+const bldKnown=k=>!state||!OPEN_WEEK[k]||bldOpen(k)||!state.hideBld||!!(state.reveal&&state.reveal[k]);
+// What the first-time guide points at: the Barracks until someone is recruited, then the Gate.
+// Order: recruit, spend the new hero's points, then head to the Gate.
+const guidePts=()=>state&&state.guide&&!state.run&&state.heroes.some(h=>h.points>0);
+const guideAt=()=>state&&state.guide&&!state.run?(!state.heroes.length||guidePts()?'heroes':'adventure'):null;
+const canBuild=k=>OPEN_WEEK[k]&&!bldOpen(k)&&bldKnown(k)&&scrapTotal()+1e-9>=buildCost(k);
 const scrapTotal=()=>SCRAPS.reduce((a,k)=>a+(state.mats[k]||0),0);
 // Pay a scrap cost from whichever piles are biggest.
 function spendScrap(n){let left=n;for(let g=0;g<40&&left>1e-9;g++){const k=SCRAPS.filter(k=>(state.mats[k]||0)>0).sort((a,b)=>state.mats[b]-state.mats[a])[0];if(!k)break;const t=Math.min(left,state.mats[k],Math.max(.1,Math.round(left*10/2)/10));addMat(state.mats,k,-t);left=Math.round((left-t)*10)/10}}
@@ -1606,7 +1592,11 @@ const hasTier=(h,t)=>h.skills.some(id=>SKILLS[id]&&SKILLS[id].tier===t);
 // The first skill tier this hero has reached but not chosen yet, or 0.
 const pendingTier=h=>[1,2,3].find(t=>h.level>=SKILL_LV[t]&&!hasTier(h,t))||0;
 // At levels 8, 23 and 33 a hero learns one of their class's two skills for that level, picked at random.
-const learnOpts=(h,t)=>tierOpts(h.cls,t).filter(id=>!(id==='imbue2'&&h.skills.includes('imbue')));
+const learnOpts=(h,t)=>tierOpts(h.cls,t).filter(id=>!(id==='imbue2'&&h.skills.includes('imbue'))&&!(id==='imbue'&&h.skills.includes('imbue2')));
+// The Witch can reroll a learned skill. 15% of the time fate lands on the same skill again (less with Luck).
+const REROLL_COST={1:300,2:1500,3:4000};
+const skillRerollCost=(h,t)=>REROLL_COST[t]*Math.pow(2,((h.rerolls||{})[t])||0);
+const rerollSame=h=>Math.max(5,15-stat(h,'lck')*.4);
 function autoLearn(h){const got=[];let t;while((t=pendingTier(h))){const id=pick(learnOpts(h,t));h.skills.push(id);got.push(id)}return got}
 const skillIco=id=>{const k=SKILLS[id];if(['mend','wind','circle','revive','resurrect'].includes(id))return ico('heart');if(['wall','taunt','bulwark','undying'].includes(id))return ico('shield','#8fa8c8');if(id==='feather')return ico('eye','#cfc6b0');if(id==='imbue'||id==='imbue2')return ico('bolt','#e3b341');if(id==='sniper')return ico('star','#e3b341');if(id==='warcry')return ico('fist','#e3b341');if(id==='hex')return ico('crescent','#b56fe3');
   if(k.el&&k.el!=='weapon'&&k.el!=='attune')return elIco(k.el);return ico(({warrior:'sword',archer:'bow',mage:'staff'})[k.cls],CLASSES[k.cls].tint)};
@@ -1667,7 +1657,7 @@ const NODE={
   king:{s:'King',n:'The Unlit King',icon:'king',d:'He has found you. There is no other path.'},
 };
 const MUT={
-  regen:{n:'Regenerating',d:'heals 8% each turn'},thorns:{n:'Thorned',d:'reflects 15% of damage'},
+  regen:{n:'Regenerating',d:'heals 5% each turn'},thorns:{n:'Thorned',d:'reflects 15% of damage'},
   frenzy:{n:'Frenzied',d:'+35% attack'},warded:{n:'Warded',d:'+25% all resistances'},colossal:{n:'Colossal',d:'+60% health'},
 };
 
@@ -1946,7 +1936,7 @@ const BUILD={
   potency:{name:'Potency',at:'witch',icon:['flask','#b83a3a'],max:3,cost:L=>[300,900,2400][L],eff:L=>L?`Every healing potion heals ${Math.round(HEAL_UP[L]*100)}% more (Small ${(35*(1+HEAL_UP[L])).toFixed(1)}%, Medium ${(55*(1+HEAL_UP[L])).toFixed(1)}%, Large ${(75*(1+HEAL_UP[L])).toFixed(1)}%)`:'Healing potions at normal strength'},
   feed:{name:'Better Feed',at:'farm',icon:['wheat',null],max:3,cost:L=>[250,750,2000][L],eff:L=>L?`All farm food heals ${Math.round(HEAL_UP[L]*100)}% more (Beef ${(28*(1+HEAL_UP[L])).toFixed(1)}% of max health)`:'Farm food at normal strength'},
   // Party size is the game's biggest investment: 2 heroes mid-game, 3 heroes late-game.
-  war:{name:'War Table',at:'hall',icon:['sword',null],max:2,major:true,cost:L=>[4000,20000][L],eff:L=>L?`Parties of up to ${1+L} heroes`:'Solo adventures only'},
+  war:{name:'War Table',at:'hall',icon:['sword',null],max:2,major:true,cost:L=>[3000,20000][L],eff:L=>L?`Parties of up to ${1+L} heroes`:'Solo adventures only'},
 };
 const ELIXIR_V=[3,4,6,8,10];
 const slots=()=>3+2*(state.b.barracks||1);
@@ -1976,7 +1966,8 @@ function autoAssign(h){
 }
 function makeHero(force){
   const cls=force||pick(Object.keys(CLASSES)),C=CLASSES[cls],min=2+state.b.academy;
-  const h={id:uid(),name:pick(NAMES),cls,level:1,xp:0,points:0,str:0,per:0,end:0,cha:0,int:0,agi:0,lck:0,pool:0,dice:true,
+  const used=new Set([...(state.heroes||[]),...(state.candidates||[]),...(state.graveyard||[]),...(state.lastRecruits||[]).map(n=>({name:n}))].map(x=>x.name)),free=NAMES.filter(n=>!used.has(n));
+  const h={id:uid(),name:pick(free.length?free:NAMES),cls,level:1,xp:0,points:0,str:0,per:0,end:0,cha:0,int:0,agi:0,lck:0,pool:0,dice:true,
     bonusHp:0,bonusMp:0,res:{},gear:{},tonics:0,elixir:null,draught:null,runs:0,kills:0,hp:0,mp:0,traits:[],
     skills:classSkills(cls).sort(()=>Math.random()-.5).slice(0,2),affinity:pick(ELEMENTS),innate:{}};
   // Everyone is born a little different: 2-3 elements they shrug off (or suffer from), and archers and mages
@@ -1996,9 +1987,9 @@ function makeHero(force){
 // then a mage once an archer does. After the first mage is recruited, anyone can turn up.
 const UNLOCK_CLS=['warrior','archer','mage'];
 const recruitCls=()=>state.unlock!=null&&state.unlock<3?UNLOCK_CLS[state.unlock]:null;
-function rollCandidates(){state.candidates=[];for(let i=0;i<recruitCount();i++)state.candidates.push(makeHero(recruitCls()))}
+function rollCandidates(){state.lastRecruits=(state.candidates||[]).map(c=>c.name);state.candidates=[];for(let i=0;i<recruitCount();i++)state.candidates.push(makeHero(recruitCls()))}
 function newGame(){
-  state={v:1,unlock:0,week:1,gold:150,scrolls:1,b:{smith:1,alch:1,academy:1,barracks:1,bank:1,pack:1,bag:1,war:0},bossKills:0,won:null,items:{potion:2},mats:{},farm:{lvl:0},farm2:true,mat2:true,still:0,ration3:true,built:{},built2:true,heroes:[],candidates:[],bank:[],graveyard:[],
+  state={v:1,unlock:0,hideBld:true,reveal:{},guide:true,tutorial:true,week:1,gold:150,scrolls:1,b:{smith:1,alch:1,academy:1,barracks:1,bank:1,pack:1,bag:1,war:0},bossKills:0,won:null,items:{potion:2},mats:{},farm:{lvl:0},farm2:true,mat2:true,still:0,ration3:true,built:{},built2:true,heroes:[],candidates:[],bank:[],graveyard:[],
     screen:'town',tab:'town',sel:{len:'short',carry:true},run:null,summary:null};
   rollCandidates();
   state.govSetup={step:'intro',scene:0,q:0,ans:[],d:govDefault()};
@@ -2042,6 +2033,15 @@ function gainXp(h,x,lines){
 /* ---------- run ---------- */
 const partySize=()=>1+(state.b.war||0);
 const DESCENT_ORDER=['tundra','island','sky','forest','badlands'];
+// Lands the party can choose at the Gate. The Abyss only lies on the Dark Side.
+const LAND_PICK=['tundra','island','sky','forest','badlands'];
+// Badges: beat a length's final boss and come home alive to earn its badge. Each badge opens the next length
+// for any party that includes the badge holder.
+const BADGE_RANK={short:1,medium:2,long:3,expedition:4},BADGE_N=['','Short','Medium','Long','Expedition'],BADGE_COL=['','#b08a5a','#c8c8d0','#e3b341','#b56fe3'];
+const BADGE_NEED={short:0,medium:1,long:2,expedition:3};
+const partyBadge=ids=>Math.max(0,...(ids||[]).map(heroById).filter(Boolean).map(h=>h.badge||0));
+const lenOpen=(k,ids)=>BADGE_NEED[k]==null||partyBadge(ids)>=BADGE_NEED[k];
+const badgeIco=(n,sc)=>n?`<span class="badge" style="--c:${BADGE_COL[n]}" data-tip="${esc(BADGE_N[n]+' badge: beat a '+BADGE_N[n]+' adventure and came home alive.')}">${ico('star',BADGE_COL[n],sc||2)}</span>`:'';
 // The Dark Side (final map): 100 stages through every biome, then the Abyss, where the King can appear at any stage.
 const MOON_LVL=40;
 const FINAL={stages:100,base:6,perStage:.32,kingStep:.12,kingHp:30,kingAtk:2.2,bossesNeeded:5};
@@ -2111,7 +2111,7 @@ const MAP_COLS=7,MAP_AHEAD=7,MAP_SHOW=5;
 //  1-2: every choice in front of you is fogged.   3-8: some choices may be fogged.   9+: every choice is clear.
 //  Lookahead: 9 shows 1 stage past your choices, then +1 stage per 6 more, up to 6.
 //  6+: enemy health numbers and damage numbers.   10+: enemy intents.
-const PER_NUMBERS=6,PER_INTENT=10;
+const PER_NUMBERS=6,PER_INTENT=6;
 // Harder lands expect a sharper, more persuasive party: the baseline rises with adventure length.
 const LEN_BASE={short:{per:0,cha:8,lck:6},medium:{per:6,cha:14,lck:12},long:{per:12,cha:20,lck:18},expedition:{per:20,cha:28,lck:26},descent:{per:24,cha:32,lck:30}};
 const curLen=()=>state.run?state.run.length:state.sel.len;
@@ -2237,6 +2237,7 @@ function mapView(){
     <div class="map" style="height:${H}px"><svg class="mlines" viewBox="0 0 700 ${H}" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>${labels}${nodes}</div>`;
 }
 function startRun(){
+  if(state.guide)state.guide=false; // the first-trip guide ends once the first party sets out
   const len=state.sel.len,final=len==='descent';
   const ids=(state.sel.party||[]).filter(id=>heroById(id)).slice(0,partySize());
   if(!ids.length||!LENGTHS[len])return;
@@ -2246,7 +2247,7 @@ function startRun(){
   for(const id of ids){const h=heroById(id);h.hp=maxHp(h);h.mp=maxMp(h)}
   let scrolls=0;if(state.sel.carry&&state.scrolls>0){state.scrolls--;scrolls=1}
   let biome='tundra';
-  if(!final){const pool={};for(const k in BIOMES)if(k!=='abyss'||state.week>=6)pool[k]=k==='abyss'?1:5;biome=weighted(pool)}
+  if(!final)biome=LAND_PICK.includes(state.sel.biome)?state.sel.biome:pick(LAND_PICK);
   const total=final?null:ri(L.min,L.max),bossAt=[];
   if(!final){let k=ri(12,17);while(k<total-2){bossAt.push(k);k+=ri(12,18)}}
   state.run={id:uid(),chestAt:[],party:ids,length:len,final,total,bossAt,stage:1,biome,gold:0,loot:[],scrolls,battle:null,nodes:[],event:null,
@@ -2256,8 +2257,8 @@ function startRun(){
   for(const [id,n] of Object.entries(packPlan()))if(n>0){state.items[id]-=n;state.run.bag[id]=(state.run.bag[id]||0)+n}
   state.sel.pack=null;
   // Free rations from the Farm and the Still ride along on every adventure. They don't take pack space, and any left over spoil when the party gets home.
-  {const r=state.run,F=state.farm&&state.farm.lvl?farmStep(state.farm.lvl):null,S=state.still?stillStep(state.still):null;r.free={};
-    for(const [id,q0] of [[F&&F.food,F&&F.q],[S&&S.out,S&&S.q]]){const q=q0?q0+govExtra('farmer'):0;if(!id||!q)continue;r.bag[id]=(r.bag[id]||0)+q;r.free[id]=(r.free[id]||0)+q}}
+  {const r=state.run;r.free={};
+    for(const [id,q0] of freeSupplies()){const q=q0?q0+govExtra('farmer'):0;if(!id||!q)continue;r.bag[id]=(r.bag[id]||0)+q;r.free[id]=(r.free[id]||0)+q}}
   state.run.event=biomeIntro();
   if(final)state.run.event.text=`<b class="gold">You step onto the Dark Side.</b> Every 20 stages the path sinks into a new land. Past stage ${FINAL.stages} lies the Abyss, where the Unlit King waits.<br><br>`+state.run.event.text;
   arrive();
@@ -2303,7 +2304,7 @@ const FOE_SKILLS={
   sweep:{n:'Sweep',d:'Hits every hero for 60% damage.'},
   curse:{n:'Wither',d:'The hero deals 25% less damage for their next 2 turns.'},
   web:{n:'Web',d:'A light hit that pushes the hero’s next turn back.'},
-  ooze:{n:'Reform',d:'Heals 12% of its max health when hurt.'},
+  ooze:{n:'Reform',d:'Heals 8% of its max health when hurt.'},
 };
 const SHAPE_SKILLS={beast:['rend','howl'],slime:['ooze','harden'],wraith:['drain','curse'],brute:['sweep','harden'],bat:['drain','rend'],spider:['web','rend'],serpent:['rend','sweep'],skeleton:['harden','sweep'],boss:['sweep','howl'],mimic:['drain','harden']};
 // Easy monsters have no skills, Medium learn one, Hard learn two. Bosses and wardens always know at least one; the King knows three.
@@ -2507,8 +2508,16 @@ const heroEva=h=>heroBuff(h,'eva')?Math.max(90,evasion(h)):evasion(h);
 const heroDef=h=>{const b=state.run.battle,x=heroBuff(h,'def');return Math.max(x?x.v:0,b.bulwark&&b.bulwark.n>0?50:0)};
 function setBuff(h,k,n,v){const b=state.run.battle;b.hb=b.hb||{};const x=b.hb[h.id]=b.hb[h.id]||{};x[k]={n,v}}
 const BUFF_N={def:'guard',eva:'Featherweight',crit:'Sniper',undying:'Undying Vow'};
+// Food and mana items restore a slice at the start of each of the hero's next 3 turns.
+function regenAmt(h,x,n){const mx=x.k==='hp'?maxHp(h):maxMp(h);return Math.max(1,Math.round(mx*x.p*n*(x.k==='hp'?healMult(h):1)))}
+function tickRegen(h,b){if(!h.regen||!h.regen.length||h.hp<=0)return;let hp=0,mp=0;
+  for(const x of h.regen){const v=regenAmt(h,x,1);if(x.k==='hp'){h.hp=Math.min(maxHp(h),h.hp+v);hp+=v}else{h.mp=Math.min(maxMp(h),h.mp+v);mp+=v}x.n--}
+  h.regen=h.regen.filter(x=>x.n>0);if(hp&&b)b.pops.push({s:'h',hid:h.id,t:'+'+hp});if(hp||mp)b&&blog(`${esc(h.name)} recovers${hp?` ${hp} HP`:''}${hp&&mp?' and':''}${mp?` ${mp} MP`:''}.`)}
+function flushRegen(lines){for(const h of partyAll()){if(!h.regen||!h.regen.length)continue;if(h.hp>0){let hp=0,mp=0;for(const x of h.regen){const v=regenAmt(h,x,x.n);if(x.k==='hp'){h.hp=Math.min(maxHp(h),h.hp+v);hp+=v}else{h.mp=Math.min(maxMp(h),h.mp+v);mp+=v}}
+  if(lines&&(hp||mp))lines.push(`<span class="muted">${esc(h.name)} finishes recovering: ${hp?`+${hp} HP`:''}${hp&&mp?', ':''}${mp?`+${mp} MP`:''}</span>`)}h.regen=[]}}
 function startHeroTurn(h){
   const b=state.run.battle;
+  tickRegen(h,b);
   if(b.guard[h.id]){b.guard[h.id]=false;if(b.taunt===h.id&&!b.tauntN)b.taunt=null}
   if(b.tauntN&&b.taunt===h.id){b.tauntN--;if(b.tauntN<=0){b.taunt=null;b.tauntN=0;blog(`Enemies are free to choose their targets again.`)}}
   if(b.bulwark&&b.bulwark.by===h.id){b.bulwark.n--;if(b.bulwark.n<=0){b.bulwark=null;blog('The Bulwark falls.')}}
@@ -2522,7 +2531,7 @@ function startHeroTurn(h){
   if(mg>0)h.mp=Math.min(maxMp(h),h.mp+mg);
 }
 function currentActor(){const b=state.run.battle,h=b&&!b.busy&&b.cur&&heroById(b.cur);return h&&h.hp>0?h:null}
-const attuned=h=>{const b=state.run&&state.run.battle,w=h.gear.weapon&&h.gear.weapon.el;return (b&&b.attune[h.id])||(w&&w!=='dark'?w:h.affinity||'fire')};
+const attuned=h=>{const b=state.run&&state.run.battle,w=h.gear.weapon&&h.gear.weapon.el;return (b&&b.attune[h.id])||(h.cls==='mage'&&h.attuneEl)||(w&&w!=='dark'?w:h.affinity||'fire')};
 function atkEl(h,spec){
   // Warriors fight with steel alone. Archers can borrow an element while Elemental Arrows lasts.
   if(h.cls==='warrior')return 'physical';
@@ -2541,18 +2550,16 @@ const powerScore=h=>statMix(h,{str:.4,agi:.2,int:.2,per:.2});
 const aimScore=h=>statMix(h,{per:.45,agi:.3,int:.15,str:.1});
 const ATK_KINDS={
   normal:{n:'Attack',d:'A standard blow.'},
-  power:{n:'Power Attack',d:'A last-resort haymaker: much heavier damage, more crits and bigger crits, but it misses far more often. Better power stats (mostly the main attribute plus STR) hit harder and miss less.'},
-  aim:{n:'Accurate Attack',d:'Almost never misses, but hits softer and crits less than a normal attack. Better precision stats (mostly the main attribute plus PER and AGI) soften the drawbacks a little.'},
+  power:{n:'Power Attack',d:'Heavier damage and crits, but easier to dodge. Scales with your power mix (mostly the main attribute plus STR).'},
+  aim:{n:'Accurate Attack',d:'Rarely misses and finds weak spots, but hits a little softer. Scales with your precision mix (mostly the main attribute plus PER and AGI).'},
 };
 // Skills cost mana, so they are built to beat every basic attack: higher multipliers, better accuracy,
 // and they scale with the same power mix (+2% per point) that Power Attack uses.
 const skillMult=(h,sk)=>(sk.mult||0)*(1+tr(h,'skillDmg')/100)*(1+powerScore(h)*.02);
 function atkOpts(h,kind){
   const A=ATTACK[h.cls],o={...A,el:atkEl(h,A.el),label:'attacks'};
-  // Power: much more damage (1.6x, +1% per power point), +10% crit chance and +40% crit damage (more with power), but a big accuracy penalty (-45, shrinking to -32 with power). A gamble, not the new default.
-  if(kind==='power'){const P=powerScore(h);return {...o,mult:A.mult*(1.6+P*.01),acc:A.acc-Math.max(32,45-P*.5),crit:(A.crit||0)+10,cdmg:Math.round(40+P*2),label:'power-attacks'}}
-  // Accurate: close to a sure hit (+30 accuracy, more with precision), but always softer than a normal attack (70-85% damage) and half the crit chance (up to 70% of normal).
-  if(kind==='aim'){const Q=aimScore(h);return {...o,mult:A.mult*clamp(.7+Q*.006,.7,.85),acc:A.acc+30+Q*1.2,critMul:clamp(.5+Q*.01,.5,.7),label:'takes careful aim at'}}
+  if(kind==='power'){const P=powerScore(h);return {...o,mult:A.mult*(1.25+P*.02)*1.3,acc:A.acc-Math.max(8,32-P*1.2),crit:(A.crit||0)-3,cdmg:Math.round(10+P*3),label:'power-attacks'}}
+  if(kind==='aim'){const Q=aimScore(h);return {...o,mult:A.mult*clamp(.72+Q*.008,.72,.95),acc:A.acc+12+Q*1.2,critMul:clamp(.6+Q*.035,.6,1.4),label:'takes careful aim at'}}
   return o;
 }
 function heroAction(act,allyId){
@@ -2580,16 +2587,11 @@ function heroAction(act,allyId){
     if(sk.tgt==='dead'){ally=heroById(allyId);if(!ally||ally.hp>0||!state.run.party.includes(ally.id))ally=partyAll().find(x=>x.hp<=0);if(!ally)return}
     h.mp-=cost;
     const o={...sk,mult:skillMult(h,sk),el:atkEl(h,sk.el),label:`${h.cls==='mage'?'casts':'uses'} ${sk.n} on`};
-    // Remember what was cast and on whom, so the stage can play the skill's animation.
-    const F=b.fx.sk={id:act,h:h.id,c:o.el&&o.el!=='physical'&&EL_COL[o.el]?EL_COL[o.el]:null,tg:[],al:ally?[ally.id]:sk.tgt==='party'?partyAll().map(x=>x.id):sk.tgt==='self'?[h.id]:[]};
     if(sk.tgt==='all'){o.aoe=true;for(const e of aliveFoes())for(let i=0;i<(sk.hits||1);i++)if(e.hp>0){const d=hitEnemy(h,e,o);afterHit(h,e,act,d)}}
     else if(sk.tgt==='rand'){for(let i=0;i<(sk.hits||1);i++){const t=pick(aliveFoes());if(!t)break;const d=hitEnemy(h,t,o);afterHit(h,t,act,d)}}
     else if(sk.chain){let t=tgt,m=1;const done=[];for(let i=0;i<sk.chain&&t;i++){const d=hitEnemy(h,t,{...o,mult:o.mult*m});afterHit(h,t,act,d);done.push(t);m*=.75;t=aliveFoes().find(x=>!done.includes(x))}}
     else if(sk.tgt==='enemy'&&sk.mult){for(let i=0;i<(sk.hits||1);i++){const t=i?fixTarget():tgt;if(t&&t.hp>0){const d=hitEnemy(h,t,o);afterHit(h,t,act,d)}}}
     else applyUtility(h,act,tgt,ally);
-    if(!F.tg.length&&sk.tgt==='enemy'&&tgt)F.tg.push(b.enemies.indexOf(tgt));
-    if(act==='imbue'||act==='imbue2')F.c=EL_COL[attuned(h)]||F.c;
-    if(act==='drain')F.al=[h.id];
   }
   if(h.hp>0&&(SKILLS[act]||(isAtk&&h.cls==='mage'))&&chance(luckRate(h,'surge')/100))luckySurge(h);
   {const x=heroBuff(h,'crit');if(x&&act!=='sniper'){x.n--;if(!x.n)blog(`${esc(h.name)} lowers the Sniper’s sight.`)}}
@@ -2667,9 +2669,12 @@ const CONSUMABLES={
 // Chicken, Pork and Beef are sized to a veteran hero's health (about 500-1000 HP) instead of multiplying on.
 const FOODS=[['wheat','Wheat'],['fruit','Fruit'],['egg','Egg'],['chicken','Chicken'],['pork','Pork'],['beef','Beef']];
 // Food heals a percent of max health, and better food heals more.
-const FOOD_PCT=[.02,.05,.09,.14,.20,.28];
+const FOOD_PCT=[.026,.065,.117,.182,.26,.364]; // total over 3 turns (30% more than the old instant heal, since it arrives late)
 const FOOD_HP=t=>FOOD_PCT[t];
 FOODS.forEach(([id,n],t)=>{CONSUMABLES[id]={n,cost:0,lvl:1,noShop:true,field:true,food:FOOD_PCT[t],quick:true,d:''}});
+// The Witch's free mana items. Like farm food they restore over 3 turns and don't use the turn.
+const MANA_ITEMS=[['spray','Mana Spray',.08],['pill','Mana Pill',.14],['patch','Mana Patch',.21],['injection','Mana Injection',.30]];
+MANA_ITEMS.forEach(([id,n,p])=>{CONSUMABLES[id]={n,cost:0,lvl:1,noShop:true,field:true,mana:p,quick:true,d:`Free from the Witch. Restores ${Math.round(p*100)}% of one hero’s max mana over 3 turns (${+(p*100/3).toFixed(1)}% each turn). Using it doesn’t take the turn.`}});
 CONSUMABLES.ration={n:'Ration',cost:0,lvl:1,noShop:true,field:true,d:'Farm-grown food. Restores 20% of one hero’s max health.'};
 CONSUMABLES.meal={n:'Hearty Meal',cost:0,lvl:1,noShop:true,field:true,party:true,fieldOnly:true,d:'Restores 30% health to every hero. Between fights only.'};
 const SCROLL_PRICE=600;
@@ -2678,16 +2683,15 @@ const HEAL_UP=[0,.02,.05,.10];
 const potencyMult=()=>1+HEAL_UP[(state&&state.b&&state.b.potency)||0],feedMult=()=>1+HEAL_UP[(state&&state.b&&state.b.feed)||0]+.1*govM('farmer');
 // Descriptions follow the upgrades.
 for(const [id,pct] of [['potion',.35],['mpotion',.55],['gpotion',.75]])Object.defineProperty(CONSUMABLES[id],'d',{get(){return `Restores ${Math.round(pct*potencyMult()*100)}% of one hero’s max health.`},configurable:true});
-FOODS.forEach(([id],t)=>Object.defineProperty(CONSUMABLES[id],'d',{get(){return `Farm food. Heals ${+(FOOD_PCT[t]*feedMult()*100).toFixed(1)}% of max health: the chosen hero first, and whatever they don’t need goes to the most wounded allies. Eating doesn’t use the turn.`},configurable:true}));
-const consIco=(id,sc=3)=>{const C=CONSUMABLES[id];if(C&&C.food)return sprite(id,null,sc,'ico');if(id==='ration')return sprite('bread',null,sc,'ico');if(id==='meal')return sprite('bowl','#c98b5c',sc,'ico');return sprite('flask',C.el?EL_COL[C.el]:id==='ether'?'#5a7ae0':id==='gpotion'?'#e0304a':id==='mpotion'?'#cc3448':'#b83a3a',sc,'ico')};
+FOODS.forEach(([id],t)=>Object.defineProperty(CONSUMABLES[id],'d',{get(){const p=FOOD_PCT[t]*feedMult()*100;return `Free farm food. Heals ${+p.toFixed(1)}% of one hero’s max health over 3 turns (${+(p/3).toFixed(1)}% each turn). Eating doesn’t use the turn. It can’t save someone from a killing blow, and anything left when the fight ends heals right away.`},configurable:true}));
+const consIco=(id,sc=3)=>{const C=CONSUMABLES[id];if(C&&C.mana)return sprite('flask',{spray:'#8fb0f0',pill:'#6b8fe8',patch:'#4f6fd8',injection:'#3a4fc0'}[id],sc,'ico');if(C&&C.food)return sprite(id,null,sc,'ico');if(id==='ration')return sprite('bread',null,sc,'ico');if(id==='meal')return sprite('bowl','#c98b5c',sc,'ico');return sprite('flask',C.el?EL_COL[C.el]:id==='ether'?'#5a7ae0':id==='gpotion'?'#e0304a':id==='mpotion'?'#cc3448':'#b83a3a',sc,'ico')};
 function useConsumable(id,ally,user){
   const r=state.run,C=CONSUMABLES[id];if(!C||!(r.bag[id]>0)||!ally||ally.hp<=0)return false;
   const b=r.battle,who=esc(ally.name);let msg;
   if(C.heal){const v=Math.round(maxHp(ally)*C.heal*potencyMult()*healMult(ally));ally.hp=Math.min(maxHp(ally),ally.hp+v);msg=`${who} +${v} HP`;if(b)b.pops.push({s:'h',hid:ally.id,t:'+'+v});bloom(user||ally,ally,v)}
-  else if(C.food){let left=C.food*feedMult();const parts=[];
-    const give=x=>{const mh=maxHp(x),need=(mh-x.hp)/mh,used=Math.min(left,need);if(used<=0)return;const v=Math.max(1,Math.round(mh*used*healMult(x)));x.hp=Math.min(mh,x.hp+v);left-=used;parts.push(`${esc(x.name)} +${v}`);if(b)b.pops.push({s:'h',hid:x.id,t:'+'+v})};
-    give(ally);for(const x of living().filter(x=>x!==ally).sort((a,c)=>a.hp/maxHp(a)-c.hp/maxHp(c)))if(left>1e-6)give(x);
-    if(!parts.length)return false;msg=parts.join(', ')+' HP'}
+  else if(C.food||C.mana){const k=C.food?'hp':'mp',tot=C.food?C.food*feedMult():C.mana;
+    if(b){(ally.regen=ally.regen||[]).push({k,p:tot/3,n:3});msg=`${who} will recover ${Math.round(tot*100)}% ${k==='hp'?'health':'mana'} over 3 turns`}
+    else{const mx=k==='hp'?maxHp(ally):maxMp(ally),v=Math.max(1,Math.round(mx*tot*(k==='hp'?healMult(ally):1)));ally[k]=Math.min(mx,ally[k]+v);msg=`${who} +${v} ${k==='hp'?'HP':'MP'}`}}
   else if(id==='ration'){const v=Math.round(maxHp(ally)*.2*healMult(ally));ally.hp=Math.min(maxHp(ally),ally.hp+v);msg=`${who} +${v} HP`;if(b)b.pops.push({s:'h',hid:ally.id,t:'+'+v})}
   else if(id==='meal'){if(b)return false;const parts=living().map(x=>{const v=Math.round(maxHp(x)*.3*healMult(x));x.hp=Math.min(maxHp(x),x.hp+v);return `${esc(x.name)} +${v}`});msg=parts.join(', ')+' HP'}
   else if(id==='ether'){const v=Math.round(maxMp(ally)*.5);ally.mp=Math.min(maxMp(ally),ally.mp+v);msg=`${who} +${v} MP`}
@@ -2700,7 +2704,6 @@ function useConsumable(id,ally,user){
 // o: {mult, el, acc, crit, cdmg, forceCrit, label}. Returns damage dealt (0 on a miss).
 function hitEnemy(h,e,o){
   const b=state.run.battle,C=C_(h),idx=b.enemies.indexOf(e),hpPct=h.hp/maxHp(h),alive=aliveFoes().length,el=o.el;
-  if(b.fx.sk&&b.fx.sk.h===h.id)b.fx.sk.tg.push(idx);
   if(!chance(hitChance(h,e,o.acc,o.sure)/100)){b.pops.push({s:'e',i:idx,t:'miss'});blog(`${esc(h.name)} ${o.label} ${e.name} and misses.`);return 0}
   let bonus=tr(h,'power')+(el==='physical'?tr(h,'physDmg'):0)+(el!=='physical'&&C.elem?C.elem:0)
     +((e.kind==='elite'||e.kind==='mimic')?tr(h,'elite'):0)+((e.kind==='boss'||e.kind==='warden'||e.kind==='king')?tr(h,'boss'):0)
@@ -2771,6 +2774,7 @@ function bloom(user,ally,v){
 }
 function heroDown(h){
   const r=state.run;
+  if(h.hp<=0)h.regen=[];
   if(heroBuff(h,'undying')){h.hp=1;blog(`<b class="gold">${esc(h.name)} will not fall!</b> The Undying Vow holds.`);return}
   if(tr(h,'lastStand')&&!r.lastStand[h.id]){r.lastStand[h.id]=true;h.hp=1;blog(`<b class="gold">${esc(h.name)} refuses to fall!</b> Last Stand leaves them at 1 health.`);return}
   blog(`<span class="warn">${esc(h.name)} has fallen.</span>`);
@@ -2814,7 +2818,7 @@ function intentHtml(e){
   if(it.act==='sweep'){who='all';if(known)dmg=' ~'+Math.round(living().reduce((a,h)=>a+foeEst(e,h,.6,false,'sweep'),0)/Math.max(1,living().length))+' each'}
   else if(!self){const h=intentTarget(e);who=h?esc(h.name):'someone';if(known&&h)dmg=' ~'+foeEst(e,h,INTENT_MULT[it.act]||1,it.act==='heavy',it.act)}
   const tip=`Next move: ${name}${who?' on '+(who==='all'?'every hero':who):''}.${!known&&!self?' Scout this enemy to see how hard it will hit.':''}${it.act!=='attack'&&it.act!=='heavy'?' '+FOE_SKILLS[it.act].d:it.act==='heavy'?' 1.6× damage.':''}`;
-  return `<span class="uintent ${self?'self':''}" data-tip="${esc(tip)}">${ico(ic,tint,2)}${name}${who?` → ${who}`:''}${!self?(known?dmg:' ?'):''}</span>`;
+  return `<span class="uintent ${self?'self':''}" data-tip="${esc(tip)}">${ico(ic,tint,2)}${name}${who?` → ${who}`:''}${!self?(known?dmg:' <small class="muted">dmg ?</small>'):''}</span>`;
 }
 // One enemy blow against one hero. Returns the damage dealt, or -1 if the hero dodged.
 function foeStrike(e,i,h,mult,o){
@@ -2848,7 +2852,7 @@ function foeSkill(e,i,id,h){
   if(id==='sweep'){blog(`<span class="warn">${e.name} uses ${S.n}!</span>`);for(const x of living())if(e.hp>0)foeStrike(e,i,x,.6,{name:S.n,verb:'sweeps',act:'sweep'});return}
   if(id==='howl'){b.howl={n:3*aliveFoes().length};blog(`<span class="warn">${e.name} lets out a ${S.n}. Every enemy deals 20% more damage for a while.</span>`);return}
   if(id==='harden'){e.hardened=true;blog(`${e.name} uses ${S.n} and takes 40% less damage until its next turn.`);return}
-  if(id==='ooze'){const x=Math.round(e.maxHp*.12);e.hp=Math.min(e.maxHp,e.hp+x);b.pops.push({s:'e',i,t:'+'+x});blog(`${e.name} uses ${S.n} and heals ${x}.`);return}
+  if(id==='ooze'){const x=Math.round(e.maxHp*.08);e.hp=Math.min(e.maxHp,e.hp+x);b.pops.push({s:'e',i,t:'+'+x});blog(`${e.name} uses ${S.n} and heals ${x}.`);return}
   const d=foeStrike(e,i,h,id==='web'?.6:id==='drain'||id==='curse'?.9:1,{name:S.n,verb:`uses ${S.n} on`,act:id});
   if(d<=0||h.hp<=0)return;
   if(id==='rend'){b.dot[h.id]={n:3,dmg:Math.max(1,Math.round(d*.25))};blog(`${esc(h.name)} is bleeding.`)}
@@ -2868,7 +2872,7 @@ function enemyAct(e,i){
   if(!h)return;
   b.fx.act='e:'+i;
   e.tc=(e.tc||0)+1;const phase=e.tc%3;
-  if(e.mutation==='regen'&&e.hp>0){const x=Math.round(e.maxHp*.08);e.hp=Math.min(e.maxHp,e.hp+x);blog(`${e.name} regenerates ${x}.`)}
+  if(e.mutation==='regen'&&e.hp>0){const x=Math.round(e.maxHp*.05);e.hp=Math.min(e.maxHp,e.hp+x);blog(`${e.name} regenerates ${x}.`)}
   const heavy=it.act==='heavy',sk=heavy||it.act==='attack'?null:it.act;
   if(sk)foeSkill(e,i,sk,h);
   else foeStrike(e,i,h,heavy?1.6:1,{heavy,name:heavy?'crushing blow':'attack',verb:heavy?'unleashes a crushing blow on':'strikes'});
@@ -2894,6 +2898,7 @@ function buryFallen(lines){
 function win(){
   const r=state.run,b=r.battle,s=r.stage,L=living();
   if(!L.length){lose();return}
+  const regenLines=[];flushRegen(regenLines);
   b.over='win';
   scoutRolls('kill');
   let g=0,xp=0,sc=0,eliteBits=0,chestTier=null;const drops=[];
@@ -2935,6 +2940,7 @@ function win(){
     for(const [k,v] of Object.entries(got))addMat(r.mats,k,v);
     if(Object.keys(got).length)lines.push('Gathered '+matsLine(got))}
   lines.push(`<span class="muted">Catching breath (Endurance): ${L.map(h=>`${esc(h.name)} +${Math.round(restPct(h))}% HP`).join(', ')}, +25% MP</span>`);
+  lines.push(...regenLines);
   buryFallen(lines);
   b.rewards=lines;b.lootFresh=true;
   blog(r.kingSlain?'<b class="gold">The Unlit King is dead.</b>':b.enemies.length>1?'The pack is broken.':`${b.enemies[0].name} is slain.`);
@@ -3042,10 +3048,16 @@ function chooseNode(i){
     startMystery();
   }else if(t==='gamble'){
     const O=strangerOdds(),hh=Math.round(O.cost*100);
-    r.event={title:'Hooded Stranger',icon:'dice',text:`“A game, traveler? Coin or blood, your choice.”<br><span class="muted">Coin: wager half your carried gold (${Math.floor(r.gold/2)}). ${Math.round(O.jack*100)}% win five times it, ${Math.round(O.win*100)}% double it, otherwise lose it.<br>Blood: ${esc(h.name)} loses ${hh}% of their max health. ${Math.round(O.item*100)}% an item (rarity depends on how deep you are), ${Math.round(O.gold*100)}% gold, otherwise nothing.</span>${chaNote()}`,
+    r.event={title:'Hooded Stranger',icon:'dice',text:(()=>{const w=Math.floor(r.gold/2),hp=Math.round(maxHp(h)*O.cost),g=strangerPay();
+      return `“A game, traveler? Coin or blood, your choice.”<div class="stranger"><p><b>Wager coin</b> · bet half the gold you carry (<b class="gold">${w} gold</b>)</p><ul>
+        <li>${Math.round(O.jack*100)}%: jackpot, win five times your bet (<b class="gold">+${w*4}</b>)</li><li>${Math.round(O.win*100)}%: win, double your bet (<b class="gold">+${w}</b>)</li><li>${100-Math.round(O.jack*100)-Math.round(O.win*100)}%: lose your bet (<b class="warn">−${w}</b>)</li></ul>
+        <p><b>Offer blood</b> · ${esc(h.name)} loses ${hh}% of max health (<b class="warn">${hp} HP</b>), then the stranger pays out</p><ul>
+        <li>${Math.round(O.item*100)}%: a random piece of gear, often for ${esc(h.name)}’s class (the deeper you are, the better it tends to be)</li><li>${Math.round(O.gold*100)}%: about <b class="gold">${g} gold</b> (${Math.round(g*.8)}–${Math.round(g*1.2)})</li><li>${100-Math.round(O.item*100)-Math.round(O.gold*100)}%: nothing at all</li></ul></div>${chaNote()}`})(),
       choices:[{l:'Wager coin',x:'coin',off:r.gold<2},{l:'Offer blood',x:'blood',off:h.hp<=maxHp(h)*.2},{l:'Walk away',x:'leave'}]};
   }
 }
+// The stranger's blood price in gold, before the ±20% roll.
+function strangerPay(){const r=state.run,L=living(),n=L.length||1,O=strangerOdds();return Math.round((25+8*r.stage)*LENGTHS[r.length].mult*(1+.25*(n-1))*(1+L.reduce((s,h)=>s+aff(h,'goldfind')+luckRate(h,'gold'),0)/100)*O.pay)}
 function strangerOdds(){
   const F=eventBonus(),luck=partyTr('gamble')/100;
   const jack=clamp(.05+F/1000,.02,.1),win=clamp(.45+luck+F/200,.25,.6),item=clamp(.1+F/500,.04,.2),gold=clamp(.5+luck+F/200,.3,.7);
@@ -3094,12 +3106,16 @@ function endRun(outcome){
     lines.push(`Brought home <b class="gold">${r.gold} gold</b> and ${r.loot.length} item${r.loot.length===1?'':'s'}.`);
     const sub=[];for(const it of r.loot)addToBank(it,sub);lines.push(...sub);
     if(Object.keys(r.mats||{}).length){for(const [k,v] of Object.entries(r.mats))addMat(state.mats,k,v);lines.push('Scrap brought home: '+matsLine(r.mats));
-      const can=Object.keys(OPEN_WEEK).filter(k=>!bldOpen(k)&&scrapTotal()+1e-9>=buildCost(k));if(can.length)lines.push(`<b class="gold">The builders can finish the ${listNames(can.map(k=>({bank:'Bank',smith:'Weaponsmith',farm:'Farm',witch:'Witch'})[k]))} with your scrap. Visit it in town.</b>`)}
+      const can=Object.keys(OPEN_WEEK).filter(canBuild);if(can.length)lines.push(`<b class="gold">The builders can finish the ${listNames(can.map(k=>({bank:'Bank',smith:'Weaponsmith',farm:'Farm',witch:'Witch'})[k]))} with your scrap. Visit it in town.</b>`)}
     if(r.scrolls)lines.push(`${r.scrolls} unused Return Scroll${r.scrolls>1?'s':''} returned to the bank.`);
     if(fallenAll.length)lines.push(`<span class="warn">Lost on the way: ${esc(listNames(fallenAll))}.</span>`);
   }
   if(state.unlock<2&&survivors.some(h=>h.cls===UNLOCK_CLS[state.unlock])){state.unlock++;const c=UNLOCK_CLS[state.unlock];
     lines.push(`<b class="gold">Word of the safe return spreads. ${c==='archer'?'Archers':'A mage'} ${c==='archer'?'have':'has'} come to the Barracks asking to join.</b>`)}
+  if(state.hideBld){state.reveal=state.reveal||{};const nb=[];
+    if(!state.reveal.bank&&survivors.some(h=>h.cls==='mage')){state.reveal.bank=state.reveal.smith=true;nb.push('the Bank','the Weaponsmith')}
+    if(!state.reveal.farm&&outcome!=='dead'&&outcome!=='flee'&&outcome!=='scroll'&&outcome!=='victory'&&r.length==='short'){state.reveal.farm=state.reveal.witch=true;nb.push('the Farm','the Witch’s hut')}
+    if(nb.length)lines.push(`<b class="gold">Word spreads of the victory. The builders now know what to raise on the empty lots: ${listNames(nb)}. Bring them scrap.</b>`)}
   const names=esc(listNames(survivors.map(h=>h.name)));
   const where=r.final?'the Dark Side':B.name;
   let title,sub;
@@ -3109,6 +3125,8 @@ function endRun(outcome){
   else if(outcome==='flee'){title=`${names} ran back home`;sub=`Fled ${where} on stage ${r.stage}.`}
   else if(outcome==='scroll'){title=`${names} read a Return Scroll`;sub=`Escaped ${where} on stage ${r.stage}.`}
   else{title=`${names} returned from ${where}`;sub=`Beat the final boss on stage ${r.total}.`;state.cleared=state.cleared||{};state.cleared[r.length]=(state.cleared[r.length]||0)+1;
+    {const rk=BADGE_RANK[r.length]||0,got=survivors.filter(h=>(h.badge||0)<rk);for(const h of got)h.badge=rk;
+     if(got.length)lines.push(`<b class="gold">${esc(listNames(got.map(h=>h.name)))} earned the ${BADGE_N[rk]} badge!</b> ${rk<4?`${LENGTHS[Object.keys(BADGE_NEED).find(k=>BADGE_NEED[k]===rk)].name} adventures are now open to any party with ${got.length>1?'them':'this hero'}.`:''}`)}
     const G=state.gov;if(G&&['medium','long','expedition'].includes(r.length)&&!(G.miles||[]).includes(r.length)){(G.miles=G.miles||[]).push(r.length);G.pend=(G.pend||0)+1;if(!G.ranks)G.ranks={[G.prof]:1};
       lines.push(`<b class="gold">The town celebrates, and I’ve earned a promotion! I’ll choose how to grow from my portrait.</b>`)}}
   state.summary={outcome,cls:(lead||{cls:'warrior'}).cls,title,sub:`${LENGTHS[r.length].name} · ${sub} A week passes.`,lines};
@@ -3180,13 +3198,71 @@ function innateLine(h){
   const t=[...d.map(([k,v])=>`<span class="el" style="--c:${EL_COL[k.slice(4)]}">+${v}% ${cap(k.slice(4))} dmg</span>`),...r.map(([e,v])=>`<span class="el" style="--c:${v<0?'#c4463f':EL_COL[e]}">${v>0?'+':''}${v}% ${cap(e)} res</span>`)];
   return `<div class="resl" data-tip="Born with these. They stay for life."><span class="muted">Born with</span> ${t.join('')}</div>`;
 }
-function heroCard(h,footer,sel){
+/* First-time Barracks walkthrough: the governor looks over the first volunteer, one part of the card at a time. */
+const TUT_B=[
+  ['card',h=>`A volunteer! Before I sign anyone up, I should look them over.`],
+  ['top',h=>`${esc(h.name)} is a ${C_(h).name}. ${h.cls==='warrior'?'Warriors wear heavy armor, have the most health and belong in front, where most blows land.':h.cls==='archer'?'Archers hit hard and dodge a lot, but can’t take many hits.':'Mages wield the elements but are fragile.'} The letter by the name is their grade, from S (best) to D: how well their natural stats suit the class.`],
+  ['vit',h=>`<b class="hpc">HP</b> is health. If it hits 0 in a fight they fall, and a fallen hero is gone for good, along with their gear. <b class="mpc">MP</b> is mana: skills spend it, and it refills a little every turn. Both refill fully in town.`],
+  ['traits',h=>`Traits are quirks they were born with. <span class="tk-good">Green</span> ones help, <span class="tk-neutral">yellow</span> ones are a mixed bag, <span class="tk-bad">red</span> ones hurt. Hover or tap a trait to read it. Another trait shows up every 10 levels.`],
+  ['skills',h=>`They start with two skills. Skills cost MP but hit harder than a plain attack. New skills arrive at levels 8, 23 and 33.`],
+  ['xp',h=>`Fights earn experience. Every level-up restores them fully and brings attribute points to spend.`],
+  ['stats',h=>`Seven attributes shape everything. STR: power. PER: accuracy and spotting what enemies plan. END: health and resistances. CHA: better prices and events. INT: mana. AGI: speed and dodging. LCK: crits and good fortune. The ${C_(h).name}’s main one is outlined. Tap any of them to learn more.`],
+  ['el',h=>`Everyone is born a little different against the elements. This shows what they resist, what they’re weak to, and any elemental damage bonus.`],
+  ['go',h=>`Recruiting this first one is free. Let’s sign ${esc(h.name)} up.`],
+];
+const PLACE_TUT={
+  adventure:['The Gate','From here I send heroes out. I choose a land (each has its own element), how far to go, and who goes. Longer roads pay better but need a hero with the right badge. Anyone who falls out there doesn’t come back, so I’ll keep an eye on their health.'],
+  hall:['The Town Hall','My office. The War Table here decides how many heroes can travel together: for 3,000 gold I can send a party of two, later three. The Hall also lists every building’s upgrades in one place.'],
+  bank:['The Bank','The Bank keeps our stash of gear safe, even if the hero who found it never returns. Its upgrades grow the vault, the backpack that carries loot on the road, and the supply pack for potions and food.'],
+  smith:['The Weaponsmith','The Weaponsmith upgrades gear up to +5, and every step makes an item stronger. The smith also buys loot we don’t need. Upgrading the Forge lets items go higher.'],
+  _farm:['The Farm','Old Bram grows food for every adventure. Food heals in the middle of a fight without using a turn, and his still brews healing potions. Scrap from the road levels both up for better food and more potions.'],
+  witch:['The Witch','The Witch trades in the strange. On the Free Mana tab she packs free mana items for every adventure. She also sells Ether, brews and supplies, crafting, reworking a hero’s traits, rebalancing their points, even rerolling a learned skill. Never cheap, often worth it.'],
+  ledger:['The Moon Ledger','Every monster my heroes scout is written here: what it resists, what it’s weak to and how hard it hits. Worth a look before choosing a land.'],
+};
+function placeTutView(){
+  const k=state.tab;if(set.govTips===false||!state.tutorial||!state.gov||state.run||state.summary||!PLACE_TUT[k]||(state.placeSeen||[]).includes(k))return '';
+  if(OPEN_WEEK[k]&&!bldOpen(k))return '';
+  const [n,t]=PLACE_TUT[k];
+  return modalShell(n,`<div class="row" style="gap:12px;align-items:flex-start;flex-wrap:nowrap">${govPic(state.gov,4)}<p class="govtext" style="text-align:left;font-size:20px;min-height:0">${t}</p></div><div class="row" style="justify-content:flex-end"><button class="btn gold" data-a="placeSeen" data-x="${k}">Got it</button></div>`,'placeSeenX','placetut');
+}
+/* Step-by-step "My thoughts" coach for a building's first visit. Each step can pulse one part of the screen. */
+const COACH={
+  farm:[
+    [null,()=>`This is Old Bram’s farm. Its whole job is simple: free healing for every adventure.`],
+    ['pack',()=>`Every time a party sets out, the farm’s food goes straight into their bag. It’s free, it doesn’t take pack space, and it refills every week.`],
+    ['level',()=>`Bring Bram scrap from the road and he grows the farm. Each level packs one more piece of food, and every few levels the food gets better.`],
+    ['road',()=>`Wheat, fruit, eggs, chicken, pork, then beef. Better food heals more.`],
+    [null,()=>`In a fight, eating doesn’t use the turn. Food heals over 3 turns, so feed a hero before they’re in danger: it can’t save anyone from a killing blow. Whatever is left when the fight is won heals right away.`],
+    ['still',()=>`Bram’s Still works the same way for healing potions: free on every adventure. Potions heal instantly.`],
+    [null,()=>`Unused food spoils on the way home, so there’s no reason to hold back.`],
+  ],
+  mana:[
+    [null,()=>`The Witch can keep our heroes’ mana topped up: free mana items packed for every adventure.`],
+    ['level',()=>`Scrap and a little gold level this up. Every level adds one more item to the pack, and every three levels she moves on to something stronger.`],
+    ['road',()=>`Spray, then Pill, then Patch, then Injection. Each restores more mana than the last.`],
+    ['pack',()=>`Using one doesn’t take the turn. It restores mana over 3 turns, and whatever is left when the fight is won lands right away. Unused ones spoil on the way home.`],
+  ],
+};
+const coachOn=k=>set.govTips!==false&&state&&state.tutorial&&COACH[k]&&!((state.coachDone||{})[k]);
+const coachMark=(k,key)=>coachOn(k)&&COACH[k][(state.coach||{})[k]||0][0]===key?'guide':'';
+function coachBox(k){
+  if(!coachOn(k))return '';const i=(state.coach||{})[k]||0,L=COACH[k];
+  return `<div class="coach"><div class="row" style="gap:10px;align-items:flex-start;flex-wrap:nowrap">${state.gov?govPic(state.gov,2):''}<div class="stack" style="gap:4px"><span class="who">My thoughts · ${i+1}/${L.length}</span><p>${L[i][1]()}</p>
+    <div class="row">${i?`<button class="btn small" data-a="coach" data-x="${k}|-1">Back</button>`:''}${i<L.length-1?`<button class="btn small gold" data-a="coach" data-x="${k}|1">Next</button>`:`<button class="btn small gold" data-a="coach" data-x="${k}|done">Got it</button>`}<button class="btn small" data-a="coach" data-x="${k}|done">Skip</button></div></div></div></div>`;
+}
+const tutBOn=()=>set.govTips!==false&&state&&state.tutorial&&!state.tutBDone&&!state.heroes.length&&state.candidates.length;
+function tutBox(){
+  if(!tutBOn())return '';const i=state.tutB||0,h=state.candidates[0],[k,f]=TUT_B[i];
+  return `<div class="coach"><div class="row" style="gap:10px;align-items:flex-start;flex-wrap:nowrap">${state.gov?govPic(state.gov,2):''}<div class="stack" style="gap:4px"><span class="who">My thoughts · ${i+1}/${TUT_B.length}</span><p>${f(h)}</p>
+    <div class="row">${i?'<button class="btn small" data-a="tutB" data-x="-1">Back</button>':''}${i<TUT_B.length-1?'<button class="btn small gold" data-a="tutB" data-x="1">Next</button>':'<button class="btn small gold" data-a="tutB" data-x="done">Got it</button>'}<button class="btn small" data-a="tutB" data-x="done">Skip</button></div></div></div></div>`;
+}
+function heroCard(h,footer,sel,tut){
   const [g,gc]=grade(h),C=C_(h);
-  return `<div class="card ${sel?'sel':''}">
-    <div class="hc-top"><div class="portrait big">${sprite(h.cls,C.tint,6)}<span class="clsbadge" data-tip="${esc(C.name+': '+C.style)}">${ico(({warrior:'sword',archer:'bow',mage:'staff'})[h.cls],C.tint,2)}</span></div>
+  return `<div class="card ${sel?'sel':''} ${tut?'tut-'+tut:''}">
+    <div class="hc-top" data-tut="top"><div class="portrait big">${sprite(h.cls,C.tint,6)}<span class="clsbadge" data-tip="${esc(C.name+': '+C.style)}">${ico(({warrior:'sword',archer:'bow',mage:'staff'})[h.cls],C.tint,2)}</span></div>
       <div class="stack" style="gap:2px"><span class="hname">${esc(h.name)}<span class="grade" style="color:${gc}" data-tip="Roll grade from S to D: how well the stats fit the class. The class stat counts most." tabindex="0">${g}</span></span>
-      <span class="muted">Lv ${h.level} ${C.name} · ${maxHp(h)} HP · ${maxMp(h)} MP</span>${h.points?`<span class="gold" style="font-size:19px">${h.points} points to assign</span>`:''}</div></div>
-    ${traitChips(h)}<div class="traits">${h.skills.map(id=>skillChip(h,id)).join('')}</div>${xpBar(h)}${statPips(h,true)}${innateLine(h)}${heroElTable(h)}${footer||''}</div>`;
+      <span class="muted" data-tut="vit">Lv ${h.level} ${C.name} · <b class="hpc">${maxHp(h)} HP</b> · <b class="mpc">${maxMp(h)} MP</b> ${badgeIco(h.badge||0)}</span>${h.points?`<span class="gold" style="font-size:19px">${h.points} points to assign</span>`:''}</div></div>
+    <div data-tut="traits">${traitChips(h)}</div><div class="traits" data-tut="skills">${h.skills.map(id=>skillChip(h,id)).join('')}</div><div data-tut="xp">${xpBar(h)}</div><div data-tut="stats">${statPips(h,true)}</div><div data-tut="el">${innateLine(h)}${heroElTable(h)}</div><div data-tut="go">${footer||''}</div></div>`;
 }
 
 /* ---------- installing as an app (only on the hosted site, never inside Claude) ---------- */
@@ -3485,7 +3561,7 @@ const GOV_TIPS=[
     go:()=>state.heroes.length?['adventure','To the Gate']:['heroes','To the Barracks']},
   {id:'prof',when:()=>state.heroes.some(h=>h.runs),t:()=>{const P=govProf();return `They made it back! My years as a ${P.n.toLowerCase()} should help: ${P.b.charAt(0).toLowerCase()+P.b.slice(1)}`}},
   {id:'points',when:()=>state.heroes.some(h=>h.points&&h.runs),t:()=>{const h=state.heroes.find(h=>h.points&&h.runs);return `${esc(h.name)} came back stronger. I should spend their attribute points at the Barracks.`},go:()=>['heroes','To the Barracks']},
-  {id:'scrap',when:()=>scrapTotal()>=.3&&!(state.built||{}).bank,t:()=>`We brought home scrap! Looks like it’s enough to finish rebuilding the Bank or the Weaponsmith. I should visit one of the building sites.`},
+  {id:'scrap',when:()=>canBuild('bank')||canBuild('smith'),t:()=>`We brought home scrap! Looks like it’s enough to finish rebuilding the Bank or the Weaponsmith. I should visit one of the building sites.`},
   {id:'death',when:()=>state.graveyard.length,t:()=>`We lost ${esc(state.graveyard[0].name)}. Next time I should call the party back sooner when a fight turns. Fleeing or a Return Scroll brings home whatever they carry.`},
   {id:'bank',when:()=>(state.built||{}).bank,t:()=>`The Bank is open. I should store the gear we aren’t using there. It stays safe even if a hero doesn’t come back.`,go:()=>['bank','To the Bank']},
   {id:'smith',when:()=>(state.built||{}).smith,t:()=>`The Weaponsmith’s forge is lit. I should have our best gear upgraded. Every step up to +5 makes it stronger.`,go:()=>['smith','To the Weaponsmith']},
@@ -3508,10 +3584,13 @@ const GOV_GENERAL=[
 // At most one thought a week (a promotion waiting is the exception). Tapping my portrait always gives one.
 function govTipNow(){
   if(!state.gov||state.gov.unseen||state.run||state.summary||storyNext())return null;
+  // stay quiet while a walkthrough is on screen
+  if((state.tab==='farm'&&coachOn('farm'))||(state.tab==='witch'&&state.sel.wtab==='mana'&&coachOn('mana'))||(state.tab==='heroes'&&tutBOn()))return null;
   const seen=state.tipsSeen||(state.tipsSeen=[]);
   if(state.gov.pend&&state.promoWeek!==state.week&&(!state.tipCur||state.tipCur.id!=='promo'))state.tipCur={id:'promo',t:`The roads we conquered have earned me the town’s trust. I can grow into a better governor. How should I?`,go:['@govPromoOpen','Choose promotion']};
   const c=state.tipCur;
   if(c&&c.id==='promo'){if(state.gov.pend&&state.promoWeek!==state.week)return c;state.tipCur=null}
+  if(set.govTips===false)return null; // tips switched off in Settings (promotions above still show)
   else if(c&&c.id!=='g'){const T=GOV_TIPS.find(t=>t.id===c.id);if(T&&T.when())return {id:T.id,t:T.t(),go:T.go?T.go():null};state.tipCur=null}
   else if(c)return c;
   if(state.tipWeek===state.week)return null;
@@ -3547,15 +3626,14 @@ function govBadge(){
 }
 function topBar(){
   return `<header class="top">
-    <div class="brand">${govBadge()}<span class="disp logo">DARK SIDE <small>of the</small> MOON</span>${moonImg(moonState().shown,2,"toplogo")}</div>
+    <div class="brand">${govBadge()}<span class="disp logo">DARK SIDE <small>OF THE</small> MOON</span>${moonImg(moonState().shown,2,"toplogo")}<span class="sub">Week ${state.week}</span></div>
     <div class="res">
       ${canOfferInstall()?`<button class="btn small gold" data-a="install" data-tip="Install as an app: full screen, works offline">Install app</button>`:''}<button class="btn small" data-a="settings" data-x="1">Settings</button>
       <span class="chip" data-tip="Gold">${sprite('coin',null,2)}<b class="num">${fmt(state.gold)}</b><span class="lbl"> gold</span></span>
       <span class="chip" data-tip="Return Scrolls">${sprite('scroll',null,2)}<b class="num">${state.scrolls}</b><span class="lbl"> scroll${state.scrolls===1?'':'s'}</span></span>
-      <span class="chipgrp" style="display:inline-flex;gap:inherit"><span class="chip week" data-tip="Current week"><b class="num">Week ${state.week}</b></span>
-      <span class="chip" data-tip="Heroes / room in the Barracks">${sprite('warrior',CLASSES.warrior.tint,2)}<b class="num">${state.heroes.length}/${slots()}</b><span class="lbl"> heroes</span></span></span>
+      <span class="chip" data-tip="Heroes / room in the Barracks">${sprite('warrior',CLASSES.warrior.tint,2)}<b class="num">${state.heroes.length}/${slots()}</b><span class="lbl"> heroes</span></span>
       ${state.won?`<span class="chip won">${sprite('boss',EL_COL.dark,2)}King slain, week ${state.won.week}</span>`:`<span class="chip" data-tip="Major bosses slain">${sprite('skull',null,2)}<b class="num">${state.bossKills||0}</b><span class="lbl"> bosses</span></span>`}
-    </div></header>`;
+    </div>${scrapStrip(state.mats,'Scrap in storage. Builders use it to raise buildings; the Farm and Still use it for upgrades.')}</header>`;
 }
 const TABS=[['town','Town','banner','#8a2e2e',null],['heroes','Barracks','tent','#6a4a3a',null],['smith','Weaponsmith','anvil',null,'smith'],['hall','Town Hall','house',null,null],['bank','Bank','chest',null,'bank'],['adventure','The Gate','gate',null,null],['witch','Witch','crescent','#b56fe3',null],['farm','Farm','farmer','#6f8f4a',null],['ledger','Ledger','moon',null,null]];
 function townView(){
@@ -3568,7 +3646,7 @@ function townView(){
       <div class="row"><button class="btn gold" data-a="dismiss">Continue</button></div>`,'dismiss',`summary ${dead?'dead':''}`);
   }else ui.summaryHtml='';
   if(state.tab!=='town')s+=`<nav class="street" aria-label="Town"><div class="moon" data-tip="${esc(moonTip())}" data-a="tab" data-x="ledger" role="button" tabindex="0">${moonImg(moonState().shown,3)}</div><div class="buildings">${TABS.map(([k,n,sp,t,b])=>
-    `<button class="bld ${state.tab===k?'cur':''} ${OPEN_WEEK[k]&&!bldOpen(k)?'closed':''}" data-a="tab" data-x="${k}">${k==='ledger'?moonImg(moonState().shown,2,'thumb'):BLD_DEF[k]||k==='adventure'?`<img class="px thumb" src="${buildingThumb(k)}" width="84" height="74" alt="">`:sprite(sp,t,5)}<span>${n}</span>${b?`<span class="lvl">Lv ${state.b[b]}</span>`:k==='heroes'?`<span class="lvl">${state.heroes.length}/${slots()}</span>`:k==='adventure'?'<span class="lvl">week '+state.week+'</span>':k==='ledger'?'<span class="lvl">'+Object.keys(state.ledger||{}).length+' scouted</span>':'<span class="lvl">&nbsp;</span>'}</button>`).join('')}</div><div class="ground"></div></nav>`;
+    `<button class="bld ${state.tab===k?'cur':''} ${OPEN_WEEK[k]&&!bldOpen(k)?'closed':''} ${guideAt()===k&&state.tab!==k?'guide':''}" ${bldKnown(k)?`data-a="tab" data-x="${k}"`:'disabled'}>${k==='ledger'?moonImg(moonState().shown,2,'thumb'):BLD_DEF[k]||k==='adventure'?`<img class="px thumb" src="${buildingThumb(k)}" width="84" height="74" alt="">`:sprite(sp,t,5)}<span>${bldKnown(k)?n:'?'}</span>${!bldKnown(k)?'<span class="lvl">&nbsp;</span>':b?`<span class="lvl">Lv ${state.b[b]}</span>`:k==='heroes'?`<span class="lvl">${state.heroes.length}/${slots()}</span>`:k==='adventure'?'<span class="lvl">week '+state.week+'</span>':k==='ledger'?'<span class="lvl">'+Object.keys(state.ledger||{}).length+' scouted</span>':'<span class="lvl">&nbsp;</span>'}</button>`).join('')}</div><div class="ground"></div></nav>`;
   const V={town:homeView,academy:()=>{state.tab='heroes';state.sel.btab='recruit';return barracksView()},heroes:barracksView,farm:farmView,alch:()=>{state.tab='witch';state.sel.wtab='brews';return witchView()},smith:smithView,alch:alchView,hall:hallView,bank:bankView,adventure:advView,ledger:ledgerView,witch:witchView}[state.tab];
   if(state.builtMsg&&state.tab===state.builtMsg){s+=`<div class="panel row" style="justify-content:space-between;box-shadow:inset 0 0 0 2px var(--gold)"><span class="gold">The ${({bank:'Bank',smith:'Weaponsmith',farm:'Farm',witch:'Witch'})[state.builtMsg]} is open for business!</span><button class="xbtn" data-a="builtOk" aria-label="Dismiss">×</button></div>`}
   s+=`<section class="panel">${state.tab!=='town'&&state.tab!=='ledger'&&state.tab!=='adventure'&&OPEN_WEEK[state.tab==='alch'?'witch':state.tab]&&!bldOpen(state.tab==='alch'?'witch':state.tab)?constructionView(state.tab==='alch'?'witch':state.tab):V()}</section>`;
@@ -3584,7 +3662,7 @@ function heroRail(){
     return `<button class="hrcard" data-a="heroSheet" data-x="${h.id}" aria-label="${esc(h.name)}, level ${h.level} ${C.name}. Open full sheet">
       <span class="hrport" style="--ct:${C.tint}">${sprite(h.cls,C.tint,4)}<b class="hrlv">${h.level}</b></span>
       <span class="hrbody"><span class="hrname">${esc(h.name)}${h.points?` <span class="hrpts">+${h.points} pts</span>`:''}</span>
-        <span class="hrcls">Lv ${h.level} ${C.name}${busy?' · away':''}</span>
+        <span class="hrcls">Lv ${h.level} ${C.name}${busy?' · away':''} ${badgeIco(h.badge||0)}</span>
         <span class="bar hp"><i style="width:${clamp(hp/mh*100,0,100)}%"></i><span>${hp} / ${mh} HP</span></span>
         <span class="bar mp"><i style="width:${clamp(mp/mm*100,0,100)}%"></i><span>${mp} / ${mm} MP</span></span>
         <span class="hrxp" data-tip="${fmt(h.xp)} / ${fmt(need)} XP"><i style="width:${clamp(h.xp/need*100,0,100)}%"></i></span>
@@ -3597,7 +3675,7 @@ function heroSheet(){
   const C=C_(h),[g,gc]=grade(h),ts=(h.traits||[]).map(id=>TRAITS[id]).filter(Boolean),mh=maxHp(h),mm=maxMp(h);
   const body=`<div class="sheet">
     <div class="hc-top"><div class="portrait">${sprite(h.cls,C.tint,6)}</div><div class="stack" style="gap:4px;flex:1;min-width:150px">
-      <span class="muted">Lv ${h.level} ${C.name} <span class="grade" style="color:${gc}">${g}</span> · ${h.runs} run${h.runs===1?'':'s'} · ${h.kills} kills</span>
+      <span class="muted">Lv ${h.level} ${C.name} ${badgeIco(h.badge||0)} <span class="grade" style="color:${gc}">${g}</span> · ${h.runs} run${h.runs===1?'':'s'} · ${h.kills} kills</span>
       <div class="bar hp"><i style="width:${clamp(shownHp(h)/mh*100,0,100)}%"></i><span>${shownHp(h)} / ${mh} HP</span></div>
       <div class="bar mp"><i style="width:${clamp(shownMp(h)/mm*100,0,100)}%"></i><span>${shownMp(h)} / ${mm} MP · +${focusRegen(h)}/turn</span></div>
       ${xpBar(h)}</div>${gearDoll(h,'sheetGear',null)}</div>
@@ -3613,7 +3691,8 @@ function academyView(){
   const full=state.heroes.length>=slots(),fee=recruitFee();
   let s=`<div class="stack" style="gap:4px"><h3>This week’s recruits</h3><p class="muted">Pick a recruit. You assign their stat points after. ${help('Every recruit rolls a six-sided die for each SPECIAL stat (1–6, +2 in their class stat) with a random pool of points you assign after recruiting. Higher stats cost more points. Class, skills, resistances and traits are rolled. Two permanent traits now, and another at every 10th level (Lv 10, 20, 30...). Candidates you don’t recruit leave at the end of the week.')} · Barracks ${state.heroes.length}/${slots()}</p></div>`;
   if(state.unlock!=null&&state.unlock<3)s+=`<p class="muted">${['Only warriors answer the call for now. If one comes home alive, others will follow.','Archers have come asking to join. Bring one home alive and word will reach others.','A mage has arrived. Once one joins, all kinds of heroes will start turning up.'][state.unlock]}</p>`;
-  if(state.candidates.length)s+=`<div class="cards">${state.candidates.map(c=>heroCard(c,`<button class="btn gold" data-a="recruit" data-x="${c.id}" ${full||state.gold<fee?'disabled':''}>Recruit · ${fee?fee+' gold':'free'}</button>`)).join('')}</div>`;
+  s+=tutBox();
+  if(state.candidates.length)s+=`<div class="cards">${state.candidates.map((c,ci)=>heroCard(c,`<button class="btn gold ${state.guide&&!state.heroes.length&&!tutBOn()?'guide':''}" data-a="recruit" data-x="${c.id}" ${full||state.gold<fee?'disabled':''}>Recruit · ${fee?fee+' gold':'free'}</button>`,false,ci===0&&tutBOn()?TUT_B[state.tutB||0][0]:'')).join('')}</div>`;
   else s+=`<p class="muted">No candidates left this week.</p>`;
   if(full)s+=`<p class="warn">The Barracks are full. Expand them at the Town Hall, or retire a hero from the Barracks.</p>`;
   s+=`<div class="row"><button class="btn" data-a="rest">Wait a week</button><span class="muted">Skip ahead for new candidates. No adventure this week.</span></div>`;
@@ -3621,7 +3700,7 @@ function academyView(){
   return s;
 }
 function heroChips(act,selId,filter){
-  return `<div class="tabs">${state.heroes.filter(filter||(()=>true)).map(h=>`<button class="btn small ${h.id===selId?'on':''}" data-a="${act}" data-x="${h.id}"><span>${esc(h.name)} · Lv ${h.level} ${C_(h).name}${h.points?` · <span class="gold">${h.points} pts</span>`:''}</span>${xpMini(h,false)}</button>`).join('')}</div>`;
+  return `<div class="tabs">${state.heroes.filter(filter||(()=>true)).map(h=>`<button class="btn small ${h.id===selId?'on':''}" data-a="${act}" data-x="${h.id}"><span>${esc(h.name)} · Lv ${h.level} ${C_(h).name} ${badgeIco(h.badge||0)}${h.points?` · <span class="gold">${h.points} pts</span>`:''}</span>${xpMini(h,false)}</button>`).join('')}</div>`;
 }
 function statTable(h){
   const C=C_(h),row=(k,v,tip)=>`<dt data-tip="${esc(tip)}" tabindex="0">${k}</dt><dd>${v}</dd>`;
@@ -3643,16 +3722,17 @@ function statTable(h){
 }
 function allocBtns(h){
   if(!h.points)return '';
-  return `<div class="stack" style="gap:6px"><span class="gold" data-tip="Raising a stat up to 6 costs 1 point; from 7 the cost rises by 1 every 3 steps (7–9 cost 2, 10–12 cost 3, 13–15 cost 4, and so on). Each level gives 3 points up to level 5, 4 up to level 10, 5 up to level 15, and so on. Gear, elixirs and tonics are not affected.">${h.points} attribute point${h.points>1?'s':''} to spend</span><div class="alloc">
+  const lvl=!!(state.run&&h.points&&h.hp>0),gd=guidePts()||lvl;
+  return `${gd?`<p class="guidehint">${lvl?'Level up! ':''}Spend ${esc(h.name)}’s points: tap a stat to raise it, or let Auto-assign pick a good ${C_(h).name} build.</p>`:''}<div class="stack ${gd?'guide':''}" style="gap:6px;${gd?'padding:6px':''}"><span class="gold" data-tip="Raising a stat up to 6 costs 1 point; from 7 the cost rises by 1 every 3 steps (7–9 cost 2, 10–12 cost 3, 13–15 cost 4, and so on). Each level gives 3 points up to level 5, 4 up to level 10, 5 up to level 15, and so on. Gear, elixirs and tonics are not affected.">${h.points} attribute point${h.points>1?'s':''} to spend</span><div class="alloc">
     ${STATS.map(k=>{const c=statCost(h[k]);return `<button class="btn small" data-a="alloc" data-x="${k}|${h.id}" data-tip="${esc(statTip(h,k))}" ${h.points<c?'disabled':''}>${STATN[k]} ${h[k]}→${h[k]+1} · ${c}pt</button>`}).join('')}
-    <button class="btn small gold" data-a="autoAssign" data-x="${h.id}" data-tip="Spends all remaining points on a suggested ${C_(h).name} build: mostly ${STATN[C_(h).primary]} and END.">Auto-assign</button></div></div>`;
+    <button class="btn small gold ${gd?'guide':''}" data-a="autoAssign" data-x="${h.id}" data-tip="Spends all remaining points on a suggested ${C_(h).name} build: mostly ${STATN[C_(h).primary]} and END.">Auto-assign</button></div></div>`;
 }
 function barracksView(){
   const bt=state.sel.btab||'roster',nc=state.candidates.length;
-  let s=bHead('tent','#6a4a3a','Barracks',`${state.heroes.length}/${slots()} heroes · ${recruitCount()} recruit${recruitCount()>1?"s":""} offered each week`,'Your heroes live here. Recruit new ones, assign their points, equip them, and upgrade how many recruits you are offered and how many heroes you can keep. Party size is set by the War Table in the Town Hall.');
-  s+=`<div class="subtabs">${[['roster',sprite('warrior',CLASSES.warrior.tint,2,'ico')+'Heroes'],['recruit',sprite('book','#5a3f7a',2,'ico')+`Recruit${nc?` <span class="alert-inline">${nc}</span>`:''}`],['upgrades',sprite('coin',null,2,'ico')+'Upgrades']].map(([k,l])=>`<button class="subtab ${bt===k?'cur':''}" data-a="btab" data-x="${k}">${l}</button>`).join('')}</div>`;
+  let s=bHead('tent','#6a4a3a','Barracks',`${state.heroes.length}/${slots()} heroes · ${recruitCount()} recruit${recruitCount()>1?"s":""} offered each week`,'Your heroes live here. Recruit new ones, assign their points, equip them, and upgrade how many recruits you are offered and how many heroes you can keep. Party size is set by the War Table in the Town Hall.',headUp('barracks'));
+  s+=`<div class="subtabs">${[['roster',sprite('warrior',CLASSES.warrior.tint,2,'ico')+'Heroes'],['recruit',sprite('book','#5a3f7a',2,'ico')+`Recruit${nc?` <span class="alert-inline">${nc}</span>`:''}`],['upgrades',sprite('coin',null,2,'ico')+'Upgrades']].map(([k,l])=>`<button class="subtab ${(k==='recruit'&&state.guide&&!state.heroes.length&&bt!=='recruit')||(k==='roster'&&guidePts()&&bt!=='roster')?'guide':''} ${bt===k?'cur':''}" data-a="btab" data-x="${k}">${l}</button>`).join('')}</div>`;
   if(bt==='recruit')return s+academyView();
-  if(bt==='upgrades')return s+upgradeBlock(['academy','barracks'])+`<p class="muted">Want bigger parties? That’s the War Table in the Town Hall.</p>`;
+  if(bt==='upgrades')return s+upgradeBlock(['academy'])+`<p class="muted">Want bigger parties? That’s the War Table in the Town Hall.</p>`;
   return s+heroesView();
 }
 /* equipment paper doll: nine slots, each outlined in its item's rarity color */
@@ -3698,7 +3778,7 @@ function heroesView(){
   let s=`${head}${state.sel.justRecruited===h.id?`<p class="gold">${esc(h.name)} has joined. Give them a name and spend their ${h.points} starting points.</p>`:''}${heroChips('selHero',h.id)}<div class="hdetail"><div class="stack">
     <div class="hc-top"><div class="portrait">${sprite(h.cls,C.tint,6)}</div><div class="stack" style="gap:4px;flex:1;min-width:140px">
       <input type="text" id="rename" value="${esc(h.name)}" maxlength="16" aria-label="Hero name (tap to rename)" data-tip="Tap to rename. Up to 16 characters.">
-      <span class="muted">Lv ${h.level} ${C.name} <span class="grade" style="color:${gc}">${g}</span></span>
+      <span class="muted">Lv ${h.level} ${C.name} ${badgeIco(h.badge||0)} <span class="grade" style="color:${gc}">${g}</span></span>
       <span class="muted" style="font-size:18px">${maxHp(h)} HP · ${maxMp(h)} MP · ${h.runs} run${h.runs===1?'':'s'} · ${h.kills} kills</span>
       ${h.elixir||h.draught?`<span class="gold" style="font-size:18px">${h.elixir?`Elixir +${h.elixir.v} ${STATN[h.elixir.stat]}`:''}${h.elixir&&h.draught?' · ':''}${h.draught?`Draught +${h.draught.v}% ${cap(h.draught.el)} res`:''}</span>`:''}</div>${gearDoll(h,'selSlot',state.sel.slot)}</div>
     ${xpBar(h)}
@@ -3713,8 +3793,7 @@ function heroesView(){
 }
 function smithView(){
   const L=state.b.smith,maxPlus=forgeMax(L),items=allItems();
-  let s=bHead('anvil',null,'Weaponsmith',`Level up gear (limit +${maxPlus}), or sell loot to the shop.`,'Five upgrades per item. Each one raises the base damage or armor and every bonus by +5%, +10%, +15%, +20% and finally +30% of the original, so a fully upgraded (+5) item is 80% stronger across the board. +4 and +5 can fail; the gold is lost but the item is safe. Upgrade the Forge to raise the limit.');
-  s+=upgradeBlock(['smith']);
+  let s=bHead('anvil',null,'Weaponsmith',`Level up gear (limit +${maxPlus}), or sell loot to the shop.`,'Five upgrades per item. Each one raises the base damage or armor and every bonus by +5%, +10%, +15%, +20% and finally +30% of the original, so a fully upgraded (+5) item is 80% stronger across the board. +4 and +5 can fail; the gold is lost but the item is safe. Upgrade the Forge to raise the limit.',headUp('smith'));
   if(!items.length)return s+'<p class="muted">No items to work on yet.</p>';
   const selE=items.find(x=>x.it.id===state.sel.item);
   if(selE){
@@ -3774,6 +3853,7 @@ const OLD_MAT={ember:'carbon',frost:'crystal',glass:'crystal',feather:'metal',se
 function rollMat(biome){const B=BIOMES[biome];const w={stone:2,wood:2};const k=EL_MAT[B&&B.el]||'stone';w[k]=(w[k]||0)+6;return weighted(w)}
 const addMat=(o,k,v)=>{o[k]=Math.round(((o[k]||0)+v)*10)/10};
 const matIco=(k,sc=2)=>sprite(MATS[k].ico[0],MATS[k].ico[1],sc,'ico');
+const scrapStrip=(o,tip)=>{const t=Object.entries(o||{}).filter(([,v])=>v>0.05);return t.length?`<div class="scrapline" data-tip="${esc(tip)}">${t.map(([k,v])=>`<span class="matchip">${matIco(k)}<b>${v.toFixed(1)}</b><small>${MATS[k].n}</small></span>`).join('')}</div>`:''};
 const matsLine=o=>Object.entries(o).filter(([,v])=>v>0).map(([k,v])=>`<span class="matchip" data-tip="${MATS[k].n}">${matIco(k)}${v.toFixed(1)}</span>`).join(' ');
 // need: materials; needItems: consumables used up; out: a consumable id or 'scroll'.
 const RECIPES=[
@@ -3822,6 +3902,29 @@ const STILL=[['potion','Small Healing Potion'],['mpotion','Medium Healing Potion
 const STILL_BLD=['Copper still','Twin alembic','Moonglass cauldron'];
 const STILL_MIX=[{crystal:2,wood:2,carbon:1},{crystal:2,carbon:2,hide:1},{crystal:3,carbon:2,void:1}];
 const STILL_MAX=12;
+const BREW_BLD=['Spray bottles','Pill press','Patch loom','Needle kit'];
+const BREW_MIX=[{crystal:2,metal:1},{crystal:2,metal:2,wood:1},{crystal:3,metal:2,hide:1},{crystal:3,metal:3,void:1}];
+const BREW_MAX=12;
+const brewStep=L=>{if(L<1||L>BREW_MAX)return null;const t=Math.floor((L-1)/3),q=(L-1)%3+1,g=lvlCost(L);
+  const need={};for(const [k,v] of Object.entries(BREW_MIX[t]))need[k]=Math.max(1,Math.round(v*g*govCut('engineer',.25,.4)));
+  return {t,q,out:MANA_ITEMS[t][0],bld:BREW_BLD[t],newBld:q===1,need,gold:Math.round(40*g)}};
+// Everything packed free for each adventure: farm food, still potions, witch mana items.
+function freeSupplies(){const F=state.farm&&state.farm.lvl?farmStep(state.farm.lvl):null,S=state.still?stillStep(state.still):null,W=state.brew&&bldOpen('witch')?brewStep(state.brew):null;
+  return [[F&&F.food,F&&F.q,'from the farm'],[S&&S.out,S&&S.q,'from the still'],[W&&W.out,W&&W.q,'from the Witch']].filter(x=>x[0]&&x[1])}
+function brewView(){
+  const L=state.brew||0,cur=brewStep(L),nx=brewStep(L+1),ci=(id,sc=3)=>consIco(id,sc);
+  let s=`${coachBox('mana')}<div class="farmscene ${coachMark('mana','pack')}" style="background:linear-gradient(#141a2a,#0d0f18)">${sprite('flask','#6b8fe8',6)}<div class="stack" style="gap:4px">
+    <h3>${L?`${cur.bld} · level ${L}/${BREW_MAX}`:'No free mana yet'}</h3>
+    <span>${L?`Packs ${ci(cur.out,2)} <b>${cur.q} ${CONSUMABLES[cur.out].n}${cur.q>1?'s':''}</b> free on every adventure.`:'Bring the Witch scrap and she packs free mana items for every adventure.'}</span>
+    <span class="muted">They restore mana over 3 turns and don’t use the turn. Whatever isn’t used spoils on the way home.</span></div></div>`;
+  if(nx){const ok=Object.entries(nx.need).every(([k,v])=>(state.mats[k]||0)+1e-9>=v)&&state.gold>=nx.gold;
+    s+=`<div class="recipe wide ${ok?'ready':''} ${coachMark('mana','level')}"><span class="stack" style="gap:2px"><span class="hname">${!L||nx.newBld?`Set up: ${nx.bld}`:`Improve the ${nx.bld.toLowerCase()}`}</span><span class="muted">Then every adventure: ${ci(nx.out,2)} ${nx.q} ${CONSUMABLES[nx.out].n}</span></span>
+      <span class="needs">${needChips(nx.need)}<span class="matchip ${state.gold>=nx.gold?'ok':'no'}">${sprite('coin',null,2,'ico')}${fmt(nx.gold)}</span></span>
+      <button class="btn ${ok?'gold':''}" data-a="brewUp" ${ok?'':'disabled'}>Build</button></div>`}
+  else s+='<p class="muted">Her shelves are full. Nothing more to add.</p>';
+  s+=`<div class="farmroad ${coachMark('mana','road')}" style="grid-template-columns:repeat(4,minmax(0,1fr))">${MANA_ITEMS.map(([id,n],t)=>`<div class="fstep ${L>t*3?'on':''}" data-tip="${esc(CONSUMABLES[id].d)}">${ci(id,3)}<span>${n}</span><span class="fpips">${[1,2,3].map(q=>`<i class="${L>=t*3+q?'on':''}"></i>`).join('')}</span></div>`).join('')}</div>`;
+  return s;
+}
 const stillStep=L=>{if(L<1||L>STILL_MAX)return null;const t=Math.floor((L-1)/4),q=(L-1)%4+1,g=lvlCost(L);
   const need={};for(const [k,v] of Object.entries(STILL_MIX[t]))need[k]=Math.max(1,Math.round(v*g*govCut('engineer',.25,.4)));
   return {t,q,out:STILL[t][0],bld:STILL_BLD[t],newBld:q===1,need,gold:Math.round(40*g)}};
@@ -3843,26 +3946,30 @@ function stillView(){
 }
 function farmView(){
   const ft=state.sel.ftab||'farm';
-  const tabs=`<div class="subtabs">${[['farm',sprite('wheat',null,2,'ico')+'Fields'],['still',sprite('flask','#b83a3a',2,'ico')+'Still']].map(([k,l])=>`<button class="subtab ${ft===k?'cur':''}" data-a="ftab" data-x="${k}">${l}</button>`).join('')}</div>`;
-  if(ft==='still')return bHead('farmer','#6f8f4a','The Farm','Old Bram also runs a still for healing potions.','Food and potions are both free healing, packed for every adventure. Both heal a percent of max health. Food is quick to eat and doesn’t use the turn; whatever a hero doesn’t need spills over to allies.')+tabs+stillView();
+  const tabs=`<div class="subtabs">${[['farm',sprite('wheat',null,2,'ico')+'Fields'],['still',sprite('flask','#b83a3a',2,'ico')+'Still']].map(([k,l])=>`<button class="subtab ${ft===k?'cur':''} ${k==='still'?coachMark('farm','still'):''}" data-a="ftab" data-x="${k}">${l}</button>`).join('')}</div>`;
+  if(ft==='still')return bHead('farmer','#6f8f4a','The Farm','Old Bram also runs a still for healing potions.','Food and potions are both free healing, packed for every adventure. Both heal a percent of max health. Food is quick to eat, doesn’t use the turn and heals over 3 turns; potions heal instantly.',farmHead())+tabs+stillView();
   return farmFields(tabs);
+}
+function farmHead(){
+  const L=state.farm.lvl,nx=farmStep(L+1);
+  if(!nx)return `<div class="bup"><span class="hname">Farm <span class="lvpill">Lv ${L}/${FARM_MAX}</span></span><span class="lvpill">Max</span></div>`;
+  const ok=Object.entries(nx.need).every(([k,v])=>(state.mats[k]||0)+1e-9>=v)&&state.gold>=nx.gold;
+  return `<div class="bup ${coachMark('farm','level')}" data-tip="${esc('The farm’s level. Next: '+(L?(nx.newBld?'build the '+nx.bld:'expand the '+nx.bld.toLowerCase()):'start the farm: '+nx.bld)+', then '+nx.q+' '+CONSUMABLES[nx.food].n+' every adventure.')}"><span class="hname">Farm <span class="lvpill">Lv ${L}/${FARM_MAX}</span></span>
+    <span class="needs">${needChips(nx.need)}<span class="matchip ${state.gold>=nx.gold?'ok':'no'}">${sprite('coin',null,2,'ico')}${fmt(nx.gold)}</span></span>
+    <button class="btn small ${ok?'gold':''}" data-a="farmUp" ${ok?'':'disabled'}>${L?(nx.newBld?'Build '+nx.bld:'Expand'):'Start the farm'}</button></div>`;
 }
 function farmFields(tabs){
   const L=state.farm.lvl,cur=farmStep(L),nx=farmStep(L+1);
   const foodChip=(st,sc=3)=>`${consIco(st.food,sc)} <b>${st.q} ${CONSUMABLES[st.food].n}</b>`;
-  let s=bHead('farmer','#6f8f4a','The Farm',L?`Old Bram tends your ${cur.bld.toLowerCase()}.`:'Old Bram the farmer is looking for work.','Every enemy drops scrap of its own type: Carbon from fire, Wood from grass, Ice Crystal from ice, Scrap Metal from thunder, Hide from fighting, Void Shards from dark, Stone from armored foes. Or hand the farmer old gear to break down. Each level grows more food, and every fourth level he builds something new that grows better food. Food is free healing, packed for every adventure.');
+  let s=coachBox('farm')+bHead('farmer','#6f8f4a','The Farm',L?`Old Bram tends your ${cur.bld.toLowerCase()}.`:'Old Bram the farmer is looking for work.','Every enemy drops scrap of its own type: Carbon from fire, Wood from grass, Ice Crystal from ice, Scrap Metal from thunder, Hide from fighting, Void Shards from dark, Stone from armored foes. Or hand the farmer old gear to break down. Each level grows more food, and every fourth level he builds something new that grows better food. Food is free healing, packed for every adventure.',farmHead());
   s+=tabs;
   s+=`<div class="farmscene">${sprite('farmer','#6f8f4a',6)}<div class="stack" style="gap:4px">
     <p>“${L?(nx?`Keep the scrap coming and I’ll ${nx.newBld?`build you a ${nx.bld.toLowerCase()}`:'grow you more'}.`:'Finest farm this side of the moon. Nothing more I can build.'):'Bring me enough scrap – old blades, broken armor, lumber and good dirt – and I’ll start you a farm.'}”</p>
-    ${L?`<span>Level ${L}/${FARM_MAX} · packed free on every adventure: ${foodChip(cur)} <span class="muted">(each heals ${+(CONSUMABLES[cur.food].food*feedMult()*100).toFixed(1)}% of max health)</span></span>`:''}
+    ${L?`<span class="${coachMark('farm','pack')}">Level ${L}/${FARM_MAX} · packed free on every adventure: ${foodChip(cur)} <span class="muted">(each heals ${+(CONSUMABLES[cur.food].food*feedMult()*100).toFixed(1)}% of max health over 3 turns)</span></span>`:''}
     <span class="muted">Rations go straight into the party’s bag when they set out, without taking pack space. Whatever isn’t eaten spoils on the way home.</span></div></div>`;
   s+=`<div class="matbar"><span class="muted">Scrap</span>${SCRAPS.map(k=>`<span class="matchip" data-tip="${MATS[k].n} (from ${MATS[k].from} enemies)">${matIco(k,3)}<small class="muted">${MATS[k].n}</small> ${(state.mats[k]||0).toFixed(1)}</span>`).join('')}</div>`;
-  if(nx){const ok=Object.entries(nx.need).every(([k,v])=>(state.mats[k]||0)+1e-9>=v)&&state.gold>=nx.gold;
-    s+=`<div class="recipe wide ${ok?'ready':''}"><span class="stack" style="gap:2px"><span class="hname">${L?(nx.newBld?`Build the ${nx.bld}`:`Expand the ${nx.bld.toLowerCase()}`):`Start the farm: ${nx.bld}`}</span><span class="muted">Then every adventure: ${foodChip(nx,2)}</span></span>
-      <span class="needs">${needChips(nx.need)}<span class="matchip ${state.gold>=nx.gold?'ok':'no'}">${sprite('coin',null,2,'ico')}${fmt(nx.gold)}</span></span>
-      <button class="btn ${ok?'gold':''}" data-a="farmUp" ${ok?'':'disabled'}>${L?'Build':'Start the farm'}</button></div>`}
   // the whole road, so progress is visible
-  s+=`<div class="farmroad">${FOODS.map(([id,n],t)=>`<div class="fstep ${L>t*4?'on':''}" data-tip="${esc(FARM_BLD[t]+': grows '+n+', up to 4 a week. One '+n+' heals '+Math.round(FOOD_PCT[t]*100)+'% of max health.')}">${consIco(id,3)}<span>${n}</span><span class="fpips">${[1,2,3,4].map(q=>`<i class="${L>=t*4+q?'on':''}"></i>`).join('')}</span></div>`).join('')}</div>`;
+  s+=`<div class="farmroad ${coachMark('farm','road')}">${FOODS.map(([id,n],t)=>`<div class="fstep ${L>t*4?'on':''}" data-tip="${esc(FARM_BLD[t]+': grows '+n+', up to 4 a week. One '+n+' heals '+Math.round(FOOD_PCT[t]*100)+'% of max health.')}">${consIco(id,3)}<span>${n}</span><span class="fpips">${[1,2,3,4].map(q=>`<i class="${L>=t*4+q?'on':''}"></i>`).join('')}</span></div>`).join('')}</div>`;
   s+=upgradeBlock(['feed']);
   const gear=state.bank.filter(it=>salvageOf(it));
   s+=`<h3>Give gear to the farmer</h3><p class="muted" style="font-size:19px">He breaks old equipment down into scrap. Rarer gear gives more.</p>`;
@@ -3873,8 +3980,7 @@ function advanceWeek(){
   state.week++;rollCandidates();
 }
 function hallView(){
-  let s=bHead('house',null,'Town Hall','The War Table sets how many heroes go on each adventure.','Other upgrades are inside each building. Stronger towns also draw slightly stronger monsters.');
-  s+=upgradeBlock(['war']);
+  let s=bHead('house',null,'Town Hall','The War Table sets how many heroes go on each adventure.','Other upgrades are inside each building. Stronger towns also draw slightly stronger monsters.',headUp('war'));
   s+=chronicleBlock();
   s+=`<h3>Building upgrades</h3><div class="bgrid">${[['heroes','Barracks','tent','#6a4a3a',['academy','barracks']],['smith','Weaponsmith','anvil',null,['smith']],['witch','Witch','crescent','#b56fe3',['alch','potency']],['farm','Farm','farmer','#6f8f4a',['feed']],['bank','Bank','chest',null,['bank','bag','pack']]].map(([t,n,sp,tn,ks])=>
     `<button class="bcard" data-a="goUpg" data-x="${t}"><span class="row" style="gap:8px">${sprite(sp,tn,3)}<span class="hname">${n}</span></span>${ks.map(k=>`<span class="meta">${BUILD[k].name}: Lv ${state.b[k]}/${BUILD[k].max}</span>`).join('')}</button>`).join('')}</div>`;
@@ -3887,7 +3993,13 @@ function upgradeBlock(keys){
         ${B.major&&!mx?`<div class="bar xp"><i style="width:${clamp(state.gold/c*100,0,100)}%"></i><span>${fmt(Math.min(state.gold,c))} / ${fmt(c)} gold</span></div>`:''}</div>
       ${mx?'<span class="lvpill">Max</span>':`<button class="btn gold upbtn" data-a="build" data-x="${k}" ${state.gold<c?'disabled':''}>${sprite('coin',null,2,'ico')}${fmt(c)}<small>Upgrade</small></button>`}</div>`}).join('')}</div>`;
 }
-const bHead=(sp,tint,title,line,tip)=>`<div class="bhead">${sprite(sp,tint,5)}<div class="stack" style="gap:2px"><h2>${title}</h2><span class="muted">${line}${tip?' '+help(tip):''}</span></div></div>`;
+const bHead=(sp,tint,title,line,tip,up)=>`<div class="bhead">${sprite(sp,tint,5)}<div class="stack" style="gap:2px;flex:1;min-width:0"><h2>${title}</h2><span class="muted">${line}${tip?' '+help(tip):''}</span></div>${up||''}</div>`;
+// The building's own level sits in its header, top right. Upgrades for things inside the building stay below.
+function headUp(k){
+  const B=BUILD[k],L=state.b[k],mx=L>=B.max,c=B.cost(L);
+  return `<div class="bup" data-tip="${esc(B.name+' (this building’s level). Now: '+B.eff(L)+(mx?'. Fully upgraded.':'. Next: '+B.eff(L+1)+'.'))}"><span class="hname">${B.name} <span class="lvpill">Lv ${L}/${B.max}</span></span><span class="bup-eff">${B.eff(L)}</span>
+    ${mx?'<span class="lvpill">Max</span>':`<button class="btn gold small" data-a="build" data-x="${k}" ${state.gold<c?'disabled':''}>${sprite('coin',null,2,'ico')}${fmt(c)} · Upgrade</button>`}</div>`;
+}
 function perfectLedger(){
   const found=state.perfectFound||[];
   const where=id=>{for(const h of state.heroes)for(const sl of SLOTS)if(h.gear[sl]&&h.gear[sl].pid===id)return 'Wielded by '+esc(h.name);
@@ -3899,8 +4011,8 @@ function perfectLedger(){
     <p class="muted" style="font-size:19px">Perfect weapons only come from bosses and final bosses on the longest adventures${moonKnown()?", and from the Dark Side":""}.</p></details>`;
 }
 function bankView(){
-  let s=bHead('chest',null,'Bank',`Equipment ${state.bank.length}/${bankCap()} · supplies you can carry: ${packCap()}`,'The Vault stores weapons, armor and accessories you find on adventures. Equipment is never sold in town; it only comes from loot. When it is full, new loot is sold automatically. The Supply Pack sets how many potions and other supplies the party can take on an adventure.');
-  s+=upgradeBlock(['bank','bag','pack']);
+  let s=bHead('chest',null,'Bank',`Equipment ${state.bank.length}/${bankCap()} · supplies you can carry: ${packCap()}`,'The Vault stores weapons, armor and accessories you find on adventures. Equipment is never sold in town; it only comes from loot. When it is full, new loot is sold automatically. The Supply Pack sets how many potions and other supplies the party can take on an adventure.',headUp('bank'));
+  s+=upgradeBlock(['bag','pack']);
   if(Object.values(state.mats).some(v=>v>0))s+=`<div class="matbar"><span class="muted">Materials</span>${matsLine(state.mats)}<button class="btn small" data-a="atab" data-x="craft">Craft →</button></div>`;
   s+=`<div class="bar xp" data-tip="Vault space used"><i style="width:${clamp(state.bank.length/bankCap()*100,0,100)}%"></i><span>Vault ${state.bank.length} / ${bankCap()}</span></div>`;
   s+=state.bank.length?`<div class="items">${state.bank.map(it=>itemCard(it,it.rarity==='perfect'?'<span class="meta">Perfect weapons cannot be sold.</span>':`<div class="row"><button class="btn small" data-a="sell" data-x="${it.id}">Sell · ${sellVal(it)} gold</button></div>`)).join('')}</div>`:'<p class="muted">Empty.</p>';
@@ -3915,29 +4027,31 @@ function selParty(){
 }
 function advView(){
   const max=partySize(),p=state.heroes.length?selParty():[],un=descentUnlocked(),hg=bestHaggler();
-  const final=state.sel.len==='descent',ok=p.length&&(!final||(un&&p.length===3));
+  const final=state.sel.len==='descent',bIds=p.length?p:state.heroes.map(h=>h.id),ok=p.length&&(!final||(un&&p.length===3))&&(final||LAND_PICK.includes(state.sel.biome))&&(final||lenOpen(state.sel.len,p));
   const bestLoot=k=>{const C=LOOT_CAP[k]||LOOT_CAP.short;return Object.values(C).reduce((a,x)=>RAR[x].i>RAR[a].i?x:a,'common')};
   const SHORTN={short:'Short',medium:'Med',long:'Long',expedition:'Exped',descent:'Dark'};
   const pctDark=Math.round(moonState().shown);
   // One thin segmented bar for the adventure length.
   if(!moonKnown()&&state.sel.len==='descent')state.sel.len='short';
-  const bar=`<div class="lenbar" role="radiogroup" aria-label="Adventure length">${Object.entries(LENGTHS).filter(([k,L])=>!L.final||moonKnown()).map(([k,L])=>{const lock=L.final&&!un;
+  const bar=`<div class="lenbar" role="radiogroup" aria-label="Adventure length">${Object.entries(LENGTHS).filter(([k,L])=>!L.final||moonKnown()).map(([k,L])=>{const lock=(L.final&&!un)||!lenOpen(k,bIds);
     const label=L.final?(un?'Dark Side':`Dark ${pctDark}%`):L.name,sl=L.final&&!un?`${pctDark}%`:SHORTN[k];
-    return `<button class="lenopt ${L.final?'dark':''} ${state.sel.len===k?'cur':''}" data-a="len" data-x="${k}" role="radio" aria-checked="${state.sel.len===k}" ${lock?'disabled':''}><span class="lf">${label}</span><span class="ls">${sl}</span></button>`}).join('')}</div>`;
+    return `<button class="lenopt ${L.final?'dark':''} ${state.sel.len===k?'cur':''} ${lock?'locked':''}" data-a="len" data-x="${k}" role="radio" aria-checked="${state.sel.len===k}" ${lock?'disabled':''} ${!L.final&&!lenOpen(k,bIds)?`data-tip="${esc(`Locked. Needs a hero with the ${BADGE_N[BADGE_NEED[k]]} badge in the party. Beat a ${BADGE_N[BADGE_NEED[k]]} adventure’s final boss and come home alive to earn it.`)}"`:''}><span class="lf">${label}</span><span class="ls">${sl}</span></button>`}).join('')}</div>`;
+  if(!LENGTHS[state.sel.len].final&&!lenOpen(state.sel.len,bIds))state.sel.len='short';
   const L=LENGTHS[state.sel.len]||LENGTHS.short;let sum;
   if(L.final)sum=un?'<b>The Dark Side</b> · 100+ stages, then the Abyss and the Unlit King · needs exactly 3 heroes':`The Dark Side opens when the moon is fully dark (${pctDark}% now).`;
   else{const bosses=Math.floor(L.max/15),bl=bestLoot(state.sel.len);
-    sum=`<b>${L.name}</b> · ${L.feel}, length unknown · ${L.max>15?'major bosses along the way, ':''}a final boss at the end · ×${L.mult} gold · best loot <span class="r-${bl}">${RAR[bl].l}</span>`+
-      (state.sel.len==='short'?` · <span class="ok" data-tip="${esc(`On Short adventures the party can run back home at any time, even mid-battle. Running costs ${FLEE.min}–${FLEE.max}% of carried gold, and each item found this adventure (even if equipped) has a 33% chance to be lost. Running mid-battle multiplies both (×2 regular fights, ×2.5 elites, ×3 major bosses), and there is no running from the final boss. Supplies and materials come home.`)}">can run home</span>`:'')}
-  let s=`<div class="stack" style="gap:4px"><h2>The Gate</h2><p class="muted">Pick a length, pick heroes, set out. ${help('The land you reach stays unknown until you arrive. Heroes who die are gone for good, with their gear. Monsters sometimes hunt in pairs or packs of three. On Short adventures that only starts after stage 5 and grows slowly; longer adventures start with packs already common.')}</p></div>
-  <div class="gategrid"><div class="stack"><div class="stack" style="gap:6px"><h3>Length</h3>${bar}<p class="lensum">${sum}</p></div>`;
+    sum=`<b>${L.name}</b> · ${L.feel}, length unknown · ${L.max>15?'major bosses along the way, ':''}a final boss at the end · ×${L.mult} gold · best loot ${state.sel.len==='expedition'?'<span class="muted">?</span>':`<span class="r-${bl}">${RAR[bl].l}</span>`}`+
+      (state.sel.len==='short'?` · <span class="ok" data-tip="${esc(`On Short adventures the party can run back home at any time, even mid-battle. Running costs ${FLEE.min}–${FLEE.max}% of carried gold, and each item found during this adventure (even if equipped) has a 33% chance to be lost. Running mid-battle multiplies both (×2 regular fights, ×2.5 elites, ×3 major bosses), and there is no running from the final boss. Supplies and materials come home.`)}">can run home</span>`:'')}
+  let s=`<div class="stack" style="gap:4px"><h2>The Gate</h2><p class="muted">Pick a land, a length and your heroes, then set out. ${help('Pick the land: every monster there deals and resists its element, so bring heroes who can handle it. Heroes who die are gone for good, with their gear. Monsters sometimes hunt in pairs or packs of three. On Short adventures that only starts after stage 5 and grows slowly; longer adventures start with packs already common.')}</p></div>
+  <div class="gategrid"><div class="stack"><div class="stack" style="gap:6px"><h3>Length</h3>${bar}<p class="lensum">${sum}</p></div>${final?'':(()=>{const cur=LAND_PICK.includes(state.sel.biome)?state.sel.biome:null;
+    return `<div class="stack" style="gap:6px"><h3>Land</h3>${state.guide&&!cur?'<p class="guidehint">① Pick a land to explore</p>':''}<div class="lands ${state.guide&&!cur?'guide':''}" role="radiogroup" aria-label="Land">${LAND_PICK.map(k=>{const B=BIOMES[k];return `<button class="land ${cur===k?'cur':''}" style="--c:${EL_COL[B.el]}" data-a="land" data-x="${k}" role="radio" aria-checked="${cur===k}">${elIco(B.el)}<span><b>${B.name}</b><small>${cap(B.el)}</small></span></button>`}).join('')}</div>${cur?`<p class="muted" style="font-size:18px">${BIOMES[cur].flavor} Monsters here deal and resist ${elTag(BIOMES[cur].el)}.</p>`:'<p class="warn" style="font-size:18px">Choose where to go.</p>'}</div>`})()}`;
   if(!state.heroes.length)return s+'<p class="muted">Recruit a hero at the Barracks first.</p></div></div>';
-  s+=`<h3>Party · ${p.length}/${max}</h3><div class="tabs">${state.heroes.map(h=>`<button class="btn small ${p.includes(h.id)?'on':''}" data-a="partyToggle" data-x="${h.id}"><span>${esc(h.name)} · Lv ${h.level} ${C_(h).name}${h.points?` · <span class="gold">${h.points} pts</span>`:''}</span>${xpMini(h,false)}</button>`).join('')}</div>`;
+  s+=`<h3>Party · ${p.length}/${max}</h3>${state.guide&&!p.length&&LAND_PICK.includes(state.sel.biome)?'<p class="guidehint">② Choose your hero</p>':''}<div class="tabs ${state.guide&&!p.length&&LAND_PICK.includes(state.sel.biome)?'guide':''}">${state.heroes.map(h=>`<button class="btn small ${p.includes(h.id)?'on':''}" data-a="partyToggle" data-x="${h.id}"><span>${esc(h.name)} · Lv ${h.level} ${C_(h).name} ${badgeIco(h.badge||0)}${h.points?` · <span class="gold">${h.points} pts</span>`:''}</span>${xpMini(h,false)}</button>`).join('')}</div>`;
   s+=max===1?`<p class="muted">Solo only. The War Table at the Town Hall unlocks parties: 2 heroes for ${fmt(BUILD.war.cost(0))} gold, then 3 for ${fmt(BUILD.war.cost(1))}.</p>`:`<p class="muted">Enemies grow tougher with each hero you bring, and gold grows too.</p>`;
   s+=`<div class="setout"><label class="row" style="gap:6px"><input type="checkbox" id="carry" ${state.sel.carry&&state.scrolls?'checked':''} ${state.scrolls?'':'disabled'}> Carry a Return Scroll (${state.scrolls} owned)</label>
     ${final&&p.length!==3?'<p class="warn">The Dark Side needs exactly 3 heroes.</p>':''}
     ${(()=>{const g=greenFor(state.sel.len,p);return g.length?`<p class="warn">${esc(listNames(g.map(h=>h.name)))} ${g.length>1?'look':'looks'} green for a trip like this. Perhaps ${g.length>1?'they need':(g[0].name?'this hero needs':'they need')} more training and experience before adventuring here.</p>`:''})()}
-    <button class="btn gold big" data-a="setOut" ${ok?'':'disabled'}>Equip &amp; set out: ${L.final?'The Dark Side':L.name} with ${esc(listNames(p.map(id=>heroById(id).name)))}</button></div>`;
+    ${state.guide&&ok?'<p class="guidehint">③ Set out!</p>':''}<button class="btn gold big ${state.guide&&ok?'guide':''}" data-a="setOut" ${ok?'':'disabled'}>Equip &amp; set out: ${L.final?'The Dark Side':L.name} with ${esc(listNames(p.map(id=>heroById(id).name)))}</button></div>`;
   s+='</div><div class="stack">';
   // outfitter: supplies
   const stock=Object.values(state.items||{}).reduce((a,x)=>a+x,0),plan=packPlan(),bring=Object.values(plan).reduce((a,x)=>a+x,0);
@@ -3946,7 +4060,7 @@ function advView(){
     const k=plan[id]||0;
     return `<div class="shopitem" data-tip="${esc(C.d)}">${consIco(id)}<span>${C.n}</span><span class="muted">${pc}g · have ${n}</span><button class="btn small" data-a="buy" data-x="${id}|1" ${state.gold<pc?'disabled':''}>Buy</button>
       ${n?`<span class="bringrow"><span class="muted">Bring</span><button class="btn small pm" data-a="packAdj" data-x="${id}|-1" ${k<=0?'disabled':''} aria-label="Bring one fewer ${esc(C.n)}">−</button><b class="num pc">${k}</b><button class="btn small pm" data-a="packAdj" data-x="${id}|1" ${k>=n||bring>=packCap()?'disabled':''} aria-label="Bring one more ${esc(C.n)}">+</button></span>`:''}</div>`}).join('')}
-    ${(()=>{const F=state.farm&&state.farm.lvl?farmStep(state.farm.lvl):null,S=state.still?stillStep(state.still):null;return [[F&&F.food,F&&F.q,'from the farm'],[S&&S.out,S&&S.q,'from the still']].filter(x=>x[0]&&x[1]).map(([id,q,src])=>`<div class="shopitem" data-tip="${esc(CONSUMABLES[id].d+' Packed free on every adventure; unused ones spoil.')}">${consIco(id)}<span>${q} ${CONSUMABLES[id].n}</span><span class="muted">free ${src}</span></div>`).join('')})()}
+    ${(()=>{return freeSupplies().map(([id,q,src])=>`<div class="shopitem" data-tip="${esc(CONSUMABLES[id].d+' Packed free on every adventure; unused ones spoil.')}">${consIco(id)}<span>${q} ${CONSUMABLES[id].n}</span><span class="muted">free ${src}</span></div>`).join('')})()}
     <div class="shopitem" data-tip="Brings the whole party home safely with everything they carry.">${ico('scroll',null,3)}<span>Return Scroll</span><span class="muted">${priced(SCROLL_PRICE,hg)}g · have ${state.scrolls}</span><button class="btn small gold" data-a="buyScroll" ${state.gold<priced(SCROLL_PRICE,hg)?'disabled':''}>Buy</button></div></div>`;
   s+='</div></div>';
   return s;
@@ -3965,7 +4079,7 @@ const marketPrice=it=>priced(sellVal(it)*4,bestHaggler());
 function nextStep(){
   const pts=state.heroes.find(h=>h.points>0),vet=null;
   if(!state.heroes.length)return {t:'Recruit your first hero',i:sprite('book','#5a3f7a',3),a:'tab',x:'academy'};
-  {const k=Object.keys(OPEN_WEEK).find(k=>!bldOpen(k)&&scrapTotal()+1e-9>=buildCost(k));if(k)return {t:`Finish building the ${({bank:'Bank',smith:'Weaponsmith',farm:'Farm',witch:'Witch'})[k]}`,i:sprite('worker','#c98b5c',3),a:'tab',x:k}}
+  {const k=Object.keys(OPEN_WEEK).find(canBuild);if(k)return {t:`Finish building the ${({bank:'Bank',smith:'Weaponsmith',farm:'Farm',witch:'Witch'})[k]}`,i:sprite('worker','#c98b5c',3),a:'tab',x:k}}
   if(pts)return {t:`Spend ${pts.name}’s ${pts.points} points`,i:sprite(pts.cls,C_(pts).tint,3),a:'openHero',x:pts.id};
   if(vet)return {t:`${vet.name} can learn a new skill`,i:sprite(vet.cls,C_(vet).tint,3),a:'openHero',x:vet.id};
   return {t:'Venture out',i:sprite('gate',null,3),a:'tab',x:'adventure'};
@@ -3977,8 +4091,8 @@ function homeView(){
   const NAMES={hall:'Town Hall',heroes:'Barracks',smith:'Weaponsmith',bank:'Bank',adventure:'The Gate',farm:'Farm',witch:'Witch'};
   const lv={hall:state.b.war,heroes:state.b.barracks,smith:state.b.smith,alch:state.b.alch,bank:state.b.bank,farm:state.farm.lvl};
   const alert={heroes:state.candidates.length||state.heroes.some(h=>h.points)};
-  const spots=Object.entries(T.spots).map(([k,b])=>{const open=k==='adventure'||bldOpen(k);
-    return `<button class="spot ${k==='adventure'?'gatespot':''} ${open?'':'building'}" style="left:${pct(b.x0,ISO.W)};top:${pct(b.y0,ISO.Hh)};width:${pct(b.x1-b.x0,ISO.W)};height:${pct(b.y1-b.y0,ISO.Hh)}" data-a="tab" data-x="${k}" aria-label="${NAMES[k]}${open?'':': under construction'}">${open?'':`<span class="worker w1">${sprite('worker','#c98b5c',3)}<i class="hammer"></i><i class="dust"></i></span><span class="worker w2">${sprite('worker','#6a8ab8',3)}<i class="hammer"></i><i class="dust"></i></span>`}<span class="plaque ${k==='adventure'?'gold':''}">${NAMES[k]}${open?(lv[k]?` <span class="lvpill">${lv[k]}</span>`:''):` <span class="soon">${scrapTotal()+1e-9>=buildCost(k)?'ready to build!':`needs ${buildCost(k)} scrap`}</span>`}</span>${open&&alert[k]?'<span class="alert">!</span>':''}</button>`}).join('');
+  const spots=Object.entries(T.spots).map(([k,b])=>{const open=k==='adventure'||bldOpen(k),known=bldKnown(k);
+    return `<button class="spot ${k==='adventure'?'gatespot':''} ${open?'':'building'} ${known?'':'mystery'} ${guideAt()===k?'guide':''}" style="left:${pct(b.x0,ISO.W)};top:${pct(b.y0,ISO.Hh)};width:${pct(b.x1-b.x0,ISO.W)};height:${pct(b.y1-b.y0,ISO.Hh)}" ${known?`data-a="tab" data-x="${k}"`:'disabled'} aria-label="${known?NAMES[k]:'Unknown building'}${open?'':': under construction'}" ${known?'':'data-tip="The builders are waiting to hear what this lot is for."'}>${open?'':`<span class="worker w1">${sprite('worker','#c98b5c',3)}<i class="hammer"></i><i class="dust"></i></span><span class="worker w2">${sprite('worker','#6a8ab8',3)}<i class="hammer"></i><i class="dust"></i></span>`}<span class="plaque ${k==='adventure'?'gold':''}">${!known?'?':NAMES[k]+(open?(lv[k]?` <span class="lvpill">${lv[k]}</span>`:''):` <span class="soon">${scrapTotal()+1e-9>=buildCost(k)?'ready to build!':`needs ${buildCost(k)} scrap`}</span>`)}</span>${open&&alert[k]?'<span class="alert">!</span>':''}</button>`}).join('');
   const heroes=state.heroes.slice(0,HERO_SPOTS.length).map((h,i)=>{const [gx,gy]=HERO_SPOTS[i],p=isoPt(ISO.ox,ISO.oy,gx+.5,gy+.5);
     return `<button class="isohero" style="left:${pct(p[0],ISO.W)};top:${pct(p[1],ISO.Hh)}" data-a="openHero" data-x="${h.id}" data-tip="${esc(`${h.name} · Lv ${h.level} ${C_(h).name} · ${maxHp(h)} HP`)}">${sprite(h.cls,C_(h).tint,4,'bob')}${h.points?'<span class="alert">!</span>':''}</button>`}).join('');
   let s=`<div class="iso">
@@ -3987,7 +4101,7 @@ function homeView(){
     <button class="iso-moon" data-tip="${esc(moonTip())}" data-a="tab" data-x="ledger" aria-label="Open the Moon Ledger">${moonImg(m.shown,4)}<span class="moonpct">${moonKnown()?`${Math.round(m.shown)}% dark · `:''}Ledger</span></button>
     ${spots}${heroes}<div class="fireflies"></div>
   </div>
-  <button class="nextstep" data-a="${n.a}" data-x="${n.x}">${n.i}<span><small>Next step</small><b>${esc(n.t)}</b></span><span class="arrow">→</span></button>
+  <button class="nextstep ${guidePts()?'guide':''}" data-a="${n.a}" data-x="${n.x}">${n.i}<span><small>Next step</small><b>${esc(n.t)}</b></span><span class="arrow">→</span></button>
 `;
   return s;
 }
@@ -4003,18 +4117,18 @@ function fleeModal(){
   const r=state.run,T=fleeTerms(),lo=Math.round(r.gold*T.min/100),hi=Math.round(r.gold*T.max/100),n=foundThisRun().length;
   return `<div class="modal" role="dialog" aria-modal="true" aria-label="Run back home"><section class="panel summary dead"><h2>Run back home?</h2>
     ${T.mid?`<p class="warn">Fleeing mid-fight against ${T.foe==='boss'?'a major boss triples':T.foe==='elite'?'an elite multiplies':'regular monsters doubles'} the losses${T.foe==='elite'?' by 2.5':''}.</p>`:''}
-    <p>The party runs for town. You will drop <b>${T.min===T.max?T.min:T.min+'–'+T.max}%</b> of the gold you carry (${lo===hi?lo:lo+'–'+hi} of ${r.gold}), and each item found on this adventure has a <b>${Math.round(T.item*100)}%</b> chance to be lost, even if a hero has it equipped (${n} item${n===1?'':'s'} at risk).</p>
+    <p>The party runs for town. You will drop <b>${T.min===T.max?T.min:T.min+'–'+T.max}%</b> of the gold you carry (${lo===hi?lo:lo+'–'+hi} of ${r.gold}), and each item found during this adventure has a <b>${Math.round(T.item*100)}%</b> chance to be lost, even if a hero has it equipped (${n} item${n===1?'':'s'} at risk).</p>
     <p class="muted">Gear you brought from town, supplies and materials come home safely. A week passes.</p>
     <div class="row"><button class="btn red" data-a="fleeYes">Run home</button><button class="btn" data-a="fleeNo">Keep going</button></div></section></div>`;
 }
-const fleeBtn=cls=>{const r=state.run;if(r&&r.length==='short'&&!r.final&&noEscape())return `<button class="btn ${cls||''}" disabled data-tip="There is no running from the final boss.">No escape</button>`;if(!canFlee())return '';const T=fleeTerms();return `<button class="btn ${cls||''}" data-a="flee" data-tip="${esc(`Short adventures only. Lose ${T.min}–${T.max}% of carried gold; each item found this adventure (even if equipped) has a ${Math.round(T.item*100)}% chance to be lost.${T.mid?` ×${T.k} because you are mid-battle${T.foe==='boss'?' with a major boss':T.foe==='elite'?' with an elite':''}.`:''}`)}">Run home</button>`};
+const fleeBtn=cls=>{const r=state.run;if(r&&r.length==='short'&&!r.final&&noEscape())return `<button class="btn ${cls||''}" disabled data-tip="There is no running from the final boss.">No escape</button>`;if(!canFlee())return '';const T=fleeTerms();return `<button class="btn ${cls||''}" data-a="flee" data-tip="${esc(`Short adventures only. Lose ${T.min}–${T.max}% of carried gold; each item found during this adventure (even if equipped) has a ${Math.round(T.item*100)}% chance to be lost.${T.mid?` ×${T.k} because you are mid-battle${T.foe==='boss'?' with a major boss':T.foe==='elite'?' with an elite':''}.`:''}`)}">Run home</button>`};
 // Hero cards, bag and loot. Shown beside the path between fights, and in the Party drawer during a battle.
 function partyPanel(){
   const r=state.run,b=r.battle,P=partyAll(),cur=b&&!b.over?currentActor():null,many=P.length>1;
   return `${P.map(h=>{const open=ui.pdet===h.id,sel=(ui.pslot||'').split('|');
     return `<div class="stack pcard ${h.hp<=0?'down':''} ${many&&cur===h?'cur':''}" style="gap:5px">
       <div class="pc-head"><div class="portrait">${sprite(h.cls,C_(h).tint,3)}</div><div class="stack" style="gap:3px;flex:1;min-width:0"><span class="hname">${esc(h.name)} <small class="muted">Lv ${h.level} ${C_(h).name}</small>${h.hp<=0?' <span class="warn">fallen</span>':''}</span>
-        ${bars(h)}<button class="linkbtn" data-a="pdet" data-x="${h.id}" aria-expanded="${open}">${open?'Hide details ▴':'Details ▾'}${h.points?` <span class="gold">· ${h.points} pts</span>`:''}</button></div>
+        ${bars(h)}<button class="linkbtn ${h.points&&h.hp>0&&!open?'guide':''}" data-a="pdet" data-x="${h.id}" aria-expanded="${open}">${open?'Hide details ▴':'Details ▾'}${h.points?` <span class="gold">· ${h.points} pts</span>`:''}</button></div>
         ${gearDoll(h,'pslot',sel[0]===h.id?sel[1]:null,true)}</div>${pslotDetail(h)}
       ${open?`<div class="stack" style="gap:6px">${traitChips(h)}<div class="traits">${h.skills.map(id=>skillChip(h,id)).join('')}</div>${h.hp>0?learnBlock(h):''}${xpBar(h)}${h.hp>0?allocBtns(h):''}${statPips(h)}${statTable(h)}${heroElTable(h)}</div>`:''}</div>`}).join('')}
     ${r.scrolls&&!(b&&b.over)?`<button class="btn" data-a="scroll">Read Return Scroll${many?' (whole party)':''}</button>`:''}
@@ -4034,7 +4148,7 @@ function runView(){
   let prog='';if(r.final)for(let i=1;i<=cells;i++){const boss=i%15===0;prog+=`<i class="${i<r.stage?'done':i===r.stage?'now':''} ${boss?'boss':''}"></i>`}
   let s=`<section class="panel runhdr" style="--s1:${B.s[0]};--s2:${B.s[1]}"><div class="rh-row"><div class="rh-party">${P.map(h=>`<span class="fo ${h.hp<=0?'dead':''}">${sprite(h.cls,C_(h).tint,3,h.hp>0?'bob':'')}</span>`).join('')}</div>
     <div class="stack" style="gap:0;min-width:0;flex:1"><h2>${r.final?'The Dark Side · ':''}${B.name}</h2><span class="muted" style="font-size:18px">${stageText(r)}</span></div>
-    <div class="res"><span class="chip" data-tip="Gold carried">${sprite('coin',null,2)}<b class="num">${r.gold}</b></span><span class="chip" data-tip="Backpack">${sprite('chest',null,2)}<b class="num">${r.loot.length}/${bagCap()}</b></span><span class="chip" data-tip="Return Scrolls">${sprite('scroll',null,2)}<b class="num">${r.scrolls}</b></span><button class="btn small partybtn" data-a="drawer" data-x="party">Party</button>${fleeBtn('small red')}</div></div>
+    <div class="res"><span class="chip" data-tip="Gold carried">${sprite('coin',null,2)}<b class="num">${r.gold}</b></span><span class="chip" data-tip="Backpack">${sprite('chest',null,2)}<b class="num">${r.loot.length}/${bagCap()}</b></span><span class="chip" data-tip="Return Scrolls">${sprite('scroll',null,2)}<b class="num">${r.scrolls}</b></span><button class="btn small partybtn ${partyAll().some(x=>x.hp>0&&x.points)&&ui.drawer!=='party'?'guide':''}" data-a="drawer" data-x="party" ${partyAll().some(x=>x.hp>0&&x.points)?'data-tip="Level up! Open the party to spend attribute points."':''}>Party</button>${fleeBtn('small red')}</div></div>${scrapStrip(r.mats,'Scrap gathered this trip. It comes home if the party returns or flees, and is lost if everyone falls.')}
     ${r.final?`<div class="prog" title="Red marks are bosses">${prog}</div>`:''}</section>`;
   s+=`<div class="runlay"><section class="panel">${r.event?eventView():nodesView()}</section><aside class="panel partycol">${partyPanel()}</aside></div>`;
   if(ui.drawer==='party')s+=`<div class="drawer fx"><div class="drawer-top"><h2>Party</h2><button class="xbtn" data-a="drawer" data-x="" aria-label="Close">×</button></div><div class="drawgrid">${partyPanel()}</div></div>`;
@@ -4053,26 +4167,27 @@ function foeBrief(e){
 function collectMarks(){
   const b=state.run.battle;b.marks=b.marks||{};
   for(const p of b.pops||[]){const k=p.s==='e'?'e'+p.i:'h'+p.hid,L=(b.marks[k]=b.marks[k]||[]);
-    const num=typeof p.t==='number',hide=num&&p.s==='e'&&!seeFoeNumbers();L.push({t:hide?(p.crit?'<small>CRIT</small>hit!':'hit'):num?(p.crit?'<small>CRIT</small>':'')+(p.s==='h'?'−':'')+p.t+(p.crit?'!':''):String(p.t),c:popCls(p)+(num?(p.s==='h'?'dmgin ':'dmgout '):''),fresh:1,g:b.gen||0});if(L.length>4)L.shift()}
+    const num=typeof p.t==='number',hide=num&&p.s==='e'&&!seeFoeNumbers();L.push({t:hide?(p.crit?'CRIT!':'hit'):num?(p.crit?'CRIT ':'')+(p.s==='h'?'−':'')+p.t:String(p.t),c:popCls(p)+(num?(p.s==='h'?'dmgin ':'dmgout '):''),fresh:1,g:b.gen||0});if(L.length>4)L.shift()}
   b.pops=[];
 }
 function marksHtml(k){const L=(state.run.battle.marks||{})[k];if(!L||!L.length)return '';
   const g=state.run.battle.gen||0;return `<span class="marks">${L.map(m=>`<span class="mark ${m.c} ${m.fresh?'fresh':''} ${(m.g||0)<g?'old':''}">${m.t}</span>`).join('')}</span>`}
 function heroInfo(h){
   const b=state.run.battle,mh=maxHp(h),mm=maxMp(h),tags=[],cb=cbStacks(h);
-  if(b.guard[h.id])tags.push('<span class="utag" style="color:#8fa8c8">Shield Wall</span>');
-  if(cb)tags.push(`<span class="utag gold">${CRIT_BUFF[h.cls].n} ×${cb}</span>`);
-  if(b.warcry&&b.warcry.by===h.id)tags.push('<span class="utag gold">War Cry</span>');
-  if(b.tauntN&&b.taunt===h.id)tags.push('<span class="utag" style="color:#8fa8c8">Taunting</span>');
-  if(b.bulwark&&b.bulwark.n>0)tags.push('<span class="utag" style="color:#8fa8c8">Bulwark</span>');
-  if(heroBuff(h,'eva'))tags.push(`<span class="utag" style="color:#cfc6b0">90% evade ×${heroBuff(h,'eva').n}</span>`);
-  if(heroBuff(h,'imbue'))tags.push(`<span class="utag" style="color:${EL_COL[attuned(h)]}">${cap(attuned(h))} arrows ×${heroBuff(h,'imbue').n}</span>`);
-  if(heroBuff(h,'crit'))tags.push(`<span class="utag gold">Sniper ×${heroBuff(h,'crit').n}</span>`);
-  if(heroBuff(h,'undying'))tags.push('<span class="utag gold">Undying</span>');
+  if(b.guard[h.id])tags.push('<span class="utag" style="color:#8fa8c8" data-tip="Shield Wall: takes half damage and draws every enemy attack until this hero’s next turn.">Shield Wall</span>');
+  if(cb)tags.push(`<span class="utag gold" data-tip="${esc(CRIT_BUFF[h.cls].n+' ×'+cb+': earned by landing crits, stacks up to 5 for the rest of the battle. '+CRIT_BUFF[h.cls].d.charAt(0).toUpperCase()+CRIT_BUFF[h.cls].d.slice(1)+'.')}">${CRIT_BUFF[h.cls].n} ×${cb}</span>`);
+  if(b.warcry&&b.warcry.by===h.id)tags.push('<span class="utag gold" data-tip="War Cry: the whole party deals 25% more damage until it fades.">War Cry</span>');
+  if(b.tauntN&&b.taunt===h.id)tags.push(`<span class="utag" style="color:#8fa8c8" data-tip="Taunting: every enemy must attack this hero for ${b.tauntN} more round${b.tauntN>1?'s':''}.">Taunting</span>`);
+  if(b.bulwark&&b.bulwark.n>0)tags.push('<span class="utag" style="color:#8fa8c8" data-tip="Bulwark: the whole party takes 50% less damage while it lasts.">Bulwark</span>');
+  if(heroBuff(h,'eva'))tags.push(`<span class="utag" style="color:#cfc6b0" data-tip="Featherweight: 90% chance to dodge every attack for ${heroBuff(h,'eva').n} more turn${heroBuff(h,'eva').n>1?'s':''}.">90% evade ×${heroBuff(h,'eva').n}</span>`);
+  if(heroBuff(h,'imbue'))tags.push(`<span class="utag" style="color:${EL_COL[attuned(h)]}" data-tip="Elemental Arrows: arrows deal ${cap(attuned(h))} damage for ${heroBuff(h,'imbue').n} more turn${heroBuff(h,'imbue').n>1?'s':''}. Pick another element under the skills.">${cap(attuned(h))} arrows ×${heroBuff(h,'imbue').n}</span>`);
+  if(heroBuff(h,'crit'))tags.push(`<span class="utag gold" data-tip="Sniper: at least 80% crit chance for ${heroBuff(h,'crit').n} more turn${heroBuff(h,'crit').n>1?'s':''}.">Sniper ×${heroBuff(h,'crit').n}</span>`);
+  if(heroBuff(h,'undying'))tags.push('<span class="utag gold" data-tip="Undying Vow: cannot drop below 1 health, takes 50% less damage and taunts until it fades.">Undying</span>');
   const inc=b.over||!seeIntent()?0:aliveFoes().filter(e=>e.intent&&(e.intent.act==='sweep'||intentTarget(e)===h)).length;
   if(inc&&h.hp>0)tags.push(`<span class="utag tgtd" data-tip="${inc} enem${inc>1?'ies are':'y is'} aiming at this hero next.">Targeted${inc>1?' ×'+inc:''}</span>`);
-  if(b.dot&&b.dot[h.id])tags.push('<span class="utag" style="color:#c4463f">Bleeding</span>');
-  if(b.curse&&b.curse[h.id])tags.push('<span class="utag" style="color:#b56fe3">Withered</span>');
+  if(h.regen&&h.regen.length){const hp=h.regen.filter(x=>x.k==='hp'),mp=h.regen.filter(x=>x.k==='mp'),t=Math.max(...h.regen.map(x=>x.n));tags.push(`<span class="utag" style="color:#8fe08a" data-tip="${esc(`Recovering: ${hp.length?'+'+Math.round(hp.reduce((a,x)=>a+x.p,0)*100)+'% health':''}${hp.length&&mp.length?' and ':''}${mp.length?'+'+Math.round(mp.reduce((a,x)=>a+x.p,0)*100)+'% mana':''} at the start of each turn, ${t} turn${t>1?'s':''} left. Whatever is left when the fight is won lands right away.`)}">Regen ×${t}</span>`)}
+  if(b.dot&&b.dot[h.id])tags.push(`<span class="utag" style="color:#c4463f" data-tip="Bleeding: loses ${b.dot[h.id].dmg} health at the start of each of their next ${b.dot[h.id].n} turns.">Bleeding</span>`);
+  if(b.curse&&b.curse[h.id])tags.push('<span class="utag" style="color:#b56fe3" data-tip="Withered: deals 25% less damage until the curse wears off.">Withered</span>');
   return `<span class="uname">${esc(h.name)} <small>Lv ${h.level} ${C_(h).name}</small></span>
       <div class="ubar hp"><i style="width:${clamp(h.hp/mh*100,0,100)}%"></i><span>HP ${Math.max(0,h.hp)}/${mh}</span></div>
       <div class="ubar mp"><i style="width:${clamp(h.mp/mm*100,0,100)}%"></i><span>MP ${h.mp}/${mm}</span></div>
@@ -4082,54 +4197,33 @@ function heroInfo(h){
 function foeInfo(e){
   // Enemies have no mana. Every third attack is a crushing blow, so their second bar shows that charge.
   const dead=e.hp<=0,ch=(e.tc||0)%3,tags=[];
-  tags.push(`<span class="utag" style="color:${TIER_COL[e.tier]||'#ccc'}">${TIER_N[e.tier]||''}</span>`);
-  if(!isScouted(e))tags.push('<span class="utag muted">unscouted</span>');
-  if(e.kind!=='normal')tags.push(`<span class="utag" style="color:${e.kind==='elite'||e.kind==='mimic'?'#b56fe3':'#e0736c'}">${e.kind}</span>`);
-  if(e.hex)tags.push('<span class="utag" style="color:#b56fe3">hexed</span>');
-  if(e.stun>0)tags.push(`<span class="utag" style="color:#e3b341">stunned${e.stun>1?' ×'+e.stun:''}</span>`);
-  if(e.weak)tags.push('<span class="utag" style="color:#8fcf6f">crippled</span>');
-  if(e.poison)tags.push('<span class="utag" style="color:#6fb35a">poisoned</span>');
+  tags.push(`<span class="utag" style="color:${TIER_COL[e.tier]||'#ccc'}" data-tip="${esc(`Threat tier: ${TIER_N[e.tier]} (${TIER_LV[e.tier]}). Higher tiers hit harder, have more skills and more health.`)}">${TIER_N[e.tier]||''}</span>`);
+  if(!isScouted(e))tags.push('<span class="utag muted" data-tip="Unscouted: your party hasn’t read this monster yet, so its weaknesses and damage are hidden. Higher party Perception scouts monsters and adds them to the Moon Ledger.">unscouted</span>');
+  if(e.kind!=='normal')tags.push(`<span class="utag" style="color:${e.kind==='elite'||e.kind==='mimic'?'#b56fe3':'#e0736c'}" data-tip="${esc(KIND_TIP[e.kind]||'')}">${e.kind}</span>`);
+  if(e.mutation)tags.push(`<span class="utag" style="color:#b56fe3" data-tip="${esc(MUT[e.mutation].n+': '+MUT[e.mutation].d+'.')}">${MUT[e.mutation].n.toLowerCase()}</span>`);
+  if(e.hex)tags.push(`<span class="utag" style="color:#b56fe3" data-tip="Hexed: takes 25% more damage from everyone for ${e.hex} more turn${e.hex>1?'s':''}.">hexed</span>`);
+  if(e.stun>0)tags.push(`<span class="utag" style="color:#e3b341" data-tip="Stunned: loses its next ${e.stun>1?e.stun+' turns':'turn'}.">stunned${e.stun>1?' ×'+e.stun:''}</span>`);
+  if(e.weak)tags.push(`<span class="utag" style="color:#8fcf6f" data-tip="Crippled: deals 30% less damage for ${e.weak} more turn${e.weak>1?'s':''}.">crippled</span>`);
+  if(e.poison)tags.push(`<span class="utag" style="color:#6fb35a" data-tip="Poisoned: takes ${e.poison.dmg} damage at the start of each of its next ${e.poison.n} turns.">poisoned</span>`);
   return `<span class="uname">${esc(e.name)}</span><span class="umeta">${elIco(e.type)}${cap(e.type)} · Lv ${Math.round(e.lvl)}</span>${intentHtml(e)}
       <div class="ubar hp"><i style="width:${clamp(e.hp/e.maxHp*100,0,100)}%"></i><span>${dead?'dead':seeFoeNumbers()?`HP ${e.hp}/${e.maxHp}`:''}</span></div>
-      ${dead?'':isScouted(e)?`<div class="ubar ch ${ch===2?'full':''}"><i style="width:${Math.round(ch/2*100)}%"></i><span>${ch===2?'Crushing blow next':`Charge ${ch}/2`}</span></div>`:'<div class="ubar ch"><span>Charge ?</span></div>'}
+      ${dead?'':isScouted(e)?`<div class="ubar ch ${ch===2?'full':''}" data-tip="Charge: every third attack is a crushing blow (1.6× damage). When this bar is full, the next attack is the big one."><i style="width:${Math.round(ch/2*100)}%"></i><span>${ch===2?'Crushing blow next':`Charge ${ch}/2`}</span></div>`:'<div class="ubar ch" data-tip="How close it is to a crushing blow. Unknown until your party scouts this monster."><span>Charge ?</span></div>'}
       ${tags.length?`<div class="utags">${tags.join('')}</div>`:''}`;
 }
+const KIND_TIP={elite:'Elite: a tougher, mutated version of a normal monster. More health and damage, better loot.',mimic:'Mimic: a treasure chest with teeth. Hits hard; kill it for the loot it was hiding.',boss:'Major boss: a champion of this land, far stronger than normal monsters. Guards the best loot. Beating one also helps darken the moon.',warden:'Warden: the final boss of this adventure. Beat it to finish the adventure and earn its badge. Stuns only last 1 turn on it, and Coup de Grâce can’t finish it.',king:'The Unlit King: the source of the smoke. The last fight of the game.'};
 const heroTip=h=>`${h.name} · Lv ${h.level} ${C_(h).name}. Armor ${armor(h)} · evasion ${Math.round(evasion(h))}% · speed ${Math.round(speed(h))} · crit ${Math.round(critChance(h))}%.`;
 const foeTip=e=>isScouted(e)?`${e.name} · ${TIER_N[e.tier]} · Lv ${Math.round(e.lvl)} ${cap(e.type)}. Speed ${Math.round(e.spd)}. Hits ${mixText(foeMix(e,'attack'))}; armor stops the physical part, resistance the rest. Every third attack is a crushing blow (1.6× damage, more physical).${e.skills.length?' Skills: '+e.skills.map(k=>FOE_SKILLS[k].n+' ('+FOE_SKILLS[k].d+')').join(' '):''}`:`${e.name} · ${TIER_N[e.tier]} · Lv ${Math.round(e.lvl)}. Not scouted yet: better Perception reads enemies and adds them to the Moon Ledger.`;
 const foeTargetAttrs=(e,i)=>e.hp<=0||state.run.battle.over?'':`data-a="target" data-x="${i}" role="button" tabindex="0"`;
 const wuCls=id=>{const w=state.run.battle.windup;if(!w)return '';return w.u===id?(w.foe?'wind-l':'wind-r')+(w.heavy?' heavy':''):w.tg.includes(id)?'aimed':''};
-/* ---------- skill animations ----------
-   Every skill belongs to an animation family. Similar skills share one (all heals and revives glow from the hands).
-   The caster plays one part, and each enemy or ally it touches plays another. */
-const SK_FX={cleave:'slash',crush:'smash',coup:'smash',stunblow:'smash',titan:'titan',quake:'quake',
-  wall:'shield',taunt:'shield',bulwark:'shield',undying:'shieldgold',warcry:'shout',
-  wind:'heal',mend:'heal',circle:'heal',revive:'heal',resurrect:'heal',
-  pierce:'shot',double:'shot',cripple:'shot',deadeye:'snipe',assassin:'snipe',killshot:'snipe',
-  volley:'rain',hail:'rain',thousand:'rain',feather:'aura',sniper:'aura',imbue:'aura',imbue2:'aura',
-  bolt:'blast',combo:'blast',storm:'storm',cataclysm:'storm',chain:'lightning',hex:'hex',drain:'drain'};
-const SK_CASTER={slash:'melee',smash:'melee',titan:'melee',quake:'melee',shot:'bow',snipe:'bow',rain:'bow',
-  blast:'cast',storm:'cast',lightning:'cast',hex:'cast',drain:'cast',heal:'heal',shield:'shield',shieldgold:'shield',shout:'shout',aura:'aura'};
-const SK_COL={slash:'#ffffff',smash:'#ffe7ae',titan:'#e3b341',quake:'#c9a46a',shot:'#fff3dc',snipe:'#ff6a5a',rain:'#fff3dc',
-  blast:'#b9a8ff',storm:'#b9a8ff',lightning:'#f4e25a',hex:'#b56fe3',drain:'#8a4ad0',heal:'#a8f0a0',shield:'#8fc8ff',shieldgold:'#e3b341',shout:'#e0643a',aura:'#e8f4ff'};
-function skFx(fx,unit){
-  const F=fx.sk;if(!F)return '';const fam=SK_FX[F.id];if(!fam)return '';
-  const col=F.id==='sniper'?'#e3b341':F.c&&!['heal','shield','shieldgold','shout','hex','drain','lightning'].includes(fam)?F.c:SK_COL[fam];
-  const part=(cls)=>`<span class="skfx ${cls} v-${F.id}" style="--c:${col}" aria-hidden="true"><i></i><i></i><i></i><i></i></span>`;
-  let s='';
-  if(unit==='h:'+F.h)s+=part('c-'+SK_CASTER[fam]);
-  if(unit[0]==='e'&&F.tg.includes(+unit.slice(2)))s+=part('t-'+fam);
-  if(unit[0]==='h'&&F.al.includes(unit.slice(2))){const f=fam==='drain'?'heal':fam;if(!(unit==='h:'+F.h&&(f==='shield'||f==='shieldgold'||f==='aura')))s+=part('t-'+f)}
-  return s;
-}
 function heroUnit(h,cur,fx,pops){
   return `<div class="unit hero ${h.hp<=0?'down':''} ${cur===h?'act':''} ${wuCls('h'+h.id)}" data-tip="${esc(heroTip(h))}">
-    <div class="fo ${h.hp<=0?'dead':''} ${fx.act==='h:'+h.id?(fx.sk&&['melee'].includes(SK_CASTER[SK_FX[fx.sk.id]])?'lunge-big':fx.sk?'castpose':'lunge-r'):''} ${h.gear.weapon&&h.gear.weapon.pid?'perfect-aura':''}">${sprite(h.cls,C_(h).tint,5,fx['h'+h.id]&&h.hp>0?'hit':h.hp>0?'bob':'')}${skFx(fx,'h:'+h.id)}${marksHtml('h'+h.id)}</div>
+    <div class="fo ${h.hp<=0?'dead':''} ${fx.act==='h:'+h.id?'lunge-r':''} ${h.gear.weapon&&h.gear.weapon.pid?'perfect-aura':''}">${sprite(h.cls,C_(h).tint,5,fx['h'+h.id]&&h.hp>0?'hit':h.hp>0?'bob':'')}${marksHtml('h'+h.id)}</div>
     <div class="uinfo">${heroInfo(h)}</div></div>`;
 }
 function foeUnit(e,i,fx,pops){
   const b=state.run.battle,big=e.kind==='boss'||e.kind==='warden'||e.kind==='king',dead=e.hp<=0,tgt=i===b.target&&!b.over&&!dead;
   return `<div class="unit foe ${big?'big':''} ${dead?'down':''} ${tgt?'tgt':''} ${wuCls('e'+i)}" ${foeTargetAttrs(e,i)} aria-label="${esc(e.name)}" data-tip="${esc(foeTip(e))}">
-    <div class="fo ${dead?(fx['die'+i]?'dead dying':'dead'):''} ${fx.act==='e:'+i?'lunge-l':''} ${e.poison?'poisoned':''}">${sprite(e.spr,EL_COL[e.type],5,fx['e'+i]&&!dead?'hit':!dead?'bob':'')}${fx['burst'+i]?`<span class="burst" style="--c:${fx['burst'+i]}"></span>`:''}${fx['frz'+i]?'<span class="burst frz" style="--c:#bfe9ff"></span>':''}${skFx(fx,'e:'+i)}${marksHtml('e'+i)}</div>${b.over==='win'&&e.drop&&e.drop.length?`<span class="dropfan ${b.lootFresh?'fresh':''}">${e.drop.map((x,j)=>`<span style="animation-delay:${j*.18}s">${lootTile(x,true)}</span>`).join('')}</span>`:''}
+    <div class="fo ${dead?(fx['die'+i]?'dead dying':'dead'):''} ${fx.act==='e:'+i?'lunge-l':''} ${e.poison?'poisoned':''}">${sprite(e.spr,EL_COL[e.type],5,fx['e'+i]&&!dead?'hit':!dead?'bob':'')}${fx['burst'+i]?`<span class="burst" style="--c:${fx['burst'+i]}"></span>`:''}${fx['frz'+i]?'<span class="burst frz" style="--c:#bfe9ff"></span>':''}${marksHtml('e'+i)}</div>${b.over==='win'&&e.drop&&e.drop.length?`<span class="dropfan ${b.lootFresh?'fresh':''}">${e.drop.map((x,j)=>`<span style="animation-delay:${j*.18}s">${lootTile(x,true)}</span>`).join('')}</span>`:''}
     <div class="uinfo">${foeInfo(e)}</div></div>`;
 }
 // On small screens the fighters stand across the top as pixel art, and their labeled bars sit in this roster beneath them.
@@ -4177,7 +4271,7 @@ function battleScreen(){
       <div class="side foes">${b.enemies.map((e,i)=>foeUnit(e,i,fx,pops)).join('')}</div>
     </div>
     ${roster(P,cur)}
-    <button class="blogline" data-a="drawer" data-x="log" aria-label="Open the battle log">${b.log.slice(0,2).map(l=>`<p>${l}</p>`).join('')}</button>
+    <div class="blogline blogpanel" aria-label="Battle log" role="log"><span class="blogtitle">Battle log</span>${b.log.slice(0,40).map(l=>`<p>${l}</p>`).join('')}</div>
     <div class="actbar">${actBar()}</div>
     ${ui.drawer==='party'?`<div class="drawer"><div class="drawer-top"><h2>Party</h2><button class="xbtn" data-a="drawer" data-x="" aria-label="Close">×</button></div><div class="drawgrid">${partyPanel()}</div></div>`:''}
     ${ui.drawer==='log'?`<div class="drawer"><div class="drawer-top"><h2>Battle log</h2><button class="xbtn" data-a="drawer" data-x="" aria-label="Close">×</button></div><div class="log">${b.log.map(l=>`<p>${l}</p>`).join('')}</div></div>`:''}
@@ -4294,34 +4388,31 @@ function ledgerView(){
 }
 /* ---------- settings ---------- */
 const SET_KEY='dsotm-settings';
-const set={profile:'auto',speed:'normal',motion:true,autoDefault:false,confirmFlee:true,tips:true};
+const set={profile:'auto',speed:'normal',motion:true,autoDefault:false,confirmFlee:true,tips:true,govTips:true};
 try{Object.assign(set,JSON.parse(localStorage.getItem(SET_KEY)||'{}'))}catch(e){}
 const saveSet=()=>{try{localStorage.setItem(SET_KEY,JSON.stringify(set))}catch(e){}};
+// Two screen profiles, both landscape. Computer: a full-screen window. Phone: a phone held sideways.
 const PROFILES={
-  auto:{n:'Auto',d:'Picks a layout from the screen size and updates when you rotate.'},
-  phone:{n:'Phone',d:'Regular phone held upright. Fighters on top, bars and actions below.',lay:'stack',zoom:1},
-  foldc:{n:'Z Fold 8 · folded',d:'Tall, narrow cover screen. Stacked layout, slightly smaller.',lay:'stack',zoom:.9},
-  foldo:{n:'Z Fold 8 · open',d:'Nearly square inner screen. Bars under each fighter, a little larger.',lay:'wide',zoom:1.1},
-  side:{n:'Phone sideways',d:'Fighters on the left, actions in a column on the right.',lay:'side',zoom:1},
-  tablet:{n:'Tablet',d:'Wide layout with larger text.',lay:'wide',zoom:1.2},
-  desktop:{n:'Computer',d:'Wide layout at normal size.',lay:'wide',zoom:1},
+  desktop:{n:'Computer',d:'Full-screen window. Everything laid out side by side at a comfortable size.',lay:'wide',zoom:1},
+  phone:{n:'Phone',d:'Phone held sideways. Compact bars and buttons sized for thumbs.',lay:'side',zoom:1},
 };
+const guessProfile=()=>{try{const sm=Math.min(screen.width,screen.height);return matchMedia('(pointer:coarse)').matches&&sm<=600?'phone':'desktop'}catch(e){return 'desktop'}};
 const SPEED={slow:{n:'Slow',ms:1000,hold:1500,wind:800},normal:{n:'Normal',ms:650,hold:1000,wind:500},fast:{n:'Fast',ms:300,hold:500,wind:280}};
-function layMode(){const P=PROFILES[set.profile];if(P&&P.lay)return P.lay;const w=innerWidth/ui.zoom,h=innerHeight/ui.zoom;return w<=640?'stack':h<=540?'side':'wide'}
-const LAY_N={stack:'stacked (phone)',side:'side by side (landscape)',wide:'wide'};
+function layMode(){if(!PROFILES[set.profile])set.profile={phone:'phone',foldc:'phone',side:'phone'}[set.profile]||guessProfile();return PROFILES[set.profile].lay}
+const LAY_N={side:'Phone (landscape)',wide:'Computer'};
 function settingsModal(){
   if(!ui.settings)return '';
   const tog=(k,label)=>`<button class="btn small ${set[k]?'on':''}" data-a="setToggle" data-x="${k}" aria-pressed="${set[k]}">${label}: ${set[k]?'On':'Off'}</button>`;
   return `<div class="modal" role="dialog" aria-modal="true" aria-label="Settings"><section class="panel settings">
     <div class="mhead"><h2>Settings</h2><button class="xbtn" data-a="settings" data-x="" aria-label="Close">×</button></div>
     <h3>Screen</h3><div class="optgrid">${Object.entries(PROFILES).map(([k,P])=>`<button class="opt ${set.profile===k?'cur':''}" data-a="setProfile" data-x="${k}" aria-pressed="${set.profile===k}"><b>${P.n}</b><span>${P.d}</span></button>`).join('')}</div>
-    <p class="muted" style="font-size:18px">Battle layout right now: ${LAY_N[layMode()]}.</p>
+    <p class="muted" style="font-size:18px">Now using the ${LAY_N[layMode()]} layout. The game is played in landscape.</p>
     <h3>Zoom</h3><div class="row">${zoomCtl()}<button class="btn small" data-a="zoomReset">Reset to ${Math.round(((PROFILES[set.profile]||{}).zoom||1)*100)}%</button></div>
     <p class="muted" style="font-size:18px">Pinch-to-zoom works too.</p>
     <h3>Battle</h3>
     <div class="row" style="gap:6px"><span class="muted">Battle pace</span>${Object.entries(SPEED).map(([k,S])=>`<button class="btn small ${set.speed===k?'on':''}" data-a="setSpeed" data-x="${k}">${S.n}</button>`).join('')}</div>
     <div class="row" style="gap:6px">${tog('autoDefault','Start battles on Auto')}${tog('confirmFlee','Ask before running home')}</div>
-    <h3>Display</h3><div class="row" style="gap:6px">${tog('motion','Animations')}${tog('tips','Hover tips')}</div>
+    <h3>Display</h3><div class="row" style="gap:6px">${tog('motion','Animations')}${tog('tips','Hover tips')}${tog('govTips','Governor tips & tutorials')}</div><p class="muted" style="font-size:17px">Governor tips & tutorials: the weekly thoughts, the Barracks walkthrough and the summary on the first visit to each building. Story chapters and promotions still appear.</p>
     <h3>Game</h3><div class="row"><button class="btn gold" data-a="mainMenu">Main menu · save slots</button><span class="muted" style="font-size:17px">Slot ${ui.slot||1} is saving automatically.</span></div>
     <h3>Save file</h3><p class="muted" style="font-size:18px">Your town saves automatically in this browser. To move it to another browser or the installed app, export it here and import it there.</p>
     <div class="row" style="gap:6px"><button class="btn small" data-a="saveExport">Export save</button><button class="btn small" data-a="saveImportOpen">Import save</button>${canOfferInstall()?'<button class="btn small gold" data-a="install">Install app</button>':''}${document.fullscreenEnabled?`<button class="btn small" data-a="fullscreen">${document.fullscreenElement?'Exit fullscreen':'Fullscreen'}</button>`:''}</div>
@@ -4343,12 +4434,13 @@ const heroWitchCost=(h,k)=>Math.round(WITCH_BASE*WITCH_HERO[k].m*(1+.15*(h.level
 const itemWitchCost=(it,k)=>Math.round(WITCH_BASE*WITCH_ITEM[k].m*WITCH_RAR[it.rarity]*Math.pow(1.6,it.witch||0));
 function witchView(){
   const wt=state.sel.wtab||'heroes';
-  let s=bHead('crescent','#b56fe3','The Witch','Rerolls, brews, supplies and crafting. Never cheap.','Every service starts at the same base price. Rarer items and higher-level heroes cost more to start, and each visit makes the next one on that same hero or item 60% more expensive.');
-  s+=`<div class="subtabs">${[['heroes','Heroes'],['items','Equipment'],['brews','Brews'],['shop','Supplies'],['craft','Workshop'],['up','Cauldron']].map(([k,l])=>`<button class="subtab ${wt===k?'cur':''}" data-a="wtab" data-x="${k}">${l}</button>`).join('')}</div>`;
+  let s=bHead('crescent','#b56fe3','The Witch','Rerolls, brews, supplies and crafting. Never cheap.','Every service starts at the same base price. Rarer items and higher-level heroes cost more to start, and each visit makes the next one on that same hero or item 60% more expensive.',headUp('alch'));
+  s+=`<div class="subtabs">${[['heroes','Heroes'],['mana','Free Mana'],['items','Equipment'],['brews','Brews'],['shop','Supplies'],['craft','Workshop'],['up','Upgrades']].map(([k,l])=>`<button class="subtab ${wt===k?'cur':''} ${k==='mana'&&wt!=='mana'&&coachOn('mana')?'guide':''}" data-a="wtab" data-x="${k}">${l}</button>`).join('')}</div>`;
+  if(wt==='mana')return s+brewView();
   if(wt==='brews')return s+alchView();
   if(wt==='shop')return s+alchShop();
   if(wt==='craft')return s+craftView();
-  if(wt==='up')return s+upgradeBlock(['alch','potency']);
+  if(wt==='up')return s+upgradeBlock(['potency']);
   if(state.sel.witchMsg)s+=`<p class="gold">${state.sel.witchMsg}</p>`;
   if(wt==='heroes'){
     if(!state.heroes.length)return s+'<p class="muted">No heroes yet.</p>';
@@ -4360,6 +4452,10 @@ function witchView(){
       <div class="stack" style="gap:6px">${(h.traits||[]).map(id=>TRAITS[id]).filter(Boolean).map(t=>`<div class="row" style="gap:8px;justify-content:space-between;flex-wrap:nowrap"><span><span class="tk-${t.kind}">${t.n}</span> <span class="muted" style="font-size:17px">${traitDesc(t)}</span></span><button class="btn small" data-a="witchTrait" data-x="${h.id}|${t.id}" ${state.gold<tc||state.run?'disabled':''}>Reroll</button></div>`).join('')}</div>
       <h3>${WITCH_HERO.respec.n} · <span class="gold">${fmt(rc)} gold</span></h3><p class="muted">${WITCH_HERO.respec.d} ${h.spent?`${h.spent} point${h.spent>1?'s':''} would come back.`:'Nothing spent to undo yet.'}</p>
       <div class="row"><button class="btn" data-a="witchRespec" data-x="${h.id}" ${state.gold<rc||!h.spent?'disabled':''}>Rebalance ${esc(h.name)}</button></div>`;
+    {const learned=h.skills.filter(id=>SKILLS[id]&&SKILLS[id].tier);
+     s+=`<h3>Reroll a learned skill</h3><p class="muted">Skills learned at levels 8, 23 and 33 come down to fate. The Witch can roll the dice again. There is a ${Math.round(rerollSame(h))}% chance (less with Luck) it lands on the same skill. Each reroll of the same skill doubles the price.</p>`;
+     s+=learned.length?`<div class="stack" style="gap:6px">${learned.map(id=>{const t=SKILLS[id].tier,c=skillRerollCost(h,t),others=learnOpts(h,t).filter(x=>x!==id).map(x=>SKILLS[x].n);
+       return `<div class="row" style="gap:8px;justify-content:space-between;flex-wrap:nowrap"><span><b>${SKILLS[id].n}</b> <span class="muted" style="font-size:17px">Lv ${SKILL_LV[t]} skill · could become ${others.join(' or ')}</span></span><button class="btn small" data-a="witchReroll" data-x="${h.id}|${id}" ${state.gold<c||onRun(h)||!others.length?'disabled':''}>Reroll · ${fmt(c)}g</button></div>`}).join('')}</div>`:'<p class="muted">No learned skills yet. The first comes at level 8.</p>'}
     return s;
   }
   const items=allItems().filter(x=>x.it.rarity!=='perfect');
@@ -4418,7 +4514,7 @@ function prepView(){
     </div></div>
     ${P.length>1?`<h3>Marching order</h3><p class="muted" style="font-size:17px">Enemies mostly attack whoever walks in front.</p><div class="row march">${P.map((x,i)=>`<div class="mslot"><span class="lab">${['Front','Middle','Back'][P.length===2&&i===1?2:i]} · ${posChance(i,P.length)}% of attacks</span><span class="row" style="gap:6px">${sprite(x.cls,C_(x).tint,2,'ico')}<b>${esc(x.name)}</b> <span class="muted">${C_(x).name}</span></span><span class="row" style="gap:4px"><button class="btn small" data-a="prepOrder" data-x="${x.id}|-1" ${i===0?'disabled':''} aria-label="Move ${esc(x.name)} forward">◀ Forward</button><button class="btn small" data-a="prepOrder" data-x="${x.id}|1" ${i===P.length-1?'disabled':''} aria-label="Move ${esc(x.name)} back">Back ▶</button></span></div>`).join('')}</div>`:''}
     ${packBlock()}
-    <div class="row prepfoot"><button class="btn" data-a="prepClose">Back</button><button class="btn gold big" data-a="prepGo">Depart: ${LENGTHS[state.sel.len]?LENGTHS[state.sel.len].name:''} with ${esc(listNames(P.map(x=>x.name)))}</button></div>`;
+    <div class="row prepfoot"><button class="btn" data-a="prepClose">Back</button><button class="btn gold big ${state.guide?'guide':''}" data-a="prepGo">Depart: ${LENGTHS[state.sel.len]?LENGTHS[state.sel.len].name:''} with ${esc(listNames(P.map(x=>x.name)))}</button></div>`;
   return modalShell('Prepare the party',body,'prepClose','prep');
 }
 // How many of each supply go along. Default: one of each kind in turn until the Supply Pack is full.
@@ -4429,8 +4525,7 @@ function packPlan(){
 }
 function packBlock(){
   const plan=packPlan(),cap=packCap(),used=Object.values(plan).reduce((a,n)=>a+n,0),ids=Object.keys(state.items||{}).filter(id=>state.items[id]>0&&CONSUMABLES[id]);
-  const F=state.farm&&state.farm.lvl?farmStep(state.farm.lvl):null,S=state.still?stillStep(state.still):null;
-  const free=[[F&&F.food,F&&F.q],[S&&S.out,S&&S.q]].filter(x=>x[0]&&x[1]);
+  const free=freeSupplies();
   return `<div class="packblk"><div class="row" style="justify-content:space-between"><h3>Supplies · ${used}/${cap}</h3>${ids.length?`<span class="row" style="gap:6px"><button class="btn small" data-a="packAll" data-x="0">None</button><button class="btn small" data-a="packAll" data-x="1">Fill</button></span>`:''}</div>
     ${ids.length?`<div class="packrows">${ids.map(id=>{const n=plan[id]||0;return `<div class="packrow" data-tip="${esc(CONSUMABLES[id].d)}">${consIco(id,2)}<span class="pn">${CONSUMABLES[id].n}</span><span class="muted">of ${state.items[id]}</span>
       <button class="btn small pm" data-a="packAdj" data-x="${id}|-1" ${n<=0?'disabled':''} aria-label="One fewer">−</button><b class="num pc">${n}</b><button class="btn small pm" data-a="packAdj" data-x="${id}|1" ${n>=state.items[id]||used>=cap?'disabled':''} aria-label="One more">+</button></div>`}).join('')}</div>`:'<p class="muted">No supplies in town. The Witch sells them.</p>'}
@@ -4523,7 +4618,7 @@ try{ui.slot=+localStorage.getItem(SLOT_KEY)||1}catch(e){ui.slot=1}
 function slotInfo(i){try{const o=JSON.parse(localStorage.getItem(slotKey(i))||'null');if(!o||o.v!==1)return null;
   return {week:o.week,gold:o.gold,heroes:(o.heroes||[]).length,top:Math.max(0,...(o.heroes||[]).map(h=>h.level)),moon:Math.round(o.moonMax||0),bosses:o.bossKills||0,run:!!o.run,won:!!o.won,setup:!!o.govSetup,gov:o.gov?((o.gov.name||'Governor')+', '+((GOV_PROFS[o.gov.prof]||{}).n||'')):''}}catch(e){return null}}
 function menuView(){
-  return `<div class="mainmenu"><div class="mm-title"><span class="disp logo">DARK SIDE <small>of the</small> MOON</span>${moonImg(5,4)}</div>
+  return `<div class="mainmenu"><div class="mm-title"><span class="disp logo">DARK SIDE <small>OF THE</small> MOON</span>${moonImg(60,4)}</div>
     ${(()=>{const S=ui.erased===ui.slot?null:slotInfo(ui.slot||1);return S?`<div class="row" style="justify-content:center"><button class="btn gold big" data-a="menuContinue">Continue</button><span class="muted">Slot ${ui.slot||1} · Week ${S.week}${S.setup?' · choosing a governor':S.gov?' · Governor '+esc(S.gov.split(',')[0]):''}${S.run?' · <span class="warn">on an adventure</span>':''}</span></div>`:''})()}
     <p class="muted" style="text-align:center">Three towns, each saved automatically as you play. There is no manual saving.</p>
     <div class="slots">${[1,2,3].map(i=>{const S=slotInfo(i),cur=i===ui.slot&&ui.erased!==i;return `<div class="slotcard ${cur?'cur':''}"><div class="row" style="justify-content:space-between"><h2>Slot ${i}</h2>${cur?'<span class="lvpill">Current</span>':''}</div>
@@ -4646,8 +4741,13 @@ function shopView(ev){
       return `<div class="shopcard ${sold?'sold':''} ${x.k==='item'?'r-'+x.it.rarity+'-b':''}" ${x.k==='item'?`data-tip="${esc(x.it.name)}"`:''}>${ic}<div class="stack" style="gap:1px;min-width:0"><span class="iname">${nm}</span><span class="meta">${desc}</span><span class="meta">${sold?'Sold out':`${x.n} left`}</span></div>
         <button class="btn small gold" data-a="shopBuy" data-x="${i}" ${sold||r.gold<x.price?'disabled':''}>${x.price}g</button></div>`}).join('')}</div>
     ${ev.shop.some(x=>x.k==='item')?'<details open><summary class="muted">Gear details</summary><div class="items">'+ev.shop.filter(x=>x.k==='item').map(x=>itemCard(x.it)).join('')+'</div></details>':''}
-    ${ev.bought?`<p class="gold">${ev.bought}</p>`:''}</div>`;
+    ${ev.bought?`<p class="gold">${ev.bought}</p>`:''}
+    <h3>Sell loot</h3>${(()=>{const L=r.loot.filter(it=>it.rarity!=='perfect');return L.length?`<p class="muted" style="font-size:17px">The merchant pays about 40% more than the shops in town${d?`, plus ${d}% for ${esc(T.name)}’s haggling`:''}.</p><div class="items">${L.map(it=>itemCard(it,`<div class="row"><button class="btn small gold" data-a="shopSell" data-x="${it.id}">Sell · ${merchantPays(it)}g</button><span class="meta">town pays ${sellVal(it)}g</span></div>`)).join('')}</div>`:'<p class="muted" style="font-size:17px">Nothing in the backpack to sell.</p>'})()}</div>`;
 }
+// Traveling merchants pay 40% more than town for loot, and Charisma adds to that.
+const merchantPays=it=>Math.round(sellVal(it)*1.4*(1+chaDiscount(talker())/100));
+function shopSell(id){const r=state.run,ev=r.event;if(!ev||!ev.shop)return;const it=r.loot.find(x=>x.id===id);if(!it||it.rarity==='perfect')return;
+  const g=merchantPays(it);r.loot=r.loot.filter(x=>x!==it);r.gold+=g;ev.bought=`Sold ${itemName(it)} for ${g} gold.`}
 function shopBuy(i){
   const r=state.run,ev=r.event;if(!ev||!ev.shop)return;const x=ev.shop[+i];if(!x||x.n<=0||r.gold<x.price)return;
   r.gold-=x.price;x.n--;
@@ -4658,7 +4758,11 @@ function shopBuy(i){
 
 /* ---------- actions ---------- */
 const ACT={
-  tab:x=>{if(x==='academy'){x='heroes';state.sel.btab='recruit'}state.tab=x;state.sel.slot=null;state.sel.smithMsg=null},
+  placeSeen:k=>{(state.placeSeen=state.placeSeen||[]).push(k)},placeSeenX:()=>{(state.placeSeen=state.placeSeen||[]).push(state.tab)},
+  coach:x=>{const [k,d]=x.split('|');state.coach=state.coach||{};state.coachDone=state.coachDone||{};if(d==='done'){state.coachDone[k]=true;return}state.coach[k]=clamp((state.coach[k]||0)+(+d),0,COACH[k].length-1)},
+  tutB:x=>{if(x==='done'){state.tutBDone=true;return}state.tutB=clamp((state.tutB||0)+(+x),0,TUT_B.length-1)},
+  land:x=>{if(LAND_PICK.includes(x))state.sel.biome=x},
+  tab:x=>{if(x==='academy'){x='heroes';state.sel.btab='recruit'}if(!bldKnown(x==='alch'?'witch':x))return;state.tab=x;state.sel.slot=null;state.sel.smithMsg=null},
   btab:x=>{state.sel.btab=x;state.tab='heroes'},
   atab:x=>{if(x==='farm'){state.tab='farm';return}if(x==='still'){state.tab='farm';state.sel.ftab='still';return}state.tab='witch';state.sel.wtab={buffs:'brews',shop:'shop',up:'up',craft:'craft'}[x]||'craft'},
   ftab:x=>{state.sel.ftab=x},
@@ -4668,6 +4772,8 @@ const ACT={
     if(rc.out==='scroll')state.scrolls++;else state.items[rc.out]=(state.items[rc.out]||0)+1},
   farmUp:()=>{const nx=farmStep(state.farm.lvl+1);if(!nx||state.gold<nx.gold||!Object.entries(nx.need).every(([k,v])=>(state.mats[k]||0)+1e-9>=v))return;
     for(const [k,v] of Object.entries(nx.need))addMat(state.mats,k,-v);state.gold-=nx.gold;state.farm.lvl++},
+  brewUp:()=>{const nx=brewStep((state.brew||0)+1);if(!nx||state.gold<nx.gold||!Object.entries(nx.need).every(([k,v])=>(state.mats[k]||0)+1e-9>=v))return;
+    for(const [k,v] of Object.entries(nx.need))addMat(state.mats,k,-v);state.gold-=nx.gold;state.brew=(state.brew||0)+1},
   stillUp:()=>{const nx=stillStep((state.still||0)+1);if(!nx||state.gold<nx.gold||!Object.entries(nx.need).every(([k,v])=>(state.mats[k]||0)+1e-9>=v))return;
     for(const [k,v] of Object.entries(nx.need))addMat(state.mats,k,-v);state.gold-=nx.gold;state.still=(state.still||0)+1},
   salvage:id=>{const it=state.bank.find(x=>x.id===id),o=it&&salvageOf(it);if(!o)return;state.bank=state.bank.filter(x=>x!==it);for(const [k,v] of Object.entries(o))addMat(state.mats,k,v)},
@@ -4740,7 +4846,7 @@ const ACT={
   govTalk:()=>{if(state.gov&&state.gov.pend){ui.govPromo=true;return}if(state.tipCur){ACT.govTipOk();return}state.tipCur={id:'g',t:GOV_GENERAL[Math.floor(Math.random()*GOV_GENERAL.length)],go:null}},
   govDone:()=>{const G=state.govSetup;state.gov={...G.d,prof:G.prof,unseen:true};state.govSetup=null;state.tab='town'},
   builtOk:()=>{state.builtMsg=null},
-  construct:k=>{const need=OPEN_WEEK[k]&&buildCost(k);if(!need||bldOpen(k)||scrapTotal()+1e-9<need)return;spendScrap(need);state.built=state.built||{};state.built[k]=true;state.builtMsg=k},
+  construct:k=>{const need=OPEN_WEEK[k]&&buildCost(k);if(!need||!canBuild(k))return;spendScrap(need);state.built=state.built||{};state.built[k]=true;state.builtMsg=k},
   install:()=>{if(installEvt){const e=installEvt;installEvt=null;e.prompt();(e.userChoice||Promise.resolve()).then(()=>render()).catch(()=>{})}else ui.installHelp=true},
   installHelp:x=>{ui.installHelp=!!x},
   saveExport:()=>{ui.exportCode=exportCode();ui.importOpen=false;ui.copied=false},
@@ -4778,7 +4884,7 @@ const ACT={
   bagUse:x=>{const [id,hid]=x.split('|'),r=state.run;if(r.battle&&!r.battle.over)return;useConsumable(id,heroById(hid),null)},
   buy:x=>{const [id,n]=x.split('|'),C=CONSUMABLES[id],k=+n||1,pc=C&&priced(C.cost,bestHaggler());if(!C||C.noShop||state.b.alch<C.lvl||state.gold<pc*k)return;state.gold-=pc*k;state.items[id]=(state.items[id]||0)+k},
   buyScroll:()=>{const c=priced(SCROLL_PRICE,bestHaggler());if(state.gold<c)return;state.gold-=c;state.scrolls++},
-  attune:x=>{const [hid,el]=x.split('|'),b=state.run&&state.run.battle;if(b&&ELEMENTS.includes(el))b.attune[hid]=el},
+  attune:x=>{const [hid,el]=x.split('|'),b=state.run&&state.run.battle;if(b&&ELEMENTS.includes(el)){b.attune[hid]=el;const h=heroById(hid);if(h&&h.cls==='mage')h.attuneEl=el}},
   auto:()=>{const b=state.run.battle;b.auto=!b.auto;state.run.autoPref=b.auto},
   cont:()=>{const r=state.run;if(r.event&&r.event.intro){r.event=null;return}
     if(r.battle&&r.battle.over==='win'&&r.pendingChest){const tier=r.pendingChest;r.pendingChest=null;r.battle=null;r.event={title:CHEST_TIER[tier].n,icon:'chest',chest:{opened:false,tier}};return}if(r.kingSlain){endRun('victory');return}nextStage()},
@@ -4800,11 +4906,17 @@ const ACT={
   gamble:x=>gamble(x),
   myst:x=>mystChoice(x),
   shopBuy:i=>shopBuy(i),
+  shopSell:id=>shopSell(id),
   wtab:x=>{state.sel.wtab=x;state.sel.witchMsg=null},
   whero:id=>{state.sel.whero=id;state.sel.witchMsg=null},
   witem:id=>{state.sel.witem=state.sel.witem===id?null:id;state.sel.witchMsg=null},
   witchTrait:x=>{const [hid,tid]=x.split('|'),h=heroById(hid);if(!h||state.run)return;const i=(h.traits||[]).indexOf(tid),c=heroWitchCost(h,'trait');if(i<0||state.gold<c)return;
     state.gold-=c;h.witch=(h.witch||0)+1;const nid=rollTrait(h.traits);h.traits[i]=nid;state.sel.witchMsg=`${TRAITS[tid].n} is gone. ${esc(h.name)} is now ${TRAITS[nid].n}: ${traitDesc(TRAITS[nid])}`},
+  witchReroll:x=>{const [hid,id]=x.split('|'),h=heroById(hid),sk=SKILLS[id];if(!h||!sk||!sk.tier||!h.skills.includes(id)||onRun(h))return;
+    const t=sk.tier,c=skillRerollCost(h,t),others=learnOpts(h,t).filter(k=>k!==id);if(state.gold<c||!others.length)return;
+    state.gold-=c;h.rerolls=h.rerolls||{};h.rerolls[t]=(h.rerolls[t]||0)+1;
+    if(chance(rerollSame(h)/100)){state.sel.witchMsg=`The bones fall the same way. ${esc(h.name)} keeps ${sk.n}.`;return}
+    const nw=pick(others);h.skills[h.skills.indexOf(id)]=nw;state.sel.witchMsg=`The Witch rattles her bones. ${esc(h.name)} forgets ${sk.n} and learns <b>${SKILLS[nw].n}</b>.`},
   witchRespec:id=>{const h=heroById(id);if(!h||state.run||!h.spent||!h.baseStats)return;const c=heroWitchCost(h,'respec');if(state.gold<c)return;
     state.gold-=c;h.witch=(h.witch||0)+1;for(const k of STATS)h[k]=h.baseStats[k];h.bonusHp=(h.baseBonus||{}).hp||0;h.bonusMp=(h.baseBonus||{}).mp||0;h.points+=h.spent;state.sel.witchMsg=`${esc(h.name)} has ${h.points} points to reassign (${h.spent} refunded).`;h.spent=0;h.hp=Math.min(h.hp,maxHp(h));h.mp=Math.min(h.mp,maxMp(h))},
   witchItem:x=>{const [id,k,line]=x.split('|'),e=allItems().find(y=>y.it.id===id);if(!e||!WITCH_ITEM[k]||e.it.rarity==='perfect')return;const it=e.it,c=itemWitchCost(it,k);if(state.gold<c)return;
@@ -4836,6 +4948,8 @@ const ACT={
 
 /* ---------- render ---------- */
 let autoTimer=null,lastView=null,lastMode=null;
+try{if(screen.orientation&&screen.orientation.lock)document.addEventListener('fullscreenchange',()=>{if(document.fullscreenElement)screen.orientation.lock('landscape').catch(()=>{})})}catch(e){}
+function rotateNote(){return `<div class="rotate" aria-live="polite"><div class="rot-ph"></div><p>Turn your phone sideways</p><span class="muted">Dark Side of the Moon is played in landscape.</span></div>`}
 function render(){
   const app=document.getElementById('app');
   const foot=`<footer class="row" style="justify-content:space-between;color:var(--dim);font-size:19px"><span>Your town saves automatically in this browser.</span><button class="btn small" data-a="settings" data-x="1">Settings</button></footer>`;
@@ -4846,12 +4960,13 @@ function render(){
   if(!state.run||(!inBattle&&ui.drawer==='log'))ui.drawer=null;
   if(!state.run)ui.flee=false;
   document.body.classList.toggle('inbattle',inBattle);
+  document.body.classList.toggle('onrun',!!(state.screen==='run'&&state.run));
   // Keep the page where it was on re-render; jump to the top only when the screen or tab changes.
   const key=(state.screen==='run'&&state.run?'run':'town:'+state.tab)+(inBattle?':b':''),y=window.scrollY;
   const mode=layMode();lastMode=mode;
-  document.body.classList.remove('lay-stack','lay-side','lay-wide');document.body.classList.add('lay-'+mode);
+  document.body.classList.remove('lay-stack','lay-side','lay-wide','dev-pc','dev-phone');document.body.classList.add('lay-'+mode,mode==='side'?'dev-phone':'dev-pc');
   document.body.classList.toggle('nomotion',!set.motion);
-  app.innerHTML=(inBattle?runView():topBar()+(state.screen==='run'&&state.run?runView():townView())+foot)+(!state.run&&ui.summaryHtml?ui.summaryHtml:'')+(!state.run&&ui.prep?prepView():'')+(!inBattle&&ui.sheet?heroSheet():'')+(!state.run&&ui.greenWarn?greenModal():'')+(state.run&&state.run.reveal&&state.run.reveal.length?revealView():'')+(!state.run?(govRevealView()||storyView()||govPromoView()):'')+installModal()+settingsModal();
+  app.innerHTML=rotateNote()+(inBattle?runView():topBar()+(state.screen==='run'&&state.run?runView():townView())+foot)+(!state.run&&ui.summaryHtml?ui.summaryHtml:'')+(!state.run&&ui.prep?prepView():'')+(!inBattle&&ui.sheet?heroSheet():'')+(!state.run&&ui.greenWarn?greenModal():'')+(state.run&&state.run.reveal&&state.run.reveal.length?revealView():'')+(!state.run?(govRevealView()||storyView()||placeTutView()||govPromoView()):'')+installModal()+settingsModal();
   if(key===lastView)window.scrollTo(0,y);else if(!inBattle)window.scrollTo(0,0);
   lastView=key;
   save();
@@ -4893,12 +5008,7 @@ document.addEventListener('click',ev=>{
   const t=ev.target.closest('[data-a]');if(!t||t.disabled)return;
   const f=ACT[t.dataset.a];if(!f)return;f(t.dataset.x);render();
 });
-// Don't redraw while someone is typing: on phones the keyboard opening resizes the screen, and a redraw would replace the text box and close the keyboard. Redraw once they're done instead.
-const typing=()=>{const a=document.activeElement;return !!a&&(a.tagName==='TEXTAREA'||(a.tagName==='INPUT'&&/^(text|search|email|number|password|tel|url)$/.test(a.type)))};
-let rzPending=false;
-const relayout=()=>{clearTimeout(window.__rz);window.__rz=setTimeout(()=>{if(!state)return;if(typing()){rzPending=true;return}render()},180)};
-document.addEventListener('focusout',()=>{if(!rzPending)return;setTimeout(()=>{if(!state||typing())return;rzPending=false;govKeepName();render()},250)});
-document.addEventListener('input',ev=>{if(ev.target.id==='govname'&&state&&state.govSetup)state.govSetup.d.name=ev.target.value.slice(0,16)});
+const relayout=()=>{clearTimeout(window.__rz);window.__rz=setTimeout(()=>{if(state)render()},180)};
 window.addEventListener('resize',relayout);window.addEventListener('orientationchange',relayout);if(window.visualViewport)visualViewport.addEventListener('resize',relayout);
 document.addEventListener('keydown',ev=>{
   if(ev.key==='Escape'&&ui.sheet){ui.sheet=null;render();return}
@@ -4924,7 +5034,7 @@ function hideTip(){tipEl.hidden=true;tipFor=null}
 document.addEventListener('mouseover',ev=>{if(!matchMedia('(hover:hover)').matches)return;const el=ev.target.closest&&ev.target.closest('[data-tip]');if(el)showTip(el);else if(tipFor)hideTip()});
 document.addEventListener('focusin',ev=>{const el=ev.target.closest&&ev.target.closest('[data-tip]');if(el)showTip(el)});
 document.addEventListener('focusout',hideTip);
-document.addEventListener('click',ev=>{const el=ev.target.closest&&ev.target.closest('[data-tip]');if(el&&!el.closest('[data-a]')){tipFor===el?hideTip():showTip(el)}else if(!el)hideTip()},true);
+document.addEventListener('click',ev=>{const el=ev.target.closest&&ev.target.closest('[data-tip]');if(el&&(!el.closest('[data-a]')||el.classList.contains('utag')||el.classList.contains('badge'))){tipFor===el?hideTip():showTip(el)}else if(!el)hideTip()},true);
 window.addEventListener('scroll',hideTip,{passive:true});
 let booted=false;
 function start(d){
