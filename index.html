@@ -3679,7 +3679,7 @@ const GOV_TIPS=[
   {id:'smith',when:()=>(state.built||{}).smith,t:()=>`The Weaponsmith’s forge is lit. I should have our best gear upgraded. Every step up to +5 makes it stronger.`,go:()=>['smith','To the Weaponsmith']},
   {id:'farm',when:()=>(state.built||{}).farm,t:()=>`Old Bram has the farm running. I should remind the heroes to eat mid-fight. Food doesn’t cost them a turn.`,go:()=>['farm','To the Farm']},
   {id:'witch',when:()=>(state.built||{}).witch,t:()=>`The Witch has set up shop. I could buy Ether for our casters, or pay her to rebalance a hero’s points.`,go:()=>['witch','To the Witch']},
-  {id:'party',when:()=>state.heroes.length>=2,t:()=>`Two heroes now. I should send them out together. Perception, Charisma and Luck add up across a party.`},
+  {id:'levelups',when:()=>state.heroes.length>=2,t:()=>`Two heroes now. I shouldn’t forget to check them for level-ups and spend their attribute points at the Barracks.`,go:()=>['heroes','To the Barracks']},
   {id:'medium',when:()=>state.heroes.some(h=>h.level>=6),t:()=>{const h=state.heroes.find(h=>h.level>=6);return `${esc(h.name)} has grown seasoned. I think they’re ready for a Medium road.`}},
   {id:'long',when:()=>state.heroes.some(h=>h.level>=10),t:()=>`Some of our heroes could brave a Long road now. I should see what’s out there.`},
 ];
