@@ -900,8 +900,8 @@ body.lay-stack .roster .umeta{display:none}
 .mark{font-family:'Pixelify Sans',monospace;font-size:20px;padding:1px 4px 2px;background:#0a0810d0;box-shadow:0 0 0 1px #000;color:#fff;text-shadow:1px 1px 0 #000}
 .mark.dmgin{color:#ff8a7a}
 .mark.dmgout{color:#fff3dc}
-.mark.crit{color:#ffd84a;font-size:36px;line-height:.95;padding:2px 7px 4px;background:#3a0d10e8;box-shadow:0 0 0 2px #000,0 0 0 4px #e3b341,0 0 14px #ffb13b;text-shadow:2px 2px 0 #000,0 0 8px #ff8a2a;display:inline-flex;flex-direction:column;align-items:center;z-index:4}
-.mark.crit small{font-size:14px;letter-spacing:.14em;color:#fff3dc;line-height:1.1}
+.mark.crit{color:#ff3b30;font-size:40px;line-height:.9;padding:0;background:none;box-shadow:none;text-shadow:2px 2px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000;display:inline-flex;flex-direction:column;align-items:center;z-index:4}
+.mark.crit small{font-size:.75em;line-height:1}
 .mark.crit.fresh{animation:critin .55s cubic-bezier(.2,1.6,.4,1)}
 @keyframes critin{0%{transform:scale(2.6) rotate(-8deg);opacity:0}35%{transform:scale(.9) rotate(3deg);opacity:1}60%{transform:scale(1.12) rotate(-2deg)}100%{transform:none}}
 .mark.heal{color:#8fe08a}
@@ -909,7 +909,7 @@ body.lay-stack .roster .umeta{display:none}
 .mark.lvl{color:var(--gold);font-size:16px}
 .mark.fresh{animation:markin .35s steps(3)}
 @keyframes markin{0%{transform:translateY(8px) scale(1.4);opacity:0}100%{transform:none;opacity:1}}
-body.lay-stack .mark{font-size:17px}body.lay-stack .mark.crit{font-size:25px}body.lay-stack .mark.crit small{font-size:12px}
+body.lay-stack .mark{font-size:17px}body.lay-stack .mark.crit{font-size:30px}
 /* attack buttons */
 .skgrid.atk3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .skgrid .btn.power{box-shadow:0 0 0 2px #060509,inset 0 0 0 2px #8a3a2a,inset 2px 2px 0 rgba(255,255,255,.1)}
@@ -1142,9 +1142,9 @@ body.lay-side .bscreen .blogpanel{font-size:14px}
 body.lay-side .bscreen .acthead .tinfo{display:none}
 /* damage, heals and crits are drawn over the fighter so they never fall off the top of the stage */
 .bscreen .marks{bottom:auto!important;top:4%;flex-wrap:wrap;justify-content:center;max-width:180%;row-gap:2px}
-.bscreen .mark{font-size:22px}.bscreen .mark.crit{font-size:28px;color:#ffd35a;box-shadow:0 0 0 2px var(--gold);animation:markin .35s steps(3),critglow 1s ease-in-out 2}
-@keyframes critglow{50%{box-shadow:0 0 0 2px #fff3a0,0 0 12px 3px #e3b341}}
-body.lay-side .bscreen .mark{font-size:17px}body.lay-side .bscreen .mark.crit{font-size:21px}
+.bscreen .mark{font-size:22px}.bscreen .mark.crit{font-size:34px}
+
+body.lay-side .bscreen .mark{font-size:17px}body.lay-side .bscreen .mark.crit{font-size:27px}
 
 /* Computer: use the whole landscape window */
 body.dev-pc .wrap{max-width:min(1680px,100%)}
@@ -4280,7 +4280,7 @@ function foeBrief(e){
 function collectMarks(){
   const b=state.run.battle;b.marks=b.marks||{};
   for(const p of b.pops||[]){const k=p.s==='e'?'e'+p.i:'h'+p.hid,L=(b.marks[k]=b.marks[k]||[]);
-    const num=typeof p.t==='number',hide=num&&p.s==='e'&&!seeFoeNumbers();L.push({t:hide?(p.crit?'<small>CRIT</small>hit!':'hit'):num?(p.crit?'<small>CRIT</small>':'')+(p.s==='h'?'−':'')+p.t+(p.crit?'!':''):String(p.t),c:popCls(p)+(num?(p.s==='h'?'dmgin ':'dmgout '):''),fresh:1,g:b.gen||0});if(L.length>4)L.shift()}
+    const num=typeof p.t==='number',hide=num&&p.s==='e'&&!seeFoeNumbers();L.push({t:p.crit&&num?'CRIT!'+(hide?'':`<small>${p.s==='h'?'−':''}${p.t}</small>`):hide?'hit':num?(p.s==='h'?'−':'')+p.t:String(p.t),c:popCls(p)+(num?(p.s==='h'?'dmgin ':'dmgout '):''),fresh:1,g:b.gen||0});if(L.length>4)L.shift()}
   b.pops=[];
 }
 function marksHtml(k){const L=(state.run.battle.marks||{})[k];if(!L||!L.length)return '';
