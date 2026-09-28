@@ -5008,7 +5008,12 @@ document.addEventListener('click',ev=>{
   const t=ev.target.closest('[data-a]');if(!t||t.disabled)return;
   const f=ACT[t.dataset.a];if(!f)return;f(t.dataset.x);render();
 });
-const relayout=()=>{clearTimeout(window.__rz);window.__rz=setTimeout(()=>{if(state)render()},180)};
+// Don't redraw while someone is typing: on phones the keyboard opening resizes the screen, and a redraw would replace the text box and close the keyboard. Redraw once they're done instead.
+const typing=()=>{const a=document.activeElement;return !!a&&(a.tagName==='TEXTAREA'||(a.tagName==='INPUT'&&/^(text|search|email|number|password|tel|url)$/.test(a.type)))};
+let rzPending=false;
+const relayout=()=>{clearTimeout(window.__rz);window.__rz=setTimeout(()=>{if(!state)return;if(typing()){rzPending=true;return}render()},180)};
+document.addEventListener('focusout',()=>{if(!rzPending)return;setTimeout(()=>{if(!state||typing())return;rzPending=false;govKeepName();render()},250)});
+document.addEventListener('input',ev=>{if(ev.target.id==='govname'&&state&&state.govSetup)state.govSetup.d.name=ev.target.value.slice(0,16)});
 window.addEventListener('resize',relayout);window.addEventListener('orientationchange',relayout);if(window.visualViewport)visualViewport.addEventListener('resize',relayout);
 document.addEventListener('keydown',ev=>{
   if(ev.key==='Escape'&&ui.sheet){ui.sheet=null;render();return}
