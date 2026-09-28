@@ -1053,6 +1053,14 @@ body.dragging [data-drop]{outline:2px dashed #e3b34166;outline-offset:1px}
 .govquals{display:grid;gap:6px}.gq{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;padding:6px 10px;box-shadow:inset 3px 0 0 var(--pc);background:#120d18}
 .gq b{color:var(--pc);min-width:150px}.gq span{color:var(--gold);font-size:18px}
 .darkcard .profname{color:var(--dark)}
+@media (max-height:520px){.onwardscene{width:min(100%,360px)}}
+.govsheet{max-width:720px!important}.gshead{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.gsh{margin:14px 0 6px;color:var(--gold)}.gsh.dark{color:var(--dark)}
+.gsbuffs{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px}
+.gsbuff,.gsdark{display:flex;flex-direction:column;gap:2px;padding:8px 10px;background:#120d18;box-shadow:inset 3px 0 0 var(--pc),inset 0 0 0 1px var(--edge)}
+.gsn{display:flex;gap:8px;align-items:baseline;justify-content:space-between}.gsn b{color:var(--pc);font-size:20px}.gsx{color:var(--ash);font-size:17px}
+.gsfx{color:var(--bone);font-size:18px}.gsbuff small,.gsdark small{color:var(--dim);font-size:16px}
+.gsdark{--pc:var(--dark);background:linear-gradient(#1a1024,#0e0a14);box-shadow:inset 3px 0 0 var(--dark),inset 0 0 0 1px #4a3466}.gsdark small{font-style:italic}
 .darkcard{--pc:var(--dark);flex-direction:column;text-align:center;background:linear-gradient(#1a1024,#0b0810)}
 .dslot.sealed{opacity:.55;background:repeating-linear-gradient(45deg,#1a1520 0 6px,#120e17 6px 12px);cursor:help}
 @media (prefers-reduced-motion:reduce){.govscene img,.smokefx,.govtext,.govresult,.govqtext{animation:none}}
@@ -3812,6 +3820,12 @@ function govView(){
       <div class="govans">${Q.a.map(([t],i)=>`<button class="choice" data-a="govAns" data-x="${i}"><span class="t">${t}</span></button>`).join('')}</div>
       <div class="qprog" role="progressbar" aria-valuemin="1" aria-valuemax="${n}" aria-valuenow="${G.q+1}" aria-label="Question ${G.q+1} of ${n}">
         ${G.q?`<button class="btn small" data-a="govBack">Back</button>`:'<span></span>'}<div class="qbar">${GOV_Q.map((_,i)=>`<i class="${i<G.q?'done':i===G.q?'cur':''}"></i>`).join('')}</div><b>${G.q+1} of ${n}</b></div></div>`}
+  if(G.step==='onward'){const S=govScore(G.ans),Q=GOV_QUAL[S.past];
+    return `<div class="govwrap"><div class="govscene onwardscene"><img class="px" src="${storyImg('dawn')}" alt=""></div>
+      <p class="govtext">The smoke still hangs over the hills, and somewhere beyond them is the answer: what took my father, what darkened the moon.</p>
+      <p class="govtext">I can’t bring back what we lost. But I can raise these walls again, gather heroes brave enough to walk the dark roads, and follow the smoke to wherever it began.${Q?` Whatever I was before, a ${Q.p.toLowerCase()} or someone else entirely, this is who I choose to be now.`:''}</p>
+      <p class="govtext"><b class="gold">The town is waiting. It’s time to set out.</b></p>
+      <div class="row" style="justify-content:center"><button class="btn gold big" data-a="govOnward">${G.redo?'Onward':'Let’s begin'}</button></div></div>`}
   if(G.step==='result'){
     const S=govScore(G.ans),P=GOV_QUAL[S.past],list=Object.keys(S.picks).sort((a,b)=>S.picks[b]-S.picks[a]);
     return `<div class="govwrap"><div class="govresult" style="--pc:${P?P.c:'#9a8fa4'}">${govPic(d,8)}<div class="stack" style="gap:8px;max-width:520px"><span class="muted">Looking back on my answers…</span>
@@ -3874,8 +3888,8 @@ function govTipNow(){
 
 // The governor's qualities, most picks first, as tooltip lines.
 const govAll=()=>{const P=govPicks();return Object.keys(P).filter(q=>GOV_QUAL[q]&&P[q]>0).sort((a,b)=>P[b]-P[a])};
-const govLines=()=>{const P=govPicks(),g=state.gov,D=g&&g.darkSeen&&GOV_DARK[g.dark];
-  return govAll().map(q=>`${GOV_QUAL[q].n}${P[q]>1?' ×'+P[q]:''}: ${govQualFx(q,P[q])}`).concat(D?[`Dark side · ${D.n} (${D.s}): ${D.d}`]:[]).join('\n')};
+const govLines=()=>{const P=govPicks(),g=state.gov,D=g&&GOV_DARK[g.dark];
+  return govAll().map(q=>`${GOV_QUAL[q].n}${P[q]>1?' ×'+P[q]:''}: ${govQualFx(q,P[q])}`).concat(D?[`Debuff · ${D.n} (${D.s}): ${D.d}`]:[]).join('\n')};
 // Each promotion adds one more pick to any quality; picks stack additively.
 function govPromoView(){
   const G=state.gov;if(!ui.govPromo||!G||!G.pend)return '';const P=govPicks();
@@ -3886,10 +3900,21 @@ function govPromoView(){
   return modalShell(`Governor promotion · Rank ${govRank()+1}`,`<div class="row" style="gap:14px">${govPic(G,4)}<p style="flex:1;min-width:200px">The town trusts me more with every road we conquer. I can grow one of my qualities, or take up a new one. Each step adds its bonus again for every hero.</p></div>
     <div class="govpicks">${order.map(card).join('')}</div><div class="row"><button class="btn small" data-a="govPromoClose">Decide later</button></div>`,'govPromoClose','govpromo');
 }
+// My own sheet (tap my portrait): every quality I carry, and my dark side by name.
+function govSheetView(){
+  const g=state.gov;if(!ui.govSheet||!g)return '';const P=govPicks(),Q=GOV_QUAL[g.past],D=GOV_DARK[g.dark],DQ=GOV_Q.find(q=>q.dark),w=DQ&&DQ.a.find(x=>x[1]===g.dark);
+  const buffs=govAll().map(q=>{const B=GOV_QUAL[q];return `<div class="gsbuff" style="--pc:${B.c}"><div class="gsn"><b>${B.n}</b>${P[q]>1?`<span class="gsx">×${P[q]}</span>`:''}</div><span class="gsfx">${govQualFx(q,P[q])}</span><small>${B.p}</small></div>`}).join('');
+  return modalShell(`Governor ${esc(g.name||'')}`,`<div class="gshead">${govPic(g,4)}<div class="stack" style="gap:4px;flex:1;min-width:240px"><span class="muted">Rank ${govRank()}${g.pend?` · <b class="gold">${g.pend} promotion${g.pend>1?'s':''} waiting</b>`:''}</span>
+      ${Q?`<p class="govhint" style="margin:0">Maybe in a past life I was a <b style="color:${Q.c}">${Q.p}</b>.</p>`:''}
+      <p class="muted" style="font-size:18px;margin:0">I lead from town. Everything below helps every hero for as long as I govern.</p>
+      <div class="row">${g.pend?`<button class="btn gold small" data-a="govPromoOpen">Choose promotion</button>`:''}<button class="btn small" data-a="govThink">What should I do?</button></div></div></div>
+    <h3 class="gsh">Buffs · my qualities</h3><div class="gsbuffs">${buffs||'<p class="muted">None yet.</p>'}</div>
+    ${D?`<h3 class="gsh dark">Debuff · my dark side</h3><div class="gsdark"><div class="gsn"><b>${D.n}</b><span class="gsx">${D.s}</span></div><span class="gsfx">${D.d}</span>${w?`<small>“${w[0]}”</small>`:''}</div>`:''}`,'govSheetClose','govsheet');
+}
 function govBadge(){
   if(!state.gov)return '';
   const P=GOV_QUAL[state.gov.past]||{},tip=state.screen==='run'?null:govTipNow();
-  return `<div class="govbadge" style="--pc:${P.c||'#888'}"><button class="govface" data-a="govTalk" aria-label="Me, Governor ${esc(state.gov.name||'')}. What should I do?" data-tip="${esc('Me · Governor '+(state.gov.name||'')+' · Rank '+govRank()+(P.p?' · once a '+P.p:'')+'\n'+govLines())}">${govPic(state.gov,2)}${govRank()>1||state.gov.pend?`<b class="govrank ${state.gov.pend?'up':''}">${state.gov.pend?'!':govRank()}</b>`:''}</button>
+  return `<div class="govbadge" style="--pc:${P.c||'#888'}"><button class="govface" data-a="govTalk" aria-label="Me, Governor ${esc(state.gov.name||'')}. Open my sheet" data-tip="${esc('Me · Governor '+(state.gov.name||'')+' · Rank '+govRank()+(P.p?' · once a '+P.p:'')+'\n'+govLines())}">${govPic(state.gov,2)}${govRank()>1||state.gov.pend?`<b class="govrank ${state.gov.pend?'up':''}">${state.gov.pend?'!':govRank()}</b>`:''}</button>
     ${tip?`<div class="govsay" role="status"><span class="who">My thoughts</span><p>${tip.t}</p><div class="row">${tip.go?`<button class="btn small gold" data-a="${tip.go[0][0]==='@'?tip.go[0].slice(1):'govTipGo'}" data-x="${tip.go[0]}">${tip.go[1]}</button>`:''}<button class="btn small" data-a="govTipOk">Got it</button></div></div>`:''}</div>`;
 }
 function topBar(){
@@ -5125,15 +5150,17 @@ const ACT={
   govRandom:()=>{const n=govKeepName();state.govSetup.d={...govDefault(),name:n}},
   govLook:()=>{govKeepName();const D=state.govSetup.d;if(!D.name)D.name=D.sex==='f'?pick(['Elowen','Maren','Isolde','Tamsin','Wren']):pick(['Aldric','Corin','Garrick','Edmund','Rowan']);const G=state.govSetup;if((G.ans||[]).length>=GOV_Q.length)G.step='result';else{G.step='quiz';G.q=(G.ans||[]).length}},
   // After the tenth answer: the mirror (a returning governor keeps their look and goes straight to the result).
-  govAns:x=>{const G=state.govSetup;if(!GOV_Q[G.q]||!GOV_Q[G.q].a[+x])return;G.ans[G.q]=+x;G.ans.length=G.q+1;if(G.q<GOV_Q.length-1){G.q++;return}G.step=G.redo?'result':'create'},
+  govAns:x=>{const G=state.govSetup;if(!GOV_Q[G.q]||!GOV_Q[G.q].a[+x])return;G.ans[G.q]=+x;G.ans.length=G.q+1;if(G.q<GOV_Q.length-1){G.q++;return}G.step='onward'},
+  govOnward:()=>{const G=state.govSetup;G.step=G.redo?'result':'create'},
   govBack:()=>{const G=state.govSetup;if(G.q>0){G.q--;G.ans.length=G.q}},
   govRetake:()=>{const G=state.govSetup;G.step='quiz';G.q=0;G.ans=[]},
   govTipOk:()=>{const c=state.tipCur;if(c&&c.id==='promo'){state.promoWeek=state.week;state.tipCur=null;return}if(c){if(c.id!=='g')(state.tipsSeen=state.tipsSeen||[]).push(c.id);state.tipCur=null}},
   govTipGo:x=>{ACT.govTipOk();return ACT.tab(x)},
   storyOk:x=>{if(ui.storyRe){ui.storyRe=null;return}(state.story=state.story||[]).includes(x)||state.story.push(x)},storyRe:x=>{ui.storyRe=x},
-  govPromoOpen:()=>{ui.govPromo=true},govPromoClose:()=>{ui.govPromo=false},
+  govPromoOpen:()=>{ui.govSheet=false;ui.govPromo=true},govPromoClose:()=>{ui.govPromo=false},
   govPromote:k=>{const G=state.gov;if(!G||!G.pend||!GOV_QUAL[k])return;G.picks=G.picks||{};G.picks[k]=(G.picks[k]||0)+1;G.pend--;ui.govPromo=false;state.tipCur={id:'g',t:`I’ve grown in ${GOV_QUAL[k].n}. Now ${govQualFx(k,G.picks[k])} for every hero.`,go:null}},
-  govTalk:()=>{if(state.gov&&state.gov.pend){ui.govPromo=true;return}if(state.tipCur){ACT.govTipOk();return}state.tipCur={id:'g',t:GOV_GENERAL[Math.floor(Math.random()*GOV_GENERAL.length)],go:null}},
+  govTalk:()=>{ui.govSheet=true},govSheetClose:()=>{ui.govSheet=false},
+  govThink:()=>{ui.govSheet=false;if(state.tipCur){ACT.govTipOk();return}state.tipCur={id:'g',t:GOV_GENERAL[Math.floor(Math.random()*GOV_GENERAL.length)],go:null}},
   govDone:()=>{const G=state.govSetup,S=govScore(G.ans),old=G.redo?state.gov:null,D=G.d;
     const g={sex:D.sex,hair:D.hair,hc:D.hc,shirt:D.shirt,pants:D.pants,name:D.name,picks:S.picks,dark:S.dark,past:S.past};
     // A governor from the profession days keeps their earned promotions, refunded to spend on qualities.
@@ -5273,7 +5300,7 @@ function render(){
   const mode=layMode();lastMode=mode;
   document.body.classList.remove('lay-stack','lay-side','lay-wide','dev-pc','dev-phone');document.body.classList.add('lay-'+mode,mode==='side'?'dev-phone':'dev-pc');
   document.body.classList.toggle('nomotion',!set.motion);
-  app.innerHTML=rotateNote()+(inBattle?runView():topBar()+(state.screen==='run'&&state.run?runView():townView())+foot)+(!state.run&&ui.summaryHtml?ui.summaryHtml:'')+(!state.run&&ui.prep?prepView():'')+(!inBattle&&ui.sheet?heroSheet():'')+(!state.run&&ui.greenWarn?greenModal():'')+(state.run&&state.run.reveal&&state.run.reveal.length?revealView():'')+(!state.run?(govRevealView()||storyView()||placeTutView()||govPromoView()):'')+installModal()+settingsModal()+darkView();
+  app.innerHTML=rotateNote()+(inBattle?runView():topBar()+(state.screen==='run'&&state.run?runView():townView())+foot)+(!state.run&&ui.summaryHtml?ui.summaryHtml:'')+(!state.run&&ui.prep?prepView():'')+(!inBattle&&ui.sheet?heroSheet():'')+(!state.run&&ui.greenWarn?greenModal():'')+(state.run&&state.run.reveal&&state.run.reveal.length?revealView():'')+(!state.run?(govRevealView()||storyView()||placeTutView()||govPromoView()||govSheetView()):'')+installModal()+settingsModal()+darkView();
   if(key===lastView)window.scrollTo(0,y);else if(!inBattle)window.scrollTo(0,0);
   lastView=key;
   save();
