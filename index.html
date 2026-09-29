@@ -410,8 +410,8 @@ button[data-tip]{cursor:pointer}
 @media (max-width:720px){.thumb{width:52px}}
 /* battle depth */
 .lay{position:absolute;left:0;right:0;background-repeat:repeat-x;image-rendering:pixelated;background-size:auto 100%;pointer-events:none}
-.lay.far{bottom:34px;height:112px;animation:pan 160s linear infinite;opacity:.9}
-.lay.mid{bottom:30px;height:88px;animation:pan 70s linear infinite}
+.lay.far{bottom:34px;height:112px;animation:pan 480s linear infinite;opacity:.9}
+.lay.mid{bottom:30px;height:88px;animation:pan 240s linear infinite}
 @keyframes pan{to{background-position-x:-640px}}
 .scene .gnd{position:absolute;left:0;right:0;bottom:0;height:40px;background-size:100% 100%;image-rendering:pixelated}
 .scene .fo::after{content:"";position:absolute;left:8%;right:8%;bottom:-5px;height:8px;background:radial-gradient(ellipse,#000b,transparent 70%);z-index:-1}
@@ -1053,6 +1053,7 @@ body.dragging [data-drop]{outline:2px dashed #e3b34166;outline-offset:1px}
 .govquals{display:grid;gap:6px}.gq{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;padding:6px 10px;box-shadow:inset 3px 0 0 var(--pc);background:#120d18}
 .gq b{color:var(--pc);min-width:150px}.gq span{color:var(--gold);font-size:18px}
 .darkcard .profname{color:var(--dark)}
+.heronav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 0}.heronav .navarrow{font-size:22px;padding:6px 14px}
 .lcard.mystery{opacity:.75}.lcard.mystery .qmark{display:grid;place-items:center;width:64px;height:64px;font:700 40px 'Pixelify Sans',monospace;color:var(--dim);background:repeating-linear-gradient(45deg,#1a1520 0 6px,#120e17 6px 12px);box-shadow:inset 0 0 0 2px var(--edge)}
 .lcard.mystery .hname{color:var(--dim)}
 @media (max-height:520px){.onwardscene{width:min(100%,360px)}}
@@ -2554,6 +2555,8 @@ function aliveFoes(){return state.run.battle.enemies.filter(e=>e.hp>0)}
 // Warriors fight in melee: on their turn they can only reach the front-line enemy (the first one still standing).
 // Skills that hit every enemy, like Cleave, still sweep the whole line.
 const frontOnly=()=>{const b=state.run&&state.run.battle,h=b&&b.cur&&heroById(b.cur);return !!(h&&h.cls==='warrior'&&h.hp>0)};
+// The battle backdrop is redrawn on every move; a negative delay picks the drift up where the clock says it is, so it never jumps back.
+const panDelay=T=>`-${((performance.now()/1000)%T).toFixed(2)}s`;
 function fixTarget(){const b=state.run.battle;if(frontOnly()){const a=aliveFoes()[0];if(a)b.target=b.enemies.indexOf(a)}const t=b.enemies[b.target];if(!t||t.hp<=0){const a=aliveFoes()[0];b.target=a?b.enemies.indexOf(a):0}return b.enemies[b.target]}
 function blog(t){if(window.__full)(state.run.battle.fullLog=state.run.battle.fullLog||[]).push(t);state.run.battle.log.unshift(t);state.run.battle.log.length=Math.min(state.run.battle.log.length,50)}
 /* Timeline combat: every hero and enemy has a clock. The lowest clock acts next, then waits 1000/speed.
@@ -3180,7 +3183,7 @@ function chestScene(){
     const ic=x.k==='gold'?`<span class="ibox ${x.tier==='jackpot'?'jack':''}">${sprite('coin',null,x.tier?4:3)}</span>`:x.k==='item'?itemIcon(x.it,3):x.k==='scroll'?`<span class="ibox">${sprite('scroll',null,3)}</span>`:`<span class="ibox">${consIco(x.id,3)}</span>`;
     const nm=x.k==='gold'?`<span class="gold">${x.g} gold${x.tier==='jackpot'?' · JACKPOT':''}</span>`:x.k==='item'?`<span class="r-${x.it.rarity}">${esc(x.it.name)}</span>`:x.k==='scroll'?'Return Scroll':CONSUMABLES[x.id].n;
     return `<span class="lootpop ${C.fresh?'fresh':''} ${x.k==='item'?'eq r-'+x.it.rarity+'-bg':''}" style="--fx:${tx};--ty:${ty}px;animation-delay:${C.fresh?i*.28:0}s">${ic}<small>${nm}${x.ground?' <span class="warn">(ground)</span>':''}</small></span>`}).join(''):'';
-  const html=`<div class="scene chestscene wx-${r.biome}" style="--s1:${B.s[0]};--s2:${B.s[1]}"><div class="lay far" style="background-image:url(${Ly.far})"></div><div class="lay mid" style="background-image:url(${Ly.mid})"></div><div class="gnd" style="background-image:url(${Ly.gnd})"></div>
+  const html=`<div class="scene chestscene wx-${r.biome}" style="--s1:${B.s[0]};--s2:${B.s[1]}"><div class="lay far" style="background-image:url(${Ly.far});animation-delay:${panDelay(480)}"></div><div class="lay mid" style="background-image:url(${Ly.mid});animation-delay:${panDelay(240)}"></div><div class="gnd" style="background-image:url(${Ly.gnd})"></div>
     <span class="stage-label">Stage ${r.stage} · ${(CHEST_TIER[C.tier]||CHEST_TIER.map).n}</span>
     ${C.opened?`<div class="chestbox open">${sprite('chestopen',null,8)}</div>`:`<button class="chestbox" data-a="openChest" aria-label="Open the chest">${sprite('chest',null,8,'bob')}<span class="chesthint">Tap to open</span></button>`}
     <div class="lootfan">${pops}</div></div>`;
@@ -4041,7 +4044,7 @@ function heroesView(){
   let h=heroById(state.sel.hero);if(!h){h=state.heroes[0];state.sel.hero=h.id}
   const C=C_(h),[g,gc]=grade(h);
   const ht=state.sel.htab||'stats';
-  let s=`${head}${state.sel.justRecruited===h.id?`<p class="gold">${esc(h.name)} has joined. Give them a name and spend their ${h.points} starting points.</p>`:''}${heroChips('selHero',h.id)}<div class="hdetail"><div class="stack">
+  let s=`${head}${state.sel.justRecruited===h.id?`<p class="gold">${esc(h.name)} has joined. Give them a name and spend their ${h.points} starting points.</p>`:''}${heroChips('selHero',h.id)}${state.heroes.length>1?`<div class="heronav"><button class="btn navarrow" data-a="heroStep" data-x="-1" aria-label="Previous hero">◀ Prev</button><span class="muted">${state.heroes.indexOf(h)+1} of ${state.heroes.length}</span><button class="btn navarrow" data-a="heroStep" data-x="1" aria-label="Next hero">Next ▶</button></div>`:''}<div class="hdetail"><div class="stack">
     <div class="hc-top"><div class="portrait">${sprite(h.cls,C.tint,6)}</div><div class="stack" style="gap:4px;flex:1;min-width:140px">
       <input type="text" id="rename" value="${esc(h.name)}" maxlength="16" aria-label="Hero name (tap to rename)" data-tip="Tap to rename. Up to 16 characters.">
       <span class="muted">Lv ${h.level} ${C.name} ${badgeIco(h.badge||0)} <span class="grade" style="color:${gc}">${g}</span></span>
@@ -4557,7 +4560,7 @@ function battleScreen(){
       <button class="btn" data-a="drawer" data-x="party">Party</button>${fleeBtn('red')}<button class="btn" data-a="settings" data-x="1" aria-label="Settings">Settings</button></div>
     ${tstrip}
     <div class="scene stage wx-${r.biome} ${fx.shake?'shake':''}" style="--s1:${B.s[0]};--s2:${B.s[1]}">
-      <div class="lay far" style="background-image:url(${Ly.far})"></div><div class="lay mid" style="background-image:url(${Ly.mid})"></div><div class="gnd" style="background-image:url(${Ly.gnd})"></div>
+      <div class="lay far" style="background-image:url(${Ly.far});animation-delay:${panDelay(480)}"></div><div class="lay mid" style="background-image:url(${Ly.mid});animation-delay:${panDelay(240)}"></div><div class="gnd" style="background-image:url(${Ly.gnd})"></div>
       ${label?`<span class="stage-label">${label}</span>`:''}
       ${b.windup?`<div class="wbanner ${b.windup.foe?'foe':''}" role="status">${b.windup.txt}</div>`:''}
       <div class="side heroes">${P.map(h=>heroUnit(h,cur,fx,pops)).join('')}</div>
@@ -5084,6 +5087,7 @@ const ACT={
   openHero:id=>{ui.sheet=null;state.sel.hero=id;state.sel.slot=null;state.tab='heroes';state.sel.btab='roster';},
   buyGear:id=>{return;const mk=marketStock(),it=mk.find(x=>x.id===id);if(!it)return;const pc=marketPrice(it);if(state.gold<pc||state.bank.length>=bankCap())return;
     state.gold-=pc;state.bank.push(it);state.market.items=mk.filter(x=>x.id!==id)},
+  heroStep:d=>{const H=state.heroes;if(H.length<2)return;const i=Math.max(0,H.findIndex(x=>x.id===state.sel.hero)),n=H[(i+(+d)+H.length)%H.length];ACT.selHero(n.id)},
   selHero:id=>{state.sel.justRecruited=null;state.sel.hero=id;state.sel.slot=null;state.sel.retire=null},
   alloc:x=>{const [k,id]=x.split('|'),h=heroById(id);if(!h)return;const c=STATS.includes(k)?statCost(h[k]):1;if(h.points<c)return;h.points-=c;h.spent=(h.spent||0)+c;
     if(!STATS.includes(k))return;
@@ -5332,6 +5336,7 @@ window.addEventListener('resize',relayout);window.addEventListener('orientationc
 document.addEventListener('keydown',ev=>{
   if(ev.key==='Escape'&&ui.sheet){ui.sheet=null;render();return}
   if(ev.key==='Escape'&&(ui.drawer||ui.flee||ui.settings||ui.prep||state.summary||(state.run&&state.run.battle&&state.run.battle.over&&!ui.hideResult))){if(ui.settings)ui.settings=false;else if(ui.drawer)ui.drawer=null;else if(ui.flee)ui.flee=false;else if(ui.prep)ui.prep=false;else if(state.summary)state.summary=null;else ui.hideResult=true;render();return}
+  if((ev.key==='ArrowLeft'||ev.key==='ArrowRight')&&!typing()&&state&&!state.run&&!state.govSetup&&!ui.menu&&state.tab==='heroes'&&(state.sel.btab||'roster')==='roster'&&state.heroes.length>1){ACT.heroStep(ev.key==='ArrowLeft'?-1:1);render();return}
   const t=ev.target;if((ev.key==='Enter'||ev.key===' ')&&t.getAttribute&&t.getAttribute('role')==='button'&&t.dataset.a){ev.preventDefault();t.click()}
 });
 document.addEventListener('change',ev=>{
