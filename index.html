@@ -16,7 +16,7 @@
 <title>Dark Side of the Moon</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=VT323&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Handjet:wght@400;500;600&display=swap">
 <style>
 :root{
   color-scheme:dark;
@@ -27,17 +27,17 @@
 }
 html,body{background:var(--void);color:var(--bone)}
 body{
-  font-family:'VT323',ui-monospace,Menlo,Consolas,monospace;font-size:22px;line-height:1.15;
+  font-family:'Handjet',ui-monospace,Menlo,Consolas,monospace;font-weight:500;font-size:22px;line-height:1.15;
   padding-inline:16px;padding-block:14px 48px;
   background:radial-gradient(ellipse 120% 60% at 50% -10%,#2b2034 0%,var(--void) 65%) var(--void);
   min-height:100%;
 }
 *{box-sizing:border-box}
 .px{image-rendering:pixelated;image-rendering:crisp-edges;display:block;-webkit-user-drag:none;user-select:none}
-h1,h2,h3,.disp{font-family:'Pixelify Sans','VT323',monospace;font-weight:700;letter-spacing:.02em;margin:0;text-wrap:balance}
+h1,h2,h3,.disp{font-family:'Pixelify Sans','Handjet',monospace;font-weight:700;letter-spacing:.02em;margin:0;text-wrap:balance}
 h2{font-size:26px}h3{font-size:21px;color:var(--ash);text-transform:uppercase;letter-spacing:.08em;font-weight:500}
 p{margin:0}
-b{font-weight:normal;color:#fff3dc}
+b{font-weight:600;color:#fff3dc}
 .num{font-variant-numeric:tabular-nums}
 .muted{color:var(--ash)}
 .gold{color:var(--gold)}
@@ -518,7 +518,7 @@ body.lay-stack .unit.big .fo img.px{width:min(calc(var(--us) * 1.5),calc((100cqw
 .asec{display:flex;flex-direction:column;gap:5px}
 .asec+.asec{border-top:2px solid var(--edge);padding-top:6px}
 .alabel{font-family:'Pixelify Sans',monospace;font-size:17px;color:var(--gold);text-transform:uppercase;letter-spacing:.1em}
-.alabel span{font-family:'VT323',monospace;color:var(--ash);text-transform:none;letter-spacing:0;font-size:17px;margin-left:6px}
+.alabel span{font-family:'Handjet',monospace;font-weight:500;color:var(--ash);text-transform:none;letter-spacing:0;font-size:17px;margin-left:6px}
 /* roster: labeled bars under the pixel-art lineup on small screens */
 .roster{display:none;grid-area:roster;grid-template-columns:1fr 1fr;gap:6px;min-width:0}
 .rcol{display:flex;flex-direction:column;gap:4px;min-width:0}
@@ -1308,7 +1308,7 @@ function showCrash(msg){
   try{
     const d=document.createElement('div');
     d.setAttribute('role','alertdialog');
-    d.style.cssText='position:fixed;inset:0;z-index:9999;background:#000d;display:flex;align-items:center;justify-content:center;padding:16px;font:20px VT323,monospace;color:#e4d8c1';
+    d.style.cssText='position:fixed;inset:0;z-index:9999;background:#000d;display:flex;align-items:center;justify-content:center;padding:16px;font:20px Handjet,monospace;color:#e4d8c1';
     d.innerHTML=`<div style="max-width:520px;width:100%;background:#1c1823;box-shadow:0 0 0 2px #060509,inset 0 0 0 2px #c4463f;padding:16px;display:flex;flex-direction:column;gap:10px">
       <b style="font-size:26px;color:#f0a070">Something went wrong</b>
       <span>The game hit an error. Your town is saved. Try one of these:</span>
@@ -3452,26 +3452,26 @@ function constructionView(k){
    Values and wording come from the "DSOTM Opening Governor" sheet. */
 // k: the bonus key (read by tr() for every hero), v: bonus per pick, p: the past-life profession it suggests.
 const GOV_QUAL={
-  vitality:{n:'Vitality',p:'Nutritionist',v:1,k:'hpPct',fx:'max health',c:'#e05a5a'},
-  willpower:{n:'Willpower',p:'Philosopher',v:2,k:'mpPct',fx:'max mana',c:'#5a7ae0'},
-  valor:{n:'Valor',p:'Soldier',v:1,k:'basicDmg',fx:'damage from basic attacks',c:'#d0703a'},
-  strategy:{n:'Strategy',p:'Tactician',v:1,k:'skillDmg',fx:'skill damage',c:'#b56fe3'},
-  precision:{n:'Precision',p:'Surgeon',v:2,k:'critdmg',fx:'crit damage',c:'#ff8a5c'},
-  resilience:{n:'Resilience',p:'Stunt Double',v:2,k:'armorPct',fx:'armor',c:'#a8a8b8'},
-  agility:{n:'Agility',p:'Acrobat',v:0.5,k:'eva',fx:'evasion',c:'#9fd6ff'},
-  fortitude:{n:'Fortitude',p:'Firefighter',v:1,k:'resAll',fx:'resistance to every element',c:'#e0a040'},
-  riposte:{n:'Riposte',p:'Duelist',v:1,k:'thorns',fx:'of damage taken reflected back (thorns)',c:'#c98b5c'},
-  pharmacology:{n:'Pharmacology',p:'Pharmacist',v:2,k:'consHeal',fx:'healing from potions, food and other consumables',c:'#8fe08a'},
-  firstaid:{n:'First Aid',p:'Paramedic',v:1,k:'heal',fx:'healing received',c:'#78d078'},
-  composure:{n:'Composure',p:'Psychologist',v:2,k:'manaHeal',fx:'mana restored',c:'#7aa0f0'},
-  recuperation:{n:'Recuperation',p:'Sports Medicine Physician',v:1,k:'recup',fx:'health and mana recovered after each won battle',c:'#60c0a0'},
-  deduction:{n:'Deduction',p:'Detective',v:2,k:'perPct',fx:'Perception',c:'#6ab0e0'},
-  diplomacy:{n:'Diplomacy',p:'Diplomat',v:2,k:'chaPct',fx:'Charisma',c:'#e3b341'},
-  serendipity:{n:'Serendipity',p:'Fortune Teller',v:2,k:'lckPct',fx:'Luck',c:'#78ab60'},
-  vigilance:{n:'Vigilance',p:'Scout',v:1,k:'perThr',fx:'lower Perception needed to scout and read enemies',c:'#9fd6ff'},
-  opportunism:{n:'Opportunism',p:'Gambler',v:1,k:'eventUp',fx:'better rewards from events',c:'#f0d27a'},
-  retreat:{n:'Tactical Retreat',p:'Sprinter',v:4,k:'fleeCut',fx:'less gold and gear lost when fleeing',c:'#b0b0c0'},
-  leadership:{n:'Leadership',p:'Professor',v:1,k:'xp',fx:'experience gained',c:'#f0d27a'},
+  vitality:{n:'Vitality',p:'Nutritionist',v:2,k:'hpPct',fx:'max health',c:'#e05a5a'},
+  willpower:{n:'Willpower',p:'Philosopher',v:4,k:'mpPct',fx:'max mana',c:'#5a7ae0'},
+  valor:{n:'Valor',p:'Soldier',v:2,k:'basicDmg',fx:'damage from basic attacks',c:'#d0703a'},
+  strategy:{n:'Strategy',p:'Tactician',v:2,k:'skillDmg',fx:'skill damage',c:'#b56fe3'},
+  precision:{n:'Precision',p:'Surgeon',v:4,k:'critdmg',fx:'crit damage',c:'#ff8a5c'},
+  resilience:{n:'Resilience',p:'Stunt Double',v:4,k:'armorPct',fx:'armor',c:'#a8a8b8'},
+  agility:{n:'Agility',p:'Acrobat',v:1,k:'eva',fx:'evasion',c:'#9fd6ff'},
+  fortitude:{n:'Fortitude',p:'Firefighter',v:2,k:'resAll',fx:'resistance to every element',c:'#e0a040'},
+  riposte:{n:'Riposte',p:'Duelist',v:2,k:'thorns',fx:'of damage taken reflected back (thorns)',c:'#c98b5c'},
+  pharmacology:{n:'Pharmacology',p:'Pharmacist',v:4,k:'consHeal',fx:'healing from potions, food and other consumables',c:'#8fe08a'},
+  firstaid:{n:'First Aid',p:'Paramedic',v:2,k:'heal',fx:'healing received',c:'#78d078'},
+  composure:{n:'Composure',p:'Psychologist',v:4,k:'manaHeal',fx:'mana restored',c:'#7aa0f0'},
+  recuperation:{n:'Recuperation',p:'Sports Medicine Physician',v:2,k:'recup',fx:'health and mana recovered after each won battle',c:'#60c0a0'},
+  deduction:{n:'Deduction',p:'Detective',v:4,k:'perPct',fx:'Perception',c:'#6ab0e0'},
+  diplomacy:{n:'Diplomacy',p:'Diplomat',v:4,k:'chaPct',fx:'Charisma',c:'#e3b341'},
+  serendipity:{n:'Serendipity',p:'Fortune Teller',v:4,k:'lckPct',fx:'Luck',c:'#78ab60'},
+  vigilance:{n:'Vigilance',p:'Scout',v:2,k:'perThr',fx:'lower Perception needed to scout and read enemies',c:'#9fd6ff'},
+  opportunism:{n:'Opportunism',p:'Gambler',v:2,k:'eventUp',fx:'better rewards from events',c:'#f0d27a'},
+  retreat:{n:'Tactical Retreat',p:'Sprinter',v:8,k:'fleeCut',fx:'less gold lost and a lower chance of losing items when fleeing',c:'#b0b0c0'},
+  leadership:{n:'Leadership',p:'Professor',v:2,k:'xp',fx:'experience gained',c:'#f0d27a'},
 };
 // Question 9's hidden dark sides. s: the sin it stems from, d: what it does once it shows.
 const GOV_DARK={
@@ -3489,74 +3489,38 @@ const GOV_Q=[
     ['Cold, analytical detachment—I scan the blast radius and examine residue patterns to piece together the sequence of events.','deduction'],
     ['Unyielding resolve—I ignore the acrid haze burning in my lungs and steady my footing, refusing to sway amidst the chaos.','fortitude'],
     ['Deep mental focus—I quiet the inner turmoil and gather my intent, projecting composed authority over the panic.','willpower'],
-    ['Calm empathy—I put aside personal dread, meeting trembling eyes with an assuring presence that stills their panic.','diplomacy'],
+    ['Audacious optimism—I view this devastation as an unwritten chapter, anticipating that unforeseen opportunities will emerge from the wreckage.','serendipity'],
     ['Pragmatic caution—I inspect the sealed supply crates and water cisterns, ensuring our vital provisions remain pure.','pharmacology'],
     ['Defensive vigilance—I throw my weight against the reinforced entryway, securing our immediate shelter against subsequent tremors.','resilience'],
-    ['Audacious optimism—I view this devastation as an unwritten chapter, anticipating that unforeseen opportunities will emerge from the wreckage.','serendipity'],
-    ['Fierce martial courage—I draw my weapon without hesitation, leading from the front straight into the heart of the smoke.','valor']]},
-  {q:'Surveying the collapsed municipal hall and wounded staff, what immediate personal action do you undertake first?',a:[
-    ['I throw myself into grueling excavation, heaving heavy debris aside alongside the laborers without pausing for breath.','vitality'],
-    ['I channel focused concentration, weaving unraveling energies to clear the dense barrier runes blocking the hall.','willpower'],
-    ['I immediately establish emergency triage, applying splints and pressure bandages to stabilize critically injured staff amidst the rubble.','firstaid'],
-    ['I coordinate the evacuation grid, directing specialists to the exact sectors where their talents do the most good.','strategy'],
-    ['I guide delicate extractions, identifying structural stress fractures to dislodge key timbers without bringing down the ceiling.','precision'],
-    ['I throw my body over trapped clerks, letting falling joists crash against my armored shoulders.','resilience'],
-    ['I scale broken rafters and crumbling lintels, balancing across narrow spans to reach trapped couriers.','agility'],
-    ['I set patrols and perimeter traps around breached vaults, ensuring anyone attempting to plunder the ruins meets immediate retribution.','riposte']]},
+    ['Fierce martial courage—I draw my weapon without hesitation, leading from the front straight into the heart of the smoke.','valor'],
+    ['Enduring vigor—I surge into the rubble with boundless physical drive, heaving fallen masonry aside to clear paths for survivors.','vitality']]},
   {q:'Scouts report shadowy marauders gathering along the breached outer walls. How do you direct the town’s perimeter defense?',a:[
-    ['I position sharpshooters high in the bell towers, ordering them to pick off enemy leaders through narrow arrow slits.','precision'],
-    ['I lure their dense approach formations into calibrated crossfires and synchronized tactical ambushes.','strategy'],
-    ['I deploy light skirmishers to harry the flanks and slip away before enemy blades can make contact.','agility'],
-    ['I string acoustic bells and concealed mirrors along blind ravines to uncover stealthy approaches in the dark.','vigilance'],
-    ['I step forward to parley under a truce banner, using rhetoric to divide their chieftains and buy crucial hours.','diplomacy'],
-    ['I lead a vanguard sortie straight through the breached gate, meeting their charge head-on with cold steel.','valor'],
-    ['I hold our garrison entrenched behind earthworks, weathering their bombardment until their ammunition runs dry.','fortitude'],
-    ['I bait their forward ranks toward an exposed baggage wagon, planning to seize their supplies once they commit.','opportunism']]},
+    ['Acoustic monitoring—I string acoustic bells and concealed mirrors along blind ravines to uncover stealthy approaches in the dark.','vigilance'],
+    ['Truce parley—I step forward under a truce banner, using persuasive rhetoric to divide enemy chieftains and buy crucial hours.','diplomacy'],
+    ['Synchronized ambushes—I lure their dense approach formations into calibrated crossfires and synchronized tactical traps.','strategy'],
+    ['Flanking skirmishers—I deploy light skirmishers to harry the enemy flanks and slip away before enemy blades can make contact.','agility'],
+    ['Entrenched bulwark—I hold our defenders entrenched behind heavy earthworks, weathering their bombardment until their ammunition runs dry.','fortitude'],
+    ['Barrier channeling—I focus deep mental concentration to reinforce wards and rally shaken guards through composed resolve.','willpower'],
+    ['Rapid triage posts—I position field medics directly along the ramparts to dress combat lacerations and stabilize defenders in real time.','firstaid'],
+    ['Serene command—I maintain absolute calm amidst siege horns, projecting quiet assurance that steadies every archer’s aim.','composure']]},
   {q:'Crowds of injured townsfolk and dwindling supplies strain the infirmary. How do you resolve the medical logistics crisis?',a:[
-    ['I set up makeshift trauma stations, personally stitching open wounds and staunching severe hemorrhaging.','firstaid'],
-    ['I enforce quiet rotations and meditation breaks, ensuring our mystics clear their mental fatigue between rituals.','composure'],
-    ['I unseal private cellar vaults, distributing our finest herbal infusions and preserved restorative tonics.','pharmacology'],
-    ['I establish quiet, sunlit recovery wards and warm steam baths to promote steady, long-term recuperation.','recuperation'],
-    ['I boil hearty grain porridges and distill fresh well water to rebuild bodily vigor across the encampment.','vitality'],
-    ['I barricade the perimeter with stacked stone and timber shielding to deflect stray debris and weapon fire.','resilience'],
-    ['I lead solemn chanting circles, focusing communal devotion to sustain our channelers through exhaustion.','willpower'],
-    ['I quietly dispatch hidden riverboats, ferrying our vulnerable noncombatants to safety along unmonitored routes.','retreat']]},
-  {q:'Panic spreads through the town square as rumors of food shortages and renewed attacks circulate. How do you maintain public order?',a:[
-    ['I scatter plainclothes spotters throughout the market stalls to overhear agitators before a mob can form.','vigilance'],
-    ['I trace the exact paper trail of incendiary pamphlets back to their illicit printing press in the cellars.','deduction'],
-    ['I stand alone on the grand dais, projecting unwavering authority to calm the restless crowd into stillness.','willpower'],
-    ['I walk the central plaza beneath the midday sun, absorbing shouted grievances and flying stones without flinching.','fortitude'],
-    ['I post strict edicts declaring that any merchant caught gouging grain will face immediate, proportional seizure of goods.','riposte'],
-    ['I project absolute stillness and serene poise from the town steps, calming public anxiety and restoring collective focus.','composure'],
-    ['I rally local precinct wardens and community elders into coordinated councils, channeling public unrest into productive civic duty.','leadership'],
-    ['I mark clear evacuation routes and establish emergency safety corridors, reassuring the crowd that safe exits exist if danger arises.','retreat']]},
-  {q:'Severe shortages of timber, stone, and tools threaten municipal reconstruction. How do you allocate town rebuilding assets?',a:[
-    ['I employ master stonecutters to align every keystone with exact precision, ensuring each seam bears load flawlessly.','precision'],
-    ['I double the daily food rations and clean spring allowances for quarry laborers working the heavy picks.','vitality'],
-    ['I order thick, interlocking ashlar granite blocks for common shelters to withstand any future collapse.','resilience'],
-    ['I deploy prefabricated light-frame tents and modular timber dwellings, pivoting construction rapidly between sites.','agility'],
-    ['I establish splint-and-bandage stations right at the logging trenches to mend fractures before they worsen.','firstaid'],
-    ['I design counterweight pulley systems and gravity water flumes to systematically streamline labor output.','strategy'],
-    ['I host an elegant banquet for rival merchant guilds, using charm and future promises to negotiate generous timber loans.','diplomacy'],
-    ['I watch commodity river barges closely, buying up distressed cargo from stalled ships at pennies on the dollar.','opportunism']]},
-  {q:'A mysterious nomadic caravan arrives at the town gates offering exotic aid, trade, and mystical covenants. How do you engage them?',a:[
-    ['I barter for mineral-rich volcanic bath salts to refresh bruised muscles and tired spirits after long campaigns.','recuperation'],
-    ['I acquire jugs of rare glacier spring water to infuse our aquifers, bringing deep vigor to all who drink.','vitality'],
-    ['I trade for meteorite-forged broadswords and polearms, outfitting our guards with brutally lethal weaponry.','valor'],
-    ['I purchase rare dried catalysts and amber resins that amplify the taste and potency of our herbal brews.','pharmacology'],
-    ['I trade for fragrant lotus incense and distilled oils, bringing serene tranquility to fatigued minds.','composure'],
-    ['I welcome their veiled card-readers and astrologers, leaning into the unpredictable winds of fate to guide our destiny.','serendipity'],
-    ['I propose a cunning counter-trade, leveraging rare municipal minerals to secure their most valuable relics at a steep bargain.','opportunism'],
-    ['I negotiate mutual passage pacts and pack-beast leases, securing guaranteed escape carriages if crisis strikes.','retreat']]},
+    ['Trauma stations—I establish emergency trauma tents, personally suturing severe wounds and staunching critical hemorrhages.','firstaid'],
+    ['Mindful rotations—I enforce structured quiet rotations and meditation breaks, preventing mental burnout among healers.','composure'],
+    ['Curative reserves—I unseal vaulted apothecaries, distributing our finest herbal infusions and preserved restorative tonics.','pharmacology'],
+    ['Sunlit recovery wards—I design quiet, warm recovery wards and herbal steam baths to foster sustained long-term recuperation.','recuperation'],
+    ['Reinforced shielding—I barricade the infirmary perimeter with interlocking stone and timber shielding to protect patients from stray fire.','resilience'],
+    ['Surgical extractions—I direct meticulous procedures to extract barbed shrapnel cleanly without damaging underlying muscle.','precision'],
+    ['Punitive safeguards—I place armed wards around the medicine cache, ensuring anyone caught stealing stores faces immediate retribution.','riposte'],
+    ['Evacuation flotilla—I quietly dispatch concealed river transports, ferrying vulnerable noncombatants away from strained wards.','retreat']]},
   {q:'An ominous behemoth stirs in the surrounding wilderness, menacing our recovery expeditions. What is your combat doctrine?',a:[
-    ['We charge its front rank behind roaring battle cries, overwhelming the beast with sheer, relentless weapon strikes.','valor'],
-    ['We dispatch archers with compound bows to seek the chink in its hide, piercing exposed nerve clusters.','precision'],
-    ['We erect a wall of barbed pavises and jagged stakes, turning the creature’s immense momentum back upon itself.','riposte'],
-    ['Our skirmishers dance around its heavy sweeps, staying one step ahead of claw swipes while darting in and out.','agility'],
-    ['Our front rank plants their boots into the earth, enduring toxic breath and deafening roars without yielding an inch.','fortitude'],
-    ['Our mystics link their invocations into synchronized spell-chains, shattering its protective ward through coordinated timing.','strategy'],
-    ['We organize disciplined rotation intervals, cycling exhausted fighters back to defensive field camps to recuperate before rejoining.','recuperation'],
-    ['I study the beast’s feeding cycles and blind angles, identifying the hidden ravine where it can be ambushed unaware.','deduction']]},
+    ['Frontline vanguard—We charge its front rank behind roaring battle cries, overwhelming the beast with relentless weapon strikes.','valor'],
+    ['Coordinated spell-chains—Our tacticians coordinate synchronized strike intervals, systematically collapsing its defenses through calculated timing.','strategy'],
+    ['Nerve strikes—We dispatch elite marksmen with recurve bows to pierce vulnerable chinks and exposed nerve clusters in its hide.','precision'],
+    ['Evasive skirmishing—Our skirmishers dance around its sweeping claws, darting in for quick strikes before gracefully stepping clear.','agility'],
+    ['Barbed redirection—We brace a wall of barbed pavises and jagged spikes, turning the creature’s immense momentum back upon itself.','riposte'],
+    ['Disciplined rotations—We organize phased combat shifts, cycling exhausted fighters back to forward encampments to rapidly recover.','recuperation'],
+    ['Relentless stamina—I bolster our expedition with hearty rations and sheer physical endurance to outlast the beast in a grueling war of attrition.','vitality'],
+    ['Exploit weakness—I track the creature to its lair, waiting until it feeds or sleeps to seize its hoard and strike while it is vulnerable.','opportunism']]},
   {dark:true,q:'Doing all this and helping others around me, I know my dad would be proud of me, despite having this little voice inside of me that whispers…',a:[
     ['…no matter how brightly we rebuild, tragedy is inevitable, and everyone who rallies to our banner carries secret, festering flaws.','grim'],
     ['…a true leader must be draped in gilded, opulent regalia, even if heavy ornamental plate weighs down every swing.','vanity'],
@@ -3564,7 +3528,7 @@ const GOV_Q=[
     ['…every blow must unleash unbridled ferocity, even if pushing past my limits tears open my own scars in the heat of battle.','fury'],
     ['…at the brink of the abyss, my survival comes first, and precious curative draughts cannot be squandered on falling allies.','selfish'],
     ['…the void whispers that rest is an illusion, steadily draining our resolve between trials until true respite slips out of reach.','depths'],
-    ['…an endless hollow gnaws within me, demanding double the draughts and elixirs before I feel even a fleeting spark of restoration.','thirst'],
+    ['…an endless hollow gnaws within me, demanding double the drafts and elixirs before I feel even a fleeting spark of restoration.','thirst'],
     ['…the crushing weight of responsibility paralyzes my resolve, leaving us hesitant to act while others seize the initiative.','inertia']]},
   {q:'Looking across the flourishing township and the loyal comrades who stand beside you, who do you aspire to be as you lead and represent your team into the future?',a:[
     ['The Inspiring Mentor: I foster an environment of shared reflection and collective wisdom, ensuring every venture teaches us how to evolve.','leadership'],
@@ -5302,6 +5266,7 @@ function render(){
   if(ui.menu){document.body.classList.remove('inbattle');app.innerHTML=menuView();save();clearTimeout(autoTimer);return}
   // Governors from the old profession test retake the new ten questions (once home, never mid-adventure).
   if(state.gov&&!state.gov.picks&&!state.run&&!state.govSetup){const g=state.gov;state.govSetup={v2:true,step:'quiz',q:0,ans:[],redo:true,d:{sex:g.sex,hair:g.hair,hc:g.hc,shirt:g.shirt,pants:g.pants,name:g.name}}}
+  if(state.govSetup&&(state.govSetup.q>=GOV_Q.length||(state.govSetup.ans||[]).length>GOV_Q.length)){const G=state.govSetup;G.q=0;G.ans=[];if(G.step!=='create')G.step='quiz'}
   if(state.govSetup&&!state.govSetup.v2){const G=state.govSetup;G.v2=true;if(G.step==='quiz'||G.step==='result'){G.step='quiz';G.q=0;G.ans=[]}}
   if(state.govSetup){const gk='gov:'+state.govSetup.step+':'+(state.govSetup.q||0);if(gk!==lastView){lastView=gk;window.scrollTo(0,0)}
     document.body.classList.remove('inbattle');app.innerHTML=`<div class="row" style="justify-content:flex-end"><button class="btn small" data-a="mainMenu">Main menu</button></div>`+govView();save();return}
