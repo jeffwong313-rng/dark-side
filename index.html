@@ -1053,6 +1053,8 @@ body.dragging [data-drop]{outline:2px dashed #e3b34166;outline-offset:1px}
 .govquals{display:grid;gap:6px}.gq{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;padding:6px 10px;box-shadow:inset 3px 0 0 var(--pc);background:#120d18}
 .gq b{color:var(--pc);min-width:150px}.gq span{color:var(--gold);font-size:18px}
 .darkcard .profname{color:var(--dark)}
+.lcard.mystery{opacity:.75}.lcard.mystery .qmark{display:grid;place-items:center;width:64px;height:64px;font:700 40px 'Pixelify Sans',monospace;color:var(--dim);background:repeating-linear-gradient(45deg,#1a1520 0 6px,#120e17 6px 12px);box-shadow:inset 0 0 0 2px var(--edge)}
+.lcard.mystery .hname{color:var(--dim)}
 @media (max-height:520px){.onwardscene{width:min(100%,360px)}}
 .govsheet{max-width:720px!important}.gshead{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
 .gsh{margin:14px 0 6px;color:var(--gold)}.gsh.dark{color:var(--dark)}
@@ -2000,7 +2002,9 @@ const priced=(cost,h)=>Math.max(1,Math.round(cost*(1-chaDiscount(h)/100)));
 const luckRate=(h,k)=>stat(h,'lck')*LUCK[k].base*(h.cls===LUCK[k].cls?2.5:1);
 function stat(h,k){return Math.max(1,(h[k]+aff(h,k)+(h.elixir&&h.elixir.stat===k?h.elixir.v:0))*(1+tr(h,k+'Pct')/100))}
 const C_=h=>CLASSES[h.cls];
-const maxHp=h=>Math.max(1,Math.round((C_(h).hp+stat(h,'end')*5+stat(h,'str')*4+(h.level-1)*({warrior:14,archer:11,mage:9}[h.cls]||12)+h.bonusHp*10+aff(h,'hp'))*(1+tr(h,'hpPct')/100)));
+// Everyone has 15% less health than before; archers and mages lose another 10% on top (fragile on purpose). Always rounded down.
+const HP_CUT=.85,FRAGILE={archer:.9,mage:.9};
+const maxHp=h=>Math.max(1,Math.floor((C_(h).hp+stat(h,'end')*5+stat(h,'str')*4+(h.level-1)*({warrior:14,archer:11,mage:9}[h.cls]||12)+h.bonusHp*10+aff(h,'hp'))*(1+tr(h,'hpPct')/100)*HP_CUT*(FRAGILE[h.cls]||1)));
 const maxMp=h=>Math.max(1,Math.round((C_(h).mp+stat(h,'int')*3+(h.level-1)*3+h.bonusMp*4+aff(h,'mp'))*(1+tr(h,'mpPct')/100)));
 function armor(h){let a=0;for(const s of ['helmet','chest','pants'])if(h.gear[s])a+=baseVal(h.gear[s]);return Math.round(a*(1+tr(h,'armorPct')/100))}
 const weaponDmg=h=>h.gear.weapon?baseVal(h.gear.weapon):3;
@@ -2490,7 +2494,7 @@ function makeEnemy(kind,add,forceSpr){
   const eva={beast:10,wraith:15,slime:3,brute:0,boss:5,mimic:0,bat:18,spider:8,serpent:10,skeleton:4}[spr]||0;
   // Shape flavor for regular monsters: bats are quick and frail, brutes and slimes are slow and sturdy, skeletons are armored.
   const F=kind==='normal'||kind==='elite'?({bat:{hp:.8,spd:4},spider:{atk:1.1},serpent:{spd:2},skeleton:{hp:.9,arm:1.6},beast:{spd:2},slime:{hp:1.2,spd:-2},brute:{hp:1.25,atk:1.1,spd:-2}}[spr]||{}):{};
-  hp=Math.round(hp*(F.hp||1));atk*=F.atk||1;
+  hp=Math.max(1,Math.floor(hp*(F.hp||1)*HP_CUT));atk*=F.atk||1;
   // On the Dark Side every monster is void-touched, whatever land it came from.
   if(r.final&&(kind==='normal'||kind==='elite')&&r.biome!=='abyss')name='Void '+name;
   return {name,base,tier,spr,kind,type,mix:foeMixFor(spr,kind,type,r.final,rng),lvl:Math.round(lvl*10)/10,hp,maxHp:hp,atk,armor:Math.round(lvl*2*(F.arm||1)),res,baseRes,mutation,spd:10+lvl+(F.spd||0),spdBonus:F.spd||0,eva,skills:foeSkillsFor(spr,kind,tier)};
@@ -2547,7 +2551,10 @@ function startBattle(kind){
 }
 const b0ct=()=>state.run.battle.ct;
 function aliveFoes(){return state.run.battle.enemies.filter(e=>e.hp>0)}
-function fixTarget(){const b=state.run.battle,t=b.enemies[b.target];if(!t||t.hp<=0){const a=aliveFoes()[0];b.target=a?b.enemies.indexOf(a):0}return b.enemies[b.target]}
+// Warriors fight in melee: on their turn they can only reach the front-line enemy (the first one still standing).
+// Skills that hit every enemy, like Cleave, still sweep the whole line.
+const frontOnly=()=>{const b=state.run&&state.run.battle,h=b&&b.cur&&heroById(b.cur);return !!(h&&h.cls==='warrior'&&h.hp>0)};
+function fixTarget(){const b=state.run.battle;if(frontOnly()){const a=aliveFoes()[0];if(a)b.target=b.enemies.indexOf(a)}const t=b.enemies[b.target];if(!t||t.hp<=0){const a=aliveFoes()[0];b.target=a?b.enemies.indexOf(a):0}return b.enemies[b.target]}
 function blog(t){if(window.__full)(state.run.battle.fullLog=state.run.battle.fullLog||[]).push(t);state.run.battle.log.unshift(t);state.run.battle.log.length=Math.min(state.run.battle.log.length,50)}
 /* Timeline combat: every hero and enemy has a clock. The lowest clock acts next, then waits 1000/speed.
    A unit twice as fast as another gets two turns for each of theirs. */
@@ -2674,7 +2681,7 @@ function atkEl(h,spec){
   return spec;
 }
 const hitChance=(h,e,acc,sure)=>sure?100:clamp(acc+stat(h,'per')*.3+stat(h,'agi')*.1-(e.eva||0),5,100);
-const critFor=(h,o)=>o.forceCrit?100:heroBuff(h,'crit')?Math.max(80,clamp((critChance(h)+(o.crit||0))*(o.critMul||1),0,95)):clamp((critChance(h)+(o.crit||0)+(h.cls==='archer'?cbStacks(h)*3:0))*(o.critMul||1),0,95);
+const critFor=(h,o)=>o.forceCrit?100:heroBuff(h,'crit')?Math.max(80,clamp((critChance(h)+(o.crit||0))*(o.critMul||1),0,95)):clamp((critChance(h)+(o.crit||0))*(o.critMul||1),0,95);
 /* Three basic attacks, no mana. Their numbers come from a weighted mix of the hero's stats,
    always leaning toward the class's main attribute (STR warrior, AGI archer, INT mage). */
 function statMix(h,base){const w={...base},p=C_(h).primary;w[p]=(w[p]||0)+.5;let t=0,v=0;for(const k in w){t+=w[k];v+=w[k]*stat(h,k)}return v/t}
@@ -2867,7 +2874,7 @@ function hitEnemy(h,e,o){
   if(el!=='physical')d*=1+aff(h,'dmg_'+el)/100;
   if(!o.pierce)d*=100/(100+e.armor);
   const crit=(tr(h,'openCrit')&&!b.opened.includes(h.id))||chance(critFor(h,o)/100);
-  if(crit)d*=(critDmg(h)+(o.cdmg||0))/100;
+  if(crit)d*=(critDmg(h)+(o.cdmg||0)+(h.cls==='archer'?cbStacks(h)*4:0))/100;
   {const vp=vanityPen(h);if(vp){d*=1-vp/100;darkHit('vanity')}}
   d=Math.max(1,Math.round(d));
   e.hp=Math.max(0,e.hp-d);
@@ -2891,7 +2898,7 @@ function hitEnemy(h,e,o){
   return d;
 }
 // Crits grant a class buff that stacks up to 5 times for the rest of the battle.
-const CRIT_BUFF={warrior:{n:'Fury',d:'+4% damage per stack, and each crit heals 4% of max health'},archer:{n:'Focus',d:'+3% crit chance per stack, and each crit brings the next turn 20% sooner'},mage:{n:'Arcana',d:'+4% elemental damage per stack, and each crit restores 6% of max mana'}};
+const CRIT_BUFF={warrior:{n:'Fury',d:'+4% damage per stack, and each crit heals 4% of max health'},archer:{n:'Focus',d:'+4% crit damage per stack, and each crit brings the next turn 20% sooner'},mage:{n:'Arcana',d:'+4% elemental damage per stack, and each crit restores 6% of max mana'}};
 const cbStacks=h=>{const b=state.run&&state.run.battle;return (b&&b.cb&&b.cb[h.id])||0};
 function critBuff(h){
   const b=state.run.battle;b.cb=b.cb||{};const n=Math.min(5,(b.cb[h.id]||0)+1);b.cb[h.id]=n;let extra='';
@@ -3435,7 +3442,7 @@ function constructionView(k){
   return `<div class="construct"><div class="cscene">${sprite('worker','#c98b5c',6)}<i class="hammer big"></i><i class="dust big"></i>${sprite('worker','#6a8ab8',6)}</div>
     <h2>${n} · under construction</h2><p class="muted">${BLD_BLURB[k]||''}</p>
     <p>The builders need <b class="gold">${need} scrap</b> to finish it. You have <b class="${ok?'gold':'warn'}">${have.toFixed(1)}</b>.</p>
-    <div class="matbar" style="justify-content:center">${SCRAPS.map(m=>`<span class="matchip" data-tip="${MATS[m].n} (from ${MATS[m].from} enemies)">${matIco(m,3)}${(state.mats[m]||0).toFixed(1)}</span>`).join('')}</div>
+    <div class="matbar" style="justify-content:center">${SCRAPS_SEEN().map(m=>`<span class="matchip" data-tip="${MATS[m].n} (from ${MATS[m].from} enemies)">${matIco(m,3)}${(state.mats[m]||0).toFixed(1)}</span>`).join('')}</div>
     ${ok?`<button class="btn gold big" data-a="construct" data-x="${k}">Finish the ${n} · ${need} scrap</button>`:`<p class="muted" style="font-size:18px">Every enemy you defeat drops a little scrap. Bring it home by returning from an adventure: finish it, read a Return Scroll, or run home from a Short adventure. If the whole party falls, the scrap is lost with them.</p><button class="btn gold" data-a="tab" data-x="adventure">Go to the Gate</button>`}</div>`;
 }
 /* ---------- the Governor: intro, personality test, character creation ----------
@@ -4142,6 +4149,10 @@ const MATS={
   stone:{n:'Stone',ico:['rock','#8a8a92'],from:'physical'}};
 const EL_MAT=Object.fromEntries(Object.entries(MATS).map(([k,m])=>[m.from,k]));
 const SCRAPS=Object.keys(MATS);
+// No spoilers: Void Shards (dropped only on the Dark Side) stay unnamed and off the scrap bars until the Dark Side opens.
+const voidKnown=()=>{try{return !!state&&(descentUnlocked()||(state.mats&&state.mats.void>0))}catch(e){return false}};
+{const V=MATS.void,real={n:V.n,ico:V.ico,from:V.from};for(const k of ['n','ico','from'])Object.defineProperty(V,k,{get(){return voidKnown()?real[k]:({n:'???',ico:['gem','#3a3245'],from:'unknown'})[k]},enumerable:true})}
+const SCRAPS_SEEN=()=>SCRAPS.filter(k=>k!=='void'||voidKnown());
 // Old saves: the previous materials fold into the new scrap.
 const OLD_MAT={ember:'carbon',frost:'crystal',glass:'crystal',feather:'metal',seeds:'wood',leaf:'wood',bone:'hide',soil:'stone'};
 // A chest or cache mostly holds the land's own scrap, plus some stone and wood.
@@ -4184,7 +4195,7 @@ const needChips=(need,items)=>Object.entries(need||{}).map(([k,v])=>{const have=
   +Object.entries(items||{}).map(([k,v])=>{const have=state.items[k]||0;return `<span class="matchip ${have>=v?'ok':'no'}" data-tip="${CONSUMABLES[k].n}: you have ${have}">${consIco(k,2)}${have}/${v}</span>`}).join('');
 function craftView(){
   let s=`<div class="matbar"><span class="muted">Materials</span>${Object.keys(MATS).map(k=>`<span class="matchip" data-tip="${MATS[k].n}">${matIco(k,3)}${(state.mats[k]||0).toFixed(1)}</span>`).join('')}</div>
-  <p class="muted">Materials drop in fights and chests. Every enemy drops scrap of its own type. ${help('Carbon: fire enemies (Ember Isles). Wood: grass enemies (Rotwood). Ice Crystal: ice enemies (Frozen Tundra). Scrap Metal: thunder enemies (Storm Spires). Hide: fighting enemies (Bone Badlands). Void Shard: dark enemies (the Abyss). Stone: armored foes, and a little everywhere. If everyone dies, half the carried scrap still makes it home.')}</p>
+  <p class="muted">Materials drop in fights and chests. Every enemy drops scrap of its own type. ${help('Carbon: fire enemies (Ember Isles). Wood: grass enemies (Rotwood). Ice Crystal: ice enemies (Frozen Tundra). Scrap Metal: thunder enemies (Storm Spires). Hide: fighting enemies (Bone Badlands).'+(voidKnown()?' Void Shard: dark enemies (the Abyss).':'')+' Stone: armored foes, and a little everywhere. If everyone dies, half the carried scrap still makes it home.')}</p>
   <div class="recipes">${RECIPES.map((rc,i)=>{const lock=rc.lvl&&state.b.alch<rc.lvl,ok=canMake(rc);
     return `<div class="recipe ${ok?'ready':''}">${outIco(rc.out)}<span class="hname">${outName(rc.out)}</span><span class="needs">${needChips(rc.need,rc.needItems)}</span>
       ${lock?`<span class="meta">Needs Cauldron level ${rc.lvl}</span>`:`<button class="btn small ${ok?'gold':''}" data-a="craft" data-x="${i}" ${ok?'':'disabled'}>Make</button>`}</div>`}).join('')}</div>`;
@@ -4229,7 +4240,7 @@ function stillView(){
     <h3>${L?`${cur.bld} · level ${L}/${STILL_MAX}`:'No still yet'}</h3>
     <span>${L?`Brews ${ci(cur.out,2)} <b>${cur.q} ${CONSUMABLES[cur.out].n}${cur.q>1?'s':''}</b> packed free on every adventure.`:'Build a still from scrap and Old Bram packs free healing potions for every adventure.'}</span>
     <span class="muted">Potions heal a percent of max health, so they keep up as heroes grow. The Witch’s Potency upgrade makes every healing potion stronger.</span></div></div>`;
-  s+=`<div class="matbar"><span class="muted">Scrap</span>${SCRAPS.map(k=>`<span class="matchip" data-tip="${MATS[k].n} (from ${MATS[k].from} enemies)">${matIco(k,3)}<small class="muted">${MATS[k].n}</small> ${(state.mats[k]||0).toFixed(1)}</span>`).join('')}</div>`;
+  s+=`<div class="matbar"><span class="muted">Scrap</span>${SCRAPS_SEEN().map(k=>`<span class="matchip" data-tip="${MATS[k].n} (from ${MATS[k].from} enemies)">${matIco(k,3)}<small class="muted">${MATS[k].n}</small> ${(state.mats[k]||0).toFixed(1)}</span>`).join('')}</div>`;
   if(nx){const ok=Object.entries(nx.need).every(([k,v])=>(state.mats[k]||0)+1e-9>=v)&&state.gold>=nx.gold;
     s+=`<div class="recipe wide ${ok?'ready':''}"><span class="stack" style="gap:2px"><span class="hname">${!L||nx.newBld?`Build the ${nx.bld.toLowerCase()}`:`Improve the ${nx.bld.toLowerCase()}`}</span><span class="muted">Then every adventure: ${ci(nx.out,2)} ${nx.q} ${CONSUMABLES[nx.out].n}</span></span>
       <span class="needs">${needChips(nx.need)}<span class="matchip ${state.gold>=nx.gold?'ok':'no'}">${sprite('coin',null,2,'ico')}${fmt(nx.gold)}</span></span>
@@ -4256,13 +4267,13 @@ function farmHead(){
 function farmFields(tabs){
   const L=state.farm.lvl,cur=farmStep(L),nx=farmStep(L+1);
   const foodChip=(st,sc=3)=>`${consIco(st.food,sc)} <b>${st.q} ${CONSUMABLES[st.food].n}</b>`;
-  let s=coachBox('farm')+bHead('farmer','#6f8f4a','The Farm',L?`Old Bram tends your ${cur.bld.toLowerCase()}.`:'Old Bram the farmer is looking for work.','Every enemy drops scrap of its own type: Carbon from fire, Wood from grass, Ice Crystal from ice, Scrap Metal from thunder, Hide from fighting, Void Shards from dark, Stone from armored foes. Or hand the farmer old gear to break down. Each level grows more food, and every fourth level he builds something new that grows better food. Food is free healing, packed for every adventure.',farmHead());
+  let s=coachBox('farm')+bHead('farmer','#6f8f4a','The Farm',L?`Old Bram tends your ${cur.bld.toLowerCase()}.`:'Old Bram the farmer is looking for work.','Every enemy drops scrap of its own type: Carbon from fire, Wood from grass, Ice Crystal from ice, Scrap Metal from thunder, Hide from fighting, '+(voidKnown()?'Void Shards from dark, ':'')+'Stone from armored foes. Or hand the farmer old gear to break down. Each level grows more food, and every fourth level he builds something new that grows better food. Food is free healing, packed for every adventure.',farmHead());
   s+=tabs;
   s+=`<div class="farmscene">${sprite('farmer','#6f8f4a',6)}<div class="stack" style="gap:4px">
     <p>“${L?(nx?`Keep the scrap coming and I’ll ${nx.newBld?`build you a ${nx.bld.toLowerCase()}`:'grow you more'}.`:'Finest farm this side of the moon. Nothing more I can build.'):'Bring me enough scrap – old blades, broken armor, lumber and good dirt – and I’ll start you a farm.'}”</p>
     ${L?`<span class="${coachMark('farm','pack')}">Level ${L}/${FARM_MAX} · packed free on every adventure: ${foodChip(cur)} <span class="muted">(each heals ${+(CONSUMABLES[cur.food].food*feedMult()*100).toFixed(1)}% of max health over 3 turns)</span></span>`:''}
     <span class="muted">Rations go straight into the party’s bag when they set out, without taking pack space. Whatever isn’t eaten spoils on the way home.</span></div></div>`;
-  s+=`<div class="matbar"><span class="muted">Scrap</span>${SCRAPS.map(k=>`<span class="matchip" data-tip="${MATS[k].n} (from ${MATS[k].from} enemies)">${matIco(k,3)}<small class="muted">${MATS[k].n}</small> ${(state.mats[k]||0).toFixed(1)}</span>`).join('')}</div>`;
+  s+=`<div class="matbar"><span class="muted">Scrap</span>${SCRAPS_SEEN().map(k=>`<span class="matchip" data-tip="${MATS[k].n} (from ${MATS[k].from} enemies)">${matIco(k,3)}<small class="muted">${MATS[k].n}</small> ${(state.mats[k]||0).toFixed(1)}</span>`).join('')}</div>`;
   // the whole road, so progress is visible
   s+=`<div class="farmroad ${coachMark('farm','road')}">${FOODS.map(([id,n],t)=>`<div class="fstep ${L>t*4?'on':''}" data-tip="${esc(FARM_BLD[t]+': grows '+n+', up to 4 a week. One '+n+' heals '+Math.round(FOOD_PCT[t]*100)+'% of max health.')}">${consIco(id,3)}<span>${n}</span><span class="fpips">${[1,2,3,4].map(q=>`<i class="${L>=t*4+q?'on':''}"></i>`).join('')}</span></div>`).join('')}</div>`;
   s+=upgradeBlock(['feed']);
@@ -4508,7 +4519,7 @@ function foeInfo(e){
 const KIND_TIP={elite:'Elite: a tougher, mutated version of a normal monster. More health and damage, better loot.',mimic:'Mimic: a treasure chest with teeth. Hits hard; kill it for the loot it was hiding.',boss:'Major boss: a champion of this land, far stronger than normal monsters. Guards the best loot. Beating one also helps darken the moon.',warden:'Warden: the final boss of this adventure. Beat it to finish the adventure and earn its badge. Stuns only last 1 turn on it, and Coup de Grâce can’t finish it.',king:'The Unlit King: the source of the smoke. The last fight of the game.'};
 const heroTip=h=>`${h.name} · Lv ${h.level} ${C_(h).name}. Armor ${armor(h)} · evasion ${Math.round(evasion(h))}% · speed ${Math.round(speed(h))} · crit ${Math.round(critChance(h))}%.`;
 const foeTip=e=>isScouted(e)?`${e.name} · ${TIER_N[e.tier]} · Lv ${Math.round(e.lvl)} ${cap(e.type)}. Speed ${Math.round(e.spd)}. Hits ${mixText(foeMix(e,'attack'))}; armor stops the physical part, resistance the rest. Every third attack is a crushing blow (1.6× damage, more physical).${e.skills.length?' Skills: '+e.skills.map(k=>FOE_SKILLS[k].n+' ('+FOE_SKILLS[k].d+')').join(' '):''}`:`${e.name} · ${TIER_N[e.tier]} · Lv ${Math.round(e.lvl)}. Not scouted yet: better Perception reads enemies and adds them to the Moon Ledger.`;
-const foeTargetAttrs=(e,i)=>e.hp<=0||state.run.battle.over?'':`data-a="target" data-x="${i}" role="button" tabindex="0"`;
+const foeTargetAttrs=(e,i)=>e.hp<=0||state.run.battle.over||(frontOnly()&&aliveFoes()[0]!==e)?'':`data-a="target" data-x="${i}" role="button" tabindex="0"`;
 const wuCls=id=>{const w=state.run.battle.windup;if(!w)return '';return w.u===id?(w.foe?'wind-l':'wind-r')+(w.heavy?' heavy':''):w.tg.includes(id)?'aimed':''};
 /* ---------- skill animations ----------
    Every skill belongs to an animation family. Similar skills share one (all heals and revives glow from the hands).
@@ -4619,7 +4630,7 @@ function actBar(){
   const effOf=el=>{const m=heroMatch(h,el,tgt.type),res=el==='physical'?0:tgt.res[el];return m*(1-res/100)*(el==='physical'?1:1+aff(h,'dmg_'+el)/100)};
   const known=isScouted(tgt);
   const odds=o=>{const el=atkEl(h,o.el),[lo,hi]=dmgRange(h,o,el);return `${el!=='physical'?elIco(el):''}<b>${lo}–${hi}</b>${o.hits>1?' ×'+o.hits:''} dmg · ${known||o.sure?Math.round(hitChance(h,tgt,o.acc,o.sure)):'?'}% hit · ${Math.round(critFor(h,o))}% crit`};
-  let s=`<div class="acthead"><b class="gold">${esc(h.name)}’s turn</b><button class="btn small ${b.auto?'on':''}" data-a="auto">Auto ${b.auto?'on':'off'}</button><span class="tinfo">Target <b>${esc(tgt.name)}</b>: ${foeBrief(tgt)}</span></div>`;
+  let s=`<div class="acthead"><b class="gold">${esc(h.name)}’s turn</b><button class="btn small ${b.auto?'on':''}" data-a="auto">Auto ${b.auto?'on':'off'}</button><span class="tinfo">Target <b>${esc(tgt.name)}</b>: ${foeBrief(tgt)}${h.cls==='warrior'&&aliveFoes().length>1?' <span class="muted">· Warriors can only reach the front line; skills that hit every enemy still reach them all.</span>':''}</span></div>`;
   if(b.pending){const nm=SKILLS[b.pending]?SKILLS[b.pending].n:CONSUMABLES[b.pending.slice(5)].n;
     return s+`<p class="gold">${nm}: choose a hero</p><div class="skgrid">${(SKILLS[b.pending]&&SKILLS[b.pending].tgt==='dead'?partyAll().filter(x=>x.hp<=0):living()).map(x=>`<button class="btn" data-a="allyCast" data-x="${x.id}"><span>${esc(x.name)}</span><span class="sub2">${x.hp}/${maxHp(x)} HP · ${x.mp}/${maxMp(x)} MP</span></button>`).join('')}<button class="btn" data-a="cancelCast">Cancel</button></div>`}
   const wico=ico(({warrior:'sword',archer:'bow',mage:'staff'})[h.cls],C_(h).tint,2);
@@ -4666,6 +4677,7 @@ function codex(){
 function ledgerSections(){
   const out=[];
   for(const [bk,B] of Object.entries(BIOMES)){
+    if(bk==='abyss'&&!descentUnlocked())continue; // no spoilers: the Abyss stays off the ledger until the Dark Side opens
     const rows=B.mons.map(([n,spr])=>({base:n,spr,type:B.el,kind:'normal'}));
     rows.push({base:B.boss,spr:'boss',type:B.el,kind:'boss'},{base:'Warden of '+B.name.replace(/^The /,''),spr:'boss',type:B.el,kind:'warden'});
     out.push({key:bk,name:B.name,el:B.el,rows});
@@ -4700,6 +4712,9 @@ function ledgerView(){
   s+=`<div class="subtabs">${secs.map(x=>`<button class="subtab ${x===S?'cur':''}" data-a="lbiome" data-x="${x.key}">${x.el?elIco(x.el):''}${x.name} <span class="muted">${count(x)}/${size(x)}</span></button>`).join('')}</div>`;
   const sel=state.sel.lent;if(sel&&L[sel])s+=ledgerDetail(sel);
   s+=`<div class="lgrid">${S.rows.map(r=>{const any=tiersOf(r).some(t=>L[r.base+'|'+t]);
+    // Nothing about a monster shows until at least one of its versions has been scouted: a mystery card instead.
+    if(!any)return `<div class="lcard mystery"><div class="lspr"><span class="qmark">?</span></div><span class="hname">???</span>${r.kind!=='normal'?`<span class="meta">${cap(r.kind)}</span>`:''}
+      <div class="tchips">${tiersOf(r).map(t=>`<span class="tchip" style="--c:${TIER_COL[t]}" aria-label="Unknown ${TIER_N[t]} monster, not scouted">${TIER_N[t]} ?</span>`).join('')}</div></div>`;
     return `<div class="lcard ${r.kind!=='normal'?'major':''}"><div class="lspr">${sprite(r.spr,any?EL_COL[r.type]:'#2a2233',4)}</div><span class="hname">${esc(r.base)}</span>${r.kind!=='normal'?`<span class="meta">${cap(r.kind)}</span>`:''}
       <div class="tchips">${tiersOf(r).map(t=>{const k=r.base+'|'+t,ok=!!L[k];return `<button class="tchip ${ok?'ok':''} ${sel===k?'cur':''}" style="--c:${TIER_COL[t]}" data-a="lent" data-x="${k}" ${ok?'':'disabled'} aria-label="${esc(r.base+' '+TIER_N[t]+(ok?'':' (not scouted)'))}">${TIER_N[t]}${ok?'':' ?'}</button>`}).join('')}</div></div>`}).join('')}</div>`;
   return s;
@@ -5384,6 +5399,7 @@ function start(d){
   // With no save yet, nothing is written until the player starts a new town.
   if(!booted){booted=true;if(!hot){ui.menu=true;if(!had)ui.erased=ui.slot||1}}
   for(const h of [...state.heroes,...state.candidates]){h.traits=h.traits||[];while(h.traits.length<traitSlots(h.level||1))h.traits.push(rollTrait(h.traits))}
+  for(const h of state.heroes)if(h.hp>maxHp(h))h.hp=maxHp(h);
   for(const c of state.candidates){const mx=10+(state.b.academy-1);if(c.pool>mx){c.pool=c.points=ri(7,10)+(state.b.academy-1)}}
   if(state.b.war==null)state.b.war=0;
   if(state.b.barracks==null)state.b.barracks=1;
