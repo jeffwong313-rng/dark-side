@@ -364,6 +364,35 @@ button[data-tip]{cursor:pointer}
 .tag{font-size:18px;padding:0 6px;box-shadow:inset 0 0 0 2px currentColor;text-transform:uppercase;letter-spacing:.06em}
 .summary{box-shadow:0 0 0 2px #060509,inset 0 0 0 2px var(--gold)}
 .summary.dead{box-shadow:0 0 0 2px #060509,inset 0 0 0 2px var(--blood)}
+.cmp{display:flex;flex-wrap:wrap;gap:3px 8px;margin-top:6px;padding-top:6px;border-top:1px dashed var(--edge);font-size:16px}
+.cmphead{width:100%;color:var(--ash);font-size:15px}
+.cmpup{color:#8fe08a}.cmpdn{color:#ff7a70}.cmpel{color:var(--gold)}.cmpsame{color:var(--dim)}
+.ltile{position:relative}.ltile .upg{position:absolute;top:-4px;right:-2px;color:#8fe08a;font-size:15px;text-shadow:0 0 3px #000}
+.rbadges{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.rb{font-size:13px;padding:1px 5px;border:1px solid;line-height:1.3}
+.rb.pts{color:var(--gold);border-color:#e3b34188;background:#e3b3411a}
+.rb.skill{color:#8fd3ff;border-color:#8fd3ff88;background:#8fd3ff1a}
+.rb.inj{color:#ff7a70;border-color:#ff7a7088;background:#ff7a701a}
+.rbm.skill{color:#8fd3ff}.rbm.inj{color:#ff7a70}
+.lg{border-left:3px solid transparent;padding-left:6px}
+.lg-crit{border-color:#ff8a5c;background:#ff8a5c14}
+.lg-kill{border-color:var(--bone);color:var(--bone)}
+.lg-stun{border-color:#8fd3ff;background:#8fd3ff12}
+.lg-dark{border-color:var(--dark);background:#9b70dc1c}
+.lg-down{border-color:var(--blood);background:#c4463f26;font-weight:bold}
+.lg-level{border-color:var(--gold);background:#e3b3411c}
+.lg-save{border-color:var(--moss);background:#78ab601c}
+.lmod{display:inline-block;font-size:14px;padding:0 5px;margin:2px 4px 0 0;border:1px solid;line-height:1.35}
+.lmod.bad{color:#ff8a7a;border-color:#ff8a7a77;background:#c4463f1f}
+.lmod.good{color:#9fe08a;border-color:#9fe08a77;background:#78ab601f}
+.lmod.pact{color:#c9a8ff;border-color:#9b70dc88;background:#9b70dc1f}
+.lmodrow{display:flex;flex-wrap:wrap}
+.lmodnote{font-size:18px;padding:4px 8px;border-left:3px solid;margin:4px 0}
+.lmodnote.bad{border-color:var(--blood);background:#c4463f18}.lmodnote.good{border-color:var(--moss);background:#78ab6018}
+.recap{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:6px 0}
+.rtile{display:flex;flex-direction:column;align-items:center;padding:6px 2px;background:var(--panel2);box-shadow:inset 0 0 0 1px var(--edge)}
+.rtile b{font-size:22px}.rtile small{font-size:13px;color:var(--ash);text-align:center}
+.recapln{font-size:17px;margin:2px 0}
 .grave{display:flex;flex-direction:column;gap:4px;font-size:20px;color:var(--ash)}
 .bossmark{color:#e0736c}
 @media (prefers-reduced-motion:reduce){.wind-r .fo,.wind-l .fo,.aimed .fo::after,.bob,.hit,.pop,.lunge-r,.lunge-l,.fo.dying,.burst,.scene.shake,.scene::before,.enemyturn,.tb.now,.r-godlike,.r-perfect{animation:none}.pop{opacity:1}.burst{display:none}.fo.dying{opacity:.18}}
@@ -1231,6 +1260,44 @@ body.dev-phone .runhdr{padding:4px 8px}body.dev-phone .runhdr h2{font-size:18px}
 body.dev-phone footer{display:none!important}
 /* ---------- skill animations (see SK_FX) ---------- */
 .skfx{position:absolute;inset:0;pointer-events:none;z-index:2;line-height:0}
+/* weapon moves */
+.wfx{position:absolute;inset:0;pointer-events:none;z-index:3;line-height:0}
+.wfx i{position:absolute;display:block;opacity:0}
+.fo.pose-slash{animation:poseSlash .5s cubic-bezier(.3,1.3,.5,1);transform-origin:50% 95%}
+.fo.pose-slash.big{animation-duration:.6s}
+@keyframes poseSlash{0%{transform:none}22%{transform:translateX(-8px) rotate(-7deg)}52%{transform:translateX(34px) rotate(7deg)}100%{transform:none}}
+.c-warrior i:nth-child(1){right:-46%;top:-6%;width:80%;height:112%;border-radius:50%;border-right:10px solid var(--c);filter:drop-shadow(0 0 8px var(--c)) drop-shadow(0 0 3px #fff);animation:wSweep .4s .12s ease-out forwards}
+.c-warrior i:nth-child(2){right:-38%;top:-4%;width:68%;height:108%;border-radius:50%;border-right:4px solid #ffffffcc;animation:wSweep .4s .18s ease-out forwards}
+@keyframes wSweep{0%{opacity:0;transform:translateX(-10px) rotate(-75deg)}25%{opacity:1}100%{opacity:0;transform:translateX(22px) rotate(55deg)}}
+.t-warrior i:nth-child(1){left:6%;top:48%;width:88%;height:6px;background:linear-gradient(90deg,transparent,#fff 45%,#fff 55%,transparent);box-shadow:0 0 8px #fff;transform:rotate(-38deg) scaleX(0);animation:wCut .38s .22s ease-out forwards}
+.t-warrior i:nth-child(2){left:6%;top:48%;width:88%;height:2px;background:#fff;transform:rotate(-38deg) scaleX(0);animation:wCut .3s .3s ease-out forwards}
+@keyframes wCut{0%{opacity:1;transform:rotate(-38deg) scaleX(0)}45%{opacity:1;transform:rotate(-38deg) scaleX(1)}100%{opacity:0;transform:rotate(-38deg) scaleX(1.1)}}
+.fo.pose-bow{animation:poseBow .6s ease-out}
+@keyframes poseBow{0%{transform:none}40%,56%{transform:translateX(-12px) rotate(-4deg)}64%{transform:translateX(5px) rotate(1deg)}100%{transform:none}}
+.c-archer i:nth-child(1),.c-archer i:nth-child(2){right:17%;width:4px;height:31%;background:#fff;box-shadow:0 0 6px #fff,0 0 2px #000}
+.c-archer i:nth-child(1){top:18%;transform-origin:50% 0;animation:bowTop .6s ease-out forwards}
+.c-archer i:nth-child(2){top:49%;transform-origin:50% 100%;animation:bowBot .6s ease-out forwards}
+@keyframes bowTop{0%{opacity:1;transform:none}48%{opacity:1;transform:rotate(38deg)}58%{opacity:1;transform:none}100%{opacity:0}}
+@keyframes bowBot{0%{opacity:1;transform:none}48%{opacity:1;transform:rotate(-38deg)}58%{opacity:1;transform:none}100%{opacity:0}}
+.c-archer i:nth-child(3){right:-4%;top:47%;width:34%;height:4px;box-shadow:0 0 5px #fff;background:linear-gradient(90deg,transparent,var(--c) 40%,#fff);animation:bowArrow .6s ease-in forwards}
+@keyframes bowArrow{0%,55%{opacity:0;transform:none}60%{opacity:1}100%{opacity:0;transform:translateX(70px)}}
+.t-archer i:nth-child(1){left:-30%;top:46%;width:80%;height:3px;background:linear-gradient(90deg,transparent,#fff3dc 60%,#fff);box-shadow:0 0 6px #fff3dc;animation:skStreak .3s .32s ease-in forwards}
+.t-archer i:nth-child(2){left:40%;top:40%;width:26%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#fff 0 20%,#fff3dc 45%,transparent 72%);animation:skBurst .35s .55s ease-out forwards}
+.fo.pose-staff{animation:poseStaff .55s ease-out;transform-origin:50% 92%}
+@keyframes poseStaff{0%{transform:none}30%{transform:translateX(-5px) rotate(-9deg)}62%{transform:translateX(10px) rotate(8deg)}100%{transform:none}}
+.c-mage i:nth-child(1){right:-30%;top:-4%;width:56%;height:70%;border-radius:50%;border-top:4px solid var(--c);border-right:4px solid transparent;filter:drop-shadow(0 0 5px var(--c));animation:wSweep .32s .1s ease-out forwards}
+.c-mage i:nth-child(2){right:-8%;top:6%;width:22%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#fff 0 38%,#ffffffaa 55%,transparent 74%);box-shadow:0 0 14px #fff,0 0 22px var(--c);animation:orbShort .62s .2s ease-out forwards}
+@keyframes orbShort{0%{opacity:0;transform:scale(.3)}20%{opacity:1;transform:scale(1.1)}70%{opacity:1;transform:translateX(64px) scale(.85)}100%{opacity:0;transform:translateX(84px) scale(.4)}}
+.c-mage i:nth-child(3){right:4%;top:2%;width:14%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#fff 0 30%,var(--c) 55%,transparent 72%);animation:skBurst .35s ease-out forwards}
+.t-mage i:nth-child(1){left:30%;top:34%;width:40%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#fff 0 22%,#ffffffaa 42%,transparent 70%);animation:skBurst .4s .5s ease-out forwards;mix-blend-mode:screen}
+.mark.skname{color:#fff;background:#2e2440e6;box-shadow:0 0 0 1px #9b70dc;font-size:16px}
+body.nomotion .wfx{display:none}
+@media (prefers-reduced-motion:reduce){.wfx{display:none}.fo.pose-slash,.fo.pose-bow,.fo.pose-staff{animation:none}}
+/* targeting */
+@keyframes tgtPulse{50%{opacity:.55}}
+.unit.foe[data-a="target"]{cursor:pointer}
+.unit.foe[data-a="target"]:not(.tgt):hover .fo::after{content:"";position:absolute;left:10%;right:10%;bottom:3px;height:4px;background:#ffd84a88;border-radius:2px}
+.unit.foe.noreach .fo{filter:grayscale(.6) brightness(.65)}
 .skfx i{position:absolute;display:block;opacity:0}
 .skfx::before,.skfx::after{content:"";position:absolute;opacity:0}
 .lunge-big{animation:lungeBig .5s cubic-bezier(.3,1.4,.5,1)}
@@ -1328,9 +1395,9 @@ body.nomotion .skfx{display:none}
 
 /* combat: target bar, intent arrows, stances, five-line info frames */
 .unit.tgt .fo::before,.fo.tgt::before{display:none!important}
-.unit.tgt .uinfo{box-shadow:0 0 0 2px #000!important}
-.unit.foe.tgt .fo::after{content:"";position:absolute;left:12%;right:12%;bottom:-7px;height:4px;background:#fff;box-shadow:0 0 6px #fff9;border-radius:2px}
-.rframe.tgt{box-shadow:0 0 0 2px #000,inset 0 -3px 0 #fff!important}
+.unit.tgt .uinfo{box-shadow:0 0 0 2px #000,inset 0 0 0 2px #ffd84a!important}
+.unit.foe.tgt .fo::after{content:"";position:absolute;left:4%;right:4%;bottom:2px;height:7px;background:#ffd84a;border-radius:3px;box-shadow:0 0 0 2px #000,0 0 12px #ffd84acc;animation:tgtPulse 1.1s ease-in-out infinite;z-index:1}
+.rframe.tgt{box-shadow:0 0 0 2px #000,inset 0 0 0 2px #ffd84a!important}
 .intentarrows{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4;overflow:visible}
 .intentarrows .iadmg{font:bold 15px 'DsHead',monospace;fill:#fff;paint-order:stroke;stroke:#000;stroke-width:3px}
 body .bscreen .skgrid.atk4{grid-template-columns:repeat(4,minmax(0,1fr))!important}
@@ -1339,8 +1406,8 @@ body .bscreen .skgrid.atk4{grid-template-columns:repeat(4,minmax(0,1fr))!importa
 .uintentrow{min-height:1.1em;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:16px}
 .uinfo .utags{min-height:1.1em}
 body.lay-side .bscreen .skgrid.atk4{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-body.lay-side .unit.foe.tgt .fo::after{bottom:auto;top:-6px}
-body.lay-side .rframe.foe.tgt{box-shadow:0 0 0 2px #000,inset 0 -3px 0 #fff!important}
+body.lay-side .unit.foe.tgt .fo::after{bottom:1px;height:4px}
+body.lay-side .rframe.foe.tgt{box-shadow:0 0 0 2px #000,inset 0 0 0 2px #ffd84a!important}
 </style>
 
 </head>
@@ -1911,7 +1978,7 @@ function rollTrait(except,force){
   return pick(pool).id;
 }
 function tr(h,k){let s=0;for(const id of h.traits||[]){const t=TRAITS[id];if(t&&t.m[k])s+=t.m[k]}if(typeof GOV_QUAL!=='undefined'&&state&&state.gov)s+=govMod(k);return s}
-const healMult=h=>Math.max(0,1+tr(h,'heal')/100);
+const healMult=h=>Math.max(0,1+tr(h,'heal')/100)*runMod('heal');
 
 /* items */
 const RAR={common:{i:0,n:1,m:1,l:'Common'},rare:{i:1,n:2,m:1.4,l:'Rare'},epic:{i:2,n:3,m:1.9,l:'Epic'},godlike:{i:3,n:4,m:2.6,l:'Godlike'},perfect:{i:4,n:5,m:3,l:'Perfect'}};
@@ -2243,7 +2310,8 @@ function gainXp(h,x,lines){
   h.xp+=x;let ups=0;
   let gained=0;while(h.xp>=xpNeed(h.level)){h.xp-=xpNeed(h.level);h.level++;const pp=pointsFor(h.level);h.points+=pp;gained+=pp;ups++}
   if(ups){lines.push(`<b class="gold">${esc(h.name)} reached level ${h.level}!</b> +${gained} attribute points, fully restored`);
-    for(const id of autoLearn(h)){const k=SKILLS[id];lines.push(`<b class="gold">${esc(h.name)} learned a new skill: ${k.n}!</b> <span class="muted">${k.d}</span>`)}
+    const learned=autoLearn(h);if(learned.length)h.newSkill=[...(h.newSkill||[]),...learned];
+    for(const id of learned){const k=SKILLS[id];lines.push(`<b class="gold">${esc(h.name)} learned a new skill: ${k.n}!</b> <span class="muted">${k.d}</span>`)}
     while((h.traits||[]).length<traitSlots(h.level)){const id=rollTrait(h.traits);h.traits.push(id);const t=TRAITS[id];
       lines.push(`<b class="gold">${esc(h.name)} developed a new trait (${h.traits.length} total):</b> <span class="tk-${t.kind}">${t.n}</span>. ${traitDesc(t)}`)}
     if(state.run&&state.run.battle)state.run.battle.pops.push({s:'h',hid:h.id,t:'LEVEL UP'});
@@ -2255,6 +2323,34 @@ const partySize=()=>1+(state.b.war||0);
 const DESCENT_ORDER=['tundra','island','sky','forest','badlands'];
 // Lands the party can choose at the Gate. The Abyss only lies on the Dark Side.
 const LAND_PICK=['tundra','island','sky','forest','badlands'];
+/* This week's conditions: each week 3 of the 5 lands carry a twist, 80% of the time a bad one.
+   foeAtk/foeHp/foeSpd/gold/xp/heal/per multiply; foeRes adds to every enemy resistance. */
+const LAND_MOD={
+  fog:{n:'Thick Fog',bad:1,d:'The party’s Perception counts for half, so Perception matters double: the map ahead and the enemies are harder to read.',per:.5},
+  bloodmoon:{n:'Blood Moon',bad:1,d:'Enemies deal 20% more damage.',foeAtk:1.2},
+  hardened:{n:'Hardened Beasts',bad:1,d:'Enemies have 20% more health.',foeHp:1.2},
+  restless:{n:'Restless Wilds',bad:1,d:'Enemies are 15% faster.',foeSpd:1.15},
+  warded:{n:'Warding Winds',bad:1,d:'Enemies resist every element 15% more.',foeRes:15},
+  lean:{n:'Lean Pickings',bad:1,d:'25% less gold from fights, caches and events.',gold:.75},
+  miasma:{n:'Miasma',bad:1,d:'All healing is 25% weaker.',heal:.75},
+  bounty:{n:'Bountiful Season',d:'25% more gold from fights, caches and events.',gold:1.25},
+  clear:{n:'Clear Skies',d:'The party’s Perception counts 50% more: the map and the enemies are easier to read.',per:1.5},
+  wisdom:{n:'Wise Winds',d:'20% more XP from fights.',xp:1.2},
+};
+// Deals struck at the Shrine of Bargains last for the rest of the trip.
+const PACTS={
+  greed:{n:'Pact of Greed',d:'30% more gold, but enemies deal 15% more damage (this trip).',gold:1.3,foeAtk:1.15},
+  wisdom:{n:'Pact of Wisdom',d:'25% more XP from fights, but enemies have 15% more health (this trip).',xp:1.25,foeHp:1.15},
+};
+function landMods(){if(!state)return {};const W=state.landMods;if(W&&W.week===state.week)return W.m;
+  const bad=Object.keys(LAND_MOD).filter(k=>LAND_MOD[k].bad),good=Object.keys(LAND_MOD).filter(k=>!LAND_MOD[k].bad),m={},used=[];
+  for(const l of [...LAND_PICK].sort(()=>Math.random()-.5).slice(0,3)){const k=pick((chance(.8)?bad:good).filter(x=>!used.includes(x)));used.push(k);m[l]=k}
+  state.landMods={week:state.week,m};return m}
+const modsOf=r=>r?[r.mod&&LAND_MOD[r.mod],...(r.pacts||[]).map(p=>PACTS[p])].filter(Boolean):[];
+function runMod(k){const r=state&&state.run;let v=k==='foeRes'?0:1;for(const M of modsOf(r))if(M[k]!=null)v=k==='foeRes'?v+M[k]:v*M[k];return v}
+const modTag=(M,pact)=>`<span class="lmod ${pact?'pact':M.bad?'bad':'good'}" data-tip="${esc(M.n+': '+M.d)}" tabindex="0">${M.n}</span>`;
+const runModTags=r=>r?[r.mod&&modTag(LAND_MOD[r.mod]),...(r.pacts||[]).map(p=>modTag(PACTS[p],1))].filter(Boolean).join(''):'';
+const landModNote=k=>{const M=k&&LAND_MOD[k];return M?`<p class="lmodnote ${M.bad?'bad':'good'}"><b>This week: ${M.n}.</b> ${M.d}</p>`:''};
 // Badges: beat a length's final boss and come home alive to earn its badge. Each badge opens the next length
 // for any party that includes the badge holder.
 const BADGE_RANK={short:1,medium:2,long:3,expedition:4},BADGE_N=['','Short','Medium','Long','Expedition'],BADGE_COL=['','#b08a5a','#c8c8d0','#e3b341','#b56fe3'];
@@ -2316,7 +2412,7 @@ const greenFor=(len,ids)=>{const L=LENGTHS[len];return L&&L.rec?ids.map(heroById
 const ilvl=()=>Math.max(1,Math.round(enemyLevel()));
 function goldAmt(base){
   const r=state.run,L=living(),n=L.length||1;
-  return Math.round(base*LENGTHS[r.length].mult*(1+.25*(n-1))*rand(.8,1.2)*(1+L.reduce((s,h)=>s+aff(h,'goldfind')+luckRate(h,'gold'),0)/100));
+  return Math.round(base*LENGTHS[r.length].mult*(1+.25*(n-1))*rand(.8,1.2)*(1+L.reduce((s,h)=>s+aff(h,'goldfind')+luckRate(h,'gold'),0)/100)*runMod('gold'));
 }
 // Just before the final boss: the party sees it coming and makes camp. Same as a campsite, no stop on the map.
 function finalApproach(){
@@ -2327,7 +2423,7 @@ function finalApproach(){
 }
 function biomeIntro(){
   const B=BIOMES[state.run.biome];
-  return {intro:true,title:B.name,text:`${B.flavor}<br><br>Most creatures here are ${elTag(B.el)} type and resist it heavily. ${B.el==='dark'?'Abyssal foes also ignore a quarter of your resistances.':`They are weak to ${elTag(Object.keys(BEATS).find(k=>BEATS[k]===B.el))}.`}`};
+  return {intro:true,title:B.name,text:`${landModNote(state.run.mod)}${B.flavor}<br><br>Most creatures here are ${elTag(B.el)} type and resist it heavily. ${B.el==='dark'?'Abyssal foes also ignore a quarter of your resistances.':`They are weak to ${elTag(Object.keys(BEATS).find(k=>BEATS[k]===B.el))}.`}`};
 }
 /* ---------- the run map ----------
    Each stage is a row of 1-4 nodes on a 7-column grid. Paths connect each node to 1-2 nearby nodes in the next row.
@@ -2347,7 +2443,7 @@ const partyMembers=()=>state.run?living():(state.sel.party||[]).map(heroById).fi
 const partyCha=()=>Math.round(partyMembers().reduce((a,h)=>a+stat(h,'cha'),0));
 // Events get 3% better per point of combined Charisma above this land's baseline (3% worse per point below), from -30% to +50%.
 const partyChaEvent=()=>partyMembers().length?clamp(Math.round((partyCha()-lenBase().cha)*3),-30,50):0;
-const effPer=()=>partyPer()-lenBase().per*(1-govMod('perThr')/100);
+const effPer=()=>partyPer()*runMod('per')-lenBase().per*(1-govMod('perThr')/100);
 // Luck adds up too: every point above the land's baseline makes chance-based events 2% kinder (2% crueler below), from -20% to +30%.
 const partyLck=()=>Math.round(partyMembers().reduce((a,h)=>a+stat(h,'lck'),0));
 const partyLckEvent=()=>partyMembers().length?clamp(Math.round((partyLck()-lenBase().lck)*2),-20,30):0;
@@ -2394,6 +2490,7 @@ function genNodes(k){
     if(out.length<4)out.splice(ri(0,out.length),0,'heal');else if(o.length)out[pick(o)]='heal';else if(b.length>1)out[pick(b)]='heal';
     r.campPity=0;
   }else r.campPity=(r.campPity||0)+1;
+  if(k===1)return out.map(t=>t==='battle'||t==='mystery'?t:t==='gold'&&chance(.5)?'gold':chance(.5)?'mystery':'battle');
   return out;
 }
 function planStage(k){
@@ -2494,7 +2591,7 @@ function startRun(){
   if(!final)biome=LAND_PICK.includes(state.sel.biome)?state.sel.biome:pick(LAND_PICK);
   const total=final?null:ri(L.min,L.max),bossAt=[];
   if(!final){let k=ri(12,17);while(k<total-2){bossAt.push(k);k+=ri(12,18)}}
-  state.run={id:uid(),chestAt:[],party:ids,length:len,final,total,bossAt,stage:1,biome,gold:0,loot:[],scrolls,battle:null,nodes:[],event:null,
+  state.run={id:uid(),mod:final?null:(landMods()[biome]||null),pacts:[],startLv:Object.fromEntries(ids.map(id=>[id,heroById(id).level])),chestAt:[],party:ids,length:len,final,total,bossAt,stage:1,biome,gold:0,loot:[],scrolls,battle:null,nodes:[],event:null,
     lastStand:{},fallen:[],autoPref:false,kingChance:0,bag:{},mats:{}};
   // The Supply Pack limits how many consumables go along. The rest stay in town.
   // The player picks how many of each supply to bring on the prepare screen (a mix by default).
@@ -2603,7 +2700,11 @@ function scoutRolls(when){
   for(const e of b.enemies){const k=ledgerKey(e);if(done[k]||isScouted(e))continue;done[k]=1;
     if(chance(fullScoutChance(per)/100*(when==='kill'?.5:1)))scoutFoe(e,spotter,when==='kill'?'studies the remains':'reads the enemy');}
 }
-function makeEnemy(kind,add,forceSpr){
+function makeEnemy(kind,add,forceSpr){return modFoe(makeEnemy0(kind,add,forceSpr))}
+// Land conditions and pacts reshape every monster that appears.
+function modFoe(e){const hp=runMod('foeHp'),at=runMod('foeAtk'),sp=runMod('foeSpd'),rs=runMod('foeRes');
+  if(hp!==1){e.hp=e.maxHp=Math.max(1,Math.round(e.hp*hp))}e.atk*=at;e.spd*=sp;if(rs)for(const k in e.res)e.res[k]=Math.min(80,e.res[k]+rs);return e}
+function makeEnemy0(kind,add,forceSpr){
   const r=state.run,B=BIOMES[r.biome];
   let lvl=enemyLevel(),name,spr,type=r.final?'dark':B.el;
   if(kind==='king'){name='The Unlit King';spr='boss';type='dark';lvl+=5}
@@ -2700,6 +2801,16 @@ const frontOnly=()=>{const b=state.run&&state.run.battle,h=b&&b.cur&&heroById(b.
 // The battle backdrop is redrawn on every move; a negative delay picks the drift up where the clock says it is, so it never jumps back.
 const panDelay=T=>`-${((performance.now()/1000)%T).toFixed(2)}s`;
 function fixTarget(){const b=state.run.battle;if(frontOnly()){const a=aliveFoes()[0];if(a)b.target=b.enemies.indexOf(a)}const t=b.enemies[b.target];if(!t||t.hp<=0){const a=aliveFoes()[0];b.target=a?b.enemies.indexOf(a):0}return b.enemies[b.target]}
+// Battle log highlights: the big moments get a colored edge so a long fight is easy to scan.
+function logCls(l){const t=String(l).replace(/<[^>]+>/g,'');
+  if(/has fallen|whole party has fallen|No one is left standing/.test(t))return 'lg lg-down';
+  if(/reached level|learned a new skill|LEVEL UP/.test(t))return 'lg lg-level';
+  if(/refuses to fall|will not fall|revives|rise with/.test(t))return 'lg lg-save';
+  if(/fury costs|Mercenary Greed|Selfish Triage|Seduction of the Depths/.test(t))return 'lg lg-dark';
+  if(/Coup de Grâce|\bCRIT\b|JACKPOT|Lucky surge/.test(t))return 'lg lg-crit';
+  if(/stunned/.test(t))return 'lg lg-stun';
+  if(/ falls\.| falls in one blow|reaps /.test(t))return 'lg lg-kill';
+  return ''}
 function blog(t){if(window.__full)(state.run.battle.fullLog=state.run.battle.fullLog||[]).push(t);state.run.battle.log.unshift(t);state.run.battle.log.length=Math.min(state.run.battle.log.length,50)}
 /* Timeline combat: every hero and enemy has a clock. The lowest clock acts next, then waits 1000/speed.
    A unit twice as fast as another gets two turns for each of theirs. */
@@ -2718,9 +2829,12 @@ function initTimeline(){
 function nextUnit(ct){let best=null,bv=Infinity;for(const k in ct){if(!unitAlive(k))continue;if(ct[k]<bv){bv=ct[k];best=k}}return best}
 function turnOrder(n){const b=state.run.battle,ct={...b.ct},out=[];for(let i=0;i<n;i++){const k=nextUnit(ct);if(!k)break;out.push(k);ct[k]+=delayOf(k)}return out}
 // Runs enemy turns until it is a hero's turn or the battle ends.
+// The trip's closest call: the lowest a living hero's health has dropped.
+function noteLow(){const r=state.run;if(!r||!r.battle)return;for(const h of living()){const p=h.hp/maxHp(h);if(p>0&&p<1&&(!r.low||p<r.low.p))r.low={p,n:h.name,stage:r.stage,foe:(aliveFoes()[0]||{}).name||''}}}
 function advance(){
   const b=state.run.battle;let guard=0;
   while(!b.over&&guard++<300){
+    noteLow();
     if(!living().length){lose();return}
     if(!aliveFoes().length){win();return}
     const k=nextUnit(b.ct);if(!k)return;
@@ -2882,6 +2996,7 @@ function heroAction(act,allyId){
   if(window.__stats){const k=h.cls+(SKILLS[act]?':skill':':basic');window.__stats[k]=(window.__stats[k]||0)+1}
   if(act==='stance'||act.startsWith('move:')){}
   else if(isAtk){
+    b.fx.atk={h:h.id,cls:h.cls,tg:tgt?[b.enemies.indexOf(tgt)]:[]};
     hitEnemy(h,tgt,atkOpts(h,act.split(':')[1]||'normal'));
   }else if(act.startsWith('item:')){
     const id=act.slice(5),ally=heroById(allyId)||h;
@@ -2893,7 +3008,7 @@ function heroAction(act,allyId){
     if(selfishBlock(act))return;
     if(sk.tgt==='ally'){ally=darkIs('selfish')?h:heroById(allyId)||h;if(ally.hp<=0)return}
     if(sk.tgt==='dead'){ally=heroById(allyId);if(!ally||ally.hp>0||!state.run.party.includes(ally.id))ally=partyAll().find(x=>x.hp<=0);if(!ally)return}
-    h.mp-=cost;
+    h.mp-=cost;b.pops.push({s:'h',hid:h.id,t:sk.n,sk:1});
     const o={...sk,mult:skillMult(h,sk),el:atkEl(h,sk.el),label:`${h.cls==='mage'?'casts':'uses'} ${sk.n} on`};
     // Remember what was cast and on whom, so the stage can play the skill's animation.
     const F=b.fx.sk={id:act,h:h.id,c:o.el&&o.el!=='physical'&&EL_COL[o.el]?EL_COL[o.el]:null,tg:[],al:ally?[ally.id]:sk.tgt==='party'?partyAll().map(x=>x.id):sk.tgt==='self'?[h.id]:[]};
@@ -3260,7 +3375,7 @@ function win(){
   const r=state.run,b=r.battle,s=r.stage,L=living();
   if(!L.length){lose();return}
   const regenLines=[];flushRegen(regenLines);
-  b.over='win';
+  b.over='win';r.kills=(r.kills||0)+b.enemies.length;
   scoutRolls('kill');
   let g=0,xp=0,sc=0,eliteBits=0,chestTier=null;const drops=[];
   // Each defeated enemy keeps a list of what it dropped, so the loot can be shown over its body.
@@ -3280,7 +3395,7 @@ function win(){
   b.extraDrops=[];
   r.gold+=g;
   const lines=[`<b class="gold">+${g} gold</b>`];
-  for(const h of L){const hx=Math.round(xp*(1+aff(h,'xp')/100));h.kills+=b.enemies.length;lines.push(`${esc(h.name)} +${hx} XP`);gainXp(h,hx,lines)}
+  for(const h of L){const hx=Math.round(xp*runMod('xp')*(1+aff(h,'xp')/100));h.kills+=b.enemies.length;lines.push(`${esc(h.name)} +${hx} XP`);gainXp(h,hx,lines)}
   for(const [t,e] of drops){const it=makeItem(t,ilvl(),pick(L).cls);addLoot(it,lines,t==='king'?'The King’s crown-chest: ':t==='boss'?'Boss chest: ':'Dropped ');e.drop.push({k:'item',it,ground:(r.ground||[]).includes(it)})}
   if(eliteBits){r.bag.potion=(r.bag.potion||0)+eliteBits;lines.push(`The elite dropped ${eliteBits>1?eliteBits+' ':'a '}<b>Small Healing Potion${eliteBits>1?'s':''}</b> (bag)`)}
   if(chestTier){r.pendingChest=chestTier;lines.push(`<b class="gold">${CHEST_TIER[chestTier].n} dropped!</b> Open it after the fight.`)}
@@ -3400,14 +3515,17 @@ function chooseNode(i){
   const t=r.nodes[+i],s=r.stage,h=runHero(),L=living();
   if(['battle','elite','boss','warden','king'].includes(t)){startBattle(t==='battle'?'normal':t);return}
   if(t==='chest'){
-    if(r.plan[r.stage].traps[+i]){startBattle('mimic');blog('<span class="warn">The chest grows teeth!</span>');return}
-    r.event={title:'Chest',icon:'chest',chest:{opened:false}};
+    const per=bestStat(L,'per'),sp=Math.round(clamp(35+per*5,35,95));
+    r.event={title:'Chest',icon:'chest',kind:'chest',trap:!!r.plan[r.stage].traps[+i],sp,text:'A chest sits half-buried by the path. Some chests out here bite.',
+      choices:[{l:'Open it',x:'open',ev:1},{l:`Inspect it first (Perception ${Math.round(per)}: ${sp}% to spot a trap · everyone +3% fatigue)`,x:'inspect',ev:1}]};
   }else if(t==='gold'){
     const F=eventBonus(),g=Math.max(1,Math.round(goldAmt(10+3*s)*(1+F/100)));r.gold+=g;
-    r.event={title:'Gold Cache',icon:'coin',text:`${F>=0?'A wounded scout trades their purse for directions home.':'A scout eyes you warily, tosses a few coins and runs.'} <b class="gold">+${g} gold</b>.${chaNote()}`};
+    r.event={title:'Gold Cache',icon:'coin',kind:'cache',g,text:`${F>=0?'A wounded scout offers their purse for directions home.':'A scout eyes you warily and tosses down a purse.'} Their tracks lead off into the brush, toward wherever they found it.${chaNote()}`,
+      choices:[{l:`Take the purse (+${g} gold)`,x:'take',ev:1},{l:'Follow the trail (60%: 2.5× the gold · 40%: an ambush)',x:'follow',ev:1}]};
   }else if(t==='heal'){
-    const F=eventBonus(),inj=[],parts=L.map(x=>{const v=Math.round(maxHp(x)*clamp(.4*(1+F/100),.25,.65)*healMult(x)*depthsMult()),m=Math.round(maxMp(x)*clamp(.4*(1+F/100),.25,.65)*depthsMult());x.hp=Math.min(maxHp(x),x.hp+v);x.mp=Math.min(maxMp(x),x.mp+m);x.fat=(x.fat||0)/2;if(injOf(x))inj.push(`${esc(x.name)}’s ${INJURY[injOf(x)].n} still aches.`);return `${esc(x.name)} +${v} HP, +${m} MP, fatigue ${fatOf(x)}%`});
-    r.event={title:'Campsite',icon:'camp',text:`The ${L.length>1?'party makes':'hero makes'} camp and sleeps by the fire. Fatigue is halved. ${parts.join(', ')}.${inj.length?' <span class="warn">'+inj.join(' ')+'</span>':''}${chaNote()}`};
+    const F=eventBonus(),rp=Math.round(clamp(.4*(1+F/100),.25,.65)*100);
+    r.event={title:'Campsite',icon:'camp',kind:'camp',text:`A sheltered hollow with a ring of old stones. How will the ${L.length>1?'party':'hero'} spend the night?${chaNote()}`,
+      choices:[{l:`Rest by the fire (heal ${rp}%, halve fatigue)`,x:'rest',ev:1},{l:'Forage (heal 20%, fatigue −25%, find supplies)',x:'forage',ev:1},{l:'Drill by firelight (heal 20%, +20% of a level in XP, fatigue stays)',x:'drill',ev:1}]};
   }else if(t==='merchant'){
     r.event={title:'Traveling Merchant',icon:'coin',text:'A merchant has set up a stall by the path, lantern swinging.',shop:makeShop(1)};
   }else if(t==='mystery'){
@@ -3445,7 +3563,7 @@ function gamble(x){
   r.event={title:'Hooded Stranger',icon:'dice',text};
 }
 function endRun(outcome){
-  const r=state.run,B=BIOMES[r.biome],lines=[];
+  const r=state.run,B=BIOMES[r.biome],lines=[];let bestIt=null;
   const everyone=partyAll(),lead=everyone[0];
   const lostGear=everyone.filter(h=>h.hp<=0||outcome==='dead').reduce((s,h)=>s+gearOf(h).length,0);
   if(outcome==='dead'){for(const h of everyone)h.hp=0;for(const it of [...r.loot,...(r.ground||[])])if(rescuePerfect(it,lines)){r.loot=r.loot.filter(x=>x!==it);if(r.ground)r.ground=r.ground.filter(x=>x!==it)}}
@@ -3463,6 +3581,7 @@ function endRun(outcome){
       lines.push(`<span class="warn">${T.mid?'Fled mid-battle':'Ran for home'} and dropped ${lost} gold (${pct}%) on the way.</span>`);
       if(dropped.length)lines.push(`<span class="warn">Lost in the scramble: ${dropped.map(itemName).join(', ')}.</span>`);else if(had)lines.push('Held on to every looted item.');
     }
+    bestIt=foundThisRun().map(x=>x.it).sort((a,b)=>itemScore(b)-itemScore(a))[0]||null;
     for(const x of foundThisRun())delete x.it.found;
     state.gold+=r.gold;state.scrolls+=r.scrolls;
     {let spoiled=0;for(const [id,n] of Object.entries(r.bag||{})){const f=Math.min(n,(r.free&&r.free[id])||0);spoiled+=f;if(n-f>0)state.items[id]=(state.items[id]||0)+n-f}
@@ -3495,7 +3614,10 @@ function endRun(outcome){
      if(got.length)lines.push(`<b class="gold">${esc(listNames(got.map(h=>h.name)))} earned the ${BADGE_N[rk]} badge!</b> ${rk<4?`${LENGTHS[Object.keys(BADGE_NEED).find(k=>BADGE_NEED[k]===rk)].name} adventures are now open to any party with ${got.length>1?'them':'this hero'}.`:''}`)}
     const G=state.gov;if(G&&['medium','long','expedition'].includes(r.length)&&!(G.miles||[]).includes(r.length)){(G.miles=G.miles||[]).push(r.length);G.pend=(G.pend||0)+1;
       lines.push(`<b class="gold">The town celebrates, and I’ve earned a promotion! I’ll choose how to grow from my portrait.</b>`)}}
-  state.summary={outcome,cls:(lead||{cls:'warrior'}).cls,title,sub:`${LENGTHS[r.length].name} · ${sub} A week passes.`,lines};
+  const recap={stages:r.stage,gold:outcome==='dead'?0:r.gold,dead:outcome==='dead',kills:r.kills||0,best:outcome==='dead'?null:bestIt,
+    lv:everyone.filter(h=>r.startLv&&r.startLv[h.id]!=null&&h.level>r.startLv[h.id]).map(h=>({n:h.name,a:r.startLv[h.id],b:h.level})),
+    low:r.low?{n:r.low.n,pct:Math.max(1,Math.round(r.low.p*100)),stage:r.low.stage,foe:r.low.foe}:null};
+  state.summary={outcome,cls:(lead||{cls:'warrior'}).cls,title,sub:`${LENGTHS[r.length].name} · ${sub} A week passes.`,lines,recap};
   for(const h of state.heroes)h.fat=0;
   state.run=null;advanceWeek();state.screen='town';state.tab='town';
   state.sel.hero=survivors.length?survivors[0].id:null;
@@ -3527,6 +3649,26 @@ function itemBody(it){
   if(!it.affixes.length)s+='<span class="meta">No bonuses</span>';
   return s;
 }
+/* ---------- item comparison: what an item changes against what a hero wears in that slot ---------- */
+function itemStatMap(it){const m={};if(!it)return m;
+  if(it.slot==='weapon')m.dmg=baseVal(it);
+  else if(ARMOR_BASE[it.slot]){m.arm=baseVal(it);if(it.cls==='archer')m.eva=2+it.ilvl*.05}
+  for(const a of it.affixes)m[a.k]=(m[a.k]||0)+affVal(it,a);return m}
+function itemCompare(it,h,slot){
+  if(!it||!h||(it.cls&&it.cls!==h.cls))return '';
+  const sl=slot||equipSlotFor(it,h),cur=h.gear[sl];if(cur===it)return '';
+  const A=itemStatMap(it),B=itemStatMap(cur),parts=[];
+  for(const k of [...new Set([...Object.keys(A),...Object.keys(B)])]){const d=(A[k]||0)-(B[k]||0);if(Math.abs(d)<.05)continue;
+    const af=AFX[k],v=Math.abs(d)<10?+Math.abs(d).toFixed(1):Math.round(Math.abs(d)),sg=d>0?'+':'−';
+    const txt=k==='dmg'?`${sg}${v} damage`:k==='arm'?`${sg}${v} armor`:k==='eva'?`${sg}${v}% evasion`:`${sg}${v}${af&&af.p?'%':''} ${af?af.l:k}`;
+    parts.push(`<span class="${d>0?'cmpup':'cmpdn'}">${txt}</span>`)}
+  if(it.slot==='weapon'){const e1=(cur&&cur.el)||'physical',e2=it.el||'physical';if(cur&&e1!==e2)parts.push(`<span class="cmpel">${cap(e1)} → ${cap(e2)}</span>`)}
+  if(it.pid&&(!cur||cur.pid!==it.pid))parts.push(`<span class="cmpup">+ ${PERF[it.pid].fxn}</span>`);
+  if(cur&&cur.pid&&cur.pid!==it.pid)parts.push(`<span class="cmpdn">− ${PERF[cur.pid].fxn}</span>`);
+  return `<div class="cmp"><span class="cmphead">vs ${esc(h.name)}’s ${cur?itemName(cur):'empty '+SLOTN[sl].toLowerCase()+' slot'}</span>${parts.join('')||'<span class="cmpsame">No change</span>'}</div>`;
+}
+// Heroes in the party this item looks like an upgrade for (a quick guess from rarity, level, upgrades and bonuses).
+const upgradeFor=it=>state.run&&it?living().filter(h=>(!it.cls||it.cls===h.cls)&&itemScore(it)>itemScore(h.gear[equipSlotFor(it,h)])):[];
 function itemCard(it,extra='',attrs=''){return `<div class="item r-${it.rarity}-b" ${attrs}>${itemBody(it)}${extra}</div>`}
 // Level and progress to the next level, as a slim labeled bar.
 const xpMini=(h,label=true)=>{const need=xpNeed(h.level),pct=clamp(h.xp/need*100,0,100);return `<div class="ubar xp ${label?'':'thin'}" data-tip="${esc(`Level ${h.level} · ${fmt(h.xp)} / ${fmt(need)} XP to level ${h.level+1}`)}"><i style="width:${pct}%"></i>${label?`<span>Lv ${h.level} · ${Math.floor(pct)}% XP</span>`:''}</div>`};
@@ -4110,13 +4252,20 @@ function topBar(){
     </div>${scrapStrip(state.mats,'Scrap in storage. Builders use it to raise buildings; the Farm and Still use it for upgrades.')}</header>`;
 }
 const TABS=[['town','Town','banner','#8a2e2e',null],['heroes','Barracks','tent','#6a4a3a',null],['smith','Weaponsmith','anvil',null,'smith'],['hall','Town Hall','house',null,null],['bank','Bank','chest',null,'bank'],['adventure','The Gate','gate',null,null],['witch','Witch','crescent','#b56fe3',null],['farm','Farm','farmer','#6f8f4a',null],['ledger','Ledger','moon',null,null]];
+// The trip at a glance, at the top of the return summary.
+function recapHtml(R){if(!R)return '';const t=(v,l,c)=>`<div class="rtile"><b class="${c||''}">${v}</b><small>${l}</small></div>`,lv=R.lv.reduce((a,x)=>a+x.b-x.a,0);
+  let s=`<div class="recap">${t(R.stages,R.stages===1?'stage':'stages')}${t(R.dead?'lost':fmt(R.gold),'gold home','gold')}${t(R.kills,'monsters slain')}${t(lv,lv===1?'level gained':'levels gained',lv?'gold':'')}</div>`;
+  if(R.lv.length)s+=`<p class="muted recapln">${R.lv.map(x=>`${esc(x.n)} Lv ${x.a} → <b class="gold">${x.b}</b>`).join(' · ')}</p>`;
+  if(R.low)s+=`<p class="recapln"><b class="warn">Closest call:</b> ${esc(R.low.n)} dropped to ${R.low.pct}% health on stage ${R.low.stage}${R.low.foe?`, fighting ${esc(R.low.foe)}`:''}.</p>`;
+  if(R.best)s+=`<p class="muted recapln">Best find</p>${itemCard(R.best)}`;
+  return s}
 function townView(){
   let s='';
   if(state.gear3Msg)s+=`<div class="panel row" style="justify-content:space-between"><span>${state.gear3Msg}</span><button class="xbtn" data-a="gear3ok" aria-label="Dismiss">×</button></div>`;
   if(state.summary){
     const m=state.summary,dead=m.outcome==='dead';if(!m.title)m.title=m.name||'Adventure over',m.sub=m.sub||'';
     ui.summaryHtml=modalShell(`<span class="${m.outcome==='victory'?'gold':dead?'warn':''}">${m.title}</span>`,`<div class="row">${sprite(dead?'tomb':m.outcome==='victory'?'boss':m.cls,m.outcome==='victory'?EL_COL.dark:CLASSES[m.cls].tint,4)}<p class="muted">${m.sub} Week ${state.week} begins.</p></div>
-      <div class="stack" style="gap:4px">${m.lines.map(l=>`<p>${l}</p>`).join('')}</div>
+      ${recapHtml(m.recap)}<div class="stack" style="gap:4px">${m.lines.map(l=>`<p>${l}</p>`).join('')}</div>
       <div class="row"><button class="btn gold" data-a="dismiss">Continue</button></div>`,'dismiss',`summary ${dead?'dead':''}`);
   }else ui.summaryHtml='';
   if(state.tab!=='town')s+=`<nav class="street" aria-label="Town"><div class="moon" data-tip="${esc(moonTip())}" data-a="tab" data-x="ledger" role="button" tabindex="0">${moonImg(moonState().shown,3)}</div><div class="buildings">${TABS.map(([k,n,sp,t,b])=>
@@ -4127,6 +4276,12 @@ function townView(){
   return `<div class="townwrap"><div class="tmain">${s}</div>${heroRail()}</div>`;
 }
 /* ---------- hero rail: every hero at a glance on the right of town ---------- */
+// Who's ready: unspent points, a newly learned skill not looked at yet, and injuries with the weeks left.
+function readyBadges(h){const b=[],j=injOf(h);
+  if(h.points)b.push(`<span class="rb pts">★ ${h.points} pt${h.points>1?'s':''}</span>`);
+  if(h.newSkill&&h.newSkill.length)b.push(`<span class="rb skill">✦ New skill${h.newSkill.length>1?'s':''}</span>`);
+  if(j){const wk=Math.max(1,h.injury.until-state.week+1);b.push(`<span class="rb inj">✚ ${INJURY[j].n} · ${wk} wk</span>`)}
+  return b.join('')}
 // Heroes are fully restored before every adventure, so in town they show as full unless they are out on one.
 const onRun=h=>!!(state.run&&(state.run.party||[]).includes(h.id));
 const shownHp=h=>onRun(h)?Math.round(h.hp):maxHp(h),shownMp=h=>onRun(h)?Math.round(h.mp):maxMp(h);
@@ -4135,12 +4290,12 @@ function heroRail(){
   const card=h=>{const C=C_(h),mh=maxHp(h),mm=maxMp(h),need=xpNeed(h.level),ts=(h.traits||[]).map(id=>TRAITS[id]).filter(Boolean),busy=onRun(h),hp=shownHp(h),mp=shownMp(h);
     return `<button class="hrcard ${party.includes(h.id)?'inparty':''}" data-a="heroSheet" ${state.run?'':'data-dbl="partyDbl"'} data-x="${h.id}" aria-label="${esc(h.name)}, level ${h.level} ${C.name}${party.includes(h.id)?', in this week’s party':''}. Open full sheet${state.run?'':'; double-click to add to or remove from this week’s party'}">
       <span class="hrport" style="--ct:${C.tint}">${sprite(h.cls,C.tint,4)}<b class="hrlv">${h.level}</b></span>
-      <span class="hrbody"><span class="hrname">${esc(h.name)}${h.points?` <span class="hrpts">+${h.points} pts</span>`:''}</span>
+      <span class="hrbody"><span class="hrname">${esc(h.name)}</span>
         <span class="hrcls">Lv ${h.level} ${C.name}${busy?' · away':''} ${badgeIco(h.badge||0)}</span>
         <span class="bar hp"><i style="width:${clamp(hp/mh*100,0,100)}%"></i><span>${hp} / ${mh} HP</span></span>
         <span class="bar mp"><i style="width:${clamp(mp/mm*100,0,100)}%"></i><span>${mp} / ${mm} MP</span></span>
         <span class="hrxp" data-tip="${fmt(h.xp)} / ${fmt(need)} XP"><i style="width:${clamp(h.xp/need*100,0,100)}%"></i></span>
-        <span class="hrtraits">${ts.map(t=>`<span class="tk-${t.kind}">${t.n}</span>`).join('')}</span></span></button>`};
+        <span class="hrtraits">${ts.map(t=>`<span class="tk-${t.kind}">${t.n}</span>`).join('')}</span>${readyBadges(h)?`<span class="rbadges">${readyBadges(h)}</span>`:''}</span></button>`};
   return `<aside class="hrail" aria-label="Your heroes"><div class="hrhead"><h2>Heroes</h2><span class="muted">${H.length}/${slots()}</span></div>${H.length&&!state.run?'<p class="muted hrhint">Double-click a hero to add or remove them from this week’s party.</p>':''}
     <div class="hrlist">${H.length?H.map(card).join(''):`<button class="nextstep" data-a="tab" data-x="heroes">${sprite('book','#5a3f7a',3)}<span><small>No heroes yet</small><b>Recruit one</b></span></button>`}</div></aside>`;
 }
@@ -4174,7 +4329,7 @@ function academyView(){
   return s;
 }
 function heroChips(act,selId,filter){
-  return `<div class="tabs">${state.heroes.filter(filter||(()=>true)).map(h=>`<button class="btn small ${h.id===selId?'on':''}" data-a="${act}" ${act==='selHero'&&!state.run?'data-dbl="partyDbl"':''} data-x="${h.id}"><span>${esc(h.name)} · Lv ${h.level} ${C_(h).name} ${badgeIco(h.badge||0)}${h.points?` · <span class="gold">${h.points} pts</span>`:''}</span>${xpMini(h,false)}</button>`).join('')}</div>`;
+  return `<div class="tabs">${state.heroes.filter(filter||(()=>true)).map(h=>`<button class="btn small ${h.id===selId?'on':''}" data-a="${act}" ${act==='selHero'&&!state.run?'data-dbl="partyDbl"':''} data-x="${h.id}"><span>${esc(h.name)} · Lv ${h.level} ${C_(h).name} ${badgeIco(h.badge||0)}${h.points?` · <span class="gold">${h.points} pts</span>`:''}${h.newSkill&&h.newSkill.length?' <span class="rbm skill" title="New skill">✦</span>':''}${injOf(h)?' <span class="rbm inj" title="Injured">✚</span>':''}</span>${xpMini(h,false)}</button>`).join('')}</div>`;
 }
 function statTable(h){
   const C=C_(h),row=(k,v,tip)=>`<dt data-tip="${esc(tip)}" tabindex="0">${k}</dt><dd>${v}</dd>`;
@@ -4227,10 +4382,10 @@ function backpackBlock(){
     return it?`<button class="dslot full ${ui.bsel===it.id?'cur':''}" style="--rc:${getRarCol(it.rarity)}" data-a="bpSel" data-x="${it.id}" data-drag="pack:${it.id}" data-tip="${esc(it.name+' ('+RAR[it.rarity].l+' '+SLOTN[it.slot]+')')}" aria-label="${esc(it.name)}">${sprite(it.slot==='weapon'?({warrior:'sword',archer:'bow',mage:'staff'})[it.cls]:SLOT_SPR[it.slot==='ring'?'ring1':it.slot],getRarCol(it.rarity),3)}</button>`
       :'<span class="dslot empty" aria-label="Empty backpack slot"></span>'}).join('')}</div>`;
   if(sel){const who=living().filter(h=>!sel.cls||sel.cls===h.cls);
-    s+=itemCard(sel,`<div class="row">${who.map(h=>`<button class="btn small gold" data-a="packEquip" data-x="${sel.id}|${h.id}">Equip${many?' on '+esc(h.name):''}</button>`).join('')}<button class="btn small" data-a="bpDrop" data-x="${sel.id}">Drop</button></div>${who.length?'':'<span class="meta">No one here can use it. Worth '+sellVal(sel)+' gold in town.</span>'}`)}
+    s+=itemCard(sel,`<div class="row">${who.map(h=>`<button class="btn small gold" data-a="packEquip" data-x="${sel.id}|${h.id}">Equip${many?' on '+esc(h.name):''}</button>`).join('')}<button class="btn small" data-a="bpDrop" data-x="${sel.id}">Drop</button></div>${who.map(h=>itemCompare(sel,h)).join('')}${who.length?'':'<span class="meta">No one here can use it. Worth '+sellVal(sel)+' gold in town.</span>'}`)}
   else s+=`<p class="muted" style="font-size:18px">${r.loot.length?'Tap an item to equip or drop it, or drag it onto a hero’s gear slot.':'Loot you find goes here and comes home with you.'} Bigger backpack: Bank.</p>`;
   const G=r.ground||[];
-  if(G.length)s+=`<h3 class="warn">On the ground · ${G.length}</h3><p class="muted" style="font-size:18px">${r.loot.length>=cap?'Your backpack is full. Drop something to pick these up.':'Take what you want.'} Anything left here is lost when you move on.</p><div class="stack" style="gap:6px">${G.map(it=>itemCard(it,`<div class="row"><button class="btn small gold" data-a="bpTake" data-x="${it.id}" ${r.loot.length>=cap?'disabled':''}>Take</button><span class="meta">Worth ${sellVal(it)} gold</span></div>`)).join('')}</div>`;
+  if(G.length)s+=`<h3 class="warn">On the ground · ${G.length}</h3><p class="muted" style="font-size:18px">${r.loot.length>=cap?'Your backpack is full. Drop something to pick these up.':'Take what you want.'} Anything left here is lost when you move on.</p><div class="stack" style="gap:6px">${G.map(it=>itemCard(it,`<div class="row"><button class="btn small gold" data-a="bpTake" data-x="${it.id}" ${r.loot.length>=cap?'disabled':''}>Take</button><span class="meta">Worth ${sellVal(it)} gold</span></div>${living().map(h=>itemCompare(it,h)).join('')}`)).join('')}</div>`;
   return s;
 }
 function pslotDetail(h){
@@ -4243,14 +4398,14 @@ function slotPanel(h){
   const sl=state.sel.slot;if(!sl||!SLOTS.includes(sl))return '<p class="muted" style="font-size:18px">Tap a gear slot to see what it does and swap it with the bank.</p>';
   const cur=h.gear[sl],fits=state.bank.filter(it=>it.slot===slotType(sl)&&(!it.cls||it.cls===h.cls));
   return `<div class="stack slotpanel"><div class="row" style="justify-content:space-between"><h3>${SLOTN[sl]}</h3><button class="btn small" data-a="selSlot" data-x="${sl}">Close</button></div>${cur?itemCard(cur,`<div class="row"><button class="btn small" data-a="unequip" data-x="${sl}" ${state.bank.length>=bankCap()?'disabled':''}>Move to bank</button>${cur.rarity==='perfect'?'':`<button class="btn small" data-a="sellItem" data-x="${cur.id}">Sell · ${sellVal(cur)} gold</button>`}</div>`):'<p class="muted">Nothing equipped.</p>'}
-    <h3>From the bank</h3><div class="dropzone" data-drop="bank">${fits.length?`<div class="items">${fits.map(it=>itemCard(it,`<div class="row"><button class="btn small gold" data-a="equip" data-x="${it.id}">Equip</button></div>`,`data-drag="bank:${it.id}"`)).join('')}</div>`:'<p class="muted">No items in the bank fit this slot. Drop gear here to unequip it.</p>'}</div></div>`;
+    <h3>From the bank</h3><div class="dropzone" data-drop="bank">${fits.length?`<div class="items">${fits.map(it=>itemCard(it,`<div class="row"><button class="btn small gold" data-a="equip" data-x="${it.id}">Equip</button></div>${itemCompare(it,h,sl)}`,`data-drag="bank:${it.id}"`)).join('')}</div>`:'<p class="muted">No items in the bank fit this slot. Drop gear here to unequip it.</p>'}</div></div>`;
 }
 function heroesView(){
   const head='';
   if(!state.heroes.length)return `<button class="nextstep" data-a="btab" data-x="recruit">${sprite('book','#5a3f7a',3)}<span><small>No heroes yet</small><b>Recruit your first hero</b></span><span class="arrow">→</span></button>`;
   let h=heroById(state.sel.hero);if(!h){h=state.heroes[0];state.sel.hero=h.id}
   const C=C_(h),[g,gc]=grade(h);
-  const ht=state.sel.htab||'stats';
+  const ht=state.sel.htab||'stats';if(ht==='skills'&&h.newSkill)h.newSkill=null;
   let s=`${head}${state.sel.justRecruited===h.id?`<p class="gold">${esc(h.name)} has joined. Give them a name and spend their ${h.points} starting points.</p>`:''}${heroChips('selHero',h.id)}${state.heroes.length>1?`<div class="heronav"><button class="btn navarrow" data-a="heroStep" data-x="-1" aria-label="Previous hero">◀ Prev</button><span class="muted">${state.heroes.indexOf(h)+1} of ${state.heroes.length}</span><button class="btn navarrow" data-a="heroStep" data-x="1" aria-label="Next hero">Next ▶</button></div>`:''}<div class="hdetail"><div class="stack">
     <div class="hc-top"><div class="portrait">${sprite(h.cls,C.tint,6)}</div><div class="stack" style="gap:4px;flex:1;min-width:140px">
       <input type="text" id="rename" value="${esc(h.name)}" maxlength="16" aria-label="Hero name (tap to rename)" data-tip="Tap to rename. Up to 16 characters.">
@@ -4261,7 +4416,7 @@ function heroesView(){
     ${allocBtns(h)}
     ${slotPanel(h)}
   </div><div class="stack">
-    <div class="subtabs">${[['stats','Stats'],['skills','Skills'],['traits','Traits'],['elements','Elements']].map(([k,l])=>`<button class="subtab ${ht===k?'cur':''}" data-a="htab" data-x="${k}">${l}</button>`).join('')}</div>
+    <div class="subtabs">${[['stats','Stats'],['skills','Skills'],['traits','Traits'],['elements','Elements']].map(([k,l])=>`<button class="subtab ${ht===k?'cur':''}" data-a="htab" data-x="${k}">${l}${k==='skills'&&h.newSkill&&h.newSkill.length?' <span class="rbm skill">✦</span>':''}</button>`).join('')}</div>
     ${ht==='stats'?statPips(h)+statTable(h):ht==='skills'?`<p class="muted" style="font-size:19px">${C.style}${h.cls==='mage'?` Natural affinity: ${elTag(h.affinity)}.`:''}</p>${skillList(h)}${learnBlock(h)}`:ht==='traits'?traitChips(h)+`<div class="stack" style="gap:4px">${(h.traits||[]).map(id=>TRAITS[id]).filter(Boolean).map(t=>`<p style="font-size:19px"><span class="tk-${t.kind}">${t.n}</span> <span class="muted">${traitDesc(t)}</span></p>`).join('')}</div>`:heroElTable(h)}
     <div class="row" style="justify-content:space-between;margin-top:auto;gap:8px"><span class="muted" style="font-size:18px">Backpack on adventures: ${bagCap()} slots <span class="bpack inl">${Array.from({length:bagCap()},()=>'<span class="dslot empty sm"></span>').join('')}</span></span>
     ${state.sel.retire===h.id?`<span class="row"><span class="warn">Retire ${esc(h.name)}?</span><button class="btn red small" data-a="retireYes">Retire</button><button class="btn small" data-a="retireNo">Keep</button></span>`:`<button class="btn small" data-a="retire">Retire hero</button>`}</div></div></div>`;
@@ -4524,9 +4679,9 @@ function advView(){
       (state.sel.len==='short'?` · <span class="ok" data-tip="${esc(`On Short adventures the party can run back home at any time, even mid-battle. Running costs ${FLEE.min}–${FLEE.max}% of carried gold, and each item found during this adventure (even if equipped) has a 33% chance to be lost. Running mid-battle multiplies both (×2 regular fights, ×2.5 elites, ×3 major bosses), and there is no running from the final boss. Supplies and materials come home.`)}">can run home</span>`:'')}
   let s=`<div class="stack" style="gap:4px"><h2>The Gate</h2><p class="muted">Pick a land, a length and your heroes, then set out. ${help('Pick the land: every monster there deals and resists its element, so bring heroes who can handle it. Heroes who die are gone for good, with their gear. Monsters sometimes hunt in pairs or packs of three. On Short adventures that only starts after stage 5 and grows slowly; longer adventures start with packs already common.')}</p></div>
   <div class="gategrid"><div class="stack"><div class="stack" style="gap:6px"><h3>Length</h3>${bar}<p class="lensum">${sum}</p></div>${final?'':(()=>{const cur=LAND_PICK.includes(state.sel.biome)?state.sel.biome:null;
-    return `<div class="stack" style="gap:6px"><h3>Land</h3>${state.guide&&!cur?'<p class="guidehint">① Pick a land to explore</p>':''}<div class="lands ${state.guide&&!cur?'guide':''}" role="radiogroup" aria-label="Land">${LAND_PICK.map(k=>{const B=BIOMES[k];return `<button class="land ${cur===k?'cur':''}" style="--c:${EL_COL[B.el]}" data-a="land" data-x="${k}" role="radio" aria-checked="${cur===k}">${elIco(B.el)}<span><b>${B.name}</b><small>${cap(B.el)}</small></span></button>`}).join('')}</div>${cur?`<p class="muted" style="font-size:18px">${BIOMES[cur].flavor} Monsters here deal and resist ${elTag(BIOMES[cur].el)}.</p>`:'<p class="warn" style="font-size:18px">Choose where to go.</p>'}</div>`})()}`;
+    return `<div class="stack" style="gap:6px"><h3>Land</h3>${state.guide&&!cur?'<p class="guidehint">① Pick a land to explore</p>':''}<div class="lands ${state.guide&&!cur?'guide':''}" role="radiogroup" aria-label="Land">${LAND_PICK.map(k=>{const B=BIOMES[k],lm=LAND_MOD[landMods()[k]];return `<button class="land ${cur===k?'cur':''}" style="--c:${EL_COL[B.el]}" data-a="land" data-x="${k}" role="radio" aria-checked="${cur===k}">${elIco(B.el)}<span><b>${B.name}</b><small>${cap(B.el)}</small>${lm?`<small class="lmod ${lm.bad?'bad':'good'}">${lm.n}</small>`:''}</span></button>`}).join('')}</div>${cur?landModNote(landMods()[cur]):'<p class="muted" style="font-size:17px">Conditions change every week. Some lands carry a twist this week.</p>'}${cur?`<p class="muted" style="font-size:18px">${BIOMES[cur].flavor} Monsters here deal and resist ${elTag(BIOMES[cur].el)}.</p>`:'<p class="warn" style="font-size:18px">Choose where to go.</p>'}</div>`})()}`;
   if(!state.heroes.length)return s+'<p class="muted">Recruit a hero at the Barracks first.</p></div></div>';
-  s+=`<h3>Party · ${p.length}/${max}</h3>${state.guide&&!p.length&&LAND_PICK.includes(state.sel.biome)?'<p class="guidehint">② Choose your hero</p>':''}<div class="tabs ${state.guide&&!p.length&&LAND_PICK.includes(state.sel.biome)?'guide':''}">${state.heroes.map(h=>`<button class="btn small ${p.includes(h.id)?'on':''}" data-a="partyToggle" data-x="${h.id}"><span>${esc(h.name)} · Lv ${h.level} ${C_(h).name} ${badgeIco(h.badge||0)}${h.points?` · <span class="gold">${h.points} pts</span>`:''}</span>${xpMini(h,false)}</button>`).join('')}</div>`;
+  s+=`<h3>Party · ${p.length}/${max}</h3>${state.guide&&!p.length&&LAND_PICK.includes(state.sel.biome)?'<p class="guidehint">② Choose your hero</p>':''}<div class="tabs ${state.guide&&!p.length&&LAND_PICK.includes(state.sel.biome)?'guide':''}">${state.heroes.map(h=>`<button class="btn small ${p.includes(h.id)?'on':''}" data-a="partyToggle" data-x="${h.id}"><span>${esc(h.name)} · Lv ${h.level} ${C_(h).name} ${badgeIco(h.badge||0)}${h.points?` · <span class="gold">${h.points} pts</span>`:''}${h.newSkill&&h.newSkill.length?' <span class="rbm skill" title="New skill">✦</span>':''}${injOf(h)?' <span class="rbm inj" title="Injured">✚</span>':''}</span>${xpMini(h,false)}</button>`).join('')}</div>`;
   s+=max===1?`<p class="muted">Solo only. The War Table at the Town Hall unlocks parties: 2 heroes for ${fmt(BUILD.war.cost(0))} gold, then 3 for ${fmt(BUILD.war.cost(1))}.</p>`:`<p class="muted">Enemies grow tougher with each hero you bring, and gold grows too.</p>`;
   s+=`<div class="setout"><label class="row" style="gap:6px"><input type="checkbox" id="carry" ${state.sel.carry&&state.scrolls?'checked':''} ${state.scrolls?'':'disabled'}> Carry a Return Scroll (${state.scrolls} owned)</label>
     ${final&&p.length!==3?'<p class="warn">The Dark Side needs exactly 3 heroes.</p>':''}
@@ -4627,7 +4782,7 @@ function runView(){
   const cells=r.final?FINAL.stages:r.total;
   let prog='';if(r.final)for(let i=1;i<=cells;i++){const boss=i%15===0;prog+=`<i class="${i<r.stage?'done':i===r.stage?'now':''} ${boss?'boss':''}"></i>`}
   let s=`<section class="panel runhdr" style="--s1:${B.s[0]};--s2:${B.s[1]}"><div class="rh-row"><div class="rh-party">${P.map(h=>`<span class="fo ${h.hp<=0?'dead':''}">${sprite(h.cls,C_(h).tint,3,h.hp>0?'bob':'')}</span>`).join('')}</div>
-    <div class="stack" style="gap:0;min-width:0;flex:1"><h2>${r.final?'The Dark Side · ':''}${B.name}</h2><span class="muted" style="font-size:18px">${stageText(r)}</span></div>
+    <div class="stack" style="gap:0;min-width:0;flex:1"><h2>${r.final?'The Dark Side · ':''}${B.name}</h2><span class="muted" style="font-size:18px">${stageText(r)}</span>${runModTags(r)?`<span class="lmodrow">${runModTags(r)}</span>`:''}</div>
     <div class="res"><span class="chip" data-tip="Gold carried">${sprite('coin',null,2)}<b class="num">${r.gold}</b></span><span class="chip" data-tip="Backpack">${sprite('chest',null,2)}<b class="num">${r.loot.length}/${bagCap()}</b></span><span class="chip" data-tip="Return Scrolls">${sprite('scroll',null,2)}<b class="num">${r.scrolls}</b></span><button class="btn small ${(r.ground||[]).length?'guide':''}" data-a="inv" data-tip="Gear, backpack and anything on the ground">Inventory</button><button class="btn small partybtn ${partyAll().some(x=>x.hp>0&&x.points)&&ui.drawer!=='party'?'guide':''}" data-a="drawer" data-x="party" ${partyAll().some(x=>x.hp>0&&x.points)?'data-tip="Level up! Open the party to spend attribute points."':''}>Party</button>${fleeBtn('small red')}</div></div>${scrapStrip(r.mats,'Scrap gathered this trip. It comes home if the party returns or flees, and is lost if everyone falls.')}
     ${r.final?`<div class="prog" title="Red marks are bosses">${prog}</div>`:''}</section>`;
   s+=`<div class="runlay"><section class="panel">${r.event?eventView():nodesView()}</section><aside class="panel partycol">${partyPanel()}</aside></div>`;
@@ -4720,6 +4875,20 @@ const SK_CASTER={slash:'melee',smash:'melee',titan:'melee',quake:'melee',shot:'b
   blast:'cast',storm:'cast',lightning:'cast',hex:'cast',drain:'cast',heal:'heal',shield:'shield',shieldgold:'shield',shout:'shout',aura:'aura'};
 const SK_COL={slash:'#ffffff',smash:'#ffe7ae',titan:'#e3b341',quake:'#c9a46a',shot:'#fff3dc',snipe:'#ff6a5a',rain:'#fff3dc',
   blast:'#b9a8ff',storm:'#b9a8ff',lightning:'#f4e25a',hex:'#b56fe3',drain:'#8a4ad0',heal:'#a8f0a0',shield:'#8fc8ff',shieldgold:'#e3b341',shout:'#e0643a',aura:'#e8f4ff'};
+// Weapon moves: the swing itself on the hero, and the mark it leaves on the enemy it lands on.
+const WPN_OF={melee:'warrior',bow:'archer',cast:'mage'};
+function heroPose(h,fx){
+  if(fx.sk){const c=SK_CASTER[SK_FX[fx.sk.id]];return c==='melee'?'pose-slash big':c==='bow'?'pose-bow':c==='cast'?'pose-staff':'castpose'}
+  return fx.atk?({warrior:'pose-slash',archer:'pose-bow',mage:'pose-staff'})[h.cls]:''}
+function weaponFx(fx,unit){
+  let w=null,tg=[],col='#ffffff',who=null;
+  if(fx.atk){w=fx.atk.cls;tg=fx.atk.tg;who=fx.atk.h}
+  else if(fx.sk){w=WPN_OF[SK_CASTER[SK_FX[fx.sk.id]]];who=fx.sk.h;col=fx.sk.c||SK_COL[SK_FX[fx.sk.id]]||col}
+  if(!w)return '';
+  if(unit==='h:'+who)return `<span class="wfx c-${w}" style="--c:${col}" aria-hidden="true"><i></i><i></i><i></i></span>`;
+  // Skills already draw their own impact on targets; basic attacks get a small one of their own.
+  if(fx.atk&&unit[0]==='e'&&tg.includes(+unit.slice(2)))return `<span class="wfx t-${w}" aria-hidden="true"><i></i><i></i></span>`;
+  return ''}
 function skFx(fx,unit){
   const F=fx.sk;if(!F)return '';const fam=SK_FX[F.id];if(!fam)return '';
   const col=F.id==='sniper'?'#e3b341':F.c&&!['heal','shield','shieldgold','shout','hex','drain','lightning'].includes(fam)?F.c:SK_COL[fam];
@@ -4732,13 +4901,14 @@ function skFx(fx,unit){
 }
 function heroUnit(h,cur,fx,pops){
   return `<div class="unit hero ${h.hp<=0?'down':''} ${cur===h?'act':''} ${wuCls('h'+h.id)}" data-u="h${h.id}" data-tip="${esc(heroTip(h))}">
-    <div class="fo ${h.hp<=0?'dead':''} ${fx.act==='h:'+h.id?(fx.sk&&['melee'].includes(SK_CASTER[SK_FX[fx.sk.id]])?'lunge-big':fx.sk?'castpose':'lunge-r'):''} ${h.gear.weapon&&h.gear.weapon.pid?'perfect-aura':''}">${sprite(h.cls,C_(h).tint,5,fx['h'+h.id]&&h.hp>0?'hit':h.hp>0?'bob':'')}${skFx(fx,'h:'+h.id)}${marksHtml('h'+h.id)}</div>
+    <div class="fo ${h.hp<=0?'dead':''} ${fx.act==='h:'+h.id?heroPose(h,fx):''} ${h.gear.weapon&&h.gear.weapon.pid?'perfect-aura':''}">${sprite(h.cls,C_(h).tint,5,fx['h'+h.id]&&h.hp>0?'hit':h.hp>0?'bob':'')}${skFx(fx,'h:'+h.id)}${weaponFx(fx,'h:'+h.id)}${marksHtml('h'+h.id)}</div>
     <div class="uinfo">${heroInfo(h)}</div></div>`;
 }
 function foeUnit(e,i,fx,pops){
   const b=state.run.battle,big=e.kind==='boss'||e.kind==='warden'||e.kind==='king',dead=e.hp<=0,tgt=i===b.target&&!b.over&&!dead;
-  return `<div class="unit foe ${big?'big':''} ${dead?'down':''} ${tgt?'tgt':''} ${wuCls('e'+i)}" data-u="e${i}" ${foeTargetAttrs(e,i)} aria-label="${esc(e.name)}" data-tip="${esc(foeTip(e))}">
-    <div class="fo ${dead?(fx['die'+i]?'dead dying':'dead'):''} ${fx.act==='e:'+i?'lunge-l':''} ${e.poison?'poisoned':''}">${sprite(e.spr,EL_COL[e.type],5,fx['e'+i]&&!dead?'hit':!dead?'bob':'')}${fx['burst'+i]?`<span class="burst" style="--c:${fx['burst'+i]}"></span>`:''}${fx['frz'+i]?'<span class="burst frz" style="--c:#bfe9ff"></span>':''}${skFx(fx,'e:'+i)}${marksHtml('e'+i)}</div>${b.over==='win'&&e.drop&&e.drop.length?`<span class="dropfan ${b.lootFresh?'fresh':''}">${e.drop.map((x,j)=>`<span style="animation-delay:${j*.18}s">${lootTile(x,true)}</span>`).join('')}</span>`:''}
+  const noreach=!dead&&!b.over&&frontOnly()&&aliveFoes()[0]!==e?'noreach':'';
+  return `<div class="unit foe ${big?'big':''} ${dead?'down':''} ${tgt?'tgt':''} ${noreach} ${wuCls('e'+i)}" data-u="e${i}" ${foeTargetAttrs(e,i)} aria-label="${esc(e.name)}${tgt?' (targeted)':''}" data-tip="${esc(foeTip(e)+(noreach?' Out of reach: warriors can only strike the front enemy.':''))}">
+    <div class="fo ${dead?(fx['die'+i]?'dead dying':'dead'):''} ${fx.act==='e:'+i?'lunge-l':''} ${e.poison?'poisoned':''}">${sprite(e.spr,EL_COL[e.type],5,fx['e'+i]&&!dead?'hit':!dead?'bob':'')}${fx['burst'+i]?`<span class="burst" style="--c:${fx['burst'+i]}"></span>`:''}${fx['frz'+i]?'<span class="burst frz" style="--c:#bfe9ff"></span>':''}${skFx(fx,'e:'+i)}${weaponFx(fx,'e:'+i)}${marksHtml('e'+i)}</div>${b.over==='win'&&e.drop&&e.drop.length?`<span class="dropfan ${b.lootFresh?'fresh':''}">${e.drop.map((x,j)=>`<span style="animation-delay:${j*.18}s">${lootTile(x,true)}</span>`).join('')}</span>`:''}
     <div class="uinfo">${foeInfo(e)}</div></div>`;
 }
 // On small screens the fighters stand across the top as pixel art, and their labeled bars sit in this roster beneath them.
@@ -4751,7 +4921,8 @@ function roster(P,cur){
 function lootTile(x,small){
   const ic=x.k==='gold'?`<span class="ibox">${sprite('coin',null,small?2:3)}</span>`:x.k==='item'?itemIcon(x.it,small?2:3):x.k==='chest'?`<span class="ibox r-godlike-bg">${sprite('chest',null,small?2:3)}</span>`:x.k==='scroll'?`<span class="ibox">${sprite('scroll',null,small?2:3)}</span>`:`<span class="ibox">${consIco(x.id,small?2:3)}</span>`;
   const nm=x.k==='gold'?`<span class="gold">${x.g}g</span>`:x.k==='item'?`<span class="r-${x.it.rarity}">${esc(x.it.name)}</span>`:x.k==='chest'?`<span class="gold">${CHEST_TIER[x.tier].n}</span>`:x.k==='scroll'?'Return Scroll':CONSUMABLES[x.id].n;
-  return `<span class="ltile ${x.k==='item'?'eq':''}" data-tip="${esc((x.k==='item'?x.it.name+' ('+RAR[x.it.rarity].l+')':String(nm).replace(/<[^>]+>/g,''))+(x.ground?' · on the ground, backpack full':''))}">${ic}<small>${nm}${x.ground?' <span class="warn">⚠</span>':''}</small></span>`;
+  const up=x.k==='item'?upgradeFor(x.it):[];
+  return `<span class="ltile ${x.k==='item'?'eq':''} ${up.length?'isup':''}" data-tip="${esc((x.k==='item'?x.it.name+' ('+RAR[x.it.rarity].l+')':String(nm).replace(/<[^>]+>/g,''))+(up.length?' · likely an upgrade for '+listNames(up.map(h=>h.name))+'. Open the inventory to compare.':'')+(x.ground?' · on the ground, backpack full':''))}">${ic}${up.length?'<b class="upg" aria-label="Likely upgrade">▲</b>':''}<small>${nm}${x.ground?' <span class="warn">⚠</span>':''}</small></span>`;
 }
 function lootStrip(){
   const b=state.run.battle,all=[...b.enemies.flatMap(e=>e.drop||[]),...(b.extraDrops||[])];if(!all.length)return '';
@@ -4774,7 +4945,7 @@ function battleScreen(){
     const e=b.enemies[+id];return `<div class="tb foe ${i===0?'now':''}">${sprite(e.spr,EL_COL[e.type],2)}<span>${esc(e.name)}</span></div>`}).join('')}</div>`:'<div class="tstrip"></div>';
   const label=r.nodes[0]==='king'?'<span class="bossmark">The King</span>':r.nodes[0]==='warden'?'<span class="bossmark">Final boss</span>':r.nodes[0]==='boss'?'<span class="bossmark">Boss stage</span>':'';
   let s=`<div class="bscreen">
-    <div class="bhdr"><span class="ttl">${r.final?'Dark Side · ':''}${B.name} · <span class="muted">${stageText(r)}</span></span>
+    <div class="bhdr"><span class="ttl">${r.final?'Dark Side · ':''}${B.name} · <span class="muted">${stageText(r)}</span>${runModTags(r)}</span>
       <span class="chip">${sprite('coin',null,2)}<b class="num">${r.gold}</b></span><span class="chip">${sprite('chest',null,2)}<b class="num">${r.loot.length}/${bagCap()}</b></span>
       <button class="btn" data-a="drawer" data-x="party">Party</button><button class="btn ${(r.ground||[]).length?'guide':''}" data-a="inv">Inventory</button>${fleeBtn('red')}<button class="btn" data-a="settings" data-x="1" aria-label="Settings">Settings</button></div>
     ${tstrip}
@@ -4787,10 +4958,10 @@ function battleScreen(){
       <svg class="intentarrows" aria-hidden="true"></svg>
     </div>
     ${roster(P,cur)}
-    <div class="blogline blogpanel" aria-label="Battle log" role="log"><span class="blogtitle">Battle log</span>${b.log.slice(0,40).map(l=>`<p>${l}</p>`).join('')}</div>
+    <div class="blogline blogpanel" aria-label="Battle log" role="log"><span class="blogtitle">Battle log</span>${b.log.slice(0,40).map(l=>`<p class="${logCls(l)}">${l}</p>`).join('')}</div>
     <div class="actbar">${actBar()}</div>
     ${ui.drawer==='party'?`<div class="drawer"><div class="drawer-top"><h2>Party</h2><button class="xbtn" data-a="drawer" data-x="" aria-label="Close">×</button></div><div class="drawgrid">${partyPanel()}</div></div>`:''}
-    ${ui.drawer==='log'?`<div class="drawer"><div class="drawer-top"><h2>Battle log</h2><button class="xbtn" data-a="drawer" data-x="" aria-label="Close">×</button></div><div class="log">${b.log.map(l=>`<p>${l}</p>`).join('')}</div></div>`:''}
+    ${ui.drawer==='log'?`<div class="drawer"><div class="drawer-top"><h2>Battle log</h2><button class="xbtn" data-a="drawer" data-x="" aria-label="Close">×</button></div><div class="log">${b.log.map(l=>`<p class="${logCls(l)}">${l}</p>`).join('')}</div></div>`:''}
     ${b.over&&!ui.hideResult?resultModal():''}
     ${fleeModal()}
   </div>`;
@@ -4833,14 +5004,14 @@ function actBar(){
   return s;
 }
 function nodesView(){return mapView()}
-const popCls=p=>(p.t==='FURY'||p.t==='FOCUS'||p.t==='ARCANA'?'lvl ':'')+(p.crit?'crit ':'')+(String(p.t)[0]==='+'?'heal ':'')+(p.t==='miss'?'miss ':'')+(p.t==='LEVEL UP'?'lvl ':'');
+const popCls=p=>(p.sk?'skname ':'')+(p.t==='FURY'||p.t==='FOCUS'||p.t==='ARCANA'?'lvl ':'')+(p.crit?'crit ':'')+(String(p.t)[0]==='+'?'heal ':'')+(p.t==='miss'?'miss ':'')+(p.t==='LEVEL UP'?'lvl ':'');
 function eventView(){
   const ev=state.run.event;
   const wf=!!(ev.wheel&&ev.wheel.fresh),wheel=ev.mystery==='wheel'||ev.wheel?wheelHtml(ev):'';
   const last=!state.run.final&&state.run.stage>=state.run.total;
   if(ev.shop)return `<div class="row" style="gap:12px;flex-wrap:nowrap;align-items:flex-start"><span class="portrait">${sprite('flask','#e3b341',5,'bob')}</span><div class="stack" style="gap:6px"><h2>${ev.title}</h2><p>${ev.text}</p></div></div>${shopView(ev)}<div class="row"><button class="btn gold" data-a="cont">Move on</button></div>`;
   if(ev.chest)return `<h2>${ev.chest.opened?'The chest is open':(CHEST_TIER[ev.chest.tier]||CHEST_TIER.map).n}</h2>${chestScene()}${ev.chest.opened?`<p>${ev.text}</p>${(state.run.ground||[]).length?`<div class="row"><span class="warn">Backpack full: some gear is on the ground.</span><button class="btn small gold" data-a="inv">Open inventory</button></div>`:''}<div class="row"><button class="btn gold" data-a="cont">${last?'Head home':'Continue'}</button></div>`:'<p class="muted">Old iron bands, a heavy lid. Open it to see what spills out.</p>'}`;
-  return `<div class="row" style="gap:12px;flex-wrap:nowrap;align-items:flex-start">${ev.approach?`<span class="approach"><span class="afar">${sprite('boss',EL_COL[BIOMES[state.run.biome].el],3,'bob')}</span><span class="portrait">${sprite('camp',null,5,'bob')}</span></span>`:ev.icon?`<span class="portrait">${sprite(ev.icon,null,5,'bob')}</span>`:''}<div class="stack" style="gap:6px"><h2>${ev.title}</h2><p class="${wf?'wheelres':''}">${ev.text}</p></div></div>${wheel}<div class="row">${ev.choices?ev.choices.map(c=>`<button class="btn ${c.x==='leave'?'':'gold'}" data-a="${c.myst?'myst':'gamble'}" data-x="${c.x}" ${c.off?'disabled':''}>${c.l}</button>`).join(''):`<button class="btn gold" data-a="cont">${ev.intro?'Press on':'Continue'}</button>`}</div>`;
+  return `<div class="row" style="gap:12px;flex-wrap:nowrap;align-items:flex-start">${ev.approach?`<span class="approach"><span class="afar">${sprite('boss',EL_COL[BIOMES[state.run.biome].el],3,'bob')}</span><span class="portrait">${sprite('camp',null,5,'bob')}</span></span>`:ev.icon?`<span class="portrait">${sprite(ev.icon,null,5,'bob')}</span>`:''}<div class="stack" style="gap:6px"><h2>${ev.title}</h2><p class="${wf?'wheelres':''}">${ev.text}</p></div></div>${wheel}<div class="row">${ev.choices?ev.choices.map(c=>`<button class="btn ${c.x==='leave'?'':'gold'}" data-a="${c.myst?'myst':c.ev?'evPick':'gamble'}" data-x="${c.x}" ${c.off?'disabled':''}>${c.l}</button>`).join(''):`<button class="btn gold" data-a="cont">${ev.intro?'Press on':'Continue'}</button>`}</div>`;
 }
 function skillChip(h,id){const k=SKILLS[id];return `<span class="trait tk-skill" tabindex="0" data-tip="${esc(k.n+' · '+k.mp+' MP. '+skillStats(id)+'. '+k.d)}">${k.n}</span>`}
 function skillList(h){return `<div class="stack" style="gap:6px">${h.skills.map(id=>{const k=SKILLS[id];return `<div class="item"><span class="iname">${k.n} <span class="muted">· ${skillMp(h,id)} MP</span></span><span class="afx">${skillStats(id)}</span><span class="meta">${k.d}</span></div>`}).join('')}</div>`}
@@ -5031,7 +5202,7 @@ function prepView(){
     </div><div class="stack">
       <div class="subtabs">${PREP_FILTERS.map(([k,l])=>`<button class="subtab ${!sl&&f===k?'cur':''}" data-a="prepFilter" data-x="${k}">${l}</button>`).join('')}${sl?`<span class="subtab cur">${SLOTN[sl]}</span>`:''}</div>
       <p class="muted" style="font-size:17px">Drag gear onto a slot to equip it, or back here to unequip. On touch screens, press and hold first. · Stash · ${state.bank.length} item${state.bank.length===1?'':'s'}${list.length!==state.bank.length?` · ${list.length} fit ${esc(h.name)} here`:''}</p>
-      <div class="dropzone" data-drop="bank">${list.length?`<div class="items preplist">${list.map(it=>{const to=equipSlotFor(it,h),old=h.gear[to];return itemCard(it,`<div class="row"><button class="btn small gold" data-a="prepEquip" data-x="${it.id}">${old?'Swap in':'Equip'}</button>${old?`<span class="meta">replaces ${itemName(old)}</span>`:''}</div>`,`data-drag="bank:${it.id}"`)}).join('')}</div>`:'<p class="muted">Nothing in the stash fits here. Drop gear here to unequip it.</p>'}</div>
+      <div class="dropzone" data-drop="bank">${list.length?`<div class="items preplist">${list.map(it=>{const to=equipSlotFor(it,h),old=h.gear[to];return itemCard(it,`<div class="row"><button class="btn small gold" data-a="prepEquip" data-x="${it.id}">${old?'Swap in':'Equip'}</button>${old?`<span class="meta">replaces ${itemName(old)}</span>`:''}</div>${itemCompare(it,h,to)}`,`data-drag="bank:${it.id}"`)}).join('')}</div>`:'<p class="muted">Nothing in the stash fits here. Drop gear here to unequip it.</p>'}</div>
     </div></div>
     ${P.length>1?`<h3>Marching order</h3><p class="muted" style="font-size:17px">Enemies mostly attack whoever walks in front.</p><div class="row march">${P.map((x,i)=>`<div class="mslot"><span class="lab">${['Front','Middle','Back'][P.length===2&&i===1?2:i]} · ${posChance(i,P.length)}% of attacks</span><span class="row" style="gap:6px">${sprite(x.cls,C_(x).tint,2,'ico')}<b>${esc(x.name)}</b> <span class="muted">${C_(x).name}</span></span><span class="row" style="gap:4px"><button class="btn small" data-a="prepOrder" data-x="${x.id}|-1" ${i===0?'disabled':''} aria-label="Move ${esc(x.name)} forward">◀ Forward</button><button class="btn small" data-a="prepOrder" data-x="${x.id}|1" ${i===P.length-1?'disabled':''} aria-label="Move ${esc(x.name)} back">Back ▶</button></span></div>`).join('')}</div>`:''}
     ${packBlock()}
@@ -5112,7 +5283,8 @@ function invActions(S){
   else if(S.k==='ground')a=`<button class="btn small gold" data-a="invTake" ${room?'':'disabled'}>Take</button>${room?'':'<span class="meta">Backpack full</span>'}${eq.join('')}`;
   else a=`${S.h.hp>0?`<button class="btn small" data-a="gearToPack" data-x="${S.h.id}|${S.sl}" ${room?'':'disabled'}>Move to backpack</button>`:''}${S.h.hp>0&&it.rarity!=='perfect'?`<button class="btn small" data-a="invGearDrop">Drop</button>`:''}${eq.join('')}`;
   const none=!P.some(h=>invFits(it,h))&&S.k!=='gear'?`<span class="meta">No one here can use it. Worth ${sellVal(it)} gold in town.</span>`:`<span class="meta">Worth ${sellVal(it)} gold</span>`;
-  return itemCard(it,`<div class="row invact">${a}</div>${none}`);
+  const cmp=P.filter(h=>invFits(it,h)&&!(S.k==='gear'&&S.h===h)).map(h=>itemCompare(it,h)).join('');
+  return itemCard(it,`<div class="row invact">${a}</div>${none}${cmp}`);
 }
 function invRow(it,src,S){
   const id=src+':'+it.id,cur=ui.invSel===id;
@@ -5233,7 +5405,7 @@ function switchSlot(i){
 
 /* ---------- ? rooms (mystery nodes) ----------
    Most are strange encounters with choices; some are ambushes, elites or a stray chest. */
-const MYSTERY_OUTCOMES={battle:12,elite:4,chest:4,wheel:14,spring:11,idol:8,ooze:8,trainer:7,tome:7,traveler:9,altar:6,trap:7,merchant:6,moonpool:2};
+const MYSTERY_OUTCOMES={battle:12,elite:4,chest:4,wheel:14,spring:11,idol:8,ooze:8,trainer:7,tome:7,traveler:9,altar:6,trap:7,merchant:6,moonpool:2,shrine:5,mine:6,knight:6};
 const WHEEL=[['gold',25,'#e3b341','Gold'],['xp',22,'#6ab0e0','Experience'],['item',15,'#b56fe3','Free item'],['heal',13,'#78ab60','Full heal'],['pain',20,'#c4463f','Pain'],['level',5,'#ff5c7a','Level up']];
 const pctHp=(h,p)=>{const v=Math.round(maxHp(h)*p);return v};
 const hurtAll=(p,lines)=>{for(const h of living()){const v=Math.min(h.hp-1,pctHp(h,p));h.hp-=Math.max(0,v);lines.push(`${esc(h.name)} −${v} HP`)}};
@@ -5243,7 +5415,7 @@ const levelUp=(h,lines)=>{lines.push(`<b class="gold">${esc(h.name)} is filled w
 const statUp=(h,lines,n)=>{const k=pick(STATS);h[k]+=n||1;if(h.baseStats)h.baseStats[k]+=n||1;lines.push(`<b class="gold">${esc(h.name)} +${n||1} ${STATN[k]} permanently.</b>`)};
 const freeItem=(table,lines,pre)=>{const it=makeItem(table,ilvl(),pick(living()).cls);addLoot(it,lines,pre||'Found: ');return it};
 function startMystery(){
-  const r=state.run,k=weighted(MYSTERY_OUTCOMES),h=runHero(),L=living(),s=r.stage,F=eventBonus();
+  const r=state.run,k=weighted(r.stage===1?Object.fromEntries(Object.entries(MYSTERY_OUTCOMES).filter(([x])=>!['merchant','spring','moonpool'].includes(x))):MYSTERY_OUTCOMES),h=runHero(),L=living(),s=r.stage,F=eventBonus();
   const ev=(title,icon,text,choices)=>{r.event={title,icon,text,mystery:k,choices:choices.map(c=>({...c,myst:1}))}};
   if(k==='battle'){startBattle('normal');blog('<span class="warn">Ambush! Something was waiting in the dark.</span>');return}
   if(k==='elite'){startBattle('elite');blog('<span class="warn">It was a lair. A mutated beast turns on you.</span>');return}
@@ -5257,13 +5429,51 @@ function startMystery(){
   if(k==='traveler')return ev('Lost Traveler','heart',`A frightened traveler begs for directions home.${chaNote()}`,[{l:'Help them',x:'help'},{l:'Rob them',x:'rob'},{l:'Ignore them',x:'leave'}]);
   if(k==='altar')return ev('Blood Altar','skull','An altar slick with old blood. Something here rewards sacrifice.',[{l:`Offer blood (${esc(h.name)} −30% HP, +1 permanent stat)`,x:'offer',off:h.hp<=maxHp(h)*.3},{l:'Pray instead (heal 15%)',x:'pray'},{l:'Leave',x:'leave'}]);
   if(k==='trap'){const per=bestStat(L,'per'),agi=bestStat(L,'agi');return ev('A Tripwire','eye','A thin wire glints across the path. You could disarm it, or go around the long way.',[{l:`Disarm it (PER ${Math.round(per)}: ${Math.round(clamp(30+per*4,30,95))}% safe, reward inside)`,x:'disarm'},{l:`Leap over (AGI ${Math.round(agi)}: ${Math.round(clamp(40+agi*4,40,95))}% safe)`,x:'leap'},{l:'Go around (everyone −5% HP from the brambles)',x:'around'}])}
+  if(k==='shrine'){const P=Object.keys(PACTS).filter(p=>!(r.pacts||[]).includes(p));if(!P.length)return ev('An Empty Shrine','crescent','Every bargain this shrine offers is already struck.',[{l:'Move on',x:'leave'}]);
+    return ev('Shrine of Bargains','crescent','A cracked shrine hums. Its carvings promise a gift, for a price, until you return home.',[...P.map(p=>({l:`${PACTS[p].n}: ${PACTS[p].d.replace(' (this trip)','')}`,x:'pact:'+p})),{l:'Refuse',x:'leave'}])}
+  if(k==='mine')return ev('Collapsed Mine','anvil','A mine shaft, half caved in. Ore glints between the fallen beams.',[{l:'Dig (everyone +8% fatigue: scrap, maybe gear)',x:'dig'},{l:'Leave it',x:'leave'}]);
+  if(k==='knight'){const pots=(r.bag&&r.bag.potion)||0;return ev('Wounded Knight','sword','A knight in dented armor sits against a tree, bleeding. His squire watches you from the brush.',[{l:`Give a Small Healing Potion (${pots} in the bag)`,x:'give',off:!pots},{l:'Take his gear (a free item, but the squire lashes out)',x:'take'},{l:'Leave him',x:'leave'}])}
   if(k==='merchant'){r.event={title:'Wagon Merchant',icon:'coin',text:'A merchant’s wagon has lost a wheel. He’ll sell cheap to lighten the load.',shop:makeShop(.75)};return}
   if(k==='moonpool')return ev('A Pool of Pure Moonlight','crescent','The air hums. A pool of light, not water, fills a hollow in the stone.',[{l:`Step in (${esc(h.name)})`,x:'bathe'},{l:'Leave it be',x:'leave'}]);
+}
+// Choices at campsites, gold caches and chests.
+function eventPick(x){
+  const r=state.run,ev=r&&r.event;if(!ev||!ev.kind||r.battle)return;const L=living(),lines=[];
+  const done=t=>{r.event={title:ev.title,icon:ev.icon,text:t}};
+  if(ev.kind==='camp'){const F=eventBonus(),rest=x==='rest',hp=rest?clamp(.4*(1+F/100),.25,.65):.2,inj=[];
+    const parts=L.map(h=>{const v=Math.round(maxHp(h)*hp*healMult(h)*depthsMult()),m=Math.round(maxMp(h)*hp*depthsMult());h.hp=Math.min(maxHp(h),h.hp+v);h.mp=Math.min(maxMp(h),h.mp+m);
+      if(rest)h.fat=(h.fat||0)/2;else if(x==='forage')h.fat=(h.fat||0)*.75;if(injOf(h))inj.push(`${esc(h.name)}’s ${INJURY[injOf(h)].n} still aches.`);return `${esc(h.name)} +${v} HP, +${m} MP, fatigue ${fatOf(h)}%`});
+    let extra='';
+    if(x==='forage'){const got=[];for(let i=0,n=ri(1,2);i<n;i++){const id=pick(['potion','potion','mpotion','ether']);r.bag[id]=(r.bag[id]||0)+1;got.push(CONSUMABLES[id].n)}extra=`<br>Foraging turns up: <b>${got.join(', ')}</b> (bag).`}
+    if(x==='drill'){for(const h of L)xpTo(h,.2,lines);extra='<br>'+lines.join('<br>')}
+    const head={rest:'The party sleeps by the fire. Fatigue is halved.',forage:'Half the night goes to foraging. Fatigue drops by a quarter.',drill:'They drill by firelight instead of sleeping.'}[x];
+    return done(`${head} ${parts.join(', ')}.${extra}${inj.length?'<br><span class="warn">'+inj.join(' ')+'</span>':''}`)}
+  if(ev.kind==='cache'){
+    if(x==='take'){r.gold+=ev.g;return done(`You pocket the purse. <b class="gold">+${ev.g} gold</b>.`)}
+    if(chance(.6)){const g=Math.round(ev.g*2.5);r.gold+=g;return done(`The trail ends at a hollow log stuffed with coin. <b class="gold">+${g} gold</b>.`)}
+    r.event=null;startBattle('normal');blog('<span class="warn">The trail was bait. Ambush!</span>');return}
+  if(ev.kind==='chest'){
+    if(x==='leave')return done('You leave the chest where it sits.');
+    if(x==='inspect'){if(ev.inspected)return;ev.inspected=true;const out=[];for(const h of L)addFat(h,3,out);
+      const seen=chance(ev.sp/100),o=[{l:'Open it',x:'open',ev:1},{l:'Leave it',x:'leave',ev:1}];
+      if(seen&&ev.trap){ev.text='Up close, the lid is breathing. <b class="warn">It’s a mimic!</b>';ev.choices=[{l:'Strike first (it starts at 70% health)',x:'ambush',ev:1},{l:'Leave it',x:'leave',ev:1}]}
+      else if(seen){ev.text='You check the hinges and the lock. It’s just a chest.';ev.choices=o}
+      else{ev.text='You can’t tell either way.';ev.choices=o}
+      if(out.length)ev.text+=' <span class="warn">'+out.join(' ')+'</span>';return}
+    if(x==='ambush'){r.event=null;startBattle('mimic');for(const e of r.battle.enemies)if(e.kind==='mimic')e.hp=Math.max(1,Math.round(e.hp*.7));blog('<span class="gold">You strike the mimic before it wakes.</span>');return}
+    if(ev.trap){r.event=null;startBattle('mimic');blog('<span class="warn">The chest grows teeth!</span>');return}
+    r.event={title:'Chest',icon:'chest',chest:{opened:false}};return}
 }
 function mystChoice(x){
   const r=state.run,ev=r.event;if(!ev||!ev.mystery)return;const k=ev.mystery,h=runHero(),s=r.stage,lines=[],F=eventBonus();
   const done=(text)=>{r.event={title:ev.title,icon:ev.icon,text,wheel:ev.wheel}};
   if(x==='leave')return done('You leave it behind.');
+  if(k==='shrine'&&x.startsWith('pact:')){const p=x.slice(5);if(!PACTS[p])return;(r.pacts=r.pacts||[]).push(p);return done(`<b class="gold">${PACTS[p].n} struck.</b> ${PACTS[p].d}`)}
+  if(k==='mine'){const out=[],got={};for(const h2 of living())addFat(h2,8,out);addMat(got,'stone',rand(1,2)*(1+s*.03));addMat(got,chance(.5)?'wood':'stone',rand(.5,1.5)*(1+s*.03));
+    for(const [m,v] of Object.entries(got))addMat(r.mats,m,v);lines.push('Scrap dug out: '+matsLine(got));if(chance(.25))freeItem('battle',lines,'Buried in the rubble: ');
+    return done(`Hours of digging. Everyone +8% fatigue.<br>${lines.join('<br>')}${out.length?'<br><span class="warn">'+out.join(' ')+'</span>':''}`)}
+  if(k==='knight'){if(x==='give'){if(!(r.bag&&r.bag.potion>0))return;r.bag.potion--;freeItem('elite',lines,'He presses his spare gear on you: ');for(const h2 of living())xpTo(h2,.1,lines);return done(`He drinks, and the color returns to his face.<br>${lines.join('<br>')}`)}
+    freeItem('battle',lines,'You strip his gear: ');hurtAll(.1,lines);return done(`The squire bursts from the brush swinging.<br>${lines.join('<br>')}`)}
   if(k==='wheel'&&x==='spin'){
     const tot=WHEEL.reduce((a,w)=>a+w[1],0);let roll=Math.random()*tot,i=0;while(roll>WHEEL[i][1]){roll-=WHEEL[i][1];i++}
     let start=0;for(let j=0;j<i;j++)start+=WHEEL[j][1];const land=(start+Math.random()*WHEEL[i][1]*.8+WHEEL[i][1]*.1)/tot*360,deg=360*5+(360-land);
@@ -5465,7 +5675,7 @@ const ACT={
     if(n<0||n>(state.items[id]||0)||(+d>0&&used>=packCap()))return;plan[id]=n;state.sel.pack=plan},
   packAll:x=>{if(x==='0'){state.sel.pack={};return}state.sel.pack=null},
   gear3ok:()=>{state.gear3Msg=null},
-  heroSheet:id=>{ui.sheet=id},
+  heroSheet:id=>{ui.sheet=id;const h=heroById(id);if(h)h.newSkill=null},
   sheetX:()=>{ui.sheet=null},
   sheetGear:x=>{const [hid,sl]=x.split('|'),h=heroById(hid);ui.sheet=null;if(!h)return;state.sel.hero=h.id;state.sel.slot=sl;state.tab='heroes';state.sel.btab='roster'},
   hideResult:()=>{ui.hideResult=true},
@@ -5512,6 +5722,7 @@ const ACT={
   scroll:()=>{const r=state.run;if(!r.scrolls)return;r.scrolls--;ui.drawer=null;clearTimeout(advTimer);endRun('scroll')},
   gamble:x=>gamble(x),
   myst:x=>mystChoice(x),
+  evPick:x=>eventPick(x),
   shopBuy:i=>shopBuy(i),
   shopSell:id=>shopSell(id),
   wtab:x=>{state.sel.wtab=x;state.sel.witchMsg=null},
