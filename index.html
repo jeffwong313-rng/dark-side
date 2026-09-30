@@ -697,6 +697,9 @@ span.dslot{cursor:default}
 .hrlist{overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:2px;overscroll-behavior:contain}
 .hrcard{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;font:inherit;color:inherit;padding:8px;border:0;cursor:pointer;background:#0f0c13;box-shadow:inset 0 0 0 2px #3a3245;transition:box-shadow .12s}
 .hrcard:hover,.hrcard:focus-visible{box-shadow:inset 0 0 0 2px var(--gold),0 0 8px #e3b34155}
+.hrcard.inparty{box-shadow:inset 0 0 0 3px #8fd3ff,0 0 10px #8fd3ff66}
+.hrcard.inparty:hover,.hrcard.inparty:focus-visible{box-shadow:inset 0 0 0 3px #8fd3ff,0 0 12px #8fd3ffaa}
+.hrhint{font-size:15px;margin:0 4px 8px}
 .hrport{position:relative;flex:none;width:72px;height:72px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 60%,color-mix(in srgb,var(--ct) 45%,transparent),#0b0910 70%);box-shadow:inset 0 0 0 2px #2a2234}
 .hrlv{position:absolute;right:-4px;bottom:-4px;min-width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#15101a;background:var(--gold);box-shadow:0 0 0 2px #060509}
 .hrbody{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
@@ -1724,21 +1727,21 @@ const CLASSES={
 const ATTACK={warrior:{mult:1,acc:95,crit:0,el:'weapon'},archer:{mult:1,acc:85,crit:5,el:'weapon'},mage:{mult:.9,acc:100,crit:0,el:'attune'}};
 // tgt: enemy | all | self | ally | party. el: weapon | attune | an element. crit adds to crit chance, cdmg adds to crit damage.
 const SKILLS={
-  cleave:{cls:'warrior',n:'Cleave',mp:14,tgt:'all',mult:1.3,acc:100,crit:0,el:'physical',d:'Sweeps every enemy.'},
+  cleave:{cls:'warrior',n:'Cleave',mp:14,tgt:'all',mult:1.3,acc:100,crit:0,el:'physical',d:'Sweeps the front enemy and the one next to it.'},
   crush:{cls:'warrior',n:'Crushing Blow',mp:12,tgt:'enemy',mult:2.6,acc:95,crit:10,cdmg:25,el:'physical',d:'A slow, heavy strike. Hits hard when it lands.'},
   wall:{cls:'warrior',n:'Shield Wall',mp:12,tgt:'self',d:'Until next round, takes half damage and every enemy attacks this hero.'},
   warcry:{cls:'warrior',n:'War Cry',mp:18,tgt:'party',d:'The whole party deals +25% damage for 3 rounds.'},
   wind:{cls:'warrior',n:'Second Wind',mp:15,tgt:'self',d:'Recovers 30% of max health.'},
-  pierce:{cls:'archer',n:'Piercing Shot',mp:12,tgt:'enemy',mult:2,acc:100,crit:35,el:'weapon',d:'An aimed shot that looks for weak points.'},
-  volley:{cls:'archer',n:'Volley',mp:15,tgt:'all',mult:1.3,acc:95,crit:10,el:'weapon',d:'Rains arrows on every enemy. Each arrow rolls separately.'},
-  double:{cls:'archer',n:'Double Shot',mp:14,tgt:'enemy',mult:1.1,hits:2,acc:100,crit:5,el:'weapon',d:'Two quick arrows. The second moves on if the first kills.'},
-  cripple:{cls:'archer',n:'Crippling Arrow',mp:12,tgt:'enemy',mult:1.6,acc:100,crit:5,el:'weapon',d:'On hit, the target deals 30% less damage for 3 rounds.'},
-  deadeye:{cls:'archer',n:'Deadeye',mp:18,tgt:'enemy',mult:1.8,acc:90,forceCrit:true,cdmg:50,el:'weapon',d:'Always crits if it hits. Hard to land.'},
-  bolt:{cls:'mage',n:'Elemental Bolt',mp:15,tgt:'enemy',mult:2.4,acc:100,crit:5,el:'attune',d:'A focused blast in the attuned element.'},
-  storm:{cls:'mage',n:'Elemental Storm',mp:21,tgt:'all',mult:1.35,acc:100,crit:5,el:'attune',d:'Engulfs every enemy in the attuned element.'},
+  pierce:{cls:'archer',n:'Piercing Shot',mp:12,tgt:'enemy',mult:1.8,acc:100,crit:35,el:'weapon',d:'An aimed shot that looks for weak points.'},
+  volley:{cls:'archer',n:'Volley',mp:15,tgt:'all',mult:1.15,acc:95,crit:10,el:'weapon',d:'Rains arrows on every enemy. Each arrow rolls separately.'},
+  double:{cls:'archer',n:'Double Shot',mp:14,tgt:'enemy',mult:1,hits:2,acc:100,crit:5,el:'weapon',d:'Two quick arrows. The second moves on if the first kills.'},
+  cripple:{cls:'archer',n:'Crippling Arrow',mp:12,tgt:'enemy',mult:1.45,acc:100,crit:5,el:'weapon',d:'On hit, the target deals 30% less damage for 3 rounds.'},
+  deadeye:{cls:'archer',n:'Deadeye',mp:18,tgt:'enemy',mult:1.6,acc:90,forceCrit:true,cdmg:50,el:'weapon',d:'Always crits if it hits. Hard to land.'},
+  bolt:{cls:'mage',n:'Elemental Bolt',mp:15,tgt:'enemy',mult:2,acc:100,crit:5,el:'attune',d:'A focused blast in the attuned element.'},
+  storm:{cls:'mage',n:'Elemental Storm',mp:21,tgt:'all',mult:1.15,acc:100,crit:5,el:'attune',d:'Engulfs every enemy in the attuned element.'},
   hex:{cls:'mage',n:'Hex',mp:12,tgt:'enemy',acc:100,d:'On hit, the target takes 25% more damage from everyone for 3 rounds.'},
   mend:{cls:'mage',n:'Mend',mp:18,tgt:'ally',d:'Heals one ally for 30% of their max health plus 2× the caster’s INT.'},
-  drain:{cls:'mage',n:'Life Drain',mp:15,tgt:'enemy',mult:1.8,acc:100,crit:5,el:'dark',d:'Dark damage. Heals the caster for half the damage dealt.'},
+  drain:{cls:'mage',n:'Life Drain',mp:15,tgt:'enemy',mult:1.5,acc:100,crit:5,el:'dark',d:'Dark damage. Heals the caster for half the damage dealt.'},
   imbue:{cls:'archer',tier:1,n:'Elemental Arrows',mp:14,tgt:'self',dur:3,d:'For the next 3 turns, arrows carry an element of your choice, so they can hit enemy weaknesses like a mage’s spells.'},
   imbue2:{cls:'archer',tier:2,n:'Elemental Arrows',mp:18,tgt:'self',dur:5,d:'For the next 5 turns, arrows carry an element of your choice, so they can hit enemy weaknesses like a mage’s spells.'},
   coup:{cls:'warrior',tier:3,n:'Coup de Grâce',mp:30,tgt:'enemy',mult:2.2,acc:100,crit:5,el:'physical',coup:true,d:'A finishing strike with a chance to kill outright: 6% plus STR and Luck (up to 25%), less against elites and bosses. Final bosses can’t be finished this way.'},
@@ -1748,19 +1751,19 @@ const SKILLS={
   feather:{cls:'archer',tier:1,n:'Featherweight',mp:16,tgt:'self',d:'Evasion rises to 90% for 2 turns, up to 4 with high AGI and Luck.'},
   sniper:{cls:'archer',tier:1,n:'Sniper',mp:16,tgt:'self',d:'Crit chance rises to 80% for the next 2 turns, up to 4 with high PER and Luck.'},
   circle:{cls:'mage',tier:1,n:'Circle of Mending',mp:26,tgt:'party',d:'Heals every ally for 20% of their max health plus the caster’s INT.'},
-  chain:{cls:'mage',tier:1,n:'Chain Lightning',mp:22,tgt:'enemy',mult:1.9,acc:100,crit:5,el:'thunder',chain:3,d:'Thunder that leaps from the target to up to 2 more enemies, losing a quarter of its force each jump.'},
+  chain:{cls:'mage',tier:1,n:'Chain Lightning',mp:22,tgt:'enemy',mult:1.6,acc:100,crit:5,el:'thunder',chain:3,d:'Thunder that leaps from the target to up to 2 more enemies, losing a quarter of its force each jump.'},
   bulwark:{cls:'warrior',tier:2,n:'Bulwark',mp:26,tgt:'party',d:'For 2 rounds the whole party takes 50% less damage, and every enemy must attack this hero.'},
   quake:{cls:'warrior',tier:2,n:'Earthshatter',mp:28,tgt:'all',mult:1.7,acc:100,crit:5,el:'physical',stun:'chance',d:'Slams every enemy. Each one hit may be stunned for 1 turn (50% plus STR and Luck, half against bosses).'},
-  hail:{cls:'archer',tier:2,n:'Hail of Arrows',mp:26,tgt:'rand',mult:1,hits:6,acc:95,crit:10,el:'weapon',d:'Six arrows at random enemies. Each one rolls its own crit.'},
-  assassin:{cls:'archer',tier:2,n:'Assassinate',mp:26,tgt:'enemy',mult:3.2,acc:100,crit:30,cdmg:25,el:'weapon',exec:.3,d:'A lethal shot. Finishes off any non-boss enemy it leaves under 30% health.'},
+  hail:{cls:'archer',tier:2,n:'Hail of Arrows',mp:26,tgt:'rand',mult:0.9,hits:6,acc:95,crit:10,el:'weapon',d:'Six arrows at random enemies. Each one rolls its own crit.'},
+  assassin:{cls:'archer',tier:2,n:'Assassinate',mp:26,tgt:'enemy',mult:2.9,acc:100,crit:30,cdmg:25,el:'weapon',exec:.3,d:'A lethal shot. Finishes off any non-boss enemy it leaves under 30% health.'},
   revive:{cls:'mage',tier:2,n:'Revive',mp:40,tgt:'dead',d:'Brings a fallen ally back into the fight with 40% health.'},
-  combo:{cls:'mage',tier:2,n:'Arcane Combo',mp:34,tgt:'enemy',mult:3.6,acc:100,crit:5,el:'attune',stun:1,d:'Major damage in the attuned element, then stuns the target for 1 turn.'},
+  combo:{cls:'mage',tier:2,n:'Arcane Combo',mp:34,tgt:'enemy',mult:3,acc:100,crit:5,el:'attune',stun:1,d:'Major damage in the attuned element, then stuns the target for 1 turn.'},
   titan:{cls:'warrior',tier:3,n:'Titan’s Wrath',mp:38,tgt:'enemy',mult:5,acc:100,crit:10,el:'physical',pierce:true,stun:2,d:'A blow that ignores armor and stuns the target for 2 turns (1 for bosses).'},
   undying:{cls:'warrior',tier:3,n:'Undying Vow',mp:36,tgt:'self',d:'For 3 rounds every enemy must attack this hero, who takes 50% less damage and cannot fall below 1 health.'},
-  thousand:{cls:'archer',tier:3,n:'Thousand Arrows',mp:40,tgt:'all',mult:1,hits:3,acc:95,crit:10,el:'weapon',d:'Three arrows into every enemy. Each one rolls its own crit.'},
-  killshot:{cls:'archer',tier:3,n:'Killshot',mp:38,tgt:'enemy',mult:5.5,sure:true,forceCrit:true,cdmg:50,el:'weapon',d:'Never misses and always crits.'},
+  thousand:{cls:'archer',tier:3,n:'Thousand Arrows',mp:40,tgt:'all',mult:0.9,hits:3,acc:95,crit:10,el:'weapon',d:'Three arrows into every enemy. Each one rolls its own crit.'},
+  killshot:{cls:'archer',tier:3,n:'Killshot',mp:38,tgt:'enemy',mult:5,sure:true,forceCrit:true,cdmg:50,el:'weapon',d:'Never misses and always crits.'},
   resurrect:{cls:'mage',tier:3,n:'Resurrection',mp:60,tgt:'party',d:'Every fallen ally rises with 60% health, and the whole party heals 40%.'},
-  cataclysm:{cls:'mage',tier:3,n:'Cataclysm',mp:55,tgt:'all',mult:3,acc:100,crit:5,el:'attune',stun:1,d:'Engulfs every enemy in the attuned element and stuns them all for 1 turn.'},
+  cataclysm:{cls:'mage',tier:3,n:'Cataclysm',mp:55,tgt:'all',mult:2.5,acc:100,crit:5,el:'attune',stun:1,d:'Engulfs every enemy in the attuned element and stuns them all for 1 turn.'},
 };
 const SKILL_LV={1:8,2:23,3:33};
 const tierOpts=(cls,t)=>Object.keys(SKILLS).filter(k=>SKILLS[k].cls===cls&&SKILLS[k].tier===t);
@@ -1782,7 +1785,7 @@ function skillStats(id){const k=SKILLS[id];const p=[];
   if(k.forceCrit)p.push('always crits');else if(k.crit)p.push(`${k.crit>0?'+':''}${k.crit}% crit`);
   if(k.cdmg)p.push(`+${k.cdmg}% crit dmg`);
   const el={fighting:'Fighting',weapon:'weapon element',attune:'attuned element',dark:'Dark'}[k.el];if(el)p.push(el);
-  if(k.stun)p.push('stuns');if(k.coup)p.push('may kill outright');if(k.dur)p.push(k.dur+' turns');p.push({enemy:'one enemy',all:'all enemies',self:'self',ally:'one ally',party:'party',rand:'random enemies',dead:'a fallen ally'}[k.tgt]);
+  if(k.stun)p.push('stuns');if(k.coup)p.push('may kill outright');if(k.dur)p.push(k.dur+' turns');p.push(k.cls==='warrior'&&k.tgt==='all'&&id!=='quake'?'front 2 enemies':{enemy:'one enemy',all:'all enemies',self:'self',ally:'one ally',party:'party',rand:'random enemies',dead:'a fallen ally'}[k.tgt]);
   return p.join(' · ');}
 const STATN={str:'STR',per:'PER',end:'END',cha:'CHA',int:'INT',agi:'AGI',lck:'LCK'};
 const STATS=['str','per','end','cha','int','agi','lck']; // SPECIAL
@@ -1824,7 +1827,7 @@ const NODE={
   elite:{s:'Elite',n:'Mutated Elite',icon:'skull',d:'Harder, twisted foe. Always drops gold and a potion, often gear, sometimes a chest.'},
   chest:{s:'Chest',n:'Chest',icon:'chest',d:'Loot or gold. Sometimes it bites.'},
   gold:{s:'Gold',n:'Gold Cache',icon:'coin',d:'Coin left behind by the dead.'},
-  heal:{s:'Camp',n:'Campsite',icon:'camp',d:'Rest by the fire: fatigue drops to 0, and every hero recovers 40% health and 40% mana. Injuries don’t heal here.'},
+  heal:{s:'Camp',n:'Campsite',icon:'camp',d:'Rest by the fire: fatigue is halved, and every hero recovers 40% health and 40% mana. Injuries don’t heal here.'},
   gamble:{s:'Stranger',n:'Hooded Stranger',icon:'dice',d:'Offers a game of chance.'},
   merchant:{s:'Shop',n:'Traveling Merchant',icon:'flask',d:'Spend the gold you carry: healing potions of every size, Ethers, Return Scrolls cheaper than in town, and now and then a piece of gear.'},
   mystery:{s:'?',n:'Unknown',icon:'q',d:'Anything could be here: a strange encounter, a wheel of fortune, a spring, an ambush, even a chest.'},
@@ -1840,36 +1843,36 @@ const MUT={
 /* traits: [name, kind, mods]. Descriptions are generated from mods so text always matches behavior. */
 const TRAIT_LIST=[
   // good
-  ['Brawny','good',{strPct:25}],['Nimble','good',{agiPct:25}],['Bookish','good',{intPct:25}],['Well-Rounded','good',{strPct:10,agiPct:10,intPct:10}],
-  ['Thick-Skinned','good',{armorPct:25}],['Hardy','good',{hpPct:12}],['Deep Well','good',{mpPct:20}],['Keen Eye','good',{crit:6}],
-  ['Brutal','good',{critdmg:30}],['Executioner','good',{executer:30}],['Lucky','good',{luck:8}],['Treasure Nose','good',{goldfind:20}],
-  ['Quick Study','good',{xp:20}],['Vampiric','good',{lifesteal:4}],['Fleet-Footed','good',{eva:6}],['Hasty','good',{spdPct:25}],
-  ['Duelist','good',{solo:15}],['Crowd Fighter','good',{pack:15}],['Giant Slayer','good',{boss:20}],['Elite Hunter','good',{elite:20}],
-  ['Last Stand','good',{lastStand:1}],['Ambusher','good',{openCrit:1}],['Second Wind','good',{rest:10}],['Regenerative','good',{regen:3}],
-  ['Meditative','good',{manaRegen:6}],['Efficient Caster','good',{skillCost:-25}],['Skillful','good',{skillDmg:20}],['Berserker’s Blood','good',{low:30}],
-  ['Composed','good',{full:20}],['Pyromaniac','good',{dmg_fire:20}],['Frostborn','good',{tk_ice:-25,dmg_ice:10}],['Stormcaller','good',{dmg_thunder:20}],
-  ['Greenwarden','good',{dmg_grass:20}],['Pugilist','good',{dmg_fighting:20}],['Fireproof','good',{tk_fire:-25}],['Insulated','good',{tk_thunder:-25}],
-  ['Barkskin','good',{tk_grass:-25}],['Iron Jaw','good',{tk_fighting:-25}],['Candle in the Dark','good',{tk_dark:-30}],['Steady','good',{heavyTaken:-35}],
-  ['Spiked Hide','good',{thorns:12}],['Scavenger','good',{scroll:5}],['Gambler’s Grace','good',{gamble:12}],['Trap Sense','good',{chestTrap:-100}],
-  ['Fast Healer','good',{heal:30}],['Weapon Master','good',{physDmg:15}],['Tough as Nails','good',{taken:-10}],['Iron Will','good',{tkAll:-8}],
-  ['First Blood','good',{firstStrike:1}],['Stalwart','good',{hpPct:6,armorPct:10}],['Sharpshooter','good',{crit:3,critdmg:15}],['Mana Font','good',{mpPct:10,manaRegen:3}],
-  ['Blessed','good',{heal:15,tkAll:-4}],['Opportunist','good',{executer:15,crit:3}],['Grim Resolve','good',{low:15,taken:-5}],['Prodigy','good',{xp:10,intPct:8}],
+  ['Brawny','good',{strPct:20}],['Nimble','good',{agiPct:20}],['Bookish','good',{intPct:20}],['Well-Rounded','good',{strPct:8,agiPct:8,intPct:8}],
+  ['Thick-Skinned','good',{armorPct:20}],['Hardy','good',{hpPct:9}],['Deep Well','good',{mpPct:15}],['Keen Eye','good',{crit:5}],
+  ['Brutal','good',{critdmg:23}],['Executioner','good',{executer:23}],['Lucky','good',{luck:6}],['Treasure Nose','good',{goldfind:15}],
+  ['Quick Study','good',{xp:15}],['Vampiric','good',{lifesteal:3}],['Fleet-Footed','good',{eva:5}],['Hasty','good',{spdPct:20}],
+  ['Duelist','good',{solo:11}],['Crowd Fighter','good',{pack:11}],['Giant Slayer','good',{boss:15}],['Elite Hunter','good',{elite:15}],
+  ['Last Stand','good',{lastStand:1}],['Ambusher','good',{openCrit:1}],['Second Wind','good',{rest:8}],['Regenerative','good',{regen:2}],
+  ['Meditative','good',{manaRegen:5}],['Efficient Caster','good',{skillCost:-20}],['Skillful','good',{skillDmg:15}],['Berserker’s Blood','good',{low:23}],
+  ['Composed','good',{full:15}],['Pyromaniac','good',{dmg_fire:15}],['Frostborn','good',{tk_ice:-20,dmg_ice:8}],['Stormcaller','good',{dmg_thunder:15}],
+  ['Greenwarden','good',{dmg_grass:15}],['Pugilist','good',{dmg_fighting:15}],['Fireproof','good',{tk_fire:-20}],['Insulated','good',{tk_thunder:-20}],
+  ['Barkskin','good',{tk_grass:-20}],['Iron Jaw','good',{tk_fighting:-20}],['Candle in the Dark','good',{tk_dark:-23}],['Steady','good',{heavyTaken:-25}],
+  ['Spiked Hide','good',{thorns:9}],['Scavenger','good',{scroll:4}],['Gambler’s Grace','good',{gamble:9}],['Trap Sense','good',{chestTrap:-100}],
+  ['Fast Healer','good',{heal:23}],['Weapon Master','good',{physDmg:11}],['Tough as Nails','good',{taken:-8}],['Iron Will','good',{tkAll:-6}],
+  ['First Blood','good',{firstStrike:1}],['Stalwart','good',{hpPct:5,armorPct:8}],['Sharpshooter','good',{crit:2,critdmg:11}],['Mana Font','good',{mpPct:8,manaRegen:2}],
+  ['Blessed','good',{heal:11,tkAll:-3}],['Opportunist','good',{executer:11,crit:2}],['Grim Resolve','good',{low:11,taken:-4}],['Prodigy','good',{xp:8,intPct:6}],
   // neutral: trade-offs
-  ['Reckless','neutral',{power:15,taken:12}],['Glass Cannon','neutral',{power:20,hpPct:-12}],['Turtle','neutral',{armorPct:30,spdPct:-20}],
-  ['Greedy','neutral',{goldfind:30,xp:-15}],['Scholar','neutral',{xp:30,goldfind:-20}],['Bloodthirsty','neutral',{lifesteal:5,heal:-30}],
-  ['Hot-Blooded','neutral',{dmg_fire:25,tk_ice:20}],['Cold-Hearted','neutral',{dmg_ice:25,tk_fire:20}],['Lightning Rod','neutral',{dmg_thunder:25,tk_thunder:20}],
-  ['Rooted','neutral',{tk_grass:-30,spdPct:-12}],['Knuckle-Dragger','neutral',{dmg_fighting:25,mpPct:-15}],['Moody','neutral',{full:25,low:-20}],
-  ['Desperate','neutral',{low:35,full:-15}],['Lone Wolf','neutral',{solo:25,pack:-15}],['Showboat','neutral',{critdmg:40,crit:-3}],
-  ['Cautious','neutral',{taken:-10,power:-8}],['Hoarder','neutral',{luck:10,goldfind:-15}],['Frail Genius','neutral',{intPct:35,strPct:-15}],
-  ['Meathead','neutral',{strPct:35,intPct:-15}],['Twitchy','neutral',{agiPct:35,mpPct:-10}],['Spellbound','neutral',{skillDmg:30,skillCost:25}],
-  ['Thrill-Seeker','neutral',{gamble:15,taken:5}],['Slow Starter','neutral',{slow:1,power:12}],['Ascetic','neutral',{mpPct:25,goldfind:-15}],
-  ['Heavy Sleeper','neutral',{rest:15,spdPct:-15}],
+  ['Reckless','neutral',{power:11,taken:9}],['Glass Cannon','neutral',{power:15,hpPct:-9}],['Turtle','neutral',{armorPct:23,spdPct:-15}],
+  ['Greedy','neutral',{goldfind:23,xp:-11}],['Scholar','neutral',{xp:23,goldfind:-15}],['Bloodthirsty','neutral',{lifesteal:4,heal:-23}],
+  ['Hot-Blooded','neutral',{dmg_fire:20,tk_ice:15}],['Cold-Hearted','neutral',{dmg_ice:20,tk_fire:15}],['Lightning Rod','neutral',{dmg_thunder:20,tk_thunder:15}],
+  ['Rooted','neutral',{tk_grass:-23,spdPct:-9}],['Knuckle-Dragger','neutral',{dmg_fighting:20,mpPct:-11}],['Moody','neutral',{full:20,low:-15}],
+  ['Desperate','neutral',{low:25,full:-11}],['Lone Wolf','neutral',{solo:20,pack:-11}],['Showboat','neutral',{critdmg:30,crit:-2}],
+  ['Cautious','neutral',{taken:-8,power:-6}],['Hoarder','neutral',{luck:8,goldfind:-11}],['Frail Genius','neutral',{intPct:25,strPct:-11}],
+  ['Meathead','neutral',{strPct:25,intPct:-11}],['Twitchy','neutral',{agiPct:25,mpPct:-8}],['Spellbound','neutral',{skillDmg:23,skillCost:20}],
+  ['Thrill-Seeker','neutral',{gamble:11,taken:4}],['Slow Starter','neutral',{slow:1,power:9}],['Ascetic','neutral',{mpPct:20,goldfind:-11}],
+  ['Heavy Sleeper','neutral',{rest:11,spdPct:-11}],
   // bad
-  ['Clumsy','bad',{agiPct:-15}],['Weakling','bad',{strPct:-15}],['Dim','bad',{intPct:-15}],['Sickly','bad',{hpPct:-10}],['Butterfingers','bad',{crit:-4}],
-  ['Coward','bad',{pack:-15}],['Squeamish','bad',{heal:-25}],['Fragile','bad',{taken:10}],['Slowpoke','bad',{spdPct:-20}],
-  ['Unlucky','bad',{luck:-8,gamble:-10}],['Spendthrift','bad',{goldfind:-20}],['Absent-Minded','bad',{xp:-15}],['Flammable','bad',{tk_fire:25}],
-  ['Conductive','bad',{tk_thunder:25}],['Brittle','bad',{tk_ice:25}],['Fear of the Dark','bad',{tk_dark:25}],['Mana Leak','bad',{skillCost:30}],
-  ['Easily Rattled','bad',{heavyTaken:30}],['Hesitant','bad',{slow:1}],
+  ['Clumsy','bad',{agiPct:-11}],['Weakling','bad',{strPct:-11}],['Dim','bad',{intPct:-11}],['Sickly','bad',{hpPct:-8}],['Butterfingers','bad',{crit:-3}],
+  ['Coward','bad',{pack:-11}],['Squeamish','bad',{heal:-20}],['Fragile','bad',{taken:8}],['Slowpoke','bad',{spdPct:-15}],
+  ['Unlucky','bad',{luck:-6,gamble:-8}],['Spendthrift','bad',{goldfind:-15}],['Absent-Minded','bad',{xp:-11}],['Flammable','bad',{tk_fire:20}],
+  ['Conductive','bad',{tk_thunder:20}],['Brittle','bad',{tk_ice:20}],['Fear of the Dark','bad',{tk_dark:20}],['Mana Leak','bad',{skillCost:23}],
+  ['Easily Rattled','bad',{heavyTaken:23}],['Hesitant','bad',{slow:1}],
 ];
 const TRAITS=Object.fromEntries(TRAIT_LIST.map(([n,kind,m],i)=>['t'+i,{id:'t'+i,n,kind,m}]));
 const TRAIT_TXT={
@@ -1903,12 +1906,12 @@ function traitDesc(t){
 const traitSlots=L=>2+Math.floor(L/10);
 function rollTrait(except,force){
   // Grim Outlook (a governor's dark side): positive traits turn rare.
-  const kind=force||weighted(darkIs('grim')?{good:5,neutral:20,bad:75}:{good:60,neutral:25,bad:15});
+  const kind=force||weighted(darkIs('grim')?{good:15,neutral:40,bad:45}:{good:60,neutral:25,bad:15});
   const pool=Object.values(TRAITS).filter(t=>t.kind===kind&&!(except||[]).includes(t.id));
   return pick(pool).id;
 }
 function tr(h,k){let s=0;for(const id of h.traits||[]){const t=TRAITS[id];if(t&&t.m[k])s+=t.m[k]}if(typeof GOV_QUAL!=='undefined'&&state&&state.gov)s+=govMod(k);return s}
-const healMult=h=>Math.max(0,1+tr(h,'heal')/100)*depthsMult();
+const healMult=h=>Math.max(0,1+tr(h,'heal')/100);
 
 /* items */
 const RAR={common:{i:0,n:1,m:1,l:'Common'},rare:{i:1,n:2,m:1.4,l:'Rare'},epic:{i:2,n:3,m:1.9,l:'Epic'},godlike:{i:3,n:4,m:2.6,l:'Godlike'},perfect:{i:4,n:5,m:3,l:'Perfect'}};
@@ -1928,7 +1931,7 @@ const LOOT_CAP={
 // Nine unique weapons, one per weapon type. Each can be found once per game.
 const PERFECTS=[
   {id:'oathkeeper',cls:'warrior',base:'Longsword',n:'Oathkeeper',el:'fighting',fx:'riposte',fxn:'Riposte',fxd:'30% chance to strike back at any enemy that hits the wielder.',aff:[['str',5],['end',4],['critdmg',30],['dmg_fighting',20],['res_dark',12]]},
-  {id:'gravemaul',cls:'warrior',base:'Warhammer',n:'Gravemaul',el:null,fx:'splash',fxn:'Shockwave',fxd:'Single-target hits splash 40% of their damage onto every other enemy.',aff:[['str',6],['end',4],['hp',30],['critdmg',20],['lifesteal',3]]},
+  {id:'gravemaul',cls:'warrior',base:'Warhammer',n:'Gravemaul',el:null,fx:'splash',fxn:'Shockwave',fxd:'Single-target hits splash 40% of their damage onto the enemy next to the target.',aff:[['str',6],['end',4],['hp',30],['critdmg',20],['lifesteal',3]]},
   {id:'widowsedge',cls:'warrior',base:'Falchion',n:'Widow’s Edge',el:null,fx:'execute',fxn:'Reaper',fxd:'Any hit that leaves a non-boss enemy under 15% health kills it outright.',aff:[['str',4],['agi',3],['crit',8],['critdmg',35],['lck',3]]},
   {id:'hawkeye',cls:'archer',base:'Longbow',n:'Hawkeye',el:null,fx:'twin',fxn:'Twin Fletch',fxd:'Every single-target shot fires a second arrow at a random enemy for 50% damage.',aff:[['agi',6],['per',4],['crit',8],['critdmg',25],['lck',3]]},
   {id:'stormstring',cls:'archer',base:'Recurve',n:'Stormstring',el:'thunder',fx:'quicken',fxn:'Quickdraw',fxd:'A crit lets the wielder act again immediately, once in a row.',aff:[['agi',5],['lck',4],['crit',10],['dmg_thunder',20],['per',3]]},
@@ -2053,7 +2056,7 @@ const HERO_HP_SCALE=.5,HERO_DMG_SCALE=.67,FOE_HP_SCALE=.5,FOE_DMG_SCALE=.75;
 /* Fatigue: builds as a hero goes deeper into an adventure (nothing on stages 1-5), and from Wearying Blows.
    Stages 6-9 add 0-1% per stage, 10-19 add 1-3%, 20-29 add 2-5%, and from stage 30 on 5-8%. Strength and Endurance tilt the roll toward the low end.
    50%+: 10% slower. 80%+: deals 33% less damage and takes 33% more. 100%: a random injury (one at a time) that lasts the rest
-   of this week and all of next. Campsites clear fatigue, Energy Brew removes 25%. Everyone is rested when they get home. */
+   of this week and all of next. Campsites halve fatigue, Energy Brew removes 25%. Everyone is rested when they get home. */
 const INJURY={
   ankle:{n:'Sprained Ankle',d:'moves 15% slower'},
   cramp:{n:'Cramping Muscles',d:'deals 20% less damage'},
@@ -2082,7 +2085,7 @@ function addFat(h,x,out){
 }
 function fatLine(h){const f=fatOf(h),j=injOf(h);
   return `<div class="bar fatb ${f>=80?'hi':f>=50?'mid':''}" data-tip="${esc(fatTip(h))}"><i style="width:${f}%"></i><span>Fatigue ${f}%${j?' · '+INJURY[j].n:''}</span></div>`}
-const fatTip=h=>{const f=fatOf(h),j=injOf(h);return `Fatigue ${f}%${f>=80?' (exhausted: 10% slower, 33% less damage dealt, 33% more taken)':f>=50?' (tiring: 10% slower)':''}. Builds from stage 6 on and after every fight (+2% battle, +5% elite, +10% major boss); Strength and Endurance slow the stage build-up. 50%: 10% slower. 80%: 33% less damage dealt and 33% more taken. 100%: an injury. A campsite clears it, Energy Brew removes 25%, and heroes are rested when they get home.${j?` Injured: ${INJURY[j].n}, ${INJURY[j].d} (heals after week ${h.injury.until}).`:''}`};
+const fatTip=h=>{const f=fatOf(h),j=injOf(h);return `Fatigue ${f}%${f>=80?' (exhausted: 10% slower, 33% less damage dealt, 33% more taken)':f>=50?' (tiring: 10% slower)':''}. Builds from stage 6 on and after every fight (+2% battle, +5% elite, +10% major boss); Strength and Endurance slow the stage build-up. 50%: 10% slower. 80%: 33% less damage dealt and 33% more taken. 100%: an injury. A campsite halves it, Energy Brew removes 25%, and heroes are rested when they get home.${j?` Injured: ${INJURY[j].n}, ${INJURY[j].d} (heals after week ${h.injury.until}).`:''}`};
 function fatBar(h){const f=fatOf(h),j=injOf(h),tip=fatTip(h);
   return `<span class="ufat ${f>=80?'hi':f>=50?'mid':''}" data-tip="${esc(tip)}"><i style="width:${f}%"></i><span>${j?'✚ ':''}${f}%</span></span>`}
 // Everyone has 15% less health than before; archers and mages lose another 10% on top (fragile on purpose). Always rounded down.
@@ -2318,7 +2321,7 @@ function goldAmt(base){
 // Just before the final boss: the party sees it coming and makes camp. Same as a campsite, no stop on the map.
 function finalApproach(){
   const r=state.run,B=BIOMES[r.biome],L=living(),inj=[];
-  const parts=L.map(x=>{const v=Math.round(maxHp(x)*.4*healMult(x)),m=Math.round(maxMp(x)*.4);x.hp=Math.min(maxHp(x),x.hp+v);x.mp=Math.min(maxMp(x),x.mp+m);x.fat=0;if(injOf(x))inj.push(`${esc(x.name)}’s ${INJURY[injOf(x)].n} still aches.`);return `${esc(x.name)} +${v} HP, +${m} MP`});
+  const parts=L.map(x=>{const v=Math.round(maxHp(x)*.4*healMult(x)*depthsMult()),m=Math.round(maxMp(x)*.4*depthsMult());x.hp=Math.min(maxHp(x),x.hp+v);x.mp=Math.min(maxMp(x),x.mp+m);x.fat=0;if(injOf(x))inj.push(`${esc(x.name)}’s ${INJURY[injOf(x)].n} still aches.`);return `${esc(x.name)} +${v} HP, +${m} MP`});
   r.fatMsg=null;
   r.event={intro:true,approach:true,title:'The Final Approach',text:`Far ahead, a shape moves against the horizon: the <b class="warn">Warden of ${esc(B.name.replace(/^The /,''))}</b>, and it is coming this way. The ${L.length>1?'party makes':'hero makes'} one last camp and rests by the fire while it approaches. Fatigue is gone. ${parts.join(', ')}.${inj.length?' <span class="warn">'+inj.join(' ')+'</span>':''}`};
 }
@@ -2690,7 +2693,9 @@ function startBattle(kind){
 const b0ct=()=>state.run.battle.ct;
 function aliveFoes(){return state.run.battle.enemies.filter(e=>e.hp>0)}
 // Warriors fight in melee: on their turn they can only reach the front-line enemy (the first one still standing).
-// Skills that hit every enemy, like Cleave, still sweep the whole line.
+// Cleave and weapon splash reach the front enemy and the one next to it, never the back of a pack of three.
+// Earthshatter is the one warrior skill that shakes the whole line.
+const meleeReach=(h,act)=>h&&h.cls==='warrior'&&act!=='quake'?aliveFoes().slice(0,2):aliveFoes();
 const frontOnly=()=>{const b=state.run&&state.run.battle,h=b&&b.cur&&heroById(b.cur);return !!(h&&h.cls==='warrior'&&h.hp>0)};
 // The battle backdrop is redrawn on every move; a negative delay picks the drift up where the clock says it is, so it never jumps back.
 const panDelay=T=>`-${((performance.now()/1000)%T).toFixed(2)}s`;
@@ -2761,7 +2766,7 @@ function heroWindup(h,act,allyId){
   if(act==='atk'||act.startsWith('atk:')){name=ATK_KINDS[act.split(':')[1]||'normal'].n;if(ti){tg=[ti];to=t.name}}
   else if(act.startsWith('item:')){const C=CONSUMABLES[act.slice(5)],a=heroById(allyId)||h;name=C?C.n:'an item';tg=['h'+a.id];to=a===h?'':esc(a.name)}
   else{const sk=SKILLS[act];name=sk.n;
-    if(sk.tgt==='all'){tg=aliveFoes().map(e=>'e'+b.enemies.indexOf(e));to='every enemy'}
+    if(sk.tgt==='all'){const R=meleeReach(h,act);tg=R.map(e=>'e'+b.enemies.indexOf(e));to=h.cls==='warrior'&&aliveFoes().length>R.length?'the front two enemies':'every enemy'}
     else if(sk.tgt==='ally'||sk.tgt==='dead'){const a=heroById(allyId)||h;tg=['h'+a.id];to=a===h?'':esc(a.name)}
     else if(sk.tgt==='rand'){tg=aliveFoes().map(e=>'e'+b.enemies.indexOf(e));to='random enemies'}
     else if(sk.tgt==='party'){tg=partyAll().map(x=>'h'+x.id);to='the party'}
@@ -2892,7 +2897,7 @@ function heroAction(act,allyId){
     const o={...sk,mult:skillMult(h,sk),el:atkEl(h,sk.el),label:`${h.cls==='mage'?'casts':'uses'} ${sk.n} on`};
     // Remember what was cast and on whom, so the stage can play the skill's animation.
     const F=b.fx.sk={id:act,h:h.id,c:o.el&&o.el!=='physical'&&EL_COL[o.el]?EL_COL[o.el]:null,tg:[],al:ally?[ally.id]:sk.tgt==='party'?partyAll().map(x=>x.id):sk.tgt==='self'?[h.id]:[]};
-    if(sk.tgt==='all'){o.aoe=true;for(const e of aliveFoes())for(let i=0;i<(sk.hits||1);i++)if(e.hp>0){const d=hitEnemy(h,e,o);afterHit(h,e,act,d)}}
+    if(sk.tgt==='all'){o.aoe=true;for(const e of meleeReach(h,act))for(let i=0;i<(sk.hits||1);i++)if(e.hp>0){const d=hitEnemy(h,e,o);afterHit(h,e,act,d)}}
     else if(sk.tgt==='rand'){for(let i=0;i<(sk.hits||1);i++){const t=pick(aliveFoes());if(!t)break;const d=hitEnemy(h,t,o);afterHit(h,t,act,d)}}
     else if(sk.chain){let t=tgt,m=1;const done=[];for(let i=0;i<sk.chain&&t;i++){const d=hitEnemy(h,t,{...o,mult:o.mult*m});afterHit(h,t,act,d);done.push(t);m*=.75;t=aliveFoes().find(x=>!done.includes(x))}}
     else if(sk.tgt==='enemy'&&sk.mult){for(let i=0;i<(sk.hits||1);i++){const t=i?fixTarget():tgt;if(t&&t.hp>0){const d=hitEnemy(h,t,o);afterHit(h,t,act,d)}}}
@@ -3046,7 +3051,7 @@ function hitEnemy(h,e,o){
   b.fx['e'+idx]=1;b.pops.push({s:'e',i:idx,t:d,crit});
   if(crit){if(!b.critThisAction&&h.hp>0)critBuff(h);b.fx.shake=1;b.critThisAction=true}
   // Reckless Fury: every crit tears at the hero's own scars.
-  if(crit&&darkIs('fury')&&h.hp>1){const x=Math.max(1,Math.round(maxHp(h)*.01));h.hp=Math.max(1,h.hp-x);b.pops.push({s:'h',hid:h.id,t:x});blog(`<span class="warn">${esc(h.name)}’s fury costs ${x} HP.</span>`);darkHit('fury')}
+  if(crit&&darkIs('fury')&&h.hp>1){const x=Math.max(1,Math.round(maxHp(h)*.02));h.hp=Math.max(1,h.hp-x);b.pops.push({s:'h',hid:h.id,t:x});blog(`<span class="warn">${esc(h.name)}’s fury costs ${x} HP.</span>`);darkHit('fury')}
   if(el!=='physical')b.fx['burst'+idx]=EL_COL[el];
   if(e.hp<=0)b.fx['die'+idx]=1;
   blog(`${esc(h.name)} ${o.label} ${e.name}${el!=='physical'?` (${elTag(el)})`:''}${seeFoeNumbers()?` for <b>${d}</b>`:''}${crit?' <b class="gold">CRIT</b>':''}${m>1?' · weak spot!':m<1?' · resisted':''}${res>=40?` · ${res}% resist`:''}`);
@@ -3076,7 +3081,7 @@ function critBuff(h){
 // Perfect weapon triggers. Procs never trigger further procs.
 function weaponProc(h,e,d,o){
   const w=h.gear.weapon,fx=w&&w.fx;if(!fx||d<=0||h.hp<=0)return;
-  const b=state.run.battle,P=PERF[w.pid],others=aliveFoes().filter(x=>x!==e),big=['boss','warden','king'].includes(e.kind),idx=b.enemies.indexOf(e);
+  const b=state.run.battle,P=PERF[w.pid],others=meleeReach(h).filter(x=>x!==e),big=['boss','warden','king'].includes(e.kind),idx=b.enemies.indexOf(e);
   const tag=`<span class="r-perfect">${P.n}</span>`;
   if(fx==='splash'&&!o.aoe&&others.length){
     const x=Math.max(1,Math.round(d*.4));
@@ -3284,7 +3289,7 @@ function win(){
     if(chance(.3)){const it=makeItem('chest',ilvl(),pick(L).cls);addLoot(it,lines,`${esc(spotter.name)} spots something half-buried: `);b.extraDrops.push({k:'item',it,ground:(r.ground||[]).includes(it)})}
     else{const g2=goldAmt(4+1.2*s);r.gold+=g2;b.extraDrops.push({k:'gold',g:g2});lines.push(`${esc(spotter.name)} spots a hidden purse: <b class="gold">+${g2} gold</b>`)}}}
   for(const h of L){
-    const hh=Math.round(maxHp(h)*restPct(h)/100*healMult(h)),mm=Math.round(maxMp(h)*(.25+tr(h,'recup')/100)*manaMult()*depthsMult());
+    const hh=Math.round(maxHp(h)*restPct(h)/100*healMult(h)*depthsMult()),mm=Math.round(maxMp(h)*(.25+tr(h,'recup')/100)*manaMult()*depthsMult());
     h.hp=Math.min(maxHp(h),h.hp+hh);h.mp=Math.min(maxMp(h),h.mp+mm);
   }
   {const got={};
@@ -3401,8 +3406,8 @@ function chooseNode(i){
     const F=eventBonus(),g=Math.max(1,Math.round(goldAmt(10+3*s)*(1+F/100)));r.gold+=g;
     r.event={title:'Gold Cache',icon:'coin',text:`${F>=0?'A wounded scout trades their purse for directions home.':'A scout eyes you warily, tosses a few coins and runs.'} <b class="gold">+${g} gold</b>.${chaNote()}`};
   }else if(t==='heal'){
-    const F=eventBonus(),inj=[],parts=L.map(x=>{const v=Math.round(maxHp(x)*clamp(.4*(1+F/100),.25,.65)*healMult(x)),m=Math.round(maxMp(x)*clamp(.4*(1+F/100),.25,.65));x.hp=Math.min(maxHp(x),x.hp+v);x.mp=Math.min(maxMp(x),x.mp+m);x.fat=0;if(injOf(x))inj.push(`${esc(x.name)}’s ${INJURY[injOf(x)].n} still aches.`);return `${esc(x.name)} +${v} HP, +${m} MP`});
-    r.event={title:'Campsite',icon:'camp',text:`The ${L.length>1?'party makes':'hero makes'} camp and sleeps by the fire. Fatigue is gone. ${parts.join(', ')}.${inj.length?' <span class="warn">'+inj.join(' ')+'</span>':''}${chaNote()}`};
+    const F=eventBonus(),inj=[],parts=L.map(x=>{const v=Math.round(maxHp(x)*clamp(.4*(1+F/100),.25,.65)*healMult(x)*depthsMult()),m=Math.round(maxMp(x)*clamp(.4*(1+F/100),.25,.65)*depthsMult());x.hp=Math.min(maxHp(x),x.hp+v);x.mp=Math.min(maxMp(x),x.mp+m);x.fat=(x.fat||0)/2;if(injOf(x))inj.push(`${esc(x.name)}’s ${INJURY[injOf(x)].n} still aches.`);return `${esc(x.name)} +${v} HP, +${m} MP, fatigue ${fatOf(x)}%`});
+    r.event={title:'Campsite',icon:'camp',text:`The ${L.length>1?'party makes':'hero makes'} camp and sleeps by the fire. Fatigue is halved. ${parts.join(', ')}.${inj.length?' <span class="warn">'+inj.join(' ')+'</span>':''}${chaNote()}`};
   }else if(t==='merchant'){
     r.event={title:'Traveling Merchant',icon:'coin',text:'A merchant has set up a stall by the path, lantern swinging.',shop:makeShop(1)};
   }else if(t==='mystery'){
@@ -3656,37 +3661,37 @@ function constructionView(k){
    Values and wording come from the "DSOTM Opening Governor" sheet. */
 // k: the bonus key (read by tr() for every hero), v: bonus per pick, p: the past-life profession it suggests.
 const GOV_QUAL={
-  vitality:{n:'Vitality',p:'Nutritionist',v:2,k:'hpPct',fx:'max health',c:'#e05a5a'},
-  willpower:{n:'Willpower',p:'Philosopher',v:4,k:'mpPct',fx:'max mana',c:'#5a7ae0'},
-  valor:{n:'Valor',p:'Soldier',v:2,k:'basicDmg',fx:'damage from basic attacks',c:'#d0703a'},
-  strategy:{n:'Strategy',p:'Tactician',v:2,k:'skillDmg',fx:'skill damage',c:'#b56fe3'},
-  precision:{n:'Precision',p:'Surgeon',v:4,k:'critdmg',fx:'crit damage',c:'#ff8a5c'},
-  resilience:{n:'Resilience',p:'Stunt Double',v:4,k:'armorPct',fx:'armor',c:'#a8a8b8'},
-  agility:{n:'Agility',p:'Acrobat',v:1,k:'eva',fx:'evasion',c:'#9fd6ff'},
-  fortitude:{n:'Fortitude',p:'Firefighter',v:2,k:'resAll',fx:'resistance to every element',c:'#e0a040'},
-  riposte:{n:'Riposte',p:'Duelist',v:2,k:'thorns',fx:'of damage taken reflected back (thorns)',c:'#c98b5c'},
-  pharmacology:{n:'Pharmacology',p:'Pharmacist',v:4,k:'consHeal',fx:'healing from potions, food and other consumables',c:'#8fe08a'},
-  firstaid:{n:'First Aid',p:'Paramedic',v:2,k:'heal',fx:'healing received',c:'#78d078'},
-  composure:{n:'Composure',p:'Psychologist',v:4,k:'manaHeal',fx:'mana restored',c:'#7aa0f0'},
-  recuperation:{n:'Recuperation',p:'Sports Medicine Physician',v:2,k:'recup',fx:'health and mana recovered after each won battle',c:'#60c0a0'},
-  deduction:{n:'Deduction',p:'Detective',v:4,k:'perPct',fx:'Perception',c:'#6ab0e0'},
-  diplomacy:{n:'Diplomacy',p:'Diplomat',v:4,k:'chaPct',fx:'Charisma',c:'#e3b341'},
-  serendipity:{n:'Serendipity',p:'Fortune Teller',v:4,k:'lckPct',fx:'Luck',c:'#78ab60'},
-  vigilance:{n:'Vigilance',p:'Scout',v:2,k:'perThr',fx:'lower Perception needed to scout and read enemies',c:'#9fd6ff'},
-  opportunism:{n:'Opportunism',p:'Gambler',v:2,k:'eventUp',fx:'better rewards from events',c:'#f0d27a'},
-  retreat:{n:'Tactical Retreat',p:'Sprinter',v:8,k:'fleeCut',fx:'less gold lost and a lower chance of losing items when fleeing',c:'#b0b0c0'},
-  leadership:{n:'Leadership',p:'Professor',v:2,k:'xp',fx:'experience gained',c:'#f0d27a'},
+  vitality:{n:'Vitality',p:'Nutritionist',v:3,k:'hpPct',fx:'max health',c:'#e05a5a'},
+  willpower:{n:'Willpower',p:'Philosopher',v:6,k:'mpPct',fx:'max mana',c:'#5a7ae0'},
+  valor:{n:'Valor',p:'Soldier',v:3,k:'basicDmg',fx:'damage from basic attacks',c:'#d0703a'},
+  strategy:{n:'Strategy',p:'Tactician',v:3,k:'skillDmg',fx:'skill damage',c:'#b56fe3'},
+  precision:{n:'Precision',p:'Surgeon',v:6,k:'critdmg',fx:'crit damage',c:'#ff8a5c'},
+  resilience:{n:'Resilience',p:'Stunt Double',v:6,k:'armorPct',fx:'armor',c:'#a8a8b8'},
+  agility:{n:'Agility',p:'Acrobat',v:1.5,k:'eva',fx:'evasion',c:'#9fd6ff'},
+  fortitude:{n:'Fortitude',p:'Firefighter',v:3,k:'resAll',fx:'resistance to every element',c:'#e0a040'},
+  riposte:{n:'Riposte',p:'Duelist',v:3,k:'thorns',fx:'of damage taken reflected back (thorns)',c:'#c98b5c'},
+  pharmacology:{n:'Pharmacology',p:'Pharmacist',v:6,k:'consHeal',fx:'healing from potions, food and other consumables',c:'#8fe08a'},
+  firstaid:{n:'First Aid',p:'Paramedic',v:3,k:'heal',fx:'healing received',c:'#78d078'},
+  composure:{n:'Composure',p:'Psychologist',v:6,k:'manaHeal',fx:'mana restored',c:'#7aa0f0'},
+  recuperation:{n:'Recuperation',p:'Sports Medicine Physician',v:3,k:'recup',fx:'health and mana recovered after each won battle',c:'#60c0a0'},
+  deduction:{n:'Deduction',p:'Detective',v:6,k:'perPct',fx:'Perception',c:'#6ab0e0'},
+  diplomacy:{n:'Diplomacy',p:'Diplomat',v:6,k:'chaPct',fx:'Charisma',c:'#e3b341'},
+  serendipity:{n:'Serendipity',p:'Fortune Teller',v:6,k:'lckPct',fx:'Luck',c:'#78ab60'},
+  vigilance:{n:'Vigilance',p:'Scout',v:3,k:'perThr',fx:'lower Perception needed to scout and read enemies',c:'#9fd6ff'},
+  opportunism:{n:'Opportunism',p:'Gambler',v:3,k:'eventUp',fx:'better rewards from events',c:'#f0d27a'},
+  retreat:{n:'Tactical Retreat',p:'Sprinter',v:15,k:'fleeCut',fx:'less gold lost and a lower chance of losing items when fleeing',c:'#b0b0c0'},
+  leadership:{n:'Leadership',p:'Professor',v:3,k:'xp',fx:'experience gained',c:'#f0d27a'},
 };
 // Question 9's hidden dark sides. s: the sin it stems from, d: what it does once it shows.
 const GOV_DARK={
-  grim:{n:'Grim Outlook',s:'Despair',d:'New recruits always arrive with 2 negative traits, and positive traits are rare (neutral 20%, positive 5%).'},
-  vanity:{n:'Heavy Vanity',s:'Overconfidence',d:'Fine armor weighs down every swing: each Rare armor piece worn cuts damage by 1%, Epic 2%, Godlike 3%, Perfect 5%.'},
-  greed:{n:'Mercenary Greed',s:'Greed',d:'Every hero has one fewer ring slot.'},
-  fury:{n:'Reckless Fury',s:'Wrath',d:'Every critical hit costs the hero 1% of their max health.'},
-  selfish:{n:'Selfish Triage',s:'Envy',d:'Heals and revives can’t be used on anyone else, party heals included. Everyone looks after themselves.'},
-  depths:{n:'Seduction of the Depths',s:'Lust',d:'On an adventure, all healing drops by 10% every 4 steps, until no heal works at all.'},
-  thirst:{n:'Bottomless Thirst',s:'Gluttony',d:'Every potion, food and other consumable takes 2 to use and has the effect of 1.'},
-  inertia:{n:'Lingering Inertia',s:'Sloth',d:'The heroes always act after the enemy and can never act twice before it.'},
+  grim:{n:'Grim Outlook',s:'Despair',d:'New recruits always arrive with 2 negative traits, and positive traits are rarer: neutral traits show up 40% of the time and positive ones 15%.'},
+  vanity:{n:'Heavy Vanity',s:'Overconfidence',d:'Fine armor weighs down every swing: each Rare armor piece worn cuts damage by 1%, Epic 3%, Godlike 5%, Perfect 10%, all adding up.'},
+  greed:{n:'Mercenary Greed',s:'Greed',d:'All heroes have one fewer ring slot.'},
+  fury:{n:'Reckless Fury',s:'Wrath',d:'Every critical hit costs the hero 2% of their max health.'},
+  selfish:{n:'Selfish Triage',s:'Envy',d:'Heals and revives can’t be used on another hero, party heals included.'},
+  depths:{n:'Seduction of the Depths',s:'Lust',d:'On an adventure, the health and mana recovered between maps drops by 10% every 4 steps, until there is no passive healing left.'},
+  thirst:{n:'Bottomless Thirst',s:'Gluttony',d:'All consumables and potions take 2 to use and have the effect of 1.'},
+  inertia:{n:'Lingering Inertia',s:'Sloth',d:'All heroes act second every turn and can never attack twice before the enemy.'},
 };
 const GOV_Q=[
   {q:'A catastrophic tremor and explosion devastate the governorship seat at dawn. As smoke clears over the ruins, what is your immediate emotional state and governing instinct?',a:[
@@ -3767,9 +3772,9 @@ function darkView(){
     <p class="profbuff">${D.d}</p><div class="row" style="justify-content:center"><button class="btn big" data-a="darkOk">I’ll carry it</button></div></section></div>`;
 }
 // Heavy Vanity: damage lost to the armor tiers a hero wears.
-const VANITY=[0,1,2,3,5];
+const VANITY=[0,1,3,5,10];
 const vanityPen=h=>darkIs('vanity')?['helmet','chest','pants'].reduce((a,sl)=>a+(h.gear[sl]?VANITY[RAR[h.gear[sl].rarity].i]:0),0):0;
-// Seduction of the Depths: healing on an adventure falls 10% every 4 steps.
+// Seduction of the Depths: the passive HP and MP recovery between maps (after battles, at campsites) falls 10% every 4 steps.
 const depthsMult=()=>darkIs('depths')&&state.run?Math.max(0,1-.1*Math.floor(((state.run.stage||1)-1)/4)):1;
 // Bottomless Thirst: consumables take two.
 const consNeed=()=>darkIs('thirst')?2:1;
@@ -4126,9 +4131,9 @@ function townView(){
 const onRun=h=>!!(state.run&&(state.run.party||[]).includes(h.id));
 const shownHp=h=>onRun(h)?Math.round(h.hp):maxHp(h),shownMp=h=>onRun(h)?Math.round(h.mp):maxMp(h);
 function heroRail(){
-  const H=state.heroes;
+  const H=state.heroes,party=state.run?[]:selParty();
   const card=h=>{const C=C_(h),mh=maxHp(h),mm=maxMp(h),need=xpNeed(h.level),ts=(h.traits||[]).map(id=>TRAITS[id]).filter(Boolean),busy=onRun(h),hp=shownHp(h),mp=shownMp(h);
-    return `<button class="hrcard" data-a="heroSheet" data-x="${h.id}" aria-label="${esc(h.name)}, level ${h.level} ${C.name}. Open full sheet">
+    return `<button class="hrcard ${party.includes(h.id)?'inparty':''}" data-a="heroSheet" ${state.run?'':'data-dbl="partyDbl"'} data-x="${h.id}" aria-label="${esc(h.name)}, level ${h.level} ${C.name}${party.includes(h.id)?', in this week’s party':''}. Open full sheet${state.run?'':'; double-click to add to or remove from this week’s party'}">
       <span class="hrport" style="--ct:${C.tint}">${sprite(h.cls,C.tint,4)}<b class="hrlv">${h.level}</b></span>
       <span class="hrbody"><span class="hrname">${esc(h.name)}${h.points?` <span class="hrpts">+${h.points} pts</span>`:''}</span>
         <span class="hrcls">Lv ${h.level} ${C.name}${busy?' · away':''} ${badgeIco(h.badge||0)}</span>
@@ -4136,7 +4141,7 @@ function heroRail(){
         <span class="bar mp"><i style="width:${clamp(mp/mm*100,0,100)}%"></i><span>${mp} / ${mm} MP</span></span>
         <span class="hrxp" data-tip="${fmt(h.xp)} / ${fmt(need)} XP"><i style="width:${clamp(h.xp/need*100,0,100)}%"></i></span>
         <span class="hrtraits">${ts.map(t=>`<span class="tk-${t.kind}">${t.n}</span>`).join('')}</span></span></button>`};
-  return `<aside class="hrail" aria-label="Your heroes"><div class="hrhead"><h2>Heroes</h2><span class="muted">${H.length}/${slots()}</span></div>
+  return `<aside class="hrail" aria-label="Your heroes"><div class="hrhead"><h2>Heroes</h2><span class="muted">${H.length}/${slots()}</span></div>${H.length&&!state.run?'<p class="muted hrhint">Double-click a hero to add or remove them from this week’s party.</p>':''}
     <div class="hrlist">${H.length?H.map(card).join(''):`<button class="nextstep" data-a="tab" data-x="heroes">${sprite('book','#5a3f7a',3)}<span><small>No heroes yet</small><b>Recruit one</b></span></button>`}</div></aside>`;
 }
 function heroSheet(){
@@ -4169,7 +4174,7 @@ function academyView(){
   return s;
 }
 function heroChips(act,selId,filter){
-  return `<div class="tabs">${state.heroes.filter(filter||(()=>true)).map(h=>`<button class="btn small ${h.id===selId?'on':''}" data-a="${act}" data-x="${h.id}"><span>${esc(h.name)} · Lv ${h.level} ${C_(h).name} ${badgeIco(h.badge||0)}${h.points?` · <span class="gold">${h.points} pts</span>`:''}</span>${xpMini(h,false)}</button>`).join('')}</div>`;
+  return `<div class="tabs">${state.heroes.filter(filter||(()=>true)).map(h=>`<button class="btn small ${h.id===selId?'on':''}" data-a="${act}" ${act==='selHero'&&!state.run?'data-dbl="partyDbl"':''} data-x="${h.id}"><span>${esc(h.name)} · Lv ${h.level} ${C_(h).name} ${badgeIco(h.badge||0)}${h.points?` · <span class="gold">${h.points} pts</span>`:''}</span>${xpMini(h,false)}</button>`).join('')}</div>`;
 }
 function statTable(h){
   const C=C_(h),row=(k,v,tip)=>`<dt data-tip="${esc(tip)}" tabindex="0">${k}</dt><dd>${v}</dd>`;
@@ -4812,7 +4817,7 @@ function actBar(){
   const effOf=el=>{const m=heroMatch(h,el,tgt.type),res=el==='physical'?0:tgt.res[el];return m*(1-res/100)*(el==='physical'?1:1+aff(h,'dmg_'+el)/100)};
   const known=isScouted(tgt);
   const odds=o=>{const el=atkEl(h,o.el),[lo,hi]=dmgRange(h,o,el);return `${el!=='physical'?elIco(el):''}<b>${lo}–${hi}</b>${o.hits>1?' ×'+o.hits:''} dmg · ${known||o.sure?Math.round(hitChance(h,tgt,o.acc,o.sure)):'?'}% hit · ${Math.round(critFor(h,o))}% crit`};
-  let s=`<div class="acthead"><b class="gold">${esc(h.name)}’s turn</b><button class="btn small ${b.auto?'on':''}" data-a="auto">Auto ${b.auto?'on':'off'}</button>${living().length>1?`<button class="btn small" data-a="moveOpen" data-tip="Step one place forward or back in the line. Uses the turn.">Move</button>`:''}<span class="tinfo">Target <b>${esc(tgt.name)}</b> <span class="muted">(tap a monster to change)</span>: ${foeBrief(tgt)}${h.cls==='warrior'&&aliveFoes().length>1?' <span class="muted">· Warriors can only reach the front line; skills that hit every enemy still reach them all.</span>':''}</span></div>`;
+  let s=`<div class="acthead"><b class="gold">${esc(h.name)}’s turn</b><button class="btn small ${b.auto?'on':''}" data-a="auto">Auto ${b.auto?'on':'off'}</button>${living().length>1?`<button class="btn small" data-a="moveOpen" data-tip="Step one place forward or back in the line. Uses the turn.">Move</button>`:''}<span class="tinfo">Target <b>${esc(tgt.name)}</b> <span class="muted">(tap a monster to change)</span>: ${foeBrief(tgt)}${h.cls==='warrior'&&aliveFoes().length>1?' <span class="muted">· Warriors can only reach the front line; Cleave also hits the enemy next to it, and only Earthshatter reaches the backh them all.</span>':''}</span></div>`;
   if(b.pending==='move'){const L=living(),i=L.indexOf(h);return s+`<p class="gold">Move ${esc(h.name)} (uses the turn)</p><div class="skgrid"><button class="btn" data-a="moveGo" data-x="f" ${i<=0?'disabled':''}><span>◀ Forward</span><span class="sub2">${i>0?'swap with '+esc(L[i-1].name):'already in front'}</span></button><button class="btn" data-a="moveGo" data-x="b" ${i>=L.length-1?'disabled':''}><span>Back ▶</span><span class="sub2">${i<L.length-1?'swap with '+esc(L[i+1].name):'already at the back'}</span></button><button class="btn" data-a="cancelCast">Cancel</button></div>`}
   if(b.pending){const nm=SKILLS[b.pending]?SKILLS[b.pending].n:CONSUMABLES[b.pending.slice(5)].n;
     return s+`<p class="gold">${nm}: choose a hero</p><div class="skgrid">${(SKILLS[b.pending]&&SKILLS[b.pending].tgt==='dead'?partyAll().filter(x=>x.hp<=0):living()).map(x=>`<button class="btn" data-a="allyCast" data-x="${x.id}"><span>${esc(x.name)}</span><span class="sub2">${x.hp}/${maxHp(x)} HP · ${x.mp}/${maxMp(x)} MP</span></button>`).join('')}<button class="btn" data-a="cancelCast">Cancel</button></div>`}
@@ -5397,6 +5402,7 @@ const ACT={
   draught:el=>{const h=heroById(state.sel.alch),c=priced(60,h);if(!h||state.gold<c)return;state.gold-=c;h.draught={el,v:20}},
   build:k=>{const B=BUILD[k],L=state.b[k],c=B.cost(L);if(L>=B.max||state.gold<c)return;state.gold-=c;state.b[k]++},
   sell:id=>{const it=state.bank.find(x=>x.id===id);if(!it||it.rarity==='perfect')return;state.gold+=sellVal(it);state.bank=state.bank.filter(x=>x.id!==id)},
+  partyDbl:id=>{if(state.run||!heroById(id))return;const p=selParty();if(!p.includes(id)&&p.length>=partySize()&&partySize()>1)return;state.sel.party=p;ACT.partyToggle(id)},
   partyToggle:id=>{const p=selParty();if(p.includes(id))state.sel.party=p.filter(x=>x!==id);else if(p.length<partySize()){const R={warrior:0,archer:1,mage:2},c=h=>R[(heroById(h)||{}).cls]??3;state.sel.party=[...p,id].sort((a,b)=>c(a)-c(b))}else if(partySize()===1)state.sel.party=[id]},
   prepOrder:x=>{const [id,d]=x.split('|'),p=[...selParty()],i=p.indexOf(id),j=i+(+d);if(i<0||j<0||j>=p.length)return;[p[i],p[j]]=[p[j],p[i]];state.sel.party=p},
   len:k=>{if(k==='descent'&&!descentUnlocked())return;state.sel.len=k},
@@ -5649,7 +5655,12 @@ document.addEventListener('change',ev=>{if(ev.target&&ev.target.id==='impfile'&&
 document.addEventListener('fullscreenchange',()=>{if(ui.settings)render()});
 document.addEventListener('click',ev=>{
   const t=ev.target.closest('[data-a]');if(!t||t.disabled)return;
-  const f=ACT[t.dataset.a];if(!f)return;f(t.dataset.x);render();
+  const f=ACT[t.dataset.a];if(!f)return;
+  // Buttons with data-dbl do something else on a double-click, so their single click waits a moment first.
+  if(t.dataset.dbl&&ACT[t.dataset.dbl]){clearTimeout(ui.dblT);const x=t.dataset.x;
+    if(ev.detail>=2){ACT[t.dataset.dbl](x);render();return}
+    ui.dblT=setTimeout(()=>{f(x);render()},300);return}
+  f(t.dataset.x);render();
 });
 // Don't redraw while someone is typing: on phones the keyboard opening resizes the screen, and a redraw would replace the text box and close the keyboard. Redraw once they're done instead.
 const typing=()=>{const a=document.activeElement;return !!a&&(a.tagName==='TEXTAREA'||(a.tagName==='INPUT'&&/^(text|search|email|number|password|tel|url)$/.test(a.type)))};
