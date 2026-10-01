@@ -395,6 +395,12 @@ button[data-tip]{cursor:pointer}
 .lmod.bad{color:#ff8a7a;border-color:#ff8a7a77;background:#c4463f1f}
 .lmod.good{color:#9fe08a;border-color:#9fe08a77;background:#78ab601f}
 .lmod.pact{color:#c9a8ff;border-color:#9b70dc88;background:#9b70dc1f}
+.lmod.lost{color:#f2a83a;border-color:#f2a83a88;background:#f2a83a1a}
+/* a monster holding a fallen hero's Godlike or Perfect gear: traced in white */
+.unit.foe.carrier .fo img.px{filter:drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff) drop-shadow(0 0 7px #ffffffcc);animation:carryGlow 1.6s ease-in-out infinite}
+@keyframes carryGlow{50%{filter:drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff) drop-shadow(0 0 14px #ffffff)}}
+body.nomotion .unit.foe.carrier .fo img.px{animation:none}
+.lmodnote.lost{border-color:#f2a83a;background:#f2a83a14}
 .lmodrow{display:flex;flex-wrap:wrap}
 .lmodnote{font-size:18px;padding:4px 8px;border-left:3px solid;margin:4px 0}
 .lmodnote.bad{border-color:var(--blood);background:#c4463f18}.lmodnote.good{border-color:var(--moss);background:#78ab6018}
@@ -2292,7 +2298,7 @@ function save(){if(ui.erased&&ui.erased===(ui.slot||1))return;try{localStorage.s
 function load(){try{const s=localStorage.getItem(slotKey(ui.slot||1));if(s){const o=JSON.parse(s);if(o&&o.v===1)return o}}catch(e){}return null}
 // New loot goes into the backpack; when it is full, the item lands on the ground until the party moves on.
 // Perfect weapons are soulbound: they go back to the vault instead of being lost.
-function rescuePerfect(it,lines){if(!it||it.rarity!=='perfect')return false;delete it.found;if(!state.bank.includes(it))state.bank.push(it);lines&&lines.push(`<span class="r-perfect">${esc(it.name)}</span> returns to your vault. A Perfect weapon is never lost.`);return true}
+function rescuePerfect(it,lines){if(!it||it.rarity!=='perfect')return false;delete it.found;if(!state.bank.includes(it))state.bank.push(it);lines&&lines.push(`<span class="r-perfect">${esc(it.name)}</span> returns to your vault.`);return true}
 function addLoot(it,lines,pre){
   const r=state.run;r.ground=r.ground||[];
   it.found=r.id;
@@ -2841,6 +2847,9 @@ function mitigate(h,raw,mix){
 const mixText=m=>Object.entries(m).filter(([,v])=>v>0.001).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${Math.round(v*100)}% ${k==='physical'?'physical':cap(k)}`).join(' / ');
 function startBattle(kind){
   const r=state.run,es=[makeEnemy(kind)],n=packSize(kind);
+  {const H=huntHere(r);
+   if((kind==='normal'||kind==='elite')){const c=H.filter(x=>x.kind==='normal'||x.kind==='elite');if(c.length&&chance(HUNT_ODDS)){const x=pick(c),e=makeEnemy(kind,false,x.spr);e.carry=c.filter(y=>y.base===x.base).map(y=>({it:y.it,owner:y.owner}));es[0]=e}}
+   else for(const e of es){const m=H.filter(x=>x.base===e.base);if(m.length)e.carry=m.map(x=>({it:x.it,owner:x.owner}))}}
   while(es.length<n)es.push(makeEnemy('normal',true,kind==='king'?'brute':null));
   const lead0=es[0];es.sort(()=>Math.random()-.5); // formation is shuffled every fight
   const tally={},seen={};for(const e of es)tally[e.name]=(tally[e.name]||0)+1;
@@ -2853,6 +2862,7 @@ function startBattle(kind){
   if(kind==='king')blog(`<b class="warn">The torches die. The Unlit King rises from his throne of ash, flanked by his knights.</b>`);
   else blog(`${kind==='boss'?'A major boss appears: ':''}${lead.name} (Lv ${Math.round(lead.lvl)}) blocks the path${es.length>1?`, with ${es.length-1} more behind it`:''}.`);
   if(lead.mutation)blog(`Mutation: ${MUT[lead.mutation].n}, ${MUT[lead.mutation].d}.`);
+  for(const e of es)if(e.carry)blog(`<b class="gold">This ${esc(e.base)} is carrying ${listNames(e.carry.map(c=>c.owner+'’s '+c.it.name))}! Kill it to take ${e.carry.length>1?'them':'it'} back.</b>`);
   scoutRolls('start');
   for(const e of es)planIntent(e);
   initTimeline();
@@ -3294,7 +3304,22 @@ function heroDown(h){
   if(heroBuff(h,'undying')){h.hp=1;blog(`<b class="gold">${esc(h.name)} will not fall!</b> The Undying Vow holds.`);return}
   if(tr(h,'lastStand')&&!r.lastStand[h.id]){r.lastStand[h.id]=true;h.hp=1;blog(`<b class="gold">${esc(h.name)} refuses to fall!</b> Last Stand leaves them at 1 health.`);return}
   blog(`<span class="warn">${esc(h.name)} has fallen.</span>`);
+  seizeGear(h);
 }
+/* Lost Godlike and Perfect gear (weapons, armor, rings, amulets): a monster still standing takes what a fallen hero wore.
+   Kill it in the same fight to get it back; if it survives the fight, it keeps the gear and can be met again in the same land. */
+const HUNT_ODDS=.25;
+function seizeGear(h){
+  const r=state.run,b=r&&r.battle;if(!b)return;const alive=aliveFoes();if(!alive.length)return;
+  for(const sl of SLOTS){const it=h.gear[sl];if(!it||(it.rarity!=='godlike'&&it.rarity!=='perfect'))continue;h.gear[sl]=null;
+    const e=pick(alive);(e.carry=e.carry||[]).push({it,owner:h.name});
+    blog(`<b class="warn">${e.name} seizes ${esc(h.name)}’s ${itemName(it)}!</b> Kill it to take it back.`)}
+}
+const huntLand=k=>(state.hunted||[]).filter(x=>x.biome===k);
+// The carrier can only be met again on the same land and adventure length, at or past the stage where the gear was lost.
+const huntHere=r=>huntLand(r.biome).filter(x=>(!x.len||x.len===r.length)&&r.stage>=(x.stage||0));
+const huntWhere=x=>`${LENGTHS[x.len]?LENGTHS[x.len].name+' adventures':'adventures'} in ${BIOMES[x.biome].name}, stage ${x.stage||1} or deeper`;
+const aAn=w=>(/^[aeiou]/i.test(w)?'an ':'a ')+w;
 // Enemies mostly go for whoever stands in front: 65/35 with two heroes, 50/30/20 with three.
 const POS_W={1:[100],2:[65,35],3:[50,30,20]};
 // The front monster mostly hits the front hero; monsters standing further back prefer the back line.
@@ -3447,7 +3472,7 @@ function buryFallen(lines){
     state.heroes=state.heroes.filter(x=>x.id!==h.id);
     state.graveyard.unshift({name:h.name,cls:h.cls,level:h.level,week:state.week,stage:r.stage,biome:BIOMES[r.biome].name});
     r.fallen.push(h.name);
-    lines&&lines.push(`<span class="warn">${esc(h.name)} is dead. Their gear is lost with them.</span>`);
+    lines&&lines.push(`<span class="warn">${esc(h.name)} is dead. Their gear is lost with them${state.run.battle&&state.run.battle.enemies.some(e=>e.hp>0&&(e.carry||[]).some(c=>c.owner===h.name))?', except what a monster took':''}.</span>`);
   }
   r.party=r.party.filter(id=>heroById(id));
 }
@@ -3461,6 +3486,9 @@ function win(){
   // Each defeated enemy keeps a list of what it dropped, so the loot can be shown over its body.
   for(const e of b.enemies){
     const km=KILL_MULT[e.kind];e.drop=[];
+    for(const c of e.carry||[]){r.loot.push(c.it);c.it.found=r.id;e.drop.push({k:'item',it:c.it});(b.recov=b.recov||[]).push(`<b class="gold">Recovered ${esc(c.owner)}’s ${itemName(c.it)}</b> from the ${esc(e.base)}.`);
+      state.hunted=(state.hunted||[]).filter(x=>x.it.id!==c.it.id)}
+    if(e.carry)e.carry=null;
     const ge=goldAmt((3+1.2*s)*km);g+=ge;e.drop.push({k:'gold',g:ge});xp+=Math.round((10+4*s)*km*(LENGTHS[r.length]||LENGTHS.short).mult*(TIER_XP[e.tier]||1));
     if(e.kind==='normal'&&chance(.35))drops.push(['battle',e]);
     // Elites: always a small healing potion, sometimes gear, sometimes a whole chest.
@@ -3474,7 +3502,7 @@ function win(){
   }
   b.extraDrops=[];
   r.gold+=g;
-  const lines=[`<b class="gold">+${g} gold</b>`];
+  const lines=[`<b class="gold">+${g} gold</b>`,...(b.recov||[])];b.recov=null;
   for(const h of L){const hx=Math.round(xp*runMod('xp')*(1+aff(h,'xp')/100));h.kills+=b.enemies.length;lines.push(`${esc(h.name)} +${hx} XP`);gainXp(h,hx,lines)}
   for(const [t,e] of drops){const it=makeItem(t,ilvl(),pick(L).cls);addLoot(it,lines,t==='king'?'The King’s crown-chest: ':t==='boss'?'Boss chest: ':'Dropped ');e.drop.push({k:'item',it,ground:(r.ground||[]).includes(it)})}
   if(eliteBits){r.bag.potion=(r.bag.potion||0)+eliteBits;lines.push(`The elite dropped ${eliteBits>1?eliteBits+' ':'a '}<b>Small Healing Potion${eliteBits>1?'s':''}</b> (bag)`)}
@@ -3503,7 +3531,13 @@ function win(){
   b.rewards=lines;b.lootFresh=true;
   blog(r.kingSlain?'<b class="gold">The Unlit King is dead.</b>':b.enemies.length>1?'The pack is broken.':`${b.enemies[0].name} is slain.`);
 }
-function lose(){const b=state.run.battle;b.over='lose';blog(`<span class="warn">${partyAll().length>1?'The whole party has fallen.':'No one is left standing.'}</span>`)}
+function lose(){const b=state.run.battle;b.over='lose';blog(`<span class="warn">${partyAll().length>1?'The whole party has fallen.':'No one is left standing.'}</span>`);seizePack()}
+// When the whole party falls, the monsters still standing also take the Godlike and Perfect items from the backpack.
+function seizePack(){
+  const r=state.run,alive=aliveFoes();if(!alive.length)return;
+  for(const it of r.loot.filter(x=>x.rarity==='godlike'||x.rarity==='perfect')){r.loot=r.loot.filter(x=>x!==it);
+    const e=pick(alive);(e.carry=e.carry||[]).push({it,owner:'the party'});blog(`<b class="warn">${e.name} takes ${itemName(it)} from the backpack!</b>`)}
+}
 function nextStage(){
   const r=state.run;r.battle=null;r.event=null;r.stage++;
   if(darkIs('depths')&&depthsMult()<1)darkHit('depths');
@@ -3647,6 +3681,14 @@ function endRun(outcome){
   const everyone=partyAll(),lead=everyone[0];
   const lostGear=everyone.filter(h=>h.hp<=0||outcome==='dead').reduce((s,h)=>s+gearOf(h).length,0);
   if(outcome==='dead'){for(const h of everyone)h.hp=0;for(const it of [...r.loot,...(r.ground||[])])if(rescuePerfect(it,lines)){r.loot=r.loot.filter(x=>x!==it);if(r.ground)r.ground=r.ground.filter(x=>x!==it)}}
+  {const B0=r.battle,took=[];
+   if(B0)for(const e of B0.enemies)if(e.hp>0&&e.carry)for(const c of e.carry){state.hunted=state.hunted||[];
+     if(!state.hunted.some(x=>x.it.id===c.it.id)){delete c.it.found;state.hunted.push({it:c.it,owner:c.owner,base:e.base,spr:e.spr,kind:e.kind==='elite'?'normal':e.kind,biome:r.biome,len:r.length,stage:r.stage,week:state.week})}
+     took.push({c,e})}
+   if(took.length){const L=BIOMES[r.biome].name,beasts=[...new Set(took.map(x=>x.e.base))];
+     for(const x of took)lines.push(`<span class="warn">The ${esc(x.e.base)} in ${L} kept ${esc(x.c.owner)}’s ${itemName(x.c.it)}.</span>`);
+     const what=listNames(took.map(x=>`${esc(x.c.owner)}’s ${itemName(x.c.it)}`)),one=beasts.length===1;
+     state.lostNote=`${what.charAt(0).toUpperCase()+what.slice(1)} ${took.length>1?'were':'was'} taken by ${one?aAn(esc(beasts[0])):'the '+listNames(beasts.map(esc))} in ${L}. Beasts out there keep what they take from the fallen. ${one?'It':'They'} won’t leave ${L}: if my heroes go back on a ${LENGTHS[r.length].name} adventure and reach stage ${r.stage} or deeper, they may find ${one?'it':'them'}, glowing with a white outline. If they kill ${one?'it':'them'}, ${one?'it':'they'} will drop ${took.length>1?'it all':'it'} back. I should go back and hunt ${one?'this beast':'these beasts'} so I can get my equipment back.`}}
   buryFallen(null);
   const survivors=partyAll();
   const fallenAll=r.fallen;
@@ -3719,8 +3761,8 @@ function itemIcon(it,sc=4){
 const getRarCol=r=>({common:'#b9b1a3',rare:'#5f97e3',epic:'#b56fe3',godlike:'#f2a83a',perfect:'#ff5c7a'})[r];
 function itemBody(it){
   if(it.pid){const P=PERF[it.pid];
-    let s=`<div class="ihead">${itemIcon(it)}<div class="stack" style="gap:1px"><span class="iname">${itemName(it)}</span><span class="meta"><span data-tip="Perfect: one of nine unique weapons, each found only once per game. It can never be lost or sold: if its wielder falls, it returns to your vault.">Perfect</span> ${P.base} · ${CLASSES[P.cls].name}</span></div></div>
-      <span class="istat">${ico('blade','#ddd')}<b>${Math.round(baseVal(it))}</b> damage · ${elTag(it.el||'physical')}</span><span class="ptitle" style="--pc:${(PERF_LOOK[P.id]||{}).c||'#ff5c7a'}">“${(PERF_LOOK[P.id]||{}).t||''}”</span><span class="pfx" data-tip="${esc(P.fxd)}">${P.fxn}: ${P.fxd}</span><span class="meta">Soulbound: never lost, never sold.</span>`;
+    let s=`<div class="ihead">${itemIcon(it)}<div class="stack" style="gap:1px"><span class="iname">${itemName(it)}</span><span class="meta"><span data-tip="Perfect: one of nine unique weapons, each found only once per game. It can never be sold. If its wielder falls, a monster takes it, and you can hunt that monster down to get it back.">Perfect</span> ${P.base} · ${CLASSES[P.cls].name}</span></div></div>
+      <span class="istat">${ico('blade','#ddd')}<b>${Math.round(baseVal(it))}</b> damage · ${elTag(it.el||'physical')}</span><span class="ptitle" style="--pc:${(PERF_LOOK[P.id]||{}).c||'#ff5c7a'}">“${(PERF_LOOK[P.id]||{}).t||''}”</span><span class="pfx" data-tip="${esc(P.fxd)}">${P.fxn}: ${P.fxd}</span><span class="meta">Never sold. If its wielder falls, hunt down the monster that takes it.</span>`;
     for(const a of it.affixes)s+=afxLine(it,a);return s}
   let s=`<div class="ihead">${itemIcon(it)}<div class="stack" style="gap:1px"><span class="iname">${itemName(it)}</span><span class="meta"><span data-tip="${esc(RAR[it.rarity].l+': '+RAR[it.rarity].n+' random bonus'+(RAR[it.rarity].n>1?'es':'')+'. Rarer items roll bigger numbers. Item level '+it.ilvl+'.')}">${RAR[it.rarity].l}</span> ${SLOTN[it.slot]}${it.cls?` · <span data-tip="Weapons, helmets, body armor and pants belong to one class. Rings and amulets fit anyone.">${CLASSES[it.cls].name} only</span>`:` · ${it.wt?({warrior:'Heavy',archer:'Medium',mage:'Light'})[it.wt]+', ':''}any class`}</span></div></div>`;
   if(it.slot==='weapon')s+=`<span class="istat">${ico('blade','#ddd')}<b>${Math.round(baseVal(it))}</b> damage · ${elTag(it.el||'physical')}</span>`;
@@ -4274,6 +4316,7 @@ function govTipNow(){
   // stay quiet while a walkthrough is on screen
   if((state.tab==='farm'&&coachOn('farm'))||(state.tab==='witch'&&state.sel.wtab==='mana'&&coachOn('mana'))||(state.tab==='heroes'&&tutBOn()))return null;
   const seen=state.tipsSeen||(state.tipsSeen=[]);
+  if(state.lostNote){state.tipCur={id:'lost',t:state.lostNote,go:['adventure','To the Gate']};return state.tipCur}
   if(state.gov.pend&&state.promoWeek!==state.week&&(!state.tipCur||state.tipCur.id!=='promo'))state.tipCur={id:'promo',t:`The roads we conquered have earned me the town’s trust. I can grow into a better governor. How should I?`,go:['@govPromoOpen','Choose promotion']};
   const c=state.tipCur;
   if(c&&c.id==='promo'){if(state.gov.pend&&state.promoWeek!==state.week)return c;state.tipCur=null}
@@ -4759,7 +4802,7 @@ function advView(){
       (state.sel.len==='short'?` · <span class="ok" data-tip="${esc(`On Short adventures the party can run back home at any time, even mid-battle. Running costs ${FLEE.min}–${FLEE.max}% of carried gold, and each item found during this adventure (even if equipped) has a 33% chance to be lost. Running mid-battle multiplies both (×2 regular fights, ×2.5 elites, ×3 major bosses), and there is no running from the final boss. Supplies and materials come home.`)}">can run home</span>`:'')}
   let s=`<div class="stack" style="gap:4px"><h2>The Gate</h2><p class="muted">Pick a land, a length and your heroes, then set out. ${help('Pick the land: every monster there deals and resists its element, so bring heroes who can handle it. Heroes who die are gone for good, with their gear. Monsters sometimes hunt in pairs or packs of three. On Short adventures pairs only appear after stage 10 and packs of three never do; the longer the adventure, the more common packs become, and deep into an Expedition nearly every fight is a pack. The final boss of each adventure always fights alone.')}</p></div>
   <div class="gategrid"><div class="stack"><div class="stack" style="gap:6px"><h3>Length</h3>${bar}<p class="lensum">${sum}</p></div>${final?'':(()=>{const cur=LAND_PICK.includes(state.sel.biome)?state.sel.biome:null;
-    return `<div class="stack" style="gap:6px"><h3>Land</h3>${state.guide&&!cur?'<p class="guidehint">① Pick a land to explore</p>':''}<div class="lands ${state.guide&&!cur?'guide':''}" role="radiogroup" aria-label="Land">${LAND_PICK.map(k=>{const B=BIOMES[k],lm=LAND_MOD[landMods()[k]];return `<button class="land ${cur===k?'cur':''}" style="--c:${EL_COL[B.el]}" data-a="land" data-x="${k}" role="radio" aria-checked="${cur===k}">${elIco(B.el)}<span><b>${B.name}</b><small>${cap(B.el)}</small>${lm?`<small class="lmod ${lm.bad?'bad':'good'}">${lm.n}</small>`:''}</span></button>`}).join('')}</div>${cur?landModNote(landMods()[cur]):'<p class="muted" style="font-size:17px">Conditions change every week. Some lands carry a twist this week.</p>'}${cur?`<p class="muted" style="font-size:18px">${BIOMES[cur].flavor} Monsters here deal and resist ${elTag(BIOMES[cur].el)}.</p>`:'<p class="warn" style="font-size:18px">Choose where to go.</p>'}</div>`})()}`;
+    return `<div class="stack" style="gap:6px"><h3>Land</h3>${state.guide&&!cur?'<p class="guidehint">① Pick a land to explore</p>':''}<div class="lands ${state.guide&&!cur?'guide':''}" role="radiogroup" aria-label="Land">${LAND_PICK.map(k=>{const B=BIOMES[k],lm=LAND_MOD[landMods()[k]];return `<button class="land ${cur===k?'cur':''}" style="--c:${EL_COL[B.el]}" data-a="land" data-x="${k}" role="radio" aria-checked="${cur===k}">${elIco(B.el)}<span><b>${B.name}</b><small>${cap(B.el)}</small>${lm?`<small class="lmod ${lm.bad?'bad':'good'}">${lm.n}</small>`:''}${huntLand(k).length?`<small class="lmod lost">Lost gear ×${huntLand(k).length}</small>`:''}</span></button>`}).join('')}</div>${cur&&huntLand(cur).length?`<p class="lmodnote lost"><b>Lost gear here:</b> ${huntLand(cur).map(x=>`${aAn(esc(x.base))} carries ${esc(x.owner)}’s ${itemName(x.it)} <span class="muted">(${LENGTHS[x.len]?LENGTHS[x.len].name:'any length'}, stage ${x.stage||1}+)</span>`).join('; ')}. On that length, from that stage on, ${Math.round(HUNT_ODDS*100)}% of fights bring you face to face with it${huntLand(cur).some(x=>x.kind!=='normal')?' (bosses carry theirs every time you meet them there)':''}. Look for the white outline: the same kind of monster without the loot has none.</p>`:''}${cur?landModNote(landMods()[cur]):'<p class="muted" style="font-size:17px">Conditions change every week. Some lands carry a twist this week.</p>'}${cur?`<p class="muted" style="font-size:18px">${BIOMES[cur].flavor} Monsters here deal and resist ${elTag(BIOMES[cur].el)}.</p>`:'<p class="warn" style="font-size:18px">Choose where to go.</p>'}</div>`})()}`;
   if(!state.heroes.length)return s+'<p class="muted">Recruit a hero at the Barracks first.</p></div></div>';
   s+=`<h3>Party · ${p.length}/${max}</h3>${state.guide&&!p.length&&LAND_PICK.includes(state.sel.biome)?'<p class="guidehint">② Choose your hero</p>':''}<div class="tabs ${state.guide&&!p.length&&LAND_PICK.includes(state.sel.biome)?'guide':''}">${state.heroes.map(h=>`<button class="btn small ${p.includes(h.id)?'on':''}" data-a="partyToggle" data-x="${h.id}"><span>${esc(h.name)} · Lv ${h.level} ${C_(h).name} ${badgeIco(h.badge||0)}${h.points?` · <span class="gold">${h.points} pts</span>`:''}${h.newSkill&&h.newSkill.length?' <span class="rbm skill" title="New skill">✦</span>':''}${injOf(h)?' <span class="rbm inj" title="Injured">✚</span>':''}</span>${xpMini(h,false)}</button>`).join('')}</div>`;
   s+=max===1?`<p class="muted">Solo only. The War Table at the Town Hall unlocks parties: 2 heroes for ${fmt(BUILD.war.cost(0))} gold, then 3 for ${fmt(BUILD.war.cost(1))}.</p>`:`<p class="muted">Enemies grow tougher with each hero you bring, and gold grows too.</p>`;
@@ -4920,6 +4963,7 @@ function nameTip(e){const lv=scoutLv(e),S=spOf(e),w=e.type!=='dark'&&e.type!=='p
   let t=`${e.name}: level ${Math.round(e.lvl)} ${TIER_N[e.tier]||''} ${e.kind!=='normal'?e.kind+', ':''}${cap(e.type)} type. It attacks with ${cap(e.type)} and resists it heavily.${w?` Weak to ${cap(w)} (1.5× damage).`:''}`;
   if(e.mutation)t+=` Mutation: ${MUT[e.mutation].n}, ${MUT[e.mutation].d}.`;
   if(e.bossType)t+=' '+BOSS_STYLE[e.bossType].d;
+  if(e.carry&&e.carry.length)t+=` Carrying ${listNames(e.carry.map(c=>c.owner+'’s '+c.it.name))}: kill it to get ${e.carry.length>1?'them':'it'} back.`;
   if(!lv)t+=' Not scouted yet: better Perception reads it, and every 3 kills of it guarantee progress.';
   else if(S&&lv>=4)t+=` Signature ability, ${S[3]}: ${ABIL[S[0]](S[1])} Habit: ${HABIT[S[2]]}`;
   else t+=` Knowledge ${lv}/4: its signature ability and habit are still unknown.`;
@@ -4932,6 +4976,7 @@ function foeInfo(e){
    else if(S&&lv>=1)tags.push(`<span class="utag muted" data-tip="${esc(`Unknown ability: this monster has a signature ability and a fighting habit you haven’t uncovered yet. Knowledge ${lv}/4. Keep scouting and fighting it to learn more.`)}">ability ?</span>`)}
   if(!isScouted(e))tags.push('<span class="utag muted" data-tip="Unscouted: your party hasn’t read this monster yet, so its weaknesses and damage are hidden. Higher party Perception scouts monsters and adds them to the Moon Ledger.">unscouted</span>');
   if(e.kind!=='normal')tags.push(`<span class="utag" style="color:${e.kind==='elite'||e.kind==='mimic'?'#b56fe3':'#e0736c'}" data-tip="${esc(KIND_TIP[e.kind]||'')}">${e.kind}</span>`);
+  if(e.carry&&e.carry.length)tags.push(`<span class="utag" style="color:#f2a83a" data-tip="${esc(`Carrying ${listNames(e.carry.map(c=>c.owner+'’s '+c.it.name))}. Kill it to get ${e.carry.length>1?'them':'it'} back.`)}">carrying loot</span>`);
   if(e.mutation)tags.push(`<span class="utag" style="color:#b56fe3" data-tip="${esc(MUT[e.mutation].n+': '+MUT[e.mutation].d+'.')}">${MUT[e.mutation].n.toLowerCase()}</span>`);
   if(e.bossType)tags.push(`<span class="utag" style="color:#e3b341" data-tip="${esc(BOSS_STYLE[e.bossType].d)}">${BOSS_STYLE[e.bossType].n.toLowerCase()}</span>`);
   if((e.kind==='boss'||e.kind==='warden')&&BOSS_AFFLICT[e.type])tags.push(`<span class="utag" style="color:${EL_COL[e.type]}" data-tip="${esc(BOSS_AFFLICT[e.type])}">${BOSS_AFFLICT[e.type].split(':')[0].toLowerCase()}</span>`);
@@ -4998,7 +5043,7 @@ function heroUnit(h,cur,fx,pops){
 function foeUnit(e,i,fx,pops){
   const b=state.run.battle,big=e.kind==='boss'||e.kind==='warden'||e.kind==='king',dead=e.hp<=0,tgt=i===b.target&&!b.over&&!dead;
   const noreach=!dead&&!b.over&&frontOnly()&&aliveFoes()[0]!==e?'noreach':'';
-  return `<div class="unit foe ${big?'big':''} ${dead?'down':''} ${tgt?'tgt':''} ${noreach} ${wuCls('e'+i)}" data-u="e${i}" ${foeTargetAttrs(e,i)} aria-label="${esc(e.name)}${tgt?' (targeted)':''}" data-tip="${esc(foeTip(e)+(noreach?' Out of reach: warriors can only strike the front enemy.':''))}">
+  return `<div class="unit foe ${big?'big':''} ${dead?'down':''} ${tgt?'tgt':''} ${e.carry&&e.carry.length&&!dead?'carrier':''} ${noreach} ${wuCls('e'+i)}" data-u="e${i}" ${foeTargetAttrs(e,i)} aria-label="${esc(e.name)}${tgt?' (targeted)':''}" data-tip="${esc(foeTip(e)+(noreach?' Out of reach: warriors can only strike the front enemy.':''))}">
     <div class="fo ${dead?(fx['die'+i]?'dead dying':'dead'):''} ${fx.act==='e:'+i?'lunge-l':''} ${e.poison?'poisoned':''}">${sprite(e.spr,EL_COL[e.type],5,fx['e'+i]&&!dead?'hit':!dead?'bob':'')}${fx['burst'+i]?`<span class="burst" style="--c:${fx['burst'+i]}"></span>`:''}${fx['frz'+i]?'<span class="burst frz" style="--c:#bfe9ff"></span>':''}${skFx(fx,'e:'+i)}${weaponFx(fx,'e:'+i)}${marksHtml('e'+i)}</div>${b.over==='win'&&e.drop&&e.drop.length?`<span class="dropfan ${b.lootFresh?'fresh':''}">${e.drop.map((x,j)=>`<span style="animation-delay:${j*.18}s">${lootTile(x,true)}</span>`).join('')}</span>`:''}
     <div class="uinfo">${foeInfo(e)}</div></div>`;
 }
@@ -5333,7 +5378,7 @@ function revealView(){
       <h2 class="rv-name">${esc(P.n)}</h2><span class="rv-title">“${esc(L.t)}”</span>
       <span class="muted">${CLASSES[P.cls].name} ${P.base}${P.el?` · ${cap(P.el)}`:''}</span>
       <span class="pfx">${P.fxn}: ${P.fxd}</span>
-      <span class="muted" style="font-size:18px">One of nine in the world. Soulbound: it can never be lost or sold.</span>
+      <span class="muted" style="font-size:18px">One of nine in the world. It can never be sold, and if its wielder falls, the monster that takes it can be hunted down.</span>
       <button class="btn gold" data-a="revealOk">Claim it</button></div></div>`;
 }
 function autoEquipParty(){
@@ -5735,7 +5780,7 @@ const ACT={
   govOnward:()=>{const G=state.govSetup;G.step=G.redo?'result':'create'},
   govBack:()=>{const G=state.govSetup;if(G.q>0){G.q--;G.ans.length=G.q}},
   govRetake:()=>{const G=state.govSetup;G.step='quiz';G.q=0;G.ans=[]},
-  govTipOk:()=>{const c=state.tipCur;if(c&&c.id==='promo'){state.promoWeek=state.week;state.tipCur=null;return}if(c){if(c.id!=='g')(state.tipsSeen=state.tipsSeen||[]).push(c.id);state.tipCur=null}},
+  govTipOk:()=>{const c=state.tipCur;if(c&&c.id==='lost'){state.lostNote=null;state.tipCur=null;return}if(c&&c.id==='promo'){state.promoWeek=state.week;state.tipCur=null;return}if(c){if(c.id!=='g')(state.tipsSeen=state.tipsSeen||[]).push(c.id);state.tipCur=null}},
   govTipGo:x=>{ACT.govTipOk();return ACT.tab(x)},
   storyOk:x=>{if(ui.storyRe){ui.storyRe=null;return}(state.story=state.story||[]).includes(x)||state.story.push(x)},storyRe:x=>{ui.storyRe=x},
   govPromoOpen:()=>{ui.govSheet=false;ui.govPromo=true},govPromoClose:()=>{ui.govPromo=false},
