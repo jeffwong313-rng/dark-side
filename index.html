@@ -3356,7 +3356,8 @@ function enemyAct(e,i){
   planIntent(e);
   if(!e.bossType&&e.intent&&e.intent.act==='heavy'&&e.hp>0&&living().length)blog(`<span class="warn">${e.name} is gathering strength…</span>`);
 }
-const KILL_MULT={normal:1,elite:2,warden:3,boss:5,mimic:1.5,king:20};
+// XP and gold per kill: elites beat normal monsters, major bosses beat elites, and each adventure's final Warden pays the most.
+const KILL_MULT={normal:1,elite:2,warden:8,boss:5,mimic:1.5,king:20};
 const SCROLL_DROP={elite:.25,warden:.4,boss:.6};
 function buryFallen(lines){
   const r=state.run;
