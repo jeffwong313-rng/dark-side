@@ -183,6 +183,15 @@ input[type=text]{font:inherit;font-size:24px;background:var(--stone);color:var(-
 .subtab{font:inherit;font-size:21px;color:var(--ash);background:var(--stone);border:0;box-shadow:inset 0 0 0 2px var(--edge);padding:6px 14px 8px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
 .subtab.cur{color:var(--bone);box-shadow:inset 0 0 0 2px var(--gold);background:#221c2b}
 .alert-inline{font-family:'DsHead',monospace;font-size:17px;background:var(--blood);color:#fff;padding:0 5px}
+.moon,.iso-moon{position:relative}
+.lcard.newinfo{box-shadow:inset 0 0 0 2px #8fd3ff,0 0 10px #8fd3ff55}
+.tchip{position:relative}.tchip small{font-size:.75em;opacity:.8}
+.tchip .nwdot{position:absolute;top:-9px;right:-6px;font-size:11px;line-height:1;padding:2px 3px;background:#2a8fd0;color:#fff;font-family:'DsHead',monospace}
+.lknow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:8px 0;font-size:18px}
+.lkbar{display:inline-flex;gap:3px}.lkbar i{width:22px;height:8px;background:#2a2233;box-shadow:inset 0 0 0 1px #4a3f5a}.lkbar i.on{background:#8fd3ff;box-shadow:none}
+.lmlock{color:var(--dim);font-size:18px;margin:6px 0;padding:4px 8px;border-left:3px solid #3a3245}
+.utag.sig{color:#8fd3ff}
+.uinfo [data-tip]{cursor:help}
 .upgrades{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px}
 .upg{display:flex;gap:12px;align-items:center;background:#171320;box-shadow:inset 0 0 0 2px var(--edge2);padding:10px 12px}
 .upg.major{box-shadow:inset 0 0 0 2px #7a5a20;background:linear-gradient(#1f1a12,#171320)}
@@ -2681,24 +2690,86 @@ function foeSkillsFor(spr,kind,tier,type){
 }
 // Seeded random numbers, so a species at a given tier always has the same resistances (what the ledger records stays true).
 function srng(str){let h=2166136261;for(const c of str)h=Math.imul(h^c.charCodeAt(0),16777619);return ()=>{h=(h+0x6D2B79F5)|0;let t=h;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296}}
+/* ---------- species: every monster has its own signature ability, stat profile and fighting habit ----------
+   [ability, value, habit, ability name]. Scouting uncovers these in stages (see SCOUT_LV). */
+const SPECIES={
+  'Frost Wolf':['pack',12,'weak','Pack Hunter'],'Rime Slime':['thick',25,'front','Frozen Shell'],'Ice Wraith':['skin',25,'back','Cold Veil'],'Glacier Brute':['crusher',2.2,'front','Avalanche Fist'],
+  'Rime Bat':['slippery',10,'back','Snowblind Flutter'],'Snow Weaver':['opener',50,'weak','Ambush from the Drifts'],'Ice Serpent':['keen',15,'fixate','Glacial Fang'],'Frozen Dead':['gasp',80,'front','Shatter'],
+  'Cinder Hound':['frenzy',35,'weak','Smoldering Rage'],'Magma Ooze':['spikes',20,'front','Molten Skin'],'Flame Wisp':['swift',25,'back','Flicker'],'Obsidian Brute':['thick',30,'front','Obsidian Hide'],
+  'Cinder Bat':['leech',30,'back','Ember Drink'],'Lava Crawler':['execute',35,'weak','Scent of Burns'],'Magma Wyrm':['crusher',2.2,'fixate','Eruption Coil'],'Charred Bones':['gasp',100,'front','Cinder Burst'],
+  'Static Hound':['swift',25,'weak','Static Dash'],'Volt Jelly':['spikes',25,'front','Charged Membrane'],'Thunder Harpy':['keen',15,'back','Diving Talon'],'Stormbound Golem':['skin',30,'front','Grounded'],
+  'Storm Bat':['slippery',12,'back','Erratic Flight'],'Sky Weaver':['opener',60,'back','Lightning Snare'],'Cloud Serpent':['pack',15,'fixate','Thunderhead'],'Lightning-Struck Dead':['frenzy',40,'front','Overcharged'],
+  'Thornback':['spikes',20,'front','Thornhide'],'Moss Slime':['regen',5,'front','Overgrowth'],'Spore Wisp':['leech',35,'back','Spore Feast'],'Bark Brute':['thick',25,'front','Bark Armor'],
+  'Rot Bat':['execute',30,'weak','Carrion Sense'],'Web Mother':['pack',15,'back','Brood Mother'],'Vine Serpent':['keen',12,'fixate','Strangling Coil'],'Rooted Dead':['regen',4,'front','Rerooting'],
+  'Scav Jackal':['execute',40,'weak','Scavenger'],'Grit Slime':['thick',30,'front','Grit Coat'],'Dust Shade':['slippery',15,'back','Dust Veil'],'Bandit Brute':['frenzy',35,'fixate','Last Brawl'],
+  'Carrion Bat':['leech',30,'weak','Blood Drinker'],'Sand Stalker':['opener',60,'back','Burrow Strike'],'Dune Serpent':['swift',20,'weak','Sidewinder'],'Bandit Bones':['pack',12,'front','Gang Up'],
+  'Gloom Hound':['pack',15,'weak','Shadow Pack'],'Void Ooze':['regen',6,'front','Endless'],'Hollow Shade':['skin',30,'back','Hollow'],'Abyssal Knight':['crusher',2.3,'fixate','Oathbreaker'],
+  'Shade Bat':['slippery',15,'back','Shade Wing'],'Void Weaver':['execute',40,'weak','Unravel'],'Abyssal Eel':['leech',30,'fixate','Void Bite'],'Unlit Dead':['gasp',120,'front','Grave Burst'],
+  'The Pale Jarl':['frenzy',30,'fixate','Jarl’s Fury'],'Mother of Ash':['regen',4,'weak','Ash Rebirth'],'The Tempest Crown':['keen',20,'back','Crown of Storms'],'The Rotting Oak':['spikes',25,'front','Bramble Crown'],
+  'Warlord Vask':['execute',35,'weak','No Mercy'],'The Abyssal Tyrant':['leech',25,'fixate','Tyrant’s Hunger'],
+  'Warden of Frozen Tundra':['thick',25,'front','Glacier Plate'],'Warden of Ember Isles':['spikes',20,'front','Blazing Aegis'],'Warden of Storm Spires':['swift',20,'back','Storm Step'],
+  'Warden of Rotwood':['regen',3,'weak','Heartwood'],'Warden of Bone Badlands':['keen',20,'fixate','Duelist’s Eye'],'Warden of Abyss':['skin',25,'back','Void Mantle'],
+  'Mimic':['opener',60,'weak','Snap Shut'],'The Unlit King':['pack',10,'front','Lord of the Unlit'],
+};
+const ABIL={
+  pack:v=>`Deals ${v}% more damage for every other monster still standing beside it.`,
+  frenzy:v=>`Deals ${v}% more damage once it drops below 40% health.`,
+  execute:v=>`Deals ${v}% more damage to heroes below 40% health.`,
+  thick:v=>`Takes ${v}% less physical damage.`,
+  skin:v=>`Takes ${v}% less elemental damage (spells and elemental weapons).`,
+  slippery:v=>`${v}% extra evasion: attacks miss it more often.`,
+  swift:v=>`${v}% faster than others of its kind, so it acts more often.`,
+  regen:v=>`Heals ${v}% of its max health at the start of each of its turns.`,
+  spikes:v=>`Reflects ${v}% of the damage it takes back at the attacker.`,
+  gasp:v=>`When slain, it lashes out at a random hero for ${v}% of its attack.`,
+  keen:v=>`${v}% extra chance to land a critical hit (1.5× damage).`,
+  leech:v=>`Heals for ${v}% of the damage it deals.`,
+  crusher:v=>`Its crushing blows hit for ${v}× damage instead of 1.6×.`,
+  opener:v=>`Its first attack of each fight deals ${v}% more damage.`,
+};
+const HABIT={front:'Mostly attacks whoever stands in front.',weak:'Hunts the hero with the lowest health.',back:'Goes after the back line.',fixate:'Keeps attacking the same hero once it has drawn blood.'};
+const spOf=e=>SPECIES[e&&e.base];
+// Each species leans a little on health, attack and speed (the same every time it appears).
+// Centered a little below 1 so the signature abilities don't make monsters stronger overall, only different.
+const spStats=base=>{const g=srng('species|'+base);return {hp:+(0.83+g()*.2).toFixed(2),atk:+(0.83+g()*.2).toFixed(2),spd:Math.round(g()*4-2)}};
+function applySpecies(e){const S=spOf(e),st=spStats(e.base);
+  e.hp=e.maxHp=Math.max(1,Math.round(e.hp*st.hp));e.atk*=st.atk;e.spd+=st.spd;
+  if(S&&S[0]==='slippery')e.eva=(e.eva||0)+S[1];if(S&&S[0]==='swift')e.spd*=1+S[1]/100;return e}
+// Extra damage from the species ability on one of its attacks.
+function spDmg(e,h){const S=spOf(e);if(!S)return 1;const [k,v]=S;
+  if(k==='pack')return 1+v/100*Math.max(0,aliveFoes().filter(x=>x!==e).length);
+  if(k==='frenzy')return e.hp<e.maxHp*.4?1+v/100:1;
+  if(k==='execute')return h&&h.hp<maxHp(h)*.4?1+v/100:1;
+  if(k==='opener')return e.struck?1:1+v/100;return 1}
+const heavyMult=e=>{const S=spOf(e);return S&&S[0]==='crusher'?S[1]:1.6};
 const ledgerKey=e=>e.base+'|'+e.tier;
 const isScouted=e=>!!(e&&state.ledger&&state.ledger[ledgerKey(e)]);
+// Knowledge comes in four stages. Entries from older saves already showed resistances and skills, so they start at 3.
+const SCOUT_LV=['Not scouted','Basics','Stats & resistances','Skills','Signature ability & habit'],STUDY_KILLS=3;
+const entLv=x=>x?(x.lv||3):0,scoutLv=e=>entLv(state.ledger&&state.ledger[ledgerKey(e)]);
+const ledgerNewCount=()=>Object.keys(state.ledgerNew||{}).filter(k=>state.ledger&&state.ledger[k]).length;
 // Full scouting: the party's best Perception gives each unknown enemy a chance to be read completely.
 const fullScoutChance=per=>Math.min(90,10+per*3);
 function scoutFoe(e,spotter,when){
-  if(isScouted(e))return false;
-  state.ledger=state.ledger||{};
-  state.ledger[ledgerKey(e)]={base:e.base,tier:e.tier,spr:e.spr,kind:e.kind==='elite'?'normal':e.kind,type:e.type,biome:state.run.biome,res:{...e.baseRes},eva:e.eva,spd:e.spdBonus||0,skills:e.skills.slice(),week:state.week};
-  blog(`<b class="gold">${esc(spotter.name)} ${when}: ${esc(e.base)} (${TIER_N[e.tier]}) added to the Moon Ledger.</b>`);
+  const k=ledgerKey(e),lv=scoutLv(e);if(lv>=4)return false;
+  state.ledger=state.ledger||{};state.ledgerNew=state.ledgerNew||{};
+  const old=state.ledger[k]||{week:state.week};
+  state.ledger[k]={...old,base:e.base,tier:e.tier,spr:e.spr,kind:e.kind==='elite'?'normal':e.kind,type:e.type,biome:state.run.biome,res:{...e.baseRes},eva:e.eva,spd:e.spdBonus||0,skills:e.skills.slice(),lv:lv+1};
+  state.ledgerNew[k]=1;
+  const what=lv===0?'added to the Moon Ledger':`learned its ${SCOUT_LV[lv+1].toLowerCase()}`;
+  blog(`<b class="gold">${esc(spotter.name)} ${when}: ${esc(e.base)} (${TIER_N[e.tier]}), ${what}.</b>`);
   return true;
 }
 function scoutRolls(when){
   const b=state.run.battle,L=living();if(!L.length)return;
   const per=bestStat(L,'per'),spotter=L.reduce((a,x)=>stat(x,'per')>stat(a,'per')?x:a,L[0]),done={};
-  for(const e of b.enemies){const k=ledgerKey(e);if(done[k]||isScouted(e))continue;done[k]=1;
-    if(chance(fullScoutChance(per)/100*(when==='kill'?.5:1)))scoutFoe(e,spotter,when==='kill'?'studies the remains':'reads the enemy');}
+  // Every kill also counts as study: each 3 kills of a monster guarantee the next stage of knowledge.
+  if(when==='kill'){state.ledgerKills=state.ledgerKills||{};for(const e of b.enemies){const k=ledgerKey(e);state.ledgerKills[k]=(state.ledgerKills[k]||0)+1}}
+  for(const e of b.enemies){const k=ledgerKey(e);if(done[k]||scoutLv(e)>=4)continue;done[k]=1;
+    const study=when==='kill'&&(state.ledgerKills[k]||0)>=STUDY_KILLS*(scoutLv(e)+1);
+    if(study||chance(fullScoutChance(per)/100*(when==='kill'?.5:1)))scoutFoe(e,spotter,when==='kill'?'studies the remains':'reads the enemy');}
 }
-function makeEnemy(kind,add,forceSpr){return modFoe(makeEnemy0(kind,add,forceSpr))}
+function makeEnemy(kind,add,forceSpr){return modFoe(applySpecies(makeEnemy0(kind,add,forceSpr)))}
 // Land conditions and pacts reshape every monster that appears.
 function modFoe(e){const hp=runMod('foeHp'),at=runMod('foeAtk'),sp=runMod('foeSpd'),rs=runMod('foeRes');
   if(hp!==1){e.hp=e.maxHp=Math.max(1,Math.round(e.hp*hp))}e.atk*=at;e.spd*=sp;if(rs)for(const k in e.res)e.res[k]=Math.min(80,e.res[k]+rs);return e}
@@ -3151,6 +3222,7 @@ function hitEnemy(h,e,o){
   if(b.warcry)d*=1.25;
   if(e.hex)d*=1.25;
   if(e.hardened)d*=.6;
+  {const S=spOf(e);if(S&&S[0]==='thick'&&el==='physical')d*=1-S[1]/100;if(S&&S[0]==='skin'&&el!=='physical')d*=1-S[1]/100}
   if(b.curse&&b.curse[h.id]!=null)d*=.75;
   const m=heroMatch(h,el,e.type),res=el==='physical'?0:Math.min(80,e.res[el]||0);
   d*=m*(1-res/100);
@@ -3178,6 +3250,9 @@ function hitEnemy(h,e,o){
     blog(`<b class="warn">The Unlit King roars. His knights rise again, and his blows grow heavier.</b>`);
   }
   if(!o.proc)weaponProc(h,e,d,o);
+  {const S=spOf(e);
+   if(S&&S[0]==='spikes'&&h.hp>0){const x=Math.max(1,Math.round(d*S[1]/100));h.hp=Math.max(0,h.hp-x);b.pops.push({s:'h',hid:h.id,t:x});blog(`${e.name}’s ${S[3]} returns ${x} damage to ${esc(h.name)}.`);if(h.hp<=0)heroDown(h)}
+   if(S&&S[0]==='gasp'&&e.hp<=0&&!e.gasped){e.gasped=true;const t=pick(living());if(t){blog(`<span class="warn">${e.name}’s ${S[3]}!</span>`);foeStrike(e,idx,t,S[1]/100,{name:S[3],verb:'lashes out at'})}}}
   return d;
 }
 // Crits grant a class buff that stacks up to 5 times for the rest of the battle.
@@ -3225,7 +3300,11 @@ const POS_W={1:[100],2:[65,35],3:[50,30,20]};
 // The front monster mostly hits the front hero; monsters standing further back prefer the back line.
 const foePos=e=>Math.max(0,aliveFoes().indexOf(e));
 const posChance=(i,n)=>(POS_W[n]||POS_W[3])[i]||0;
-function pickTarget(e){const L=living();if(!L.length)return null;const b=state.run.battle,t=b.taunt&&heroById(b.taunt);if(t&&t.hp>0)return t;const back=e&&foePos(e)>0,w={};L.forEach((h,i)=>w[h.id]=posChance(back?L.length-1-i:i,L.length));return heroById(weighted(w))}
+function pickTarget(e){const L=living();if(!L.length)return null;const b=state.run.battle,t=b.taunt&&heroById(b.taunt);if(t&&t.hp>0)return t;
+  {const S=spOf(e),hb=S&&S[2];
+   if(hb==='weak'&&chance(.75))return L.reduce((a,x)=>x.hp/maxHp(x)<a.hp/maxHp(a)?x:a,L[0]);
+   if(hb==='back'&&L.length>1&&chance(.7))return L[L.length-1];
+   if(hb==='fixate'&&e.lastHit){const f=heroById(e.lastHit);if(f&&f.hp>0&&chance(.8))return f}}const back=e&&foePos(e)>0,w={};L.forEach((h,i)=>w[h.id]=posChance(back?L.length-1-i:i,L.length));return heroById(weighted(w))}
 function enemyTurn(){
   const b=state.run.battle;
   b.enemies.forEach((e,i)=>{if(e.hp>0&&living().length)enemyAct(e,i)});
@@ -3249,7 +3328,7 @@ function intentTarget(e){
 }
 // Expected damage before evasion, variance and crits.
 function foeEst(e,h,mult,heavy,act){
-  const r=state.run,b=r.battle;let d=e.atk*mult*(e.weak?.7:1)*(b.guard[h.id]?.5:1)*(b.howl&&b.howl.n>0?1.2:1)*(1+(e.rage||0));
+  const r=state.run,b=r.battle;let d=e.atk*mult*(e.weak?.7:1)*(b.guard[h.id]?.5:1)*(b.howl&&b.howl.n>0?1.2:1)*(1+(e.rage||0))*spDmg(e,h);
   d=mitigate(h,d,foeMix(e,act||(heavy?'heavy':'attack')));
   d*=Math.max(.1,1+tr(h,'taken')/100)*(heavy?Math.max(.1,1+tr(h,'heavyTaken')/100):1)*(1-heroDef(h)/100);
   return Math.max(1,Math.round(d));
@@ -3261,22 +3340,23 @@ function intentHtml(e){
   const known=isScouted(e),name=it.act==='attack'?'Strike':it.act==='heavy'?'Crushing blow':FOE_SKILLS[it.act].n,[ic,tint]=INTENT_ICO[it.act]||['sword',null];
   const self=SELF_SKILLS.includes(it.act);let who='',dmg='';
   if(aoeAct(it.act)){who='all';if(known)dmg=' ~'+Math.round(living().reduce((a,h)=>a+foeEst(e,h,INTENT_MULT[it.act],it.act==='unleash',it.act==='sweep'?'sweep':'heavy'),0)/Math.max(1,living().length))+' each'}
-  else if(!self){const h=intentTarget(e);who=living().length>1?(h?esc(h.name):'someone'):'';if(known&&h)dmg=' ~'+foeEst(e,h,INTENT_MULT[it.act]||1,it.act==='heavy',it.act)}
-  const tip=`Next move: ${name}${who?' on '+(who==='all'?'every hero':who):''}.${!known&&!self?' Scout this enemy to see how hard it will hit.':''}${it.act!=='attack'&&it.act!=='heavy'?' '+FOE_SKILLS[it.act].d:it.act==='heavy'?' 1.6× damage.':''}`;
+  else if(!self){const h=intentTarget(e);who=living().length>1?(h?esc(h.name):'someone'):'';if(known&&h)dmg=' ~'+foeEst(e,h,it.act==='heavy'?heavyMult(e):INTENT_MULT[it.act]||1,it.act==='heavy',it.act)}
+  const tip=`Next move: ${name}${who?' on '+(who==='all'?'every hero':who):''}.${!known&&!self?' Scout this enemy to see how hard it will hit.':''}${it.act!=='attack'&&it.act!=='heavy'?' '+FOE_SKILLS[it.act].d:it.act==='heavy'?` ${heavyMult(e)}× damage.`:''}`;
   return `<span class="uintent ${self?'self':''}" data-tip="${esc(tip)}">${ico(ic,tint,2)}${name}${who?` → ${who}`:''}${!self?(known?dmg:' <small class="muted">dmg ?</small>'):''}</span>`;
 }
 // One enemy blow against one hero. Returns the damage dealt, or -1 if the hero dodged.
 function foeStrike(e,i,h,mult,o){
   const r=state.run,b=r.battle;o=o||{};
   if(chance(heroEva(h)/100)){blog(`${esc(h.name)} dodges ${e.name}’s ${o.name||'attack'}.`);b.pops.push({s:'h',hid:h.id,t:'miss'});return -1}
-  let d=e.atk*mult*rand(.85,1.15)*(e.weak?.7:1)*(b.guard[h.id]?.5:1)*(b.howl&&b.howl.n>0?1.2:1)*(1+(e.rage||0));
+  let d=e.atk*mult*rand(.85,1.15)*(e.weak?.7:1)*(b.guard[h.id]?.5:1)*(b.howl&&b.howl.n>0?1.2:1)*(1+(e.rage||0))*spDmg(e,h);e.struck=true;
   const mix=foeMix(e,o.act||(o.heavy?'heavy':'attack')),el=Object.keys(mix).filter(k=>k!=='physical'&&mix[k]>0).sort((a,c)=>mix[c]-mix[a])[0]||'physical';
   d=mitigate(h,d,mix);
   const bigE=e.kind==='boss'||e.kind==='warden';
-  const crit=chance(.06+(bigE&&e.type==='fighting'?.19:0));if(crit)d*=1.5;
+  const crit=chance(.06+(bigE&&e.type==='fighting'?.19:0)+(spOf(e)&&spOf(e)[0]==='keen'?spOf(e)[1]/100:0));if(crit)d*=1.5;
   d*=Math.max(.1,1+tr(h,'taken')/100)*(o.heavy?Math.max(.1,1+tr(h,'heavyTaken')/100):1)*(1-heroDef(h)/100);
   d=Math.max(1,Math.round(d));
-  h.hp=Math.max(0,h.hp-d);b.fx['h'+h.id]=1;b.pops.push({s:'h',hid:h.id,t:d,crit});
+  h.hp=Math.max(0,h.hp-d);b.fx['h'+h.id]=1;b.pops.push({s:'h',hid:h.id,t:d,crit});e.lastHit=h.id;
+  {const S=spOf(e);if(S&&S[0]==='leech'&&e.hp>0){const x=Math.round(d*S[1]/100);if(x>0){e.hp=Math.min(e.maxHp,e.hp+x);b.pops.push({s:'e',i,t:'+'+x})}}}
   blog(`${e.name} ${o.verb||'strikes'} ${esc(h.name)}${el!=='physical'?` (${elTag(el)})`:''} for <b>${d}</b>${crit?' <b class="gold">CRIT</b>':''}.`);
   const th=tr(h,'thorns');
   if(th>0&&e.hp>0){const x=Math.max(1,Math.round(d*th/100));e.hp=Math.max(0,e.hp-x);blog(`Spikes return ${x} damage to ${e.name}.`);if(e.hp<=0){b.fx['die'+i]=1;blog(`${e.name} falls.`)}}
@@ -3333,6 +3413,7 @@ function foeSkill(e,i,id,h){
 function enemyAct(e,i){
   const r=state.run,b=r.battle;
   e.hardened=false;
+  {const S=spOf(e);if(S&&S[0]==='regen'&&e.hp>0&&e.hp<e.maxHp){const x=Math.max(1,Math.round(e.maxHp*S[1]/100));e.hp=Math.min(e.maxHp,e.hp+x);b.pops.push({s:'e',i,t:'+'+x});blog(`${e.name}’s ${S[3]} heals ${x}.`)}}
   if(e.poison){const x=e.poison.dmg;e.hp=Math.max(0,e.hp-x);e.poison.n--;if(!e.poison.n)e.poison=null;b.pops.push({s:'e',i,t:x});b.fx['burst'+i]=EL_COL.grass;blog(`${e.name} takes ${x} poison damage.`);
     if(e.hp<=0){b.fx['die'+i]=1;blog(`${e.name} falls.`);return}}
   if(!living().length)return;
@@ -3348,7 +3429,7 @@ function enemyAct(e,i){
   else if(it.act==='windup'){b.pops.push({s:'e',i,t:'CHARGING',skill:1});blog(`<span class="warn">${e.name} is charging a devastating blow!</span>`)}
   else if(it.act==='unleash'){blog(`<span class="warn">${e.name} unleashes its charged blow on the whole party!</span>`);for(const x of living())if(e.hp>0)foeStrike(e,i,x,UNLEASH_MULT,{heavy:true,name:'Unleash',verb:'crushes'})}
   else if(sk)foeSkill(e,i,sk,h);
-  else foeStrike(e,i,h,heavy?1.6:1,{heavy,name:heavy?'crushing blow':'attack',verb:heavy?'unleashes a crushing blow on':'strikes'});
+  else foeStrike(e,i,h,heavy?heavyMult(e):1,{heavy,name:heavy?'crushing blow':'attack',verb:heavy?'unleashes a crushing blow on':'strikes'});
   if(b.howl&&b.howl.n>0){b.howl.n--;if(!b.howl.n){b.howl=null;blog('The howl dies away.')}}
   if(e.bossType==='scale'&&e.hp>0){e.rage=+(e.rage+.08).toFixed(2);if(Math.round(e.rage*100)%24===0)blog(`<span class="warn">${e.name} grows stronger (+${Math.round(e.rage*100)}% damage).</span>`)}
   if(e.hex){e.hex--;if(!e.hex)blog(`The hex on ${e.name} fades.`)}
@@ -4267,8 +4348,8 @@ function townView(){
       ${recapHtml(m.recap)}<div class="stack" style="gap:4px">${m.lines.map(l=>`<p>${l}</p>`).join('')}</div>
       <div class="row"><button class="btn gold" data-a="dismiss">Continue</button></div>`,'dismiss',`summary ${dead?'dead':''}`);
   }else ui.summaryHtml='';
-  if(state.tab!=='town')s+=`<nav class="street" aria-label="Town"><div class="moon" data-tip="${esc(moonTip())}" data-a="tab" data-x="ledger" role="button" tabindex="0">${moonImg(moonState().shown,3)}</div><div class="buildings">${TABS.map(([k,n,sp,t,b])=>
-    `<button class="bld ${state.tab===k?'cur':''} ${OPEN_WEEK[k]&&!bldOpen(k)?'closed':''} ${guideAt()===k&&state.tab!==k?'guide':''}" ${bldKnown(k)?`data-a="tab" data-x="${k}"`:'disabled'}>${k==='ledger'?moonImg(moonState().shown,2,'thumb'):BLD_DEF[k]||k==='adventure'?`<img class="px thumb" src="${buildingThumb(k)}" width="84" height="74" alt="">`:sprite(sp,t,5)}<span>${bldKnown(k)?n:'?'}</span>${!bldKnown(k)?'<span class="lvl">&nbsp;</span>':b?`<span class="lvl">Lv ${state.b[b]}</span>`:k==='heroes'?`<span class="lvl">${state.heroes.length}/${slots()}</span>`:k==='adventure'?'<span class="lvl">week '+state.week+'</span>':k==='ledger'?'<span class="lvl">'+Object.keys(state.ledger||{}).length+' scouted</span>':'<span class="lvl">&nbsp;</span>'}</button>`).join('')}</div><div class="ground"></div></nav>`;
+  if(state.tab!=='town')s+=`<nav class="street" aria-label="Town"><div class="moon" data-tip="${esc(moonTip())}" data-a="tab" data-x="ledger" role="button" tabindex="0">${moonImg(moonState().shown,3)}${ledgerNewCount()?`<span class="alert">${ledgerNewCount()}</span>`:''}</div><div class="buildings">${TABS.map(([k,n,sp,t,b])=>
+    `<button class="bld ${state.tab===k?'cur':''} ${OPEN_WEEK[k]&&!bldOpen(k)?'closed':''} ${guideAt()===k&&state.tab!==k?'guide':''}" ${bldKnown(k)?`data-a="tab" data-x="${k}"`:'disabled'}>${k==='ledger'?moonImg(moonState().shown,2,'thumb'):BLD_DEF[k]||k==='adventure'?`<img class="px thumb" src="${buildingThumb(k)}" width="84" height="74" alt="">`:sprite(sp,t,5)}<span>${bldKnown(k)?n:'?'}</span>${!bldKnown(k)?'<span class="lvl">&nbsp;</span>':b?`<span class="lvl">Lv ${state.b[b]}</span>`:k==='heroes'?`<span class="lvl">${state.heroes.length}/${slots()}</span>`:k==='adventure'?'<span class="lvl">week '+state.week+'</span>':k==='ledger'?'<span class="lvl">'+Object.keys(state.ledger||{}).length+' scouted'+(ledgerNewCount()?' <span class="alert-inline" title="Monsters with new information">'+ledgerNewCount()+'</span>':'')+'</span>':'<span class="lvl">&nbsp;</span>'}</button>`).join('')}</div><div class="ground"></div></nav>`;
   const V={town:homeView,academy:()=>{state.tab='heroes';state.sel.btab='recruit';return barracksView()},heroes:barracksView,farm:farmView,alch:()=>{state.tab='witch';state.sel.wtab='brews';return witchView()},smith:smithView,alch:alchView,hall:hallView,bank:bankView,adventure:advView,ledger:ledgerView,witch:witchView}[state.tab];
   if(state.builtMsg&&state.tab===state.builtMsg){s+=`<div class="panel row" style="justify-content:space-between;box-shadow:inset 0 0 0 2px var(--gold)"><span class="gold">The ${({bank:'Bank',smith:'Weaponsmith',farm:'Farm',witch:'Witch'})[state.builtMsg]} is open for business!</span><button class="xbtn" data-a="builtOk" aria-label="Dismiss">×</button></div>`}
   s+=`<section class="panel">${state.tab!=='town'&&state.tab!=='ledger'&&state.tab!=='adventure'&&OPEN_WEEK[state.tab==='alch'?'witch':state.tab]&&!bldOpen(state.tab==='alch'?'witch':state.tab)?constructionView(state.tab==='alch'?'witch':state.tab):V()}</section>`;
@@ -4732,7 +4813,7 @@ function homeView(){
   let s=`<div class="iso">
     <img class="px isoimg" src="${T.url}" alt="Your town at night">
     <div class="iso-title"><span class="hname">Week ${state.week}</span><span class="muted">Your town</span></div>
-    <button class="iso-moon" data-tip="${esc(moonTip())}" data-a="tab" data-x="ledger" aria-label="Open the Moon Ledger">${moonImg(m.shown,4)}<span class="moonpct">${moonKnown()?`${Math.round(m.shown)}% dark · `:''}Ledger</span></button>
+    <button class="iso-moon" data-tip="${esc(moonTip())}" data-a="tab" data-x="ledger" aria-label="Open the Moon Ledger">${moonImg(m.shown,4)}<span class="moonpct">${moonKnown()?`${Math.round(m.shown)}% dark · `:''}Ledger</span>${ledgerNewCount()?`<span class="alert">${ledgerNewCount()}</span>`:''}</button>
     ${spots}${heroes}<div class="fireflies"></div>
   </div>
   <button class="nextstep ${guidePts()?'guide':''}" data-a="${n.a}" data-x="${n.x}">${n.i}<span><small>Next step</small><b>${esc(n.t)}</b></span><span class="arrow">→</span></button>
@@ -4834,10 +4915,21 @@ function heroInfo(h){
       ${xpMini(h)}
       <div class="utags">${tags.join('')||'&nbsp;'}</div>`;
 }
+// Everything known about a monster in one explanation, for tapping its name (the phone layout hides the small tags).
+function nameTip(e){const lv=scoutLv(e),S=spOf(e),w=e.type!=='dark'&&e.type!=='physical'?ELEMENTS.find(x=>BEATS[x]===e.type):null;
+  let t=`${e.name}: level ${Math.round(e.lvl)} ${TIER_N[e.tier]||''} ${e.kind!=='normal'?e.kind+', ':''}${cap(e.type)} type. It attacks with ${cap(e.type)} and resists it heavily.${w?` Weak to ${cap(w)} (1.5× damage).`:''}`;
+  if(e.mutation)t+=` Mutation: ${MUT[e.mutation].n}, ${MUT[e.mutation].d}.`;
+  if(e.bossType)t+=' '+BOSS_STYLE[e.bossType].d;
+  if(!lv)t+=' Not scouted yet: better Perception reads it, and every 3 kills of it guarantee progress.';
+  else if(S&&lv>=4)t+=` Signature ability, ${S[3]}: ${ABIL[S[0]](S[1])} Habit: ${HABIT[S[2]]}`;
+  else t+=` Knowledge ${lv}/4: its signature ability and habit are still unknown.`;
+  return t}
 function foeInfo(e){
   // 1 name, level, element · 2 health · 3 crushing-blow charge and conditions · 4 what it will do next · 5 what kind of monster it is
   const dead=e.hp<=0,ch=(e.tc||0)%3,tags=[],cond=[];
   tags.push(`<span class="utag" style="color:${TIER_COL[e.tier]||'#ccc'}" data-tip="${esc(`Threat tier: ${TIER_N[e.tier]} (${TIER_LV[e.tier]}). Higher tiers hit harder, have more skills and more health.`)}">${TIER_N[e.tier]||''}</span>`);
+  {const S=spOf(e),lv=scoutLv(e);if(S&&lv>=4)tags.push(`<span class="utag sig" data-tip="${esc(S[3]+': '+ABIL[S[0]](S[1])+' '+HABIT[S[2]])}">${esc(S[3])}</span>`);
+   else if(S&&lv>=1)tags.push(`<span class="utag muted" data-tip="${esc(`Unknown ability: this monster has a signature ability and a fighting habit you haven’t uncovered yet. Knowledge ${lv}/4. Keep scouting and fighting it to learn more.`)}">ability ?</span>`)}
   if(!isScouted(e))tags.push('<span class="utag muted" data-tip="Unscouted: your party hasn’t read this monster yet, so its weaknesses and damage are hidden. Higher party Perception scouts monsters and adds them to the Moon Ledger.">unscouted</span>');
   if(e.kind!=='normal')tags.push(`<span class="utag" style="color:${e.kind==='elite'||e.kind==='mimic'?'#b56fe3':'#e0736c'}" data-tip="${esc(KIND_TIP[e.kind]||'')}">${e.kind}</span>`);
   if(e.mutation)tags.push(`<span class="utag" style="color:#b56fe3" data-tip="${esc(MUT[e.mutation].n+': '+MUT[e.mutation].d+'.')}">${MUT[e.mutation].n.toLowerCase()}</span>`);
@@ -4849,9 +4941,9 @@ function foeInfo(e){
   if(e.weak)cond.push(`<span class="utag" style="color:#8fcf6f" data-tip="Crippled: deals 30% less damage for ${e.weak} more turn${e.weak>1?'s':''}.">crippled</span>`);
   if(e.poison)cond.push(`<span class="utag" style="color:#6fb35a" data-tip="Poisoned: takes ${e.poison.dmg} damage at the start of each of its next ${e.poison.n} turns.">poisoned</span>`);
   if(e.hardened)cond.push('<span class="utag" style="color:#8fa8c8" data-tip="Hardened: takes 40% less damage until its next turn.">hardened</span>');
-  const cs=(e.tc||0)%4,charge=dead?'<div class="ubar ch"><span>—</span></div>':e.bossType==='charge'?`<div class="ubar ch ${cs===3?'full':''}" data-tip="${esc(BOSS_STYLE.charge.d)}"><i style="width:${Math.round(cs/3*100)}%"></i><span>${cs===3?'UNLEASH next':cs===2?'Charging next':`Flurry ${cs+1}/2`}</span></div>`:isScouted(e)?`<div class="ubar ch ${ch===2?'full':''}" data-tip="Charge: every third attack is a crushing blow (1.6× damage). When this bar is full, the next attack is the big one."><i style="width:${Math.round(ch/2*100)}%"></i><span>${ch===2?'Crushing blow next':`Charge ${ch}/2`}</span></div>`:'<div class="ubar ch" data-tip="How close it is to a crushing blow. Unknown until your party scouts this monster."><span>Charge ?</span></div>';
-  return `<span class="uname">${esc(e.name)} <small>Lv ${Math.round(e.lvl)} · ${elIco(e.type)}${cap(e.type)}</small></span>
-      <div class="ubar hp"><i style="width:${clamp(e.hp/e.maxHp*100,0,100)}%"></i><span>${dead?'dead':seeFoeNumbers()?`HP ${e.hp}/${e.maxHp}`:''}</span></div>
+  const cs=(e.tc||0)%4,charge=dead?'<div class="ubar ch"><span>—</span></div>':e.bossType==='charge'?`<div class="ubar ch ${cs===3?'full':''}" data-tip="${esc(BOSS_STYLE.charge.d)}"><i style="width:${Math.round(cs/3*100)}%"></i><span>${cs===3?'UNLEASH next':cs===2?'Charging next':`Flurry ${cs+1}/2`}</span></div>`:isScouted(e)?`<div class="ubar ch ${ch===2?'full':''}" data-tip="${esc(`Charge: every third attack is a crushing blow (${heavyMult(e)}× damage). When this bar is full, the next attack is the big one.`)}"><i style="width:${Math.round(ch/2*100)}%"></i><span>${ch===2?'Crushing blow next':`Charge ${ch}/2`}</span></div>`:'<div class="ubar ch" data-tip="How close it is to a crushing blow. Unknown until your party scouts this monster."><span>Charge ?</span></div>';
+  return `<span class="uname" data-tip="${esc(nameTip(e))}">${esc(e.name)} <small>Lv ${Math.round(e.lvl)} · ${elIco(e.type)}${cap(e.type)}</small></span>
+      <div class="ubar hp" data-tip="${esc(dead?'Defeated.':seeFoeNumbers()?`Health: ${e.hp} of ${e.maxHp}.`:'Health. Exact numbers need more party Perception.')}"><i style="width:${clamp(e.hp/e.maxHp*100,0,100)}%"></i><span>${dead?'dead':seeFoeNumbers()?`HP ${e.hp}/${e.maxHp}`:''}</span></div>
       <div class="urow3">${charge}${cond.length?`<span class="uconds">${cond.join('')}</span>`:''}</div>
       <div class="uintentrow">${dead?'&nbsp;':intentHtml(e)||'&nbsp;'}</div>
       <div class="utags">${tags.join('')}</div>`;
@@ -5047,34 +5139,40 @@ const TIERS=['easy','medium','hard'],TIER_LV={easy:'Lv 1–6',medium:'Lv 7–14'
 const SHAPE_NOTE={bat:'Quick and frail',spider:'Hits a little harder',serpent:'Quick',skeleton:'Heavily armored',beast:'Quick',slime:'Slow and sturdy',brute:'Slow, tough and hits hard'};
 function ledgerDetail(k){
   const e=(state.ledger||{})[k];if(!e)return '';
+  const lv=entLv(e),S=SPECIES[e.base],st=spStats(e.base),kills=(state.ledgerKills||{})[k]||0;
   const weak=e.type!=='dark'&&e.type!=='physical'?ELEMENTS.find(x=>BEATS[x]===e.type):null;
+  const lean=(v,lo,hi)=>v<lo?'<span style="color:#8fcf6f">Low</span>':v>hi?'<span style="color:#e0736c">High</span>':'Average';
+  const lock=n=>`<p class="lmlock">🔒 ${SCOUT_LV[n]}: keep scouting or fighting it to reveal.</p>`;
   return `<div class="ldetail"><div class="row" style="gap:14px;align-items:center"><span class="portrait">${sprite(e.spr,EL_COL[e.type],6)}</span><div class="stack" style="gap:3px;min-width:0">
       <h2>${esc(e.base)}</h2>
       <span><span class="utag" style="color:${TIER_COL[e.tier]}">${TIER_N[e.tier]}</span> ${TIER_LV[e.tier]}${e.kind!=='normal'?' · '+cap(e.kind):''} · attacks with ${elTag(e.type)}</span>
       ${weak?`<span>Weak to ${elTag(weak)} <span class="muted">(1.5× damage)</span></span>`:e.type==='dark'?'<span class="muted">Dark has no weakness on the wheel.</span>':''}
       <span class="muted">${e.eva}% evasion${e.kind==='normal'&&SHAPE_NOTE[e.spr]?' · '+SHAPE_NOTE[e.spr]:''} · crushing blow every third attack</span></div></div>
-    <h3>Resistances</h3>${elTable(null,x=>e.res[x]||0)}
-    <h3>Skills</h3>${e.skills.length?e.skills.map(id=>`<p><b>${FOE_SKILLS[id].n}</b> <span class="muted">${FOE_SKILLS[id].d}</span></p>`).join(''):'<p class="muted">None at this tier.</p>'}
+    <div class="lknow"><span>Knowledge ${lv}/4</span><span class="lkbar">${[1,2,3,4].map(n=>`<i class="${n<=lv?'on':''}"></i>`).join('')}</span><span class="muted">${lv<4?`Next: ${SCOUT_LV[lv+1]} · ${kills}/${STUDY_KILLS*(lv+1)} kills guarantee it`:'Fully scouted'}</span></div>
+    ${lv>=2?`<h3>Stats</h3><p>Health ${lean(st.hp,.89,.97)} · Attack ${lean(st.atk,.89,.97)} · Speed ${st.spd<0?'<span style="color:#8fcf6f">Slow</span>':st.spd>0?'<span style="color:#e0736c">Quick</span>':'Average'} <span class="muted">(compared with other ${({beast:'beasts',slime:'slimes',wraith:'wraiths',brute:'brutes',bat:'bats',spider:'spiders',serpent:'serpents',skeleton:'skeletons',boss:'bosses',mimic:'mimics'})[e.spr]||'monsters'})</span></p><h3>Resistances</h3>${elTable(null,x=>e.res[x]||0)}`:lock(2)}
+    ${lv>=3?`<h3>Skills</h3>${e.skills.length?e.skills.map(id=>`<p><b>${FOE_SKILLS[id].n}</b> <span class="muted">${FOE_SKILLS[id].d}</span></p>`).join(''):'<p class="muted">None at this tier.</p>'}`:lock(3)}
+    ${lv>=4&&S?`<h3>Signature ability</h3><p><b class="gold">${esc(S[3])}</b> <span class="muted">${ABIL[S[0]](S[1])}</span></p><h3>Habit</h3><p>${HABIT[S[2]]}</p>`:lv>=4?'':lock(4)}
     <p class="muted" style="font-size:18px">First scouted in week ${e.week}.${e.kind==='normal'?' Elite versions add a random mutation on top.':''}</p>
     <div class="row"><button class="btn small" data-a="lent" data-x="">Close</button></div></div>`;
 }
 function ledgerView(){
   const secs=ledgerSections(),L=state.ledger||{},tiersOf=r=>r.tiers||TIERS;
-  const count=S=>S.rows.reduce((a,r)=>a+tiersOf(r).filter(t=>L[r.base+'|'+t]).length,0),size=S=>S.rows.reduce((a,r)=>a+tiersOf(r).length,0);
+  const count=S=>S.rows.reduce((a,r)=>a+tiersOf(r).filter(t=>L[r.base+'|'+t]).length,0),size=S=>S.rows.reduce((a,r)=>a+tiersOf(r).length,0),N=state.ledgerNew||{},newIn=S=>S.rows.reduce((a,r)=>a+tiersOf(r).filter(t=>N[r.base+'|'+t]&&L[r.base+'|'+t]).length,0),full=secs.reduce((a,S)=>a+S.rows.reduce((b,r)=>b+tiersOf(r).filter(t=>entLv(L[r.base+'|'+t])>=4).length,0),0);
   const total=secs.reduce((a,S)=>a+size(S),0),got=secs.reduce((a,S)=>a+count(S),0);
   const S=secs.find(x=>x.key===state.sel.lbiome)||secs[0];
-  let s=`<div class="bhead">${moonImg(moonState().shown,3)}<div class="stack" style="gap:2px"><h2>Moon Ledger</h2><span class="muted">${got} of ${total} monsters fully scouted ${help('At the start of each fight, your party’s best Perception has a chance to fully read every unknown enemy (10% + 3% per PER point, up to 90%). Killing an unread enemy gives a second, half-sized chance. Each monster comes in Easy, Medium and Hard versions that must be scouted separately; harder versions learn skills. Scouted enemies show all their details in battle.')}</span></div></div>`;
+  let s=`<div class="bhead">${moonImg(moonState().shown,3)}<div class="stack" style="gap:2px"><h2>Moon Ledger</h2><span class="muted">${got} of ${total} monsters found · ${full} fully scouted ${ledgerNewCount()?`· <span class="alert-inline">${ledgerNewCount()} new</span>`:''} ${help('Every monster has four stages of knowledge: basics, stats and resistances, skills, and its signature ability and fighting habit. At the start of each fight your party’s best Perception has a chance to learn the next stage about each enemy (10% + 3% per PER point, up to 90%), and every win gives a second, half-sized chance. Kills count as study too: every 3 kills of a monster guarantee its next stage. Easy, Medium and Hard versions are scouted separately. Monsters with new information are marked until you open them.')}</span></div></div>`;
   if(moonKnown()){const m=moonState();
     s+=`<div class="moonbox"><h3>The dark side of the moon · ${Math.round(m.shown)}% dark</h3><p class="muted" style="font-size:19px">As the town grows stronger the moon turns its dark face toward you. When it is fully dark, the Dark Side opens at the Gate. The moon never turns back.</p>
       <div class="moonchecks">${m.parts.map(x=>`<div class="mcheck ${x.v>=1?'ok':''}"><div class="row" style="justify-content:space-between;gap:6px;font-size:18px"><span>${x.n}</span><span class="muted">${x.d}</span></div><div class="bar xp"><i style="width:${Math.round(x.v*100)}%"></i></div></div>`).join('')}</div></div>`}
-  s+=`<div class="subtabs">${secs.map(x=>`<button class="subtab ${x===S?'cur':''}" data-a="lbiome" data-x="${x.key}">${x.el?elIco(x.el):''}${x.name} <span class="muted">${count(x)}/${size(x)}</span></button>`).join('')}</div>`;
+  s+=`<div class="subtabs">${secs.map(x=>`<button class="subtab ${x===S?'cur':''}" data-a="lbiome" data-x="${x.key}">${x.el?elIco(x.el):''}${x.name} <span class="muted">${count(x)}/${size(x)}</span>${newIn(x)?` <span class="alert-inline">${newIn(x)}</span>`:''}</button>`).join('')}</div>`;
   const sel=state.sel.lent;if(sel&&L[sel])s+=ledgerDetail(sel);
   s+=`<div class="lgrid">${S.rows.map(r=>{const any=tiersOf(r).some(t=>L[r.base+'|'+t]);
     // Nothing about a monster shows until at least one of its versions has been scouted: a mystery card instead.
     if(!any)return `<div class="lcard mystery"><div class="lspr"><span class="qmark">?</span></div><span class="hname">???</span>${r.kind!=='normal'?`<span class="meta">${cap(r.kind)}</span>`:''}
       <div class="tchips">${tiersOf(r).map(t=>`<span class="tchip" style="--c:${TIER_COL[t]}" aria-label="Unknown ${TIER_N[t]} monster, not scouted">${TIER_N[t]} ?</span>`).join('')}</div></div>`;
-    return `<div class="lcard ${r.kind!=='normal'?'major':''}"><div class="lspr">${sprite(r.spr,any?EL_COL[r.type]:'#2a2233',4)}</div><span class="hname">${esc(r.base)}</span>${r.kind!=='normal'?`<span class="meta">${cap(r.kind)}</span>`:''}
-      <div class="tchips">${tiersOf(r).map(t=>{const k=r.base+'|'+t,ok=!!L[k];return `<button class="tchip ${ok?'ok':''} ${sel===k?'cur':''}" style="--c:${TIER_COL[t]}" data-a="lent" data-x="${k}" ${ok?'':'disabled'} aria-label="${esc(r.base+' '+TIER_N[t]+(ok?'':' (not scouted)'))}">${TIER_N[t]}${ok?'':' ?'}</button>`}).join('')}</div></div>`}).join('')}</div>`;
+    const hasNew=tiersOf(r).some(t=>N[r.base+'|'+t]&&L[r.base+'|'+t]);
+    return `<div class="lcard ${r.kind!=='normal'?'major':''} ${hasNew?'newinfo':''}"><div class="lspr">${sprite(r.spr,any?EL_COL[r.type]:'#2a2233',4)}</div><span class="hname">${esc(r.base)}</span>${r.kind!=='normal'?`<span class="meta">${cap(r.kind)}</span>`:''}
+      <div class="tchips">${tiersOf(r).map(t=>{const k=r.base+'|'+t,ok=!!L[k],nw=ok&&N[k];return `<button class="tchip ${ok?'ok':''} ${sel===k?'cur':''} ${nw?'nw':''}" style="--c:${TIER_COL[t]}" data-a="lent" data-x="${k}" ${ok?'':'disabled'} aria-label="${esc(r.base+' '+TIER_N[t]+(ok?` (knowledge ${entLv(L[k])}/4${nw?', new information':''})`:' (not scouted)'))}">${TIER_N[t]}${ok?` <small>${entLv(L[k])}/4</small>`:' ?'}${nw?'<b class="nwdot">NEW</b>':''}</button>`}).join('')}</div></div>`}).join('')}</div>`;
   return s;
 }
 /* ---------- settings ---------- */
@@ -5707,7 +5805,7 @@ const ACT={
   fallen:()=>{ui.drawer=null;endRun('dead')},
   flee:()=>{if(!canFlee())return;if(set.confirmFlee)ui.flee=true;else ACT.fleeYes()},
   lbiome:x=>{state.sel.lbiome=x;state.sel.lent=null},
-  lent:x=>{state.sel.lent=x||null},
+  lent:x=>{state.sel.lent=x||null;if(x&&state.ledgerNew)delete state.ledgerNew[x]},
   settings:x=>{ui.settings=!!x;state.sel.reset=false},
   setProfile:k=>{if(!PROFILES[k])return;set.profile=k;saveSet();if(PROFILES[k].zoom)applyZoom(PROFILES[k].zoom)},
   setSpeed:k=>{if(SPEED[k]){set.speed=k;saveSet()}},
@@ -5787,7 +5885,7 @@ function drawIntentArrows(){
   b.enemies.forEach((e,i)=>{if(e.hp<=0||!e.intent||e.stun>0)return;const it=e.intent;if(SELF_SKILLS.includes(it.act))return;
     const tg=aoeAct(it.act)?L:[intentTarget(e)].filter(Boolean);
     for(const h of tg){const a=pt('e'+i),c=pt('h'+h.id,1);if(!a||!c)continue;const mx=(a[0]+c[0])/2,my=Math.min(a[1],c[1])-30-i*10;
-      const dmg=isScouted(e)?foeEst(e,h,INTENT_MULT[it.act]||1,it.act==='heavy',it.act):null;
+      const dmg=isScouted(e)?foeEst(e,h,it.act==='heavy'?heavyMult(e):INTENT_MULT[it.act]||1,it.act==='heavy',it.act):null;
       out+=`<path d="M${a[0]},${a[1]} Q${mx},${my} ${c[0]},${c[1]}" fill="none" stroke="#fff" stroke-width="1.6" stroke-dasharray="${it.act==='heavy'?'':'5 3'}" opacity=".85" marker-end="url(#ah)"/>`;
       if(dmg!=null)out+=`<text x="${mx}" y="${my+8}" text-anchor="middle" class="iadmg">${it.act==='heavy'?'!':''}${dmg}</text>`}});
   svg.innerHTML=out;
@@ -5894,18 +5992,24 @@ document.addEventListener('change',ev=>{
 /* tooltips: hover or keyboard focus shows [data-tip]; tapping a non-button element toggles it */
 const tipEl=document.createElement('div');tipEl.id='tip';tipEl.hidden=true;tipEl.setAttribute('role','tooltip');document.body.appendChild(tipEl);
 let tipFor=null;
-function showTip(el){
-  if(!set.tips&&matchMedia('(hover:hover)').matches&&!el.matches(':focus-visible'))return;
+function showTip(el,force){
+  if(!force&&!set.tips&&matchMedia('(hover:hover)').matches&&!el.matches(':focus-visible'))return;
   const t=el.getAttribute('data-tip');if(!t)return;tipFor=el;tipEl.textContent=t;tipEl.hidden=false;
   const r=el.getBoundingClientRect(),w=tipEl.offsetWidth,hh=tipEl.offsetHeight,vw=document.documentElement.clientWidth;
   let x=clamp(r.left,8,vw-w-8),y=r.top-hh-6;if(y<8)y=r.bottom+6;
   tipEl.style.left=x+'px';tipEl.style.top=y+'px';
 }
-function hideTip(){tipEl.hidden=true;tipFor=null}
+let tipPinned=null;
+function hideTip(){tipEl.hidden=true;tipFor=null;tipPinned=null}
+// A click or tap opens an explanation (even one hover already showed); a second click on the same thing closes it.
+const tapTip=el=>{if(tipPinned===el){hideTip();return}showTip(el,true);tipPinned=el};
 document.addEventListener('mouseover',ev=>{if(!matchMedia('(hover:hover)').matches)return;const el=ev.target.closest&&ev.target.closest('[data-tip]');if(el)showTip(el);else if(tipFor)hideTip()});
 document.addEventListener('focusin',ev=>{const el=ev.target.closest&&ev.target.closest('[data-tip]');if(el)showTip(el)});
 document.addEventListener('focusout',hideTip);
-document.addEventListener('click',ev=>{const el=ev.target.closest&&ev.target.closest('[data-tip]');if(el&&(!el.closest('[data-a]')||el.classList.contains('utag')||el.classList.contains('badge'))){tipFor===el?hideTip():showTip(el)}else if(!el)hideTip()},true);
+document.addEventListener('click',ev=>{const el=ev.target.closest&&ev.target.closest('[data-tip]');
+  // The icons and bars on a monster's card explain themselves when tapped, instead of re-targeting the monster.
+  if(el&&!el.matches('[data-a]')&&el.closest('.uinfo')&&el.closest('[data-a="target"]')){ev.stopPropagation();ev.preventDefault();tapTip(el);return}
+  if(el&&(!el.closest('[data-a]')||el.classList.contains('utag')||el.classList.contains('badge'))){tapTip(el)}else if(!el)hideTip()},true);
 window.addEventListener('scroll',hideTip,{passive:true});
 let booted=false;
 function start(d){
