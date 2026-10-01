@@ -375,7 +375,9 @@ button[data-tip]{cursor:pointer}
 .summary.dead{box-shadow:0 0 0 2px #060509,inset 0 0 0 2px var(--blood)}
 .cmp{display:flex;flex-wrap:wrap;gap:3px 8px;margin-top:6px;padding-top:6px;border-top:1px dashed var(--edge);font-size:16px}
 .cmphead{width:100%;color:var(--ash);font-size:15px}
-.cmpup{color:#8fe08a}.cmpdn{color:#ff7a70}.cmpel{color:var(--gold)}.cmpsame{color:var(--dim)}
+.cmpup{color:#8fe08a}
+.upstone .matchip{font-size:15px;padding:0 3px;background:none;box-shadow:none}
+.tdead{opacity:.55;text-decoration:line-through;text-decoration-thickness:1px}.cmpdn{color:#ff7a70}.cmpel{color:var(--gold)}.cmpsame{color:var(--dim)}
 .ltile{position:relative}.ltile .upg{position:absolute;top:-4px;right:-2px;color:#8fe08a;font-size:15px;text-shadow:0 0 3px #000}
 .rbadges{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
 .rb{font-size:13px;padding:1px 5px;border:1px solid;line-height:1.3}
@@ -1639,6 +1641,7 @@ function drawGate(R,ox,oy,gx,gy,lights){
 // Buildings under construction are finished with scrap your parties bring home (any kind counts).
 // The Barracks, Town Hall and Gate are ready from the start.
 const OPEN_WEEK={bank:1,smith:1,farm:4,witch:5};
+const BLD_NEED={bank:{stone:1},smith:{stone:1},farm:{stone:1,wood:1.5,hide:1.5},witch:{stone:1,crystal:2,carbon:2}};
 const buildCost=k=>Math.round(OPEN_WEEK[k]*10)/10;
 const bldOpen=k=>!state||!OPEN_WEEK[k]||!!(state.built&&state.built[k]);
 // New towns hide what each building site will be: the Bank and Weaponsmith show once a mage comes home alive,
@@ -1648,7 +1651,7 @@ const bldKnown=k=>!state||!OPEN_WEEK[k]||bldOpen(k)||!state.hideBld||!!(state.re
 // Order: recruit, spend the new hero's points, then head to the Gate.
 const guidePts=()=>state&&state.guide&&!state.run&&state.heroes.some(h=>h.points>0);
 const guideAt=()=>state&&state.guide&&!state.run?(!state.heroes.length||guidePts()?'heroes':'adventure'):null;
-const canBuild=k=>OPEN_WEEK[k]&&!bldOpen(k)&&bldKnown(k)&&scrapTotal()+1e-9>=buildCost(k);
+const canBuild=k=>OPEN_WEEK[k]&&!bldOpen(k)&&bldKnown(k)&&hasMats(BLD_NEED[k]);
 const scrapTotal=()=>SCRAPS.reduce((a,k)=>a+(state.mats[k]||0),0);
 // Pay a scrap cost from whichever piles are biggest.
 function spendScrap(n){let left=n;for(let g=0;g<40&&left>1e-9;g++){const k=SCRAPS.filter(k=>(state.mats[k]||0)>0).sort((a,b)=>state.mats[b]-state.mats[a])[0];if(!k)break;const t=Math.min(left,state.mats[k],Math.max(.1,Math.round(left*10/2)/10));addMat(state.mats,k,-t);left=Math.round((left-t)*10)/10}}
@@ -1964,7 +1967,9 @@ const TRAIT_TXT={
   regen:'% max health regenerated each turn',manaRegen:'% max mana regained each turn',thorns:'% of damage taken reflected back',
   luck:'% chance for loot to roll a rarity higher',scroll:'% chance to find a Return Scroll after each fight and chest',gamble:'% better odds with the Hooded Stranger',
 };
-function traitDesc(t){
+// For a warrior, an elemental-damage part of a trait does nothing: say so.
+const deadNote=(t,h)=>h&&h.cls==='warrior'&&warDead(t)?' Its elemental damage has no effect for a warrior, who only deals physical damage.':'';
+function traitDesc(t,h){if(h)return traitDesc(t)+deadNote(t,h);
   return Object.entries(t.m).map(([k,v])=>{
     if(k==='lastStand')return 'Once per adventure, survives a killing blow with 1 health';
     if(k==='openCrit')return 'First attack in each battle always crits';
@@ -1983,10 +1988,12 @@ function traitDesc(t){
 }
 // Heroes start with 2 traits and develop another at every 10th level (3 at Lv 10, 4 at Lv 20, 5 at Lv 30...).
 const traitSlots=L=>2+Math.floor(L/10);
-function rollTrait(except,force){
+// Warriors only deal physical damage, so they never roll traits that boost an element's damage.
+const warDead=t=>Object.keys(t.m).some(k=>k.startsWith('dmg_'));
+function rollTrait(except,force,cls){
   // Grim Outlook (a governor's dark side): positive traits turn rare.
   const kind=force||weighted(darkIs('grim')?{good:15,neutral:40,bad:45}:{good:60,neutral:25,bad:15});
-  const pool=Object.values(TRAITS).filter(t=>t.kind===kind&&!(except||[]).includes(t.id));
+  const pool=Object.values(TRAITS).filter(t=>t.kind===kind&&!(except||[]).includes(t.id)&&!(cls==='warrior'&&warDead(t)));
   return pick(pool).id;
 }
 function tr(h,k){let s=0;for(const id of h.traits||[]){const t=TRAITS[id];if(t&&t.m[k])s+=t.m[k]}if(typeof GOV_QUAL!=='undefined'&&state&&state.gov)s+=govMod(k);return s}
@@ -2009,7 +2016,7 @@ const LOOT_CAP={
   descent:{battle:'godlike',chest:'godlike',elite:'perfect',boss:'perfect',final:'perfect'}};
 // Nine unique weapons, one per weapon type. Each can be found once per game.
 const PERFECTS=[
-  {id:'oathkeeper',cls:'warrior',base:'Longsword',n:'Oathkeeper',el:'fighting',fx:'riposte',fxn:'Riposte',fxd:'30% chance to strike back at any enemy that hits the wielder.',aff:[['str',5],['end',4],['critdmg',30],['dmg_fighting',20],['res_dark',12]]},
+  {id:'oathkeeper',cls:'warrior',base:'Longsword',n:'Oathkeeper',el:null,fx:'riposte',fxn:'Riposte',fxd:'30% chance to strike back at any enemy that hits the wielder.',aff:[['str',5],['end',4],['critdmg',30],['hp',25],['res_dark',12]]},
   {id:'gravemaul',cls:'warrior',base:'Warhammer',n:'Gravemaul',el:null,fx:'splash',fxn:'Shockwave',fxd:'Single-target hits splash 40% of their damage onto the enemy next to the target.',aff:[['str',6],['end',4],['hp',30],['critdmg',20],['lifesteal',3]]},
   {id:'widowsedge',cls:'warrior',base:'Falchion',n:'Widow’s Edge',el:null,fx:'execute',fxn:'Reaper',fxd:'Any hit that leaves a non-boss enemy under 15% health kills it outright.',aff:[['str',4],['agi',3],['crit',8],['critdmg',35],['lck',3]]},
   {id:'hawkeye',cls:'archer',base:'Longbow',n:'Hawkeye',el:null,fx:'twin',fxn:'Twin Fletch',fxd:'Every single-target shot fires a second arrow at a random enemy for 50% damage.',aff:[['agi',6],['per',4],['crit',8],['critdmg',25],['lck',3]]},
@@ -2237,6 +2244,10 @@ const BUILD={
   // Party size is the game's biggest investment: 2 heroes mid-game, 3 heroes late-game.
   war:{name:'War Table',at:'hall',icon:['sword',null],max:2,major:true,cost:L=>[3000,20000][L],eff:L=>L?`Parties of up to ${1+L} heroes`:'Solo adventures only'},
 };
+// Stone for the town's own buildings: Bank vault, backpack and supply pack, Barracks bunks, and the Forge.
+const STONE_UP={bank:L=>2*(L+1),bag:L=>2*(L+1),pack:L=>2*(L+1),barracks:L=>2*(L+1),smith:L=>3*(L+1)};
+const upStone=(k,L)=>STONE_UP[k]?{stone:STONE_UP[k](L)}:null;
+const canUp=(k,L)=>state.gold>=BUILD[k].cost(L)&&hasMats(upStone(k,L));
 const ELIXIR_V=[3,4,6,8,10];
 const slots=()=>3+2*(state.b.barracks||1);
 const bankCap=()=>20+state.b.bank*10; // new loot is sold when full; gear you unequip always fits
@@ -2278,7 +2289,7 @@ function makeHero(force){
   h[C.primary]+=2;
   h.baseStats=Object.fromEntries(STATS.map(k=>[k,h[k]]));h.baseBonus={hp:0,mp:0};h.spent=0;
   h.pool=h.points=ri(7,10)+(state.b.academy-1);
-  while(h.traits.length<traitSlots(1))h.traits.push(rollTrait(h.traits,darkIs('grim')?'bad':null));
+  while(h.traits.length<traitSlots(1))h.traits.push(rollTrait(h.traits,darkIs('grim')?'bad':null,h.cls));
   h.gear.weapon=starterWeapon(cls);
   return h;
 }
@@ -2324,7 +2335,7 @@ function gainXp(h,x,lines){
   if(ups){lines.push(`<b class="gold">${esc(h.name)} reached level ${h.level}!</b> +${gained} attribute points, fully restored`);
     const learned=autoLearn(h);if(learned.length)h.newSkill=[...(h.newSkill||[]),...learned];
     for(const id of learned){const k=SKILLS[id];lines.push(`<b class="gold">${esc(h.name)} learned a new skill: ${k.n}!</b> <span class="muted">${k.d}</span>`)}
-    while((h.traits||[]).length<traitSlots(h.level)){const id=rollTrait(h.traits);h.traits.push(id);const t=TRAITS[id];
+    while((h.traits||[]).length<traitSlots(h.level)){const id=rollTrait(h.traits,null,h.cls);h.traits.push(id);const t=TRAITS[id];
       lines.push(`<b class="gold">${esc(h.name)} developed a new trait (${h.traits.length} total):</b> <span class="tk-${t.kind}">${t.n}</span>. ${traitDesc(t)}`)}
     if(state.run&&state.run.battle)state.run.battle.pops.push({s:'h',hid:h.id,t:'LEVEL UP'});
     if(state.run&&h.hp>0){h.hp=maxHp(h);h.mp=maxMp(h)}}
@@ -3114,8 +3125,8 @@ function heroAction(act,allyId){
 // A lucky surge grants a random boon for the rest of the battle.
 function luckySurge(h){
   const b=state.run.battle,x=b.surge[h.id]=b.surge[h.id]||{},roll=Math.random();let what;
-  if(roll<.4){const k=pick(STATS);x[k]=(x[k]||0)+2;what=`+2 ${STATN[k]}`}
-  else if(roll<.7){const e=pick(ELEMENTS);x['dmg_'+e]=(x['dmg_'+e]||0)+10;what=`+10% ${cap(e)} damage`}
+  if(roll<.4||(h.cls==='warrior'&&roll<.55)){const k=pick(STATS);x[k]=(x[k]||0)+2;what=`+2 ${STATN[k]}`}
+  else if(roll<.7&&h.cls!=='warrior'){const e=pick(ELEMENTS);x['dmg_'+e]=(x['dmg_'+e]||0)+10;what=`+10% ${cap(e)} damage`}
   else{const e=pick(ALL_EL);x['res_'+e]=(x['res_'+e]||0)+10;what=`+10% ${cap(e)} resistance`}
   blog(`<b class="gold">Lucky surge!</b> ${esc(h.name)} gains ${what} for this battle.`);
 }
@@ -3519,7 +3530,7 @@ function win(){
     // Each enemy drops the scrap of its own type (fire gives Carbon, grass gives Wood...). Tougher foes drop more, and sometimes a little Stone or Wood too.
     for(const e of b.enemies){const m={normal:1,mimic:1.5,elite:2.2,boss:4,warden:5,king:6}[e.kind]||1;
       if(chance(.85))addMat(got,EL_MAT[e.type]||'stone',rand(.2,.5)*m*(1+s*.03));
-      if(chance(.4))addMat(got,chance(.6)?'stone':'wood',rand(.15,.35)*(1+s*.03))}
+      addMat(got,'stone',rand(.15,.3)*Math.sqrt(m)*(1+s*.03))}
     for(const [k,v] of Object.entries(got))addMat(r.mats,k,v);
     if(Object.keys(got).length)lines.push('Gathered '+matsLine(got))}
   lines.push(`<span class="muted">Catching breath (Endurance): ${L.map(h=>`${esc(h.name)} +${Math.round(restPct(h)*depthsMult())}% HP`).join(', ')}, +${Math.round((25+govMod('recup'))*manaMult()*depthsMult())}% MP</span>`);
@@ -3753,7 +3764,7 @@ function afxIco(k){
   if(k.startsWith('res_'))return ico('shield',EL_COL[k.slice(4)]);
   return ({hp:ico('heart'),mp:ico('drop','#6b8fe8'),crit:ico('star','#e3b341'),critdmg:ico('star','#e0643a'),lifesteal:ico('heart'),goldfind:ico('coin'),xp:ico('tome','#e3b341')})[k]||'';
 }
-function afxLine(it,a){const A=AFX[a.k],v=affVal(it,a);return `<span class="afx" data-tip="${esc(A.l)}">${afxIco(a.k)}+${v<10?+v.toFixed(1):Math.round(v)}${A.p?'%':''} ${A.e?`<span class="el" style="--c:${EL_COL[A.e]}">${A.l}</span>`:A.l}</span>`}
+function afxLine(it,a){const A=AFX[a.k],v=affVal(it,a),dead=a.k.startsWith('dmg_')&&!it.cls;return `<span class="afx" data-tip="${esc(A.l+(dead?'. No effect for warriors: they only deal physical damage.':''))}">${afxIco(a.k)}+${v<10?+v.toFixed(1):Math.round(v)}${A.p?'%':''} ${A.e?`<span class="el" style="--c:${EL_COL[A.e]}">${A.l}</span>`:A.l}${dead?' <small class="muted">(not warriors)</small>':''}</span>`}
 function itemIcon(it,sc=4){
   const col=getRarCol(it.rarity),nm=it.slot==='weapon'?({warrior:'sword',archer:'bow',mage:'staff'})[it.cls]||'sword':({helmet:'helmet',chest:'chestplate',pants:'pants',ring:'ring',amulet:'amulet'})[it.slot];
   return `<span class="ibox r-${it.rarity}-bg">${sprite(nm,col,sc)}</span>`;
@@ -3783,7 +3794,7 @@ function itemCompare(it,h,slot){
   for(const k of [...new Set([...Object.keys(A),...Object.keys(B)])]){const d=(A[k]||0)-(B[k]||0);if(Math.abs(d)<.05)continue;
     const af=AFX[k],v=Math.abs(d)<10?+Math.abs(d).toFixed(1):Math.round(Math.abs(d)),sg=d>0?'+':'−';
     const txt=k==='dmg'?`${sg}${v} damage`:k==='arm'?`${sg}${v} armor`:k==='eva'?`${sg}${v}% evasion`:`${sg}${v}${af&&af.p?'%':''} ${af?af.l:k}`;
-    parts.push(`<span class="${d>0?'cmpup':'cmpdn'}">${txt}</span>`)}
+    parts.push(h.cls==='warrior'&&k.startsWith('dmg_')?`<span class="cmpsame">${txt} (no effect for a warrior)</span>`:`<span class="${d>0?'cmpup':'cmpdn'}">${txt}</span>`)}
   if(it.slot==='weapon'){const e1=(cur&&cur.el)||'physical',e2=it.el||'physical';if(cur&&e1!==e2)parts.push(`<span class="cmpel">${cap(e1)} → ${cap(e2)}</span>`)}
   if(it.pid&&(!cur||cur.pid!==it.pid))parts.push(`<span class="cmpup">+ ${PERF[it.pid].fxn}</span>`);
   if(cur&&cur.pid&&cur.pid!==it.pid)parts.push(`<span class="cmpdn">− ${PERF[cur.pid].fxn}</span>`);
@@ -3911,12 +3922,13 @@ function installModal(){
 }
 const BLD_BLURB={bank:'Stores your loot between adventures, and holds the Vault, Backpack and Supply Pack upgrades.',smith:'Upgrades your weapons and armor, and buys the gear you don’t need.',farm:'Old Bram will turn scrap into fields and a still that pack free food and potions for every adventure.',witch:'Brews, supplies, crafting, and rerolls for heroes and gear.'};
 function constructionView(k){
-  const need=buildCost(k),have=scrapTotal(),ok=have+1e-9>=need,n={bank:'Bank',smith:'Weaponsmith',farm:'Farm',witch:'Witch'}[k];
+  const need=BLD_NEED[k],ok=hasMats(need),n={bank:'Bank',smith:'Weaponsmith',farm:'Farm',witch:'Witch'}[k];
   return `<div class="construct"><div class="cscene">${sprite('worker','#c98b5c',6)}<i class="hammer big"></i><i class="dust big"></i>${sprite('worker','#6a8ab8',6)}</div>
     <h2>${n} · under construction</h2><p class="muted">${BLD_BLURB[k]||''}</p>
-    <p>The builders need <b class="gold">${need} scrap</b> to finish it. You have <b class="${ok?'gold':'warn'}">${have.toFixed(1)}</b>.</p>
-    <div class="matbar" style="justify-content:center">${SCRAPS_SEEN().map(m=>`<span class="matchip" data-tip="${MATS[m].n} (from ${MATS[m].from} enemies)">${matIco(m,3)}${(state.mats[m]||0).toFixed(1)}</span>`).join('')}</div>
-    ${ok?`<button class="btn gold big" data-a="construct" data-x="${k}">Finish the ${n} · ${need} scrap</button>`:`<p class="muted" style="font-size:18px">Every enemy you defeat drops a little scrap. Bring it home by returning from an adventure: finish it, read a Return Scroll, or run home from a Short adventure. If the whole party falls, the scrap is lost with them.</p><button class="btn gold" data-a="tab" data-x="adventure">Go to the Gate</button>`}</div>`;
+    <p>The builders need Stone for the foundation${Object.keys(need).length>1?' and these for the rest':''}:</p>
+    <div class="matbar" style="justify-content:center">${needChips(need)}</div>
+    <p class="muted" style="font-size:18px">${Object.keys(need).map(m=>`${MATS[m].n} comes from ${LAND_OF[MATS[m].from]||"every land"}`).join(" · ")}.</p>
+    ${ok?`<button class="btn gold big" data-a="construct" data-x="${k}">Finish the ${n}</button>`:`<p class="muted" style="font-size:18px">Every enemy you defeat drops a little scrap. Bring it home by returning from an adventure: finish it, read a Return Scroll, or run home from a Short adventure. If the whole party falls, the scrap is lost with them.</p><button class="btn gold" data-a="tab" data-x="adventure">Go to the Gate</button>`}</div>`;
 }
 /* ---------- the Governor: intro, personality test, character creation ----------
    The governor leads from town and never fights. Ten questions shape who they are:
@@ -4435,7 +4447,7 @@ function heroSheet(){
     <h3>Attributes</h3>${statPips(h)}
     <div class="sheetcols"><div><h3>Combat</h3>${statTable(h)}</div><div><h3>Resistances</h3>${heroElTable(h)}</div></div>
     <h3>Skills</h3><p class="muted" style="font-size:18px">${C.style}${h.cls==='mage'?` Natural affinity: ${elTag(h.affinity)}.`:''}</p>${skillList(h)}
-    <h3>Traits</h3><div class="stack" style="gap:4px">${ts.map(t=>`<p style="font-size:19px"><span class="tk-${t.kind}">${t.n}</span> <span class="muted">${traitDesc(t)}</span></p>`).join('')||'<p class="muted">None yet.</p>'}</div>
+    <h3>Traits</h3><div class="stack" style="gap:4px">${ts.map(t=>`<p style="font-size:19px"><span class="tk-${t.kind} ${deadNote(t,h)?'tdead':''}">${t.n}</span> <span class="muted">${traitDesc(t,h)}</span></p>`).join('')||'<p class="muted">None yet.</p>'}</div>
     <div class="row" style="margin-top:8px"><button class="btn gold" data-a="openHero" data-x="${h.id}">Manage in Barracks</button></div></div>`;
   return modalShell(`${esc(h.name)}`,body,'sheetX','herosheet');
 }
@@ -4540,7 +4552,7 @@ function heroesView(){
     ${slotPanel(h)}
   </div><div class="stack">
     <div class="subtabs">${[['stats','Stats'],['skills','Skills'],['traits','Traits'],['elements','Elements']].map(([k,l])=>`<button class="subtab ${ht===k?'cur':''}" data-a="htab" data-x="${k}">${l}${k==='skills'&&h.newSkill&&h.newSkill.length?' <span class="rbm skill">✦</span>':''}</button>`).join('')}</div>
-    ${ht==='stats'?statPips(h)+statTable(h):ht==='skills'?`<p class="muted" style="font-size:19px">${C.style}${h.cls==='mage'?` Natural affinity: ${elTag(h.affinity)}.`:''}</p>${skillList(h)}${learnBlock(h)}`:ht==='traits'?traitChips(h)+`<div class="stack" style="gap:4px">${(h.traits||[]).map(id=>TRAITS[id]).filter(Boolean).map(t=>`<p style="font-size:19px"><span class="tk-${t.kind}">${t.n}</span> <span class="muted">${traitDesc(t)}</span></p>`).join('')}</div>`:heroElTable(h)}
+    ${ht==='stats'?statPips(h)+statTable(h):ht==='skills'?`<p class="muted" style="font-size:19px">${C.style}${h.cls==='mage'?` Natural affinity: ${elTag(h.affinity)}.`:''}</p>${skillList(h)}${learnBlock(h)}`:ht==='traits'?traitChips(h)+`<div class="stack" style="gap:4px">${(h.traits||[]).map(id=>TRAITS[id]).filter(Boolean).map(t=>`<p style="font-size:19px"><span class="tk-${t.kind} ${deadNote(t,h)?'tdead':''}">${t.n}</span> <span class="muted">${traitDesc(t,h)}</span></p>`).join('')}</div>`:heroElTable(h)}
     <div class="row" style="justify-content:space-between;margin-top:auto;gap:8px"><span class="muted" style="font-size:18px">Backpack on adventures: ${bagCap()} slots <span class="bpack inl">${Array.from({length:bagCap()},()=>'<span class="dslot empty sm"></span>').join('')}</span></span>
     ${state.sel.retire===h.id?`<span class="row"><span class="warn">Retire ${esc(h.name)}?</span><button class="btn red small" data-a="retireYes">Retire</button><button class="btn small" data-a="retireNo">Keep</button></span>`:`<button class="btn small" data-a="retire">Retire hero</button>`}</div></div></div>`;
   return s;
@@ -4554,7 +4566,7 @@ function smithView(){
     const it=selE.it,cost=upCost(it),ch=upChance(it);
     s+=`<div class="hdetail"><div class="stack">${itemCard(it,selE.h?`<span class="meta">Equipped by ${esc(selE.h.name)}</span>`:'<span class="meta">In the bank</span>')}</div><div class="stack">
       ${it.plus>=UP_MAX?`<p class="gold">Fully upgraded (+${UP_MAX}): every stat is ${Math.round(UP_TOTAL[UP_MAX]*100)}% stronger.</p>`:it.plus>=maxPlus?`<p class="muted">At the current limit (+${maxPlus}). Upgrade the Forge to go higher.</p>`:
-      `<p>Upgrade to <b>+${it.plus+1}</b> for <b class="gold">${cost} gold</b> · ${Math.round(ch*100)}% success · every stat +${Math.round(UP_STEP[it.plus]*100)}% of its original (${Math.round(UP_TOTAL[it.plus+1]*100)}% total)</p><div class="row"><button class="btn gold" data-a="upgrade" ${state.gold<cost?'disabled':''}>Upgrade</button></div>`}
+      `<p>Upgrade to <b>+${it.plus+1}</b> for <b class="gold">${cost} gold</b> and ${whetNeed(it).stone} whetstone${whetNeed(it).stone>1?'s':''} ${needChips(whetNeed(it))} · ${Math.round(ch*100)}% success · every stat +${Math.round(UP_STEP[it.plus]*100)}% of its original (${Math.round(UP_TOTAL[it.plus+1]*100)}% total)</p><div class="row"><button class="btn gold" data-a="upgrade" ${state.gold<cost||!hasMats(whetNeed(it))?'disabled':''}>Upgrade</button></div>`}
       <p class="muted" style="font-size:17px">Want different bonuses? The Witch rerolls them.</p>
       ${it.rarity==='perfect'?'':`<p>Sell to the shop for <b class="gold">${sellVal(it)} gold</b>${selE.h?` <span class="muted">(unequips it from ${esc(selE.h.name)})</span>`:''}</p><div class="row"><button class="btn" data-a="sellItem" data-x="${it.id}">Sell</button></div>`}
       ${state.sel.smithMsg?`<p class="gold">${state.sel.smithMsg}</p>`:''}</div></div>`;
@@ -4563,6 +4575,8 @@ function smithView(){
   return s;
 }
 const upCost=it=>Math.round(25*Math.pow(it.plus+1,1.6)*(1+RAR[it.rarity].i*.5));
+// Whetstones (Stone) for each upgrade attempt: +1 and +2 take 1, then 2, 3 and 4. Used up even when an attempt fails.
+const WHET=[1,1,2,3,4],whetNeed=it=>({stone:WHET[it.plus]||4});
 const forgeMax=L=>Math.min(UP_MAX,L+2);
 // +1 to +3 always work; +4 is 80%, +5 is 60%. Forge levels 4 and 5 add 10% each.
 const upChance=it=>it.plus<3?1:Math.min(1,(it.plus===3?.8:.6)+Math.max(0,(state.b.smith||1)-3)*.1);
@@ -4600,6 +4614,15 @@ const MATS={
   metal:{n:'Scrap Metal',ico:['ingot',null],from:'thunder'},hide:{n:'Hide',ico:['hide',null],from:'fighting'},void:{n:'Void Shard',ico:['gem','#9b70dc'],from:'dark'},
   stone:{n:'Stone',ico:['rock','#8a8a92'],from:'physical'}};
 const EL_MAT=Object.fromEntries(Object.entries(MATS).map(([k,m])=>[m.from,k]));
+/* Who uses which scrap. The Farm grows from Rotwood and the Bone Badlands, the Witch from the Frozen Tundra and the Ember Isles,
+   Storm Spires metal serves both, Stone (from every land) builds the rest of the town, and Void Shards finish both at the top. */
+const MAT_USE={wood:'the Farm (fences, barns, coops)',hide:'the Farm (harnesses, pens)',crystal:'the Witch (vials, scrying glass)',carbon:'the Witch (charcoal for her cauldron)',
+  metal:'both the Farm and the Witch (the still and the cauldron)',stone:'the town: foundations, Bank and Barracks upgrades, the Forge, and whetstones for upgrading gear',void:'the final upgrades at the Farm and the Witch'};
+const LAND_OF={grass:'Rotwood',fighting:'the Bone Badlands',ice:'the Frozen Tundra',fire:'the Ember Isles',thunder:'the Storm Spires',dark:'the Abyss',physical:'every land'};
+const matTip=k=>`${MATS[k].n}: dropped in ${LAND_OF[MATS[k].from]||'every land'}. Used by ${MAT_USE[k]}.`;
+// Paying in scrap: {stone:2,wood:1}...
+const hasMats=need=>Object.entries(need||{}).every(([k,v])=>(state.mats[k]||0)+1e-9>=v);
+const payMats=need=>{for(const [k,v] of Object.entries(need||{}))addMat(state.mats,k,-v)};
 const SCRAPS=Object.keys(MATS);
 // No spoilers: Void Shards (dropped only on the Dark Side) stay unnamed and off the scrap bars until the Dark Side opens.
 const voidKnown=()=>{try{return !!state&&(descentUnlocked()||(state.mats&&state.mats.void>0))}catch(e){return false}};
@@ -4608,19 +4631,19 @@ const SCRAPS_SEEN=()=>SCRAPS.filter(k=>k!=='void'||voidKnown());
 // Old saves: the previous materials fold into the new scrap.
 const OLD_MAT={ember:'carbon',frost:'crystal',glass:'crystal',feather:'metal',seeds:'wood',leaf:'wood',bone:'hide',soil:'stone'};
 // A chest or cache mostly holds the land's own scrap, plus some stone and wood.
-function rollMat(biome){const B=BIOMES[biome];const w={stone:2,wood:2};const k=EL_MAT[B&&B.el]||'stone';w[k]=(w[k]||0)+6;return weighted(w)}
+function rollMat(biome){const B=BIOMES[biome];const w={stone:3};const k=EL_MAT[B&&B.el]||'stone';w[k]=(w[k]||0)+6;return weighted(w)}
 const addMat=(o,k,v)=>{o[k]=Math.round(((o[k]||0)+v)*10)/10};
 const matIco=(k,sc=2)=>sprite(MATS[k].ico[0],MATS[k].ico[1],sc,'ico');
-const scrapStrip=(o,tip)=>{const t=Object.entries(o||{}).filter(([,v])=>v>0.05);return t.length?`<div class="scrapline" data-tip="${esc(tip)}">${t.map(([k,v])=>`<span class="matchip">${matIco(k)}<b>${v.toFixed(1)}</b><small>${MATS[k].n}</small></span>`).join('')}</div>`:''};
+const scrapStrip=(o,tip)=>{const t=Object.entries(o||{}).filter(([,v])=>v>0.05);return t.length?`<div class="scrapline" data-tip="${esc(tip)}">${t.map(([k,v])=>`<span class="matchip" data-tip="${esc(matTip(k))}">${matIco(k)}<b>${v.toFixed(1)}</b><small>${MATS[k].n}</small></span>`).join('')}</div>`:''};
 const matsLine=o=>Object.entries(o).filter(([,v])=>v>0).map(([k,v])=>`<span class="matchip" data-tip="${MATS[k].n}">${matIco(k)}${v.toFixed(1)}</span>`).join(' ');
 // need: materials; needItems: consumables used up; out: a consumable id or 'scroll'.
 const RECIPES=[
-  {out:'potion',need:{wood:1,crystal:1}},
-  {out:'ether',need:{metal:1,crystal:1}},
-  {out:'mpotion',need:{wood:1,carbon:1,crystal:1},lvl:2},
-  {out:'gpotion',need:{wood:2,carbon:1,crystal:1,hide:1},lvl:2},
+  {out:'potion',need:{crystal:1,carbon:1}},
+  {out:'ether',need:{crystal:1,metal:1}},
+  {out:'mpotion',need:{crystal:1,carbon:1,metal:1},lvl:2},
+  {out:'gpotion',need:{crystal:2,carbon:2,metal:1},lvl:2},
   ...ALL_EL.map(e=>({out:'ward_'+e,need:{[EL_MAT[e]]:1,crystal:1},lvl:e==='dark'?3:1})),
-  {out:'scroll',need:{void:3,metal:2,wood:2},lvl:3},
+  {out:'scroll',need:{void:3,metal:2,crystal:2},lvl:3},
 ]
 // 24 farm levels: 1-4 Wheat, 5-8 Fruit, 9-12 Eggs, 13-16 Chicken, 17-20 Pork, 21-24 Beef. Level L yields ((L-1)%4)+1 of that tier's food each week.
 // The first level of each tier builds something new, which costs extra.
@@ -4632,7 +4655,7 @@ const farmStep=L=>{if(L<1||L>FARM_MAX)return null;const t=Math.floor((L-1)/4),q=
   const need={};for(const [k,v] of Object.entries(FARM_MIX[t]))need[k]=Math.max(1,Math.round(v*g));
   return {t,q,food:FOODS[t][0],bld:FARM_BLD[t],newBld:q===1,need,gold:Math.round(30*g)}};
 // What each stage of the farm is built from, so better food means scrap from more lands.
-const FARM_MIX=[{wood:3,stone:2,metal:2},{wood:3,stone:2,crystal:2},{wood:3,metal:2,hide:2},{wood:3,hide:2,carbon:2},{stone:2,hide:2,carbon:2,metal:1},{wood:2,stone:2,hide:1,carbon:1,void:1}];
+const FARM_MIX=[{wood:4,metal:2,hide:1},{wood:4,metal:1,hide:2},{wood:3,hide:2,metal:2},{wood:2,hide:3,metal:2},{wood:2,hide:3,metal:2},{wood:2,hide:2,metal:2,void:1}];
 // Old saves: the 3-level farm maps onto the new one.
 const FARM=[null,farmStep(1)];
 const outName=o=>o==='scroll'?'Return Scroll':CONSUMABLES[o].n;
@@ -4643,11 +4666,11 @@ function canMake(rc){
   for(const [k,v] of Object.entries(rc.needItems||{}))if((state.items[k]||0)<v)return false;
   return true;
 }
-const needChips=(need,items)=>Object.entries(need||{}).map(([k,v])=>{const have=state.mats[k]||0;return `<span class="matchip ${have+1e-9>=v?'ok':'no'}" data-tip="${MATS[k].n}: you have ${have.toFixed(1)}">${matIco(k)}${have.toFixed(1)}/${v}</span>`}).join('')
+const needChips=(need,items)=>Object.entries(need||{}).map(([k,v])=>{const have=state.mats[k]||0;return `<span class="matchip ${have+1e-9>=v?'ok':'no'}" data-tip="${esc(matTip(k)+' You have '+have.toFixed(1)+'.')}">${matIco(k)}${have.toFixed(1)}/${v}</span>`}).join('')
   +Object.entries(items||{}).map(([k,v])=>{const have=state.items[k]||0;return `<span class="matchip ${have>=v?'ok':'no'}" data-tip="${CONSUMABLES[k].n}: you have ${have}">${consIco(k,2)}${have}/${v}</span>`}).join('');
 function craftView(){
   let s=`<div class="matbar"><span class="muted">Materials</span>${Object.keys(MATS).map(k=>`<span class="matchip" data-tip="${MATS[k].n}">${matIco(k,3)}${(state.mats[k]||0).toFixed(1)}</span>`).join('')}</div>
-  <p class="muted">Materials drop in fights and chests. Every enemy drops scrap of its own type. ${help('Carbon: fire enemies (Ember Isles). Wood: grass enemies (Rotwood). Ice Crystal: ice enemies (Frozen Tundra). Scrap Metal: thunder enemies (Storm Spires). Hide: fighting enemies (Bone Badlands).'+(voidKnown()?' Void Shard: dark enemies (the Abyss).':'')+' Stone: armored foes, and a little everywhere. If everyone dies, half the carried scrap still makes it home.')}</p>
+  <p class="muted">Materials drop in fights and chests. Every enemy drops scrap of its own type. ${help('The Witch uses Ice Crystal (Frozen Tundra) and Carbon (Ember Isles). The Farm uses Wood (Rotwood) and Hide (Bone Badlands). Both use Scrap Metal (Storm Spires).'+(voidKnown()?' Void Shards (the Abyss) finish both at the top.':'')+' Stone drops a little everywhere and builds the rest of the town: foundations, Bank and Barracks upgrades, the Forge and whetstones. If everyone dies, half the carried scrap still makes it home.')}</p>
   <div class="recipes">${RECIPES.map((rc,i)=>{const lock=rc.lvl&&state.b.alch<rc.lvl,ok=canMake(rc);
     return `<div class="recipe ${ok?'ready':''}">${outIco(rc.out)}<span class="hname">${outName(rc.out)}</span><span class="needs">${needChips(rc.need,rc.needItems)}</span>
       ${lock?`<span class="meta">Needs Cauldron level ${rc.lvl}</span>`:`<button class="btn small ${ok?'gold':''}" data-a="craft" data-x="${i}" ${ok?'':'disabled'}>Make</button>`}</div>`}).join('')}</div>`;
@@ -4658,10 +4681,10 @@ const salvageOf=it=>{if(it.rarity==='perfect')return null;const v=[.5,1,2,4][RAR
 /* ---------- the Farm's still: free potions every week, built from scrap like the farm ---------- */
 const STILL=[['potion','Small Healing Potion'],['mpotion','Medium Healing Potion'],['gpotion','Large Healing Potion']];
 const STILL_BLD=['Copper still','Twin alembic','Moonglass cauldron'];
-const STILL_MIX=[{crystal:2,wood:2,carbon:1},{crystal:2,carbon:2,hide:1},{crystal:3,carbon:2,void:1}];
+const STILL_MIX=[{metal:2,wood:2,hide:1},{metal:3,wood:1,hide:2},{metal:3,wood:2,void:1}];
 const STILL_MAX=12;
 const BREW_BLD=['Spray bottles','Pill press','Patch loom','Needle kit'];
-const BREW_MIX=[{crystal:2,metal:1},{crystal:2,metal:2,wood:1},{crystal:3,metal:2,hide:1},{crystal:3,metal:3,void:1}];
+const BREW_MIX=[{crystal:2,carbon:1},{crystal:2,carbon:2,metal:1},{crystal:3,carbon:2,metal:1},{crystal:3,carbon:3,metal:1,void:1}];
 const BREW_MAX=12;
 const brewStep=L=>{if(L<1||L>BREW_MAX)return null;const t=Math.floor((L-1)/3),q=(L-1)%3+1,g=lvlCost(L);
   const need={};for(const [k,v] of Object.entries(BREW_MIX[t]))need[k]=Math.max(1,Math.round(v*g));
@@ -4749,14 +4772,14 @@ function upgradeBlock(keys){
     return `<div class="upg ${B.major?'major':''}"><span class="upg-ico">${sprite(B.icon[0],B.icon[1],4)}</span>
       <div class="stack" style="gap:2px;flex:1;min-width:0"><span class="hname">${B.name} <span class="lvpill">Lv ${L}/${B.max}</span></span><span>${B.eff(L)}</span>${mx?'':`<span class="nextlv">Next: ${B.eff(L+1)}</span>`}
         ${B.major&&!mx?`<div class="bar xp"><i style="width:${clamp(state.gold/c*100,0,100)}%"></i><span>${fmt(Math.min(state.gold,c))} / ${fmt(c)} gold</span></div>`:''}</div>
-      ${mx?'<span class="lvpill">Max</span>':`<button class="btn gold upbtn" data-a="build" data-x="${k}" ${state.gold<c?'disabled':''}>${sprite('coin',null,2,'ico')}${fmt(c)}<small>Upgrade</small></button>`}</div>`}).join('')}</div>`;
+      ${mx?'<span class="lvpill">Max</span>':`<button class="btn gold upbtn" data-a="build" data-x="${k}" ${canUp(k,L)?'':'disabled'}>${sprite('coin',null,2,'ico')}${fmt(c)}${upStone(k,L)?` <span class="upstone">${needChips(upStone(k,L))}</span>`:''}<small>Upgrade</small></button>`}</div>`}).join('')}</div>`;
 }
 const bHead=(sp,tint,title,line,tip,up)=>`<div class="bhead">${sprite(sp,tint,5)}<div class="stack" style="gap:2px;flex:1;min-width:0"><h2>${title}</h2><span class="muted">${line}${tip?' '+help(tip):''}</span></div>${up||''}</div>`;
 // The building's own level sits in its header, top right. Upgrades for things inside the building stay below.
 function headUp(k){
   const B=BUILD[k],L=state.b[k],mx=L>=B.max,c=B.cost(L);
   return `<div class="bup" data-tip="${esc(B.name+' (this building’s level). Now: '+B.eff(L)+(mx?'. Fully upgraded.':'. Next: '+B.eff(L+1)+'.'))}"><span class="hname">${B.name} <span class="lvpill">Lv ${L}/${B.max}</span></span><span class="bup-eff">${B.eff(L)}</span>
-    ${mx?'<span class="lvpill">Max</span>':`<button class="btn gold small" data-a="build" data-x="${k}" ${state.gold<c?'disabled':''}>${sprite('coin',null,2,'ico')}${fmt(c)} · Upgrade</button>`}</div>`;
+    ${mx?'<span class="lvpill">Max</span>':`<button class="btn gold small" data-a="build" data-x="${k}" ${canUp(k,L)?'':'disabled'}>${sprite('coin',null,2,'ico')}${fmt(c)}${upStone(k,L)?` <span class="upstone">${needChips(upStone(k,L))}</span>`:''} · Upgrade</button>`}</div>`;
 }
 function perfectLedger(){
   const found=state.perfectFound||[];
@@ -4850,7 +4873,7 @@ function homeView(){
   const lv={hall:state.b.war,heroes:state.b.barracks,smith:state.b.smith,alch:state.b.alch,bank:state.b.bank,farm:state.farm.lvl};
   const alert={heroes:state.candidates.length||state.heroes.some(h=>h.points)};
   const spots=Object.entries(T.spots).map(([k,b])=>{const open=k==='adventure'||bldOpen(k),known=bldKnown(k);
-    return `<button class="spot ${k==='adventure'?'gatespot':''} ${open?'':'building'} ${known?'':'mystery'} ${guideAt()===k?'guide':''}" style="left:${pct(b.x0,ISO.W)};top:${pct(b.y0,ISO.Hh)};width:${pct(b.x1-b.x0,ISO.W)};height:${pct(b.y1-b.y0,ISO.Hh)}" ${known?`data-a="tab" data-x="${k}"`:'disabled'} aria-label="${known?NAMES[k]:'Unknown building'}${open?'':': under construction'}" ${known?'':'data-tip="The builders are waiting to hear what this lot is for."'}>${open?'':`<span class="worker w1">${sprite('worker','#c98b5c',3)}<i class="hammer"></i><i class="dust"></i></span><span class="worker w2">${sprite('worker','#6a8ab8',3)}<i class="hammer"></i><i class="dust"></i></span>`}<span class="plaque ${k==='adventure'?'gold':''}">${!known?'?':NAMES[k]+(open?(lv[k]?` <span class="lvpill">${lv[k]}</span>`:''):` <span class="soon">${scrapTotal()+1e-9>=buildCost(k)?'ready to build!':`needs ${buildCost(k)} scrap`}</span>`)}</span>${open&&alert[k]?'<span class="alert">!</span>':''}</button>`}).join('');
+    return `<button class="spot ${k==='adventure'?'gatespot':''} ${open?'':'building'} ${known?'':'mystery'} ${guideAt()===k?'guide':''}" style="left:${pct(b.x0,ISO.W)};top:${pct(b.y0,ISO.Hh)};width:${pct(b.x1-b.x0,ISO.W)};height:${pct(b.y1-b.y0,ISO.Hh)}" ${known?`data-a="tab" data-x="${k}"`:'disabled'} aria-label="${known?NAMES[k]:'Unknown building'}${open?'':': under construction'}" ${known?'':'data-tip="The builders are waiting to hear what this lot is for."'}>${open?'':`<span class="worker w1">${sprite('worker','#c98b5c',3)}<i class="hammer"></i><i class="dust"></i></span><span class="worker w2">${sprite('worker','#6a8ab8',3)}<i class="hammer"></i><i class="dust"></i></span>`}<span class="plaque ${k==='adventure'?'gold':''}">${!known?'?':NAMES[k]+(open?(lv[k]?` <span class="lvpill">${lv[k]}</span>`:''):` <span class="soon">${hasMats(BLD_NEED[k])?'ready to build!':`needs ${Object.entries(BLD_NEED[k]).map(([m,v])=>v+' '+MATS[m].n).join(', ')}`}</span>`)}</span>${open&&alert[k]?'<span class="alert">!</span>':''}</button>`}).join('');
   const heroes=state.heroes.slice(0,HERO_SPOTS.length).map((h,i)=>{const [gx,gy]=HERO_SPOTS[i],p=isoPt(ISO.ox,ISO.oy,gx+.5,gy+.5);
     return `<button class="isohero" style="left:${pct(p[0],ISO.W)};top:${pct(p[1],ISO.Hh)}" data-a="openHero" data-x="${h.id}" data-tip="${esc(`${h.name} · Lv ${h.level} ${C_(h).name} · ${maxHp(h)} HP`)}">${sprite(h.cls,C_(h).tint,4,'bob')}${h.points?'<span class="alert">!</span>':''}</button>`}).join('');
   let s=`<div class="iso">
@@ -5158,9 +5181,9 @@ function learnBlock(h){
 }
 function traitChips(h){
   const ts=(h.traits||[]).map(id=>TRAITS[id]).filter(Boolean);
-  let s=`<div class="traits">${ts.map(t=>`<button class="trait tk-${t.kind}" data-a="trait" data-x="${h.id}|${t.id}" data-tip="${esc(traitDesc(t))}" aria-label="${esc(t.n+'. '+traitDesc(t))}">${t.n}</button>`).join('')}${h.level!=null?`<span class="trait locked" data-tip="Another permanent trait develops at every 10th level.">? at Lv ${(Math.floor((h.level||1)/10)+1)*10}</span>`:''}</div>`;
+  let s=`<div class="traits">${ts.map(t=>`<button class="trait tk-${t.kind} ${deadNote(t,h)?'tdead':''}" data-a="trait" data-x="${h.id}|${t.id}" data-tip="${esc(traitDesc(t,h))}" aria-label="${esc(t.n+'. '+traitDesc(t,h))}">${t.n}</button>`).join('')}${h.level!=null?`<span class="trait locked" data-tip="Another permanent trait develops at every 10th level.">? at Lv ${(Math.floor((h.level||1)/10)+1)*10}</span>`:''}</div>`;
   const o=(state.sel.trait||'').split('|');
-  if(o[0]===h.id&&TRAITS[o[1]]&&h.traits.includes(o[1])){const t=TRAITS[o[1]];s+=`<p class="traitdesc"><span class="tk-${t.kind}">${t.n}</span> <span class="muted">(${t.kind})</span> ${traitDesc(t)}</p>`}
+  if(o[0]===h.id&&TRAITS[o[1]]&&h.traits.includes(o[1])){const t=TRAITS[o[1]];s+=`<p class="traitdesc"><span class="tk-${t.kind}">${t.n}</span> <span class="muted">(${t.kind})</span> ${traitDesc(t,h)}</p>`}
   return s;
 }
 function codex(){
@@ -5283,7 +5306,7 @@ function witchView(){
     const tc=heroWitchCost(h,'trait'),rc=heroWitchCost(h,'respec');
     s+=`<div class="row" style="gap:10px"><span class="portrait">${sprite(h.cls,C_(h).tint,4)}</span><div class="stack" style="gap:2px"><span class="hname">${esc(h.name)} <small class="muted">Lv ${h.level} ${C_(h).name}</small></span><span class="muted">Visits to the witch: ${h.witch||0}. Next visit costs ${Math.round(Math.pow(1.6,h.witch||0)*100)}% of base, plus level.</span></div></div>
       <h3>${WITCH_HERO.trait.n} · <span class="gold">${fmt(tc)} gold</span></h3><p class="muted">${WITCH_HERO.trait.d}</p>
-      <div class="stack" style="gap:6px">${(h.traits||[]).map(id=>TRAITS[id]).filter(Boolean).map(t=>`<div class="row" style="gap:8px;justify-content:space-between;flex-wrap:nowrap"><span><span class="tk-${t.kind}">${t.n}</span> <span class="muted" style="font-size:17px">${traitDesc(t)}</span></span><button class="btn small" data-a="witchTrait" data-x="${h.id}|${t.id}" ${state.gold<tc||state.run?'disabled':''}>Reroll</button></div>`).join('')}</div>
+      <div class="stack" style="gap:6px">${(h.traits||[]).map(id=>TRAITS[id]).filter(Boolean).map(t=>`<div class="row" style="gap:8px;justify-content:space-between;flex-wrap:nowrap"><span><span class="tk-${t.kind}">${t.n}</span> <span class="muted" style="font-size:17px">${traitDesc(t,h)}</span></span><button class="btn small" data-a="witchTrait" data-x="${h.id}|${t.id}" ${state.gold<tc||state.run?'disabled':''}>Reroll</button></div>`).join('')}</div>
       <h3>${WITCH_HERO.respec.n} · <span class="gold">${fmt(rc)} gold</span></h3><p class="muted">${WITCH_HERO.respec.d} ${h.spent?`${h.spent} point${h.spent>1?'s':''} would come back.`:'Nothing spent to undo yet.'}</p>
       <div class="row"><button class="btn" data-a="witchRespec" data-x="${h.id}" ${state.gold<rc||!h.spent?'disabled':''}>Rebalance ${esc(h.name)}</button></div>`;
     {const learned=h.skills.filter(id=>SKILLS[id]&&SKILLS[id].tier);
@@ -5305,10 +5328,10 @@ function witchView(){
   return s;
 }
 function witchReroll(it,k,line){
-  const R=RAR[it.rarity],pool=()=>AFFIXES.filter(a=>!it.affixes.some(x=>x.k===a.k));
+  const R=RAR[it.rarity],ok=a=>!(it.cls==='warrior'&&a.k.startsWith('dmg_')),pool=()=>AFFIXES.filter(a=>ok(a)&&!it.affixes.some(x=>x.k===a.k));
   if(k==='full'){const n=it.affixes.length;it.affixes=[];for(let i=0;i<n;i++)it.affixes.push(rollAffix(pick(pool()),R.m,it.ilvl));return 'Every bonus has been rewritten.'}
   if(k==='values'){it.affixes=it.affixes.map(a=>rollAffix(AFX[a.k],R.m,it.ilvl));return 'The same bonuses, new strengths.'}
-  if(k==='line'){const i=+line;if(!it.affixes[i])return null;const old=AFX[it.affixes[i].k].l,cand=AFFIXES.filter(a=>!it.affixes.some((x,j)=>j!==i&&x.k===a.k)&&a.k!==it.affixes[i].k);it.affixes[i]=rollAffix(pick(cand),R.m,it.ilvl);return `${old} became ${AFX[it.affixes[i].k].l}.`}
+  if(k==='line'){const i=+line;if(!it.affixes[i])return null;const old=AFX[it.affixes[i].k].l,cand=AFFIXES.filter(a=>ok(a)&&!it.affixes.some((x,j)=>j!==i&&x.k===a.k)&&a.k!==it.affixes[i].k);it.affixes[i]=rollAffix(pick(cand),R.m,it.ilvl);return `${old} became ${AFX[it.affixes[i].k].l}.`}
   if(k==='base'){if(it.slot==='weapon')it.base=Math.round(WBASE[it.cls]*(1+it.ilvl*.12)*rand(.9,1.05+R.m*.06));else if(ARMOR_BASE[it.slot])it.base=Math.max(1,Math.round(ARMOR_BASE[it.slot]*CLS_ARM[it.cls||it.wt||'archer']*(1+it.ilvl*.1)*rand(.9,1.15)));else return null;return `New base: ${it.base}.`}
   return null;
 }
@@ -5611,7 +5634,7 @@ function mystChoice(x){
   const done=(text)=>{r.event={title:ev.title,icon:ev.icon,text,wheel:ev.wheel}};
   if(x==='leave')return done('You leave it behind.');
   if(k==='shrine'&&x.startsWith('pact:')){const p=x.slice(5);if(!PACTS[p])return;(r.pacts=r.pacts||[]).push(p);return done(`<b class="gold">${PACTS[p].n} struck.</b> ${PACTS[p].d}`)}
-  if(k==='mine'){const out=[],got={};for(const h2 of living())addFat(h2,8,out);addMat(got,'stone',rand(1,2)*(1+s*.03));addMat(got,chance(.5)?'wood':'stone',rand(.5,1.5)*(1+s*.03));
+  if(k==='mine'){const out=[],got={};for(const h2 of living())addFat(h2,8,out);addMat(got,'stone',rand(1,2)*(1+s*.03));addMat(got,EL_MAT[BIOMES[r.biome].el]||'stone',rand(.5,1.5)*(1+s*.03));
     for(const [m,v] of Object.entries(got))addMat(r.mats,m,v);lines.push('Scrap dug out: '+matsLine(got));if(chance(.25))freeItem('battle',lines,'Buried in the rubble: ');
     return done(`Hours of digging. Everyone +8% fatigue.<br>${lines.join('<br>')}${out.length?'<br><span class="warn">'+out.join(' ')+'</span>':''}`)}
   if(k==='knight'){if(x==='give'){if(!(r.bag&&r.bag.potion>0))return;r.bag.potion--;freeItem('elite',lines,'He presses his spare gear on you: ');for(const h2 of living())xpTo(h2,.1,lines);return done(`He drinks, and the color returns to his face.<br>${lines.join('<br>')}`)}
@@ -5743,16 +5766,16 @@ const ACT={
   retireNo:()=>{state.sel.retire=null},
   retireYes:()=>{const h=heroById(state.sel.retire);if(!h)return;for(const it of gearOf(h))state.bank.push(it);state.heroes=state.heroes.filter(x=>x.id!==h.id);state.sel.retire=null;state.sel.hero=null},
   selItem:id=>{state.sel.item=id;state.sel.smithMsg=null},
-  upgrade:()=>{const e=allItems().find(x=>x.it.id===state.sel.item);if(!e)return;const it=e.it,c=upCost(it);if(state.gold<c||it.plus>=forgeMax(state.b.smith))return;
-    state.gold-=c;if(chance(upChance(it))){it.plus++;state.sel.smithMsg=`Success. ${it.name} is now +${it.plus}.`}else state.sel.smithMsg=`The metal cracks. Upgrade failed and ${c} gold is lost.`},
+  upgrade:()=>{const e=allItems().find(x=>x.it.id===state.sel.item);if(!e)return;const it=e.it,c=upCost(it);if(state.gold<c||!hasMats(whetNeed(it))||it.plus>=forgeMax(state.b.smith))return;
+    state.gold-=c;payMats(whetNeed(it));if(chance(upChance(it))){it.plus++;state.sel.smithMsg=`Success. ${it.name} is now +${it.plus}.`}else state.sel.smithMsg=`The metal cracks. Upgrade failed: ${c} gold and the whetstones are lost.`},
   reroll:()=>{const e=allItems().find(x=>x.it.id===state.sel.item);if(!e)return;const it=e.it,c=rerollCost(it);if(state.gold<c||!it.affixes.length)return;
-    state.gold-=c;const i=ri(0,it.affixes.length-1),have=it.affixes.map(a=>a.k);const pool=AFFIXES.filter(a=>!have.includes(a.k)||a.k===it.affixes[i].k);
+    state.gold-=c;const i=ri(0,it.affixes.length-1),have=it.affixes.map(a=>a.k);const pool=AFFIXES.filter(a=>(!have.includes(a.k)||a.k===it.affixes[i].k)&&!(it.cls==='warrior'&&a.k.startsWith('dmg_')));
     it.affixes[i]=rollAffix(pick(pool),RAR[it.rarity].m,it.ilvl);state.sel.smithMsg=`Rerolled into ${AFX[it.affixes[i].k].l}.`},
   alchHero:id=>{state.sel.alch=id},
   elixir:k=>{const h=heroById(state.sel.alch),c=priced(30+state.b.alch*15,h);if(!h||state.gold<c)return;state.gold-=c;h.elixir={stat:k,v:ELIXIR_V[state.b.alch-1]}},
   tonic:k=>{const h=heroById(state.sel.alch),c=h?priced(200*(h.tonics+1),h):0;if(!h||state.gold<c||h.tonics>=state.b.alch)return;state.gold-=c;h.tonics++;h[k]++;if(h.baseStats)h.baseStats[k]++},
   draught:el=>{const h=heroById(state.sel.alch),c=priced(60,h);if(!h||state.gold<c)return;state.gold-=c;h.draught={el,v:20}},
-  build:k=>{const B=BUILD[k],L=state.b[k],c=B.cost(L);if(L>=B.max||state.gold<c)return;state.gold-=c;state.b[k]++},
+  build:k=>{const B=BUILD[k],L=state.b[k],c=B.cost(L);if(L>=B.max||!canUp(k,L))return;state.gold-=c;payMats(upStone(k,L));state.b[k]++},
   sell:id=>{const it=state.bank.find(x=>x.id===id);if(!it||it.rarity==='perfect')return;state.gold+=sellVal(it);state.bank=state.bank.filter(x=>x.id!==id)},
   partyDbl:id=>{if(state.run||!heroById(id))return;const p=selParty();if(!p.includes(id)&&p.length>=partySize()&&partySize()>1)return;state.sel.party=p;ACT.partyToggle(id)},
   partyToggle:id=>{const p=selParty();if(p.includes(id))state.sel.party=p.filter(x=>x!==id);else if(p.length<partySize()){const R={warrior:0,archer:1,mage:2},c=h=>R[(heroById(h)||{}).cls]??3;state.sel.party=[...p,id].sort((a,b)=>c(a)-c(b))}else if(partySize()===1)state.sel.party=[id]},
@@ -5798,7 +5821,7 @@ const ACT={
   darkOk:()=>{ui.darkShow=false},
   greedSlot:()=>{darkHit('greed')},
   builtOk:()=>{state.builtMsg=null},
-  construct:k=>{const need=OPEN_WEEK[k]&&buildCost(k);if(!need||!canBuild(k))return;spendScrap(need);state.built=state.built||{};state.built[k]=true;state.builtMsg=k},
+  construct:k=>{if(!OPEN_WEEK[k]||!canBuild(k))return;payMats(BLD_NEED[k]);state.built=state.built||{};state.built[k]=true;state.builtMsg=k},
   install:()=>{if(installEvt){const e=installEvt;installEvt=null;e.prompt();(e.userChoice||Promise.resolve()).then(()=>render()).catch(()=>{})}else ui.installHelp=true},
   installHelp:x=>{ui.installHelp=!!x},
   saveExport:()=>{ui.exportCode=exportCode();ui.importOpen=false;ui.copied=false},
@@ -5871,7 +5894,7 @@ const ACT={
   whero:id=>{state.sel.whero=id;state.sel.witchMsg=null},
   witem:id=>{state.sel.witem=state.sel.witem===id?null:id;state.sel.witchMsg=null},
   witchTrait:x=>{const [hid,tid]=x.split('|'),h=heroById(hid);if(!h||state.run)return;const i=(h.traits||[]).indexOf(tid),c=heroWitchCost(h,'trait');if(i<0||state.gold<c)return;
-    state.gold-=c;h.witch=(h.witch||0)+1;const nid=rollTrait(h.traits);h.traits[i]=nid;state.sel.witchMsg=`${TRAITS[tid].n} is gone. ${esc(h.name)} is now ${TRAITS[nid].n}: ${traitDesc(TRAITS[nid])}`},
+    state.gold-=c;h.witch=(h.witch||0)+1;const nid=rollTrait(h.traits,null,h.cls);h.traits[i]=nid;state.sel.witchMsg=`${TRAITS[tid].n} is gone. ${esc(h.name)} is now ${TRAITS[nid].n}: ${traitDesc(TRAITS[nid])}`},
   witchReroll:x=>{const [hid,id]=x.split('|'),h=heroById(hid),sk=SKILLS[id];if(!h||!sk||!sk.tier||!h.skills.includes(id)||onRun(h))return;
     const t=sk.tier,c=skillRerollCost(h,t),others=learnOpts(h,t).filter(k=>k!==id);if(state.gold<c||!others.length)return;
     state.gold-=c;h.rerolls=h.rerolls||{};h.rerolls[t]=(h.rerolls[t]||0)+1;
@@ -6064,7 +6087,10 @@ function start(d){
   // Opening the game always lands on the main menu; Continue picks up exactly where you left off.
   // With no save yet, nothing is written until the player starts a new town.
   if(!booted){booted=true;if(!hot){ui.menu=true;if(!had)ui.erased=ui.slot||1}}
-  for(const h of [...state.heroes,...state.candidates]){h.traits=h.traits||[];while(h.traits.length<traitSlots(h.level||1))h.traits.push(rollTrait(h.traits))}
+  for(const h of [...state.heroes,...state.candidates]){h.traits=h.traits||[];while(h.traits.length<traitSlots(h.level||1))h.traits.push(rollTrait(h.traits,null,h.cls))}
+  {const all=[...state.bank,...state.heroes.flatMap(h=>Object.values(h.gear||{})),...(state.hunted||[]).map(x=>x.it),...((state.run&&state.run.loot)||[])].filter(Boolean);
+   for(const it of all){if(it.cls!=='warrior')continue;if(it.slot==='weapon')it.el=null;
+     it.affixes=(it.affixes||[]).map(a=>{if(!a.k.startsWith('dmg_'))return a;const c=AFFIXES.filter(x=>!x.k.startsWith('dmg_')&&!it.affixes.some(y=>y.k===x.k));return rollAffix(it.pid==='oathkeeper'?AFX.hp:pick(c),RAR[it.rarity]?RAR[it.rarity].m:1,it.ilvl||1)})}}
   for(const h of state.heroes)if(h.hp>maxHp(h))h.hp=maxHp(h);
   for(const c of state.candidates){const mx=10+(state.b.academy-1);if(c.pool>mx){c.pool=c.points=ri(7,10)+(state.b.academy-1)}}
   if(state.b.war==null)state.b.war=0;
