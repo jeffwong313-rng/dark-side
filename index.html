@@ -395,7 +395,8 @@ button[data-tip]{cursor:pointer}
 .recapln{font-size:17px;margin:2px 0}
 .grave{display:flex;flex-direction:column;gap:4px;font-size:20px;color:var(--ash)}
 .bossmark{color:#e0736c}
-@media (prefers-reduced-motion:reduce){.wind-r .fo,.wind-l .fo,.aimed .fo::after,.bob,.hit,.pop,.lunge-r,.lunge-l,.fo.dying,.burst,.scene.shake,.scene::before,.enemyturn,.tb.now,.r-godlike,.r-perfect{animation:none}.pop{opacity:1}.burst{display:none}.fo.dying{opacity:.18}}
+/* Battle animations follow only the in-game Animations switch (Settings → Display), never the device's reduce-motion setting. */
+@media (prefers-reduced-motion:reduce){.r-godlike,.r-perfect{animation:none}}
 
 /* ---------- 2.5D look ---------- */
 .panel{background:linear-gradient(180deg,#231d2b,#1a1621 60%,#17131d);box-shadow:0 0 0 2px #050408,inset 2px 2px 0 #3f3550,inset -2px -2px 0 #0c0a11,0 6px 0 #050408,0 10px 24px #0008}
@@ -984,7 +985,6 @@ button.chestbox:hover img.px{filter:drop-shadow(0 0 18px #e3b341cc) brightness(1
 .lootpop.fresh{animation:lootpop .6s cubic-bezier(.2,1.6,.4,1) both}
 @keyframes lootpop{0%{transform:translate(-50%,-10%) scale(.2);opacity:0}60%{opacity:1}100%{transform:translate(calc(-50% + var(--fx) * 38cqw),calc(-50% + var(--ty))) scale(1);opacity:1}}
 @media (max-width:640px){.lootpop small{font-size:13px;max-width:84px}.lootpop .ibox{width:36px;height:36px}}
-@media (prefers-reduced-motion:reduce){.lootpop.fresh{animation:none}}
 @media (max-width:640px){.rh-row{flex-wrap:wrap;gap:6px 8px}.rh-row>.stack{flex:1 1 0;min-width:0}.runhdr h2{font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rh-party .fo img.px{width:28px}.runhdr .res{flex:1 0 100%;justify-content:flex-start;flex-wrap:wrap}}
 .lootpop .ibox.jack{box-shadow:inset 0 0 0 2px var(--gold),0 0 18px #e3b341cc;animation:glint 1s steps(4) infinite}
 
@@ -1039,7 +1039,6 @@ button.chestbox:hover img.px{filter:drop-shadow(0 0 18px #e3b341cc) brightness(1
 .dropfan .ltile small{font-size:12px;max-width:70px}
 body.lay-stack .dropfan .ltile small{display:none}
 details.rewards summary{cursor:pointer;font-size:17px}
-@media (prefers-reduced-motion:reduce){.lt-wrap.fresh,.dropfan.fresh>span{animation:none}}
 .unit.down{opacity:1}.unit.down>.fo,.unit.down>.uinfo{opacity:.5}
 
 /* drag and drop */
@@ -1292,7 +1291,6 @@ body.dev-phone footer{display:none!important}
 .t-mage i:nth-child(1){left:30%;top:34%;width:40%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#fff 0 22%,#ffffffaa 42%,transparent 70%);animation:skBurst .4s .5s ease-out forwards;mix-blend-mode:screen}
 .mark.skname{color:#fff;background:#2e2440e6;box-shadow:0 0 0 1px #9b70dc;font-size:16px}
 body.nomotion .wfx{display:none}
-@media (prefers-reduced-motion:reduce){.wfx{display:none}.fo.pose-slash,.fo.pose-bow,.fo.pose-staff{animation:none}}
 /* targeting */
 @keyframes tgtPulse{50%{opacity:.55}}
 .unit.foe[data-a="target"]{cursor:pointer}
@@ -1391,7 +1389,6 @@ body.nomotion .wfx{display:none}
 .c-aura i:nth-child(1){left:15%;top:75%}.c-aura i:nth-child(2){left:70%;top:80%;animation-delay:.12s}.c-aura i:nth-child(3){left:40%;top:65%;animation-delay:.24s}.c-aura i:nth-child(4){left:85%;top:60%;animation-delay:.3s}
 .side.foes .skfx.t-shot,.side.foes .skfx.t-snipe,.side.foes .skfx.t-blast{transform:none}
 body.nomotion .skfx{display:none}
-@media (prefers-reduced-motion:reduce){.skfx{display:none}.lunge-big,.castpose,.mark.crit.fresh{animation:none}}
 
 /* combat: target bar, intent arrows, stances, five-line info frames */
 .unit.tgt .fo::before,.fo.tgt::before{display:none!important}
@@ -2605,23 +2602,24 @@ function startRun(){
   arrive();
   state.screen='run';
 }
-/* How many monsters a fight has. Every length uses the same +2%-per-stage climb for a second monster
-   (and +1% per stage for a third); longer adventures simply start higher, so Short runs are mostly one-on-one. */
-const PACK_ODDS={
-  short:     {p2:0,  s2:5, p3:0,  s3:10},
-  medium:    {p2:10, s2:0, p3:0,  s3:5},
-  long:      {p2:20, s2:0, p3:5,  s3:0},
-  expedition:{p2:30, s2:0, p3:10, s3:0},
-  descent:   {p2:30, s2:0, p3:10, s3:0},
-};
+/* How many monsters a fight has, by adventure length and stage (chances of 1 / 2 / 3 monsters).
+   Short:  pairs only from stage 11 (2%, +2% a stage), never three.
+   Medium: pairs 10% +2% a stage; three only after stage 20 (+1% a stage).
+   Long:   pairs 20% +2% a stage, three 5% +1% a stage; one monster never drops below 5%.
+   Expedition / Dark Side: stages 1-10 can be one monster; from stage 11 every fight has at least two,
+   and three climbs to 40% by stage 20, 50% by 30, 60% by 40 and 80% from stage 50.
+   Final Wardens always fight alone; the Unlit King always brings his two knights. */
+const EXP_THREE=[[10,20],[15,25],[20,40],[30,50],[40,60],[50,80]];
+const lerpPts=(P,s)=>{if(s<=P[0][0])return P[0][1];for(let i=1;i<P.length;i++)if(s<=P[i][0]){const [a,x]=P[i-1],[b,y]=P[i];return x+(y-x)*(s-a)/(b-a)}return P[P.length-1][1]};
 function packOdds(len,s){
-  const P=PACK_ODDS[len]||PACK_ODDS.short;
-  // A second monster: +2% per stage after s2. A third: +1% per stage after s3 (max 60%).
-  let p2=s>P.s2?P.p2+2*(s-P.s2):0,p3=s>P.s3?Math.min(60,P.p3+(s-P.s3)):0;
-  if(p2+p3>95)p2=Math.max(0,95-p3);
-  return {one:100-p2-p3,two:p2,three:p3};
+  let two=0,three=0;
+  if(len==='short'){two=s>10?Math.min(100,2*(s-10)):0}
+  else if(len==='medium'){three=s>20?s-20:0;two=Math.min(100-three,10+2*s)}
+  else if(len==='long'){three=Math.min(60,5+s);two=Math.min(95-three,20+2*s)}
+  else{if(s<=10){three=10+s;two=30+2*s}else{three=Math.round(lerpPts(EXP_THREE,s));two=100-three}}
+  return {one:100-two-three,two,three};
 }
-const packSize=()=>{const r=state.run,o=packOdds(r.length,r.stage),x=Math.random()*100;return x<o.three?3:x<o.three+o.two?2:1};
+const packSize=kind=>{if(kind==='warden')return 1;if(kind==='king')return 3;const r=state.run,o=packOdds(r.length,r.stage),x=Math.random()*100;return x<o.three?3:x<o.three+o.two?2:1};
 const PACK_SCALE=.8;
 // Rebalance: fights last several times longer. Enemies carry more health, and each enemy hit is scaled so
 // it takes a similar share of a hero's (now larger) health bar per fight. Hero health is ~1.8x the old formula.
@@ -2771,8 +2769,8 @@ function mitigate(h,raw,mix){
 }
 const mixText=m=>Object.entries(m).filter(([,v])=>v>0.001).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${Math.round(v*100)}% ${k==='physical'?'physical':cap(k)}`).join(' / ');
 function startBattle(kind){
-  const r=state.run,es=[makeEnemy(kind)];
-  while(es.length<packSize())es.push(makeEnemy('normal',true,kind==='king'?'brute':null));
+  const r=state.run,es=[makeEnemy(kind)],n=packSize(kind);
+  while(es.length<n)es.push(makeEnemy('normal',true,kind==='king'?'brute':null));
   const lead0=es[0];es.sort(()=>Math.random()-.5); // formation is shuffled every fight
   const tally={},seen={};for(const e of es)tally[e.name]=(tally[e.name]||0)+1;
   for(const e of es)if(tally[e.name]>1){seen[e.name]=(seen[e.name]||0)+1;e.name+=' '+'ABC'[seen[e.name]-1]}
@@ -4677,7 +4675,7 @@ function advView(){
   else{const bosses=Math.floor(L.max/15),bl=bestLoot(state.sel.len);
     sum=`<b>${L.name}</b> · ${L.feel}, length unknown · ${L.max>15?'major bosses along the way, ':''}a final boss at the end · ×${L.mult} gold · best loot ${state.sel.len==='expedition'?'<span class="muted">?</span>':`<span class="r-${bl}">${RAR[bl].l}</span>`}`+
       (state.sel.len==='short'?` · <span class="ok" data-tip="${esc(`On Short adventures the party can run back home at any time, even mid-battle. Running costs ${FLEE.min}–${FLEE.max}% of carried gold, and each item found during this adventure (even if equipped) has a 33% chance to be lost. Running mid-battle multiplies both (×2 regular fights, ×2.5 elites, ×3 major bosses), and there is no running from the final boss. Supplies and materials come home.`)}">can run home</span>`:'')}
-  let s=`<div class="stack" style="gap:4px"><h2>The Gate</h2><p class="muted">Pick a land, a length and your heroes, then set out. ${help('Pick the land: every monster there deals and resists its element, so bring heroes who can handle it. Heroes who die are gone for good, with their gear. Monsters sometimes hunt in pairs or packs of three. On Short adventures that only starts after stage 5 and grows slowly; longer adventures start with packs already common.')}</p></div>
+  let s=`<div class="stack" style="gap:4px"><h2>The Gate</h2><p class="muted">Pick a land, a length and your heroes, then set out. ${help('Pick the land: every monster there deals and resists its element, so bring heroes who can handle it. Heroes who die are gone for good, with their gear. Monsters sometimes hunt in pairs or packs of three. On Short adventures pairs only appear after stage 10 and packs of three never do; the longer the adventure, the more common packs become, and deep into an Expedition nearly every fight is a pack. The final boss of each adventure always fights alone.')}</p></div>
   <div class="gategrid"><div class="stack"><div class="stack" style="gap:6px"><h3>Length</h3>${bar}<p class="lensum">${sum}</p></div>${final?'':(()=>{const cur=LAND_PICK.includes(state.sel.biome)?state.sel.biome:null;
     return `<div class="stack" style="gap:6px"><h3>Land</h3>${state.guide&&!cur?'<p class="guidehint">① Pick a land to explore</p>':''}<div class="lands ${state.guide&&!cur?'guide':''}" role="radiogroup" aria-label="Land">${LAND_PICK.map(k=>{const B=BIOMES[k],lm=LAND_MOD[landMods()[k]];return `<button class="land ${cur===k?'cur':''}" style="--c:${EL_COL[B.el]}" data-a="land" data-x="${k}" role="radio" aria-checked="${cur===k}">${elIco(B.el)}<span><b>${B.name}</b><small>${cap(B.el)}</small>${lm?`<small class="lmod ${lm.bad?'bad':'good'}">${lm.n}</small>`:''}</span></button>`}).join('')}</div>${cur?landModNote(landMods()[cur]):'<p class="muted" style="font-size:17px">Conditions change every week. Some lands carry a twist this week.</p>'}${cur?`<p class="muted" style="font-size:18px">${BIOMES[cur].flavor} Monsters here deal and resist ${elTag(BIOMES[cur].el)}.</p>`:'<p class="warn" style="font-size:18px">Choose where to go.</p>'}</div>`})()}`;
   if(!state.heroes.length)return s+'<p class="muted">Recruit a hero at the Barracks first.</p></div></div>';
