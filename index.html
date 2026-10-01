@@ -4526,13 +4526,14 @@ function backpackBlock(){
   const r=state.run,cap=bagCap(),sel=r.loot.find(x=>x.id===ui.bsel),many=partyAll().length>1;
   const L=invSorted(r.loot,true);
   let s=`<div class="row" style="justify-content:space-between;gap:6px"><h3>Backpack · ${r.loot.length}/${cap}</h3><button class="btn small gold" data-a="inv">Open inventory</button></div><div class="bpack dropzone" data-drop="pack">${Array.from({length:Math.max(cap,r.loot.length)},(_,i)=>{const it=L[i];
-    return it?`<button class="dslot full ${ui.bsel===it.id?'cur':''}" style="--rc:${getRarCol(it.rarity)}" data-a="bpSel" data-x="${it.id}" data-drag="pack:${it.id}" data-tip="${esc(it.name+' ('+RAR[it.rarity].l+' '+SLOTN[it.slot]+')')}" aria-label="${esc(it.name)}">${sprite(it.slot==='weapon'?({warrior:'sword',archer:'bow',mage:'staff'})[it.cls]:SLOT_SPR[it.slot==='ring'?'ring1':it.slot],getRarCol(it.rarity),3)}</button>`
+    return it?`<button class="dslot full ${ui.bsel===it.id?'cur':''}" style="--rc:${getRarCol(it.rarity)}" data-a="bpSel" data-x="${it.id}" data-drag="pack:${it.id}" data-drop="pack:${it.id}" data-tip="${esc(it.name+' ('+RAR[it.rarity].l+' '+SLOTN[it.slot]+')')}" aria-label="${esc(it.name)}">${sprite(it.slot==='weapon'?({warrior:'sword',archer:'bow',mage:'staff'})[it.cls]:SLOT_SPR[it.slot==='ring'?'ring1':it.slot],getRarCol(it.rarity),3)}</button>`
       :'<span class="dslot empty" aria-label="Empty backpack slot"></span>'}).join('')}</div>`;
   if(sel){const who=living().filter(h=>!sel.cls||sel.cls===h.cls);
     s+=itemCard(sel,`<div class="row">${who.map(h=>`<button class="btn small gold" data-a="packEquip" data-x="${sel.id}|${h.id}">Equip${many?' on '+esc(h.name):''}</button>`).join('')}<button class="btn small" data-a="bpDrop" data-x="${sel.id}">Drop</button></div>${who.map(h=>itemCompare(sel,h)).join('')}${who.length?'':'<span class="meta">No one here can use it. Worth '+sellVal(sel)+' gold in town.</span>'}`)}
   else s+=`<p class="muted" style="font-size:18px">${r.loot.length?'Tap an item to equip or drop it, or drag it onto a hero’s gear slot.':'Loot you find goes here and comes home with you.'} Bigger backpack: Bank.</p>`;
   const G=r.ground||[];
-  if(G.length)s+=`<h3 class="warn">On the ground · ${G.length}</h3><p class="muted" style="font-size:18px">${r.loot.length>=cap?'Your backpack is full. Drop something to pick these up.':'Take what you want.'} Anything left here is lost when you move on.</p><div class="stack" style="gap:6px">${G.map(it=>itemCard(it,`<div class="row"><button class="btn small gold" data-a="bpTake" data-x="${it.id}" ${r.loot.length>=cap?'disabled':''}>Take</button><span class="meta">Worth ${sellVal(it)} gold</span></div>${living().map(h=>itemCompare(it,h)).join('')}`)).join('')}</div>`;
+  if(ui.invMsg)s+=`<p class="warn" style="font-size:18px">${ui.invMsg}</p>`;
+  if(G.length)s+=`<h3 class="warn">On the ground · ${G.length}</h3><p class="muted" style="font-size:18px">${r.loot.length>=cap?'Your backpack is full. Drag one of these onto a backpack item to swap them, or onto a hero’s slot to wear it.':'Take what you want, or drag it onto a hero’s slot or the backpack.'} Anything left here is lost when you move on.</p><div class="stack dropzone" data-drop="ground" style="gap:6px">${G.map(it=>itemCard(it,`<div class="row"><button class="btn small gold" data-a="bpTake" data-x="${it.id}" ${r.loot.length>=cap?'disabled':''}>Take</button><span class="meta">Worth ${sellVal(it)} gold</span></div>${living().map(h=>itemCompare(it,h)).join('')}`,`data-drag="ground:${it.id}" data-drop="ground:${it.id}"`)).join('')}</div>`;
   return s;
 }
 function pslotDetail(h){
@@ -5470,7 +5471,7 @@ function invActions(S){
 }
 function invRow(it,src,S){
   const id=src+':'+it.id,cur=ui.invSel===id;
-  return `<button class="invrow r-${it.rarity}-b ${cur?'cur':''}" data-a="invSel" data-x="${id}" data-drag="${id}" aria-expanded="${cur}">${itemIcon(it,2)}<span class="nm"><span class="r-${it.rarity}">${esc(it.name)}</span>${it.plus?` <b class="gold">+${it.plus}</b>`:''}<small class="meta">${RAR[it.rarity].l} ${SLOTN[it.slot]}${it.cls?' · '+CLASSES[it.cls].name:''}</small></span><span class="meta">${sellVal(it)}g</span></button>${cur&&S?invActions(S):''}`;
+  return `<button class="invrow r-${it.rarity}-b ${cur?'cur':''}" data-a="invSel" data-x="${id}" data-drag="${id}" data-drop="${id}" aria-expanded="${cur}">${itemIcon(it,2)}<span class="nm"><span class="r-${it.rarity}">${esc(it.name)}</span>${it.plus?` <b class="gold">+${it.plus}</b>`:''}<small class="meta">${RAR[it.rarity].l} ${SLOTN[it.slot]}${it.cls?' · '+CLASSES[it.cls].name:''}</small></span><span class="meta">${sellVal(it)}g</span></button>${cur&&S?invActions(S):''}`;
 }
 function invModal(){
   const r=state.run;if(!r)return '';
@@ -5480,12 +5481,12 @@ function invModal(){
   const bar=`<div class="invbar"><div class="subtabs invf">${INV_F.filter(([k])=>k==='all'||cnt(k)||f===k).map(([k,l])=>`<button class="subtab ${f===k?'cur':''}" data-a="invF" data-x="${k}">${l} <small>${cnt(k)}</small></button>`).join('')}</div>
     <label class="invsort"><span class="muted">Sort</span><select data-invsort aria-label="Sort items">${INV_SORT.map(([k,l])=>`<option value="${k}" ${srt===k?'selected':''}>${l}</option>`).join('')}</select></label></div>`;
   const heroes=P.map(h=>{const gs=S&&S.k==='gear'&&S.h===h?S.sl:null,can=S&&S.k!=='gear'&&invFits(S.it,h);
-    return `<div class="invhero ${h.hp<=0?'down':''}" ${can?`data-pick="${pick}"`:''}><div class="row" style="gap:8px;align-items:flex-start;flex-wrap:nowrap"><span class="portrait">${sprite(h.cls,C_(h).tint,3)}</span><div class="stack" style="gap:2px;flex:1;min-width:0"><span class="hname">${esc(h.name)}</span><small class="muted">Lv ${h.level} ${C_(h).name}${h.hp<=0?' · <span class="warn">fallen</span>':''}</small><small class="muted">${Math.round(power(h))} power · ${armor(h)} armor</small></div>${gearDoll(h,'invGear',gs,true)}</div>${gs?invActions(S):''}</div>`}).join('');
+    return `<div class="invhero ${h.hp<=0?'down':''}" ${can?`data-pick="${pick}"`:''} ${h.hp>0?`data-drop="hero:${h.id}"`:''}><div class="row" style="gap:8px;align-items:flex-start;flex-wrap:nowrap"><span class="portrait">${sprite(h.cls,C_(h).tint,3)}</span><div class="stack" style="gap:2px;flex:1;min-width:0"><span class="hname">${esc(h.name)}</span><small class="muted">Lv ${h.level} ${C_(h).name}${h.hp<=0?' · <span class="warn">fallen</span>':''}</small><small class="muted">${Math.round(power(h))} power · ${armor(h)} armor</small></div>${gearDoll(h,'invGear',gs,true)}</div>${gs?invActions(S):''}</div>`}).join('');
   const pk=invSorted(r.loot),gd=invSorted(G),hid=r.loot.length-pk.length,ghid=G.length-gd.length;
   const body=`${bar}<div class="invgrid">
-    <div class="invcol"><h3>Heroes</h3><p class="muted invtip">Tap a slot to see what is worn. Drag items between slots, the backpack and the ground.</p>${heroes}</div>
+    <div class="invcol"><h3>Heroes</h3><p class="muted invtip">Tap a slot to see what is worn. Drag items onto a hero (or a slot), the backpack or the ground. Drop onto another item to swap the two.</p>${ui.invMsg?`<p class="warn invtip">${ui.invMsg}</p>`:''}${heroes}</div>
     <div class="invcol dropzone" data-drop="pack"><h3>Backpack · ${r.loot.length}/${cap}</h3><div class="invlist">${pk.map(it=>invRow(it,'pack',S&&S.k==='pack'&&S.it===it?S:null)).join('')||`<p class="muted">${r.loot.length?'Nothing of this type.':'Empty. Loot you find goes here and comes home with you.'}</p>`}
-      ${hid?`<p class="muted invtip">${hid} more hidden by the filter</p>`:''}${r.loot.length<cap?`<p class="muted invtip">${cap-r.loot.length} free slot${cap-r.loot.length>1?'s':''}</p>`:'<p class="warn invtip">Full. Drop or equip something to make room.</p>'}</div></div>
+      ${hid?`<p class="muted invtip">${hid} more hidden by the filter</p>`:''}${r.loot.length<cap?`<p class="muted invtip">${cap-r.loot.length} free slot${cap-r.loot.length>1?'s':''}</p>`:'<p class="warn invtip">Full. Drag a ground item onto one of these to swap them, or drop or equip something to make room.</p>'}</div></div>
     <div class="invcol dropzone" data-drop="ground"><h3 class="${G.length?'warn':''}">On the ground · ${G.length}</h3><div class="invlist">${gd.map(it=>invRow(it,'ground',S&&S.k==='ground'&&S.it===it?S:null)).join('')||`<p class="muted">${G.length?'Nothing of this type.':'Nothing here. Items that don’t fit in the backpack land here.'}</p>`}
       ${ghid?`<p class="muted invtip">${ghid} more hidden by the filter</p>`:''}${G.length?'<p class="muted invtip">Anything left here is lost when you move on.</p>':''}</div></div>
   </div>`;
@@ -5493,14 +5494,29 @@ function invModal(){
 }
 /* ---------- drag and drop gear ----------
    Mouse: press and drag. Touch: press and hold for a moment, then drag.
-   Sources: data-drag="bank:<id>" | "pack:<id>" | "gear:<heroId>|<slot>".  Targets: data-drop="gear:<heroId>|<slot>" | "bank" | "pack". */
+   Sources: data-drag="bank:<id>" | "pack:<id>" | "ground:<id>" | "gear:<heroId>|<slot>".
+   Targets: data-drop="gear:<heroId>|<slot>" | "hero:<heroId>" (its matching slot) | "bank" | "pack" | "ground" | "pack:<id>" / "ground:<id>" (swap with that item). */
 function dropItem(src,dst){
-  const [sk,sv]=src.split(/:(.*)/),[dk,dv]=dst.split(/:(.*)/),inRun=!!state.run;
+  const [sk,sv]=src.split(/:(.*)/),inRun=!!state.run;let [dk,dv]=dst.split(/:(.*)/);ui.invMsg=null;
   const take=()=>{if(sk==='bank'){const it=state.bank.find(x=>x.id===sv);return it&&!inRun?{it,from:'bank'}:null}
     if(sk==='pack'){const it=inRun&&state.run.loot.find(x=>x.id===sv);return it?{it,from:'pack'}:null}
     if(sk==='ground'){const it=inRun&&(state.run.ground||[]).find(x=>x.id===sv);return it?{it,from:'ground'}:null}
     if(sk==='gear'){const [hid,sl]=sv.split('|'),h=heroById(hid);return h&&h.gear[sl]?{it:h.gear[sl],from:'gear',h,sl}:null}return null};
   const S=take();if(!S)return false;
+  // Dropped on a hero card: put it in the slot it belongs in.
+  if(dk==='hero'){const h=heroById(dv);if(!h||!SLOTS.some(sl=>slotType(sl)===S.it.slot))return false;dk='gear';dv=h.id+'|'+equipSlotFor(S.it,h)}
+  // Dropped on a particular backpack or ground item: swap the two when there is no room.
+  if(inRun&&(dk==='pack'||dk==='ground')&&dv){const r=state.run,list=dk==='pack'?r.loot:(r.ground||[]),T=list.find(x=>x.id===dv);
+    if(!T||T===S.it||S.from===dk)return false;
+    const room=r.loot.length<bagCap();
+    if(dk==='pack'&&!room){
+      if(S.from==='ground'){if(T.rarity==='perfect'){ui.invMsg='Perfect items can’t be left on the ground.';return true}r.ground=r.ground.filter(x=>x!==S.it);r.loot=r.loot.filter(x=>x!==T);r.loot.push(S.it);r.ground.push(T);return true}
+      if(S.from==='gear'){const h=S.h;if(h.hp<=0||slotType(S.sl)!==T.slot||(T.cls&&T.cls!==h.cls))return false;h.gear[S.sl]=T;r.loot=r.loot.map(x=>x===T?S.it:x);h.hp=clamp(h.hp,1,maxHp(h));h.mp=Math.min(h.mp,maxMp(h));return true}
+      return false}
+    if(dk==='ground'){
+      if(S.from==='pack'){if(S.it.rarity==='perfect'){ui.invMsg='Perfect items can’t be left on the ground.';return true}r.loot=r.loot.filter(x=>x!==S.it);r.ground=r.ground.filter(x=>x!==T);r.loot.push(T);r.ground.push(S.it);return true}
+      if(S.from==='gear'){const h=S.h;if(h.hp>0&&S.it.rarity!=='perfect'&&slotType(S.sl)===T.slot&&(!T.cls||T.cls===h.cls)){h.gear[S.sl]=T;r.ground=r.ground.map(x=>x===T?S.it:x);h.hp=clamp(h.hp,1,maxHp(h));h.mp=Math.min(h.mp,maxMp(h));return true}}}
+    dv=null}
   const detach=()=>{if(S.from==='bank')state.bank=state.bank.filter(x=>x!==S.it);else if(S.from==='pack')state.run.loot=state.run.loot.filter(x=>x!==S.it);else if(S.from==='ground')state.run.ground=state.run.ground.filter(x=>x!==S.it);else S.h.gear[S.sl]=null};
   const stash=it=>{if(!it)return;if(inRun)state.run.loot.push(it);else state.bank.push(it)};
   if(dk==='gear'){
@@ -5516,7 +5532,7 @@ function dropItem(src,dst){
     return true;
   }
   if(dk==='bank'&&S.from==='gear'&&!inRun){S.h.gear[S.sl]=null;state.bank.push(S.it);return true}
-  if(dk==='pack'&&S.from==='ground'&&inRun){if(state.run.loot.length>=bagCap())return false;detach();state.run.loot.push(S.it);return true}
+  if(dk==='pack'&&S.from==='ground'&&inRun){if(state.run.loot.length>=bagCap()){ui.invMsg='Backpack full. Drop it onto a backpack item to swap the two.';return true}detach();state.run.loot.push(S.it);return true}
   if(dk==='ground'&&inRun&&(S.from==='pack'||S.from==='gear')&&S.it.rarity!=='perfect'){if(S.from==='gear'&&S.h.hp<=0)return false;detach();if(S.from==='gear'){S.h.hp=Math.min(S.h.hp,maxHp(S.h));S.h.mp=Math.min(S.h.mp,maxMp(S.h))}state.run.ground=state.run.ground||[];state.run.ground.push(S.it);return true}
   if(dk==='pack'&&S.from==='gear'&&inRun){if(state.run.loot.length>=bagCap())return false;S.h.gear[S.sl]=null;state.run.loot.push(S.it);S.h.hp=Math.min(S.h.hp,maxHp(S.h));return true}
   return false;
@@ -5925,7 +5941,7 @@ const ACT={
   inv:()=>{ui.inv=true;ui.invSel=null;ui.drawer=null},
   invClose:()=>{ui.inv=false;ui.invSel=null},
   invF:k=>{ui.invF=k},
-  invSel:x=>{ui.invSel=ui.invSel===x?null:x},
+  invSel:x=>{ui.invSel=ui.invSel===x?null:x;ui.invMsg=null},
   invGear:x=>{const [hid,sl]=x.split('|'),h=heroById(hid);const k='gear:'+x;ui.invSel=ui.invSel===k||!h||!h.gear[sl]?null:k},
   invEquip:hid=>{const S=invSelItem(),h=heroById(hid),r=state.run;if(!S||!h)return;
     const det=S.k==='pack'?()=>{r.loot=r.loot.filter(x=>x!==S.it)}:S.k==='ground'?()=>{r.ground=r.ground.filter(x=>x!==S.it)}:()=>{S.h.gear[S.sl]=null;S.h.hp=Math.min(S.h.hp,maxHp(S.h));S.h.mp=Math.min(S.h.mp,maxMp(S.h))};
@@ -5935,7 +5951,7 @@ const ACT={
   invGearDrop:()=>{const S=invSelItem(),r=state.run;if(!S||S.k!=='gear'||S.it.rarity==='perfect'||S.h.hp<=0)return;S.h.gear[S.sl]=null;S.h.hp=Math.min(S.h.hp,maxHp(S.h));S.h.mp=Math.min(S.h.mp,maxMp(S.h));r.ground=r.ground||[];r.ground.push(S.it);ui.invSel='ground:'+S.it.id},
   pdet:id=>{ui.pdet=ui.pdet===id?null:id},
   htab:x=>{state.sel.htab=x},
-  bpSel:id=>{ui.bsel=ui.bsel===id?null:id},
+  bpSel:id=>{ui.bsel=ui.bsel===id?null:id;ui.invMsg=null},
   bpDrop:id=>{const r=state.run;if(!r)return;const it=r.loot.find(x=>x.id===id);if(!it||it.rarity==='perfect')return;r.loot=r.loot.filter(x=>x!==it);r.ground=r.ground||[];r.ground.push(it);ui.bsel=null},
   bpTake:id=>{const r=state.run;if(!r||r.loot.length>=bagCap())return;const it=(r.ground||[]).find(x=>x.id===id);if(!it)return;r.ground=r.ground.filter(x=>x!==it);r.loot.push(it)},
   gearToPack:x=>{const [hid,sl]=x.split('|'),r=state.run,h=heroById(hid);if(!r||!h||h.hp<=0||!h.gear[sl]||r.loot.length>=bagCap())return;
@@ -5978,10 +5994,18 @@ function drawIntentArrows(){
 function rotateNote(){return `<div class="rotate" aria-live="polite"><div class="rot-ph"></div><p>Turn your phone sideways</p><span class="muted">Dark Side of the Moon is played in landscape.</span></div>`}
 // Inner scrolling panels (drawers, popups, lists) keep their place when the screen is redrawn after a tap.
 const KEEP_SCROLL='.drawer,.modal,.modal .panel,.invlist,.hrlist,.partycol,.preplist,.settings';
-const scrollKey=el=>el.className.replace(/\b(fx|fresh|cur)\b/g,'').replace(/\s+/g,' ').trim()+'|'+(el.getAttribute('aria-label')||'');
+// Keyed by the panel's first class (its kind), so state classes like cur/open/guide coming and going don't lose the place.
+const scrollKey=el=>(el.dataset.sk||String(el.className).trim().split(/\s+/)[0])+'|'+(el.getAttribute('aria-label')||'');
 const scrollKeys=()=>{const seen={};return [...document.querySelectorAll(KEEP_SCROLL)].map(el=>{const k=scrollKey(el);seen[k]=(seen[k]||0)+1;return {el,k:k+'#'+seen[k]}})};
 function grabScroll(){return scrollKeys().filter(x=>x.el.scrollTop).map(x=>({k:x.k,t:x.el.scrollTop}))}
 function keepScroll(o){if(!o.length)return;const now=scrollKeys();for(const x of o){const m=now.find(y=>y.k===x.k);if(m)m.el.scrollTop=x.t}}
+// After a tap redraws the screen, keep the tapped button where it was on screen, so content growing or shrinking above it doesn't make the view jump.
+const anchorOf=t=>{try{return {a:t.dataset.a,x:t.dataset.x||'',top:t.getBoundingClientRect().top}}catch(e){return null}};
+function holdAnchor(){const A=ui.anchor;ui.anchor=null;if(!A)return;
+  const el=[...document.querySelectorAll('[data-a]')].find(e=>e.dataset.a===A.a&&(e.dataset.x||'')===A.x&&e.offsetParent);if(!el)return;
+  let d=el.getBoundingClientRect().top-A.top;if(Math.abs(d)<2)return;
+  for(let p=el.parentElement;p&&p!==document.body&&Math.abs(d)>=1;p=p.parentElement){const oy=getComputedStyle(p).overflowY;if(!/(auto|scroll)/.test(oy)||p.scrollHeight<=p.clientHeight+1)continue;const b=p.scrollTop;p.scrollTop=b+d;d-=p.scrollTop-b}
+  if(Math.abs(d)>=1)window.scrollBy(0,d)}
 function render(){
   const app=document.getElementById('app');
   const foot=`<footer class="row" style="justify-content:space-between;color:var(--dim);font-size:19px"><span>Your town saves automatically in this browser.</span><button class="btn small" data-a="settings" data-x="1">Settings</button></footer>`;
@@ -6005,7 +6029,7 @@ function render(){
   document.body.classList.remove('lay-stack','lay-side','lay-wide','dev-pc','dev-phone');document.body.classList.add('lay-'+mode,mode==='side'?'dev-phone':'dev-pc');
   document.body.classList.toggle('nomotion',!set.motion);
   app.innerHTML=rotateNote()+(inBattle?runView():topBar()+(state.screen==='run'&&state.run?runView():townView())+foot)+(!state.run&&ui.summaryHtml?ui.summaryHtml:'')+(!state.run&&ui.prep?prepView():'')+(!inBattle&&ui.sheet?heroSheet():'')+(!state.run&&ui.greenWarn?greenModal():'')+(state.run&&state.run.reveal&&state.run.reveal.length?revealView():'')+(!state.run?(govRevealView()||storyView()||placeTutView()||govPromoView()||govSheetView()):'')+(state.run&&ui.inv?invModal():'')+installModal()+settingsModal()+darkView();
-  if(key===lastView){window.scrollTo(0,y);keepScroll(kept)}else if(!inBattle)window.scrollTo(0,0);
+  if(key===lastView){window.scrollTo(0,y);keepScroll(kept);if(!inBattle)holdAnchor()}else if(!inBattle)window.scrollTo(0,0);ui.anchor=null;
   if(inBattle)requestAnimationFrame(drawIntentArrows);
   lastView=key;
   save();
@@ -6049,10 +6073,11 @@ document.addEventListener('fullscreenchange',()=>{if(ui.settings)render()});
 document.addEventListener('click',ev=>{
   const t=ev.target.closest('[data-a]');if(!t||t.disabled)return;
   const f=ACT[t.dataset.a];if(!f)return;
+  ui.anchor=anchorOf(t);
   // Buttons with data-dbl do something else on a double-click, so their single click waits a moment first.
   if(t.dataset.dbl&&ACT[t.dataset.dbl]){clearTimeout(ui.dblT);const x=t.dataset.x;
     if(ev.detail>=2){ACT[t.dataset.dbl](x);render();return}
-    ui.dblT=setTimeout(()=>{f(x);render()},300);return}
+    ui.dblT=setTimeout(()=>{ui.anchor=anchorOf(t);f(x);render()},300);return}
   f(t.dataset.x);render();
 });
 // Don't redraw while someone is typing: on phones the keyboard opening resizes the screen, and a redraw would replace the text box and close the keyboard. Redraw once they're done instead.
