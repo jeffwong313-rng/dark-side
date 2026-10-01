@@ -728,6 +728,7 @@ span.dslot{cursor:default}
 .packrow{display:flex;align-items:center;gap:6px;background:#120f16;box-shadow:inset 0 0 0 2px var(--edge);padding:4px 8px;font-size:19px}
 .packrow .pn{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bringrow{display:flex;align-items:center;gap:6px;grid-column:1/-1;grid-row:3;margin-top:4px}
+.stkfull{color:#ff5a5a}.stkplus{color:var(--ash);font-size:.8em;margin:0 2px}.stks{display:inline-flex;gap:3px;vertical-align:middle;margin-left:4px}.stk{font-style:normal;font-size:16px;line-height:1;padding:2px 5px;border:1px solid var(--edge2);border-radius:4px;color:var(--bone)}.stk.full{color:#ff5a5a;border-color:#b83a3a;font-weight:bold}
 .bringrow .pm{min-width:34px;font-size:22px;padding:0 8px 3px}.bringrow .pc{min-width:22px;text-align:center;font-size:22px}
 .packrow .pm{min-width:36px;font-size:22px;padding:0 8px 3px}
 .packrow .pc{min-width:24px;text-align:center;font-size:22px}
@@ -2195,7 +2196,7 @@ const skillMp=(h,id)=>Math.max(1,Math.round(SKILLS[id].mp*(1+tr(h,'skillCost')/1
 const elTaken=(h,e)=>e==='physical'?1:Math.max(.1,1+(tr(h,'tk_'+e)+tr(h,'tkAll'))/100);
 // Resistance as shown on the hero sheet: flat resistance and the percent traits combined.
 const effRes=(h,e)=>Math.round(100-(100-resist(h,e))*elTaken(h,e));
-function resist(h,e){const w=state&&state.run&&state.run.battle&&state.run.battle.wards&&state.run.battle.wards[h.id],bu=e==='fire'&&state&&state.run&&state.run.battle&&state.run.battle.burn?(state.run.battle.burn[h.id]||0):0;return -bu+Math.min(80,(C_(h).elRes||0)+(h.res[e]||0)+stat(h,'end')*.5+aff(h,'res_'+e)+(h.draught&&h.draught.el===e?h.draught.v:0)+((w&&w[e])||0))}
+function resist(h,e){const w=state&&state.run&&state.run.battle&&state.run.battle.wards&&state.run.battle.wards[h.id],bu=e==='fire'&&state&&state.run&&state.run.battle&&state.run.battle.burn?(state.run.battle.burn[h.id]||0):0;return -bu+Math.min(80,(C_(h).elRes||0)+(h.res[e]||0)+stat(h,'end')*.5+aff(h,'res_'+e)+(h.draught&&h.draught.el===e?h.draught.v:0)+((w&&w[e])||0)+((w&&w.all)||0))}
 // Steep curve on purpose: level 10 takes many adventures, level 20 takes a veteran's career.
 // No level cap, but past ~38 each level costs 35% more than the curve, so ~50 is the practical ceiling.
 const xpNeed=L=>Math.round(60*Math.pow(L,1.6)*Math.exp(Math.max(0,L-38)*.3));
@@ -2238,7 +2239,7 @@ const BUILD={
   barracks:{name:'Bunks',at:'heroes',icon:['tent','#6a4a3a'],max:5,cost:L=>Math.round(150*Math.pow(L,1.7)),eff:L=>`Room for ${3+L*2} heroes`},
   bank:{name:'Vault',at:'bank',icon:['chest',null],max:5,cost:L=>Math.round(80*Math.pow(L,1.6)),eff:L=>`Stash holds ${20+L*10} pieces of new loot (gear you unequip always fits)`},
   bag:{name:'Backpack',at:'bank',icon:['chest','#8c6a3c'],max:5,cost:L=>Math.round(90*Math.pow(L,1.6)),eff:L=>`Carry ${2*L} pieces of loot on an adventure`},
-  pack:{name:'Supply Pack',at:'bank',icon:['flask','#b83a3a'],max:5,cost:L=>Math.round(100*Math.pow(L,1.6)),eff:L=>`Carry up to ${4+L*4} supplies on an adventure`},
+  pack:{name:'Supply Pack',at:'bank',icon:['flask','#b83a3a'],max:5,cost:L=>Math.round(100*Math.pow(L,1.6)),eff:L=>`${1+L} supply slots on an adventure (up to 6 of one supply in each)`},
   potency:{name:'Potency',at:'witch',icon:['flask','#b83a3a'],max:3,cost:L=>[300,900,2400][L],eff:L=>L?`Every healing potion heals ${Math.round(HEAL_UP[L]*100)}% more (Small ${(35*(1+HEAL_UP[L])).toFixed(1)}%, Medium ${(55*(1+HEAL_UP[L])).toFixed(1)}%, Large ${(75*(1+HEAL_UP[L])).toFixed(1)}%)`:'Healing potions at normal strength'},
   feed:{name:'Better Feed',at:'farm',icon:['wheat',null],max:3,cost:L=>[250,750,2000][L],eff:L=>L?`All farm food heals ${Math.round(HEAL_UP[L]*100)}% more (Beef ${(28*(1+HEAL_UP[L])).toFixed(1)}% of max health)`:'Farm food at normal strength'},
   // Party size is the game's biggest investment: 2 heroes mid-game, 3 heroes late-game.
@@ -2254,7 +2255,7 @@ const bankCap=()=>20+state.b.bank*10; // new loot is sold when full; gear you un
 const townPower=()=>Object.values(state.b).reduce((a,b)=>a+b,0)-6-(state.b.bag||0)-(state.b.potency||0)-(state.b.feed||0);
 // Loot slots on an adventure: 2, plus 2 per Backpack upgrade.
 const bagCap=()=>2*(state.b.bag||1);
-const packCap=()=>4+4*(state.b.pack||1);
+const packCap=()=>1+(state.b.pack||1); // supply slots, each holding a stack of up to 6
 const recruitCount=()=>state.b.academy;
 const recruitFee=()=>0; // recruiting is free
 const rollStat=min=>Math.max(min,ri(1,6)+ri(1,6)+ri(1,6));
@@ -2999,7 +3000,7 @@ const heroBuff=(h,k)=>{const b=state.run&&state.run.battle,x=b&&b.hb&&b.hb[h.id]
 const heroEva=h=>Math.max(heroBuff(h,'eva')?90:0,stanceOf(h)==='archer'?rollDodge(h):0,evasion(h));
 const heroDef=h=>{const b=state.run.battle,x=heroBuff(h,'def');return Math.max(x?x.v:0,b.bulwark&&b.bulwark.n>0?50:0)};
 function setBuff(h,k,n,v){const b=state.run.battle;b.hb=b.hb||{};const x=b.hb[h.id]=b.hb[h.id]||{};x[k]={n,v}}
-const BUFF_N={def:'guard',eva:'Featherweight',crit:'Sniper',undying:'Undying Vow'};
+const BUFF_N={def:'guard',eva:'Featherweight',crit:'Sniper',undying:'Undying Vow',focus:'Starsight'};
 // Food and mana items restore a slice at the start of each of the hero's next 3 turns.
 function regenAmt(h,x,n){const mx=x.k==='hp'?maxHp(h):maxMp(h);return Math.max(1,Math.round(mx*x.p*n*(x.k==='hp'?healMult(h):manaMult())))}
 function tickRegen(h,b){if(!h.regen||!h.regen.length||h.hp<=0)return;let hp=0,mp=0;
@@ -3026,7 +3027,7 @@ function startHeroTurn(h){
   if(b.guard[h.id]){b.guard[h.id]=false;if(b.taunt===h.id&&!b.tauntN)b.taunt=null}
   if(b.tauntN&&b.taunt===h.id){b.tauntN--;if(b.tauntN<=0){b.taunt=null;b.tauntN=0;blog(`Enemies are free to choose their targets again.`)}}
   if(b.bulwark&&b.bulwark.by===h.id){b.bulwark.n--;if(b.bulwark.n<=0){b.bulwark=null;blog('The Bulwark falls.')}}
-  {const x=b.hb&&b.hb[h.id];if(x)for(const k of ['def','eva','undying'])if(x[k]&&x[k].n>0){x[k].n--;if(!x[k].n&&k!=='def')blog(`${esc(h.name)}’s ${BUFF_N[k]} fades.`)}}
+  {const x=b.hb&&b.hb[h.id];if(x)for(const k of ['def','eva','undying','focus'])if(x[k]&&x[k].n>0){x[k].n--;if(!x[k].n&&k!=='def')blog(`${esc(h.name)}’s ${BUFF_N[k]} fades.`)}}
   if(b.warcry&&b.warcry.by===h.id){b.warcry.n--;if(b.warcry.n<=0){b.warcry=null;blog('The War Cry fades.')}}
   const dt=b.dot&&b.dot[h.id];
   if(dt){h.hp=Math.max(0,h.hp-dt.dmg);b.pops.push({s:'h',hid:h.id,t:dt.dmg});blog(`${esc(h.name)} bleeds for ${dt.dmg}.`);if(--dt.n<=0)delete b.dot[h.id];if(h.hp<=0){heroDown(h);if(h.hp<=0)return}}
@@ -3046,7 +3047,7 @@ function atkEl(h,spec){
   return spec;
 }
 const hitChance=(h,e,acc,sure)=>sure?100:clamp(acc+stat(h,'per')*.3+stat(h,'agi')*.1-(e.eva||0)-(injOf(h)==='dizzy'?15:0),5,100);
-const critFor=(h,o)=>o.forceCrit?100:heroBuff(h,'crit')?Math.max(80,clamp((critChance(h)+(o.crit||0))*(o.critMul||1),0,95)):clamp((critChance(h)+(o.crit||0))*(o.critMul||1),0,95);
+const critFor=(h,o)=>{if(o.forceCrit)return 100;const f=heroBuff(h,'focus'),c=clamp((critChance(h)+(o.crit||0)+(f?f.v:0))*(o.critMul||1),0,95);return heroBuff(h,'crit')?Math.max(80,c):c};
 /* Three basic attacks, no mana. Their numbers come from a weighted mix of the hero's stats,
    always leaning toward the class's main attribute (STR warrior, AGI archer, INT mage). */
 function statMix(h,base){const w={...base},p=C_(h).primary;w[p]=(w[p]||0)+.5;let t=0,v=0;for(const k in w){t+=w[k];v+=w[k]*stat(h,k)}return v/t}
@@ -3182,8 +3183,18 @@ const CONSUMABLES={
   mpotion:{n:'Medium Healing Potion',cost:40,lvl:2,d:'Restores 55% of one hero’s max health.',field:true,heal:.55},
   gpotion:{n:'Large Healing Potion',cost:70,lvl:2,d:'Restores 75% of one hero’s max health.',field:true,heal:.75},
   ether:{n:'Ether',cost:40,lvl:1,d:'Restores 50% of one hero’s max mana. Drinking it doesn’t use the turn.',field:true,quick:true},
-  ...Object.fromEntries(ALL_EL.map(e=>['ward_'+e,{n:cap(e)+' Ward Flask',cost:e==='dark'?60:35,lvl:e==='dark'?3:1,el:e,d:`+30% ${cap(e)} resistance for one hero until the battle ends.`}])),
+  moonveil:{n:'Moonveil Draught',cost:50,lvl:1,ward:25,d:'Silver mist that clings to the skin: +25% resistance to every element for one hero until the battle ends. Battle only.'},
+  starsight:{n:'Starsight Elixir',cost:180,lvl:1,critUp:15,quick:true,d:'Distilled starlight. +15% crit chance for one hero for 3 turns. Drinking it doesn’t use the turn. Battle only.'},
 };
+// The Outfitter and the Witch stock more supplies as harder adventure lengths open (any hero earning the badge opens a tier for good).
+const CONS_OPEN={potion:'short',ether:'medium',moonveil:'medium',mpotion:'medium',ebrew:'medium',gpotion:'long',starsight:'long'};
+const shopTier=()=>{const m=Math.max(0,...((state&&state.heroes)||[]).map(h=>h.badge||0));if(m>(state.shopTier||0))state.shopTier=m;return state.shopTier||0};
+const consOpen=id=>shopTier()>=(BADGE_NEED[CONS_OPEN[id]||'short']||0);
+const consOpenNote=id=>`Opens when ${LENGTHS[CONS_OPEN[id]]?LENGTHS[CONS_OPEN[id]].name:'harder'} adventures open`;
+// Supplies stack up to 6 per slot: 10 potions fill two slots (6 and 4).
+const STACK=6,slotsOf=n=>Math.ceil((n||0)/STACK),planSlots=plan=>Object.values(plan).reduce((a,n)=>a+slotsOf(n),0);
+const qtyHtml=n=>{const out=[];for(let k=n;k>0;k-=STACK)out.push(Math.min(STACK,k));if(!out.length)out.push(0);return out.map(q=>`<span class="${q>=STACK?'stkfull':''}">${q}</span>`).join('<span class="stkplus">+</span>')};
+const stackHtml=n=>{const out=[];for(let k=n;k>0;k-=STACK)out.push(Math.min(STACK,k));return `<span class="stks">${out.map(q=>`<i class="stk ${q>=STACK?'full':''}">${q}</i>`).join('')}</span>`};
 // Farm food. Wheat, Fruit and Egg each heal four times the one before (4 Fruit = 1 Egg).
 // Chicken, Pork and Beef are sized to a veteran hero's health (about 500-1000 HP) instead of multiplying on.
 const FOODS=[['wheat','Wheat'],['fruit','Fruit'],['egg','Egg'],['chicken','Chicken'],['pork','Pork'],['beef','Beef']];
@@ -3206,7 +3217,7 @@ const potencyMult=()=>1+HEAL_UP[(state&&state.b&&state.b.potency)||0],feedMult=(
 // Descriptions follow the upgrades.
 for(const [id,pct] of [['potion',.35],['mpotion',.55],['gpotion',.75]])Object.defineProperty(CONSUMABLES[id],'d',{get(){return `Restores ${Math.round(pct*potencyMult()*100)}% of one hero’s max health.`},configurable:true});
 FOODS.forEach(([id],t)=>Object.defineProperty(CONSUMABLES[id],'d',{get(){const p=FOOD_PCT[t]*feedMult()*100;return `Free farm food. Heals ${+p.toFixed(1)}% of one hero’s max health over 3 turns (${+(p/3).toFixed(1)}% each turn). Eating doesn’t use the turn. It can’t save someone from a killing blow, and anything left when the fight ends heals right away.`},configurable:true}));
-const consIco=(id,sc=3)=>{const C=CONSUMABLES[id];if(C&&C.mana)return sprite('flask',{spray:'#8fb0f0',pill:'#6b8fe8',patch:'#4f6fd8',injection:'#3a4fc0'}[id],sc,'ico');if(C&&C.food)return sprite(id,null,sc,'ico');if(id==='ration')return sprite('bread',null,sc,'ico');if(id==='meal')return sprite('bowl','#c98b5c',sc,'ico');if(id==='ebrew')return sprite('flask','#e3b341',sc,'ico');return sprite('flask',C.el?EL_COL[C.el]:id==='ether'?'#5a7ae0':id==='gpotion'?'#e0304a':id==='mpotion'?'#cc3448':'#b83a3a',sc,'ico')};
+const consIco=(id,sc=3)=>{const C=CONSUMABLES[id];if(id==='moonveil')return sprite('flask','#c9d4e8',sc,'ico');if(id==='starsight')return sprite('flask','#f2d36b',sc,'ico');if(C&&C.mana)return sprite('flask',{spray:'#8fb0f0',pill:'#6b8fe8',patch:'#4f6fd8',injection:'#3a4fc0'}[id],sc,'ico');if(C&&C.food)return sprite(id,null,sc,'ico');if(id==='ration')return sprite('bread',null,sc,'ico');if(id==='meal')return sprite('bowl','#c98b5c',sc,'ico');if(id==='ebrew')return sprite('flask','#e3b341',sc,'ico');return sprite('flask',C.el?EL_COL[C.el]:id==='ether'?'#5a7ae0':id==='gpotion'?'#e0304a':id==='mpotion'?'#cc3448':'#b83a3a',sc,'ico')};
 function useConsumable(id,ally,user){
   const r=state.run,C=CONSUMABLES[id];if(!C||!(r.bag[id]>0)||!ally||ally.hp<=0)return false;
   const b=r.battle;
@@ -3224,7 +3235,8 @@ function useConsumable(id,ally,user){
   else if(id==='meal'){if(b)return false;const parts=living().map(x=>{const v=Math.round(maxHp(x)*.3*healMult(x)*(1+tr(x,'consHeal')/100));x.hp=Math.min(maxHp(x),x.hp+v);return `${esc(x.name)} +${v}`});msg=parts.join(', ')+' HP'}
   else if(C.fat){if(!(ally.fat>0))return false;const was=fatOf(ally);ally.fat=Math.max(0,(ally.fat||0)-C.fat);msg=`${who}’s fatigue ${was}% → ${fatOf(ally)}%`;if(b)b.pops.push({s:'h',hid:ally.id,t:'-'+(was-fatOf(ally))+'%'})}
   else if(id==='ether'){const v=Math.round(maxMp(ally)*.5*cm*manaMult());ally.mp=Math.min(maxMp(ally),ally.mp+v);msg=`${who} +${v} MP`}
-  else if(C.el){if(!b)return false;b.wards[ally.id]=b.wards[ally.id]||{};b.wards[ally.id][C.el]=(b.wards[ally.id][C.el]||0)+30;msg=`${who} +30% ${cap(C.el)} resistance for this battle`}
+  else if(C.ward){if(!b)return false;b.wards[ally.id]=b.wards[ally.id]||{};b.wards[ally.id].all=(b.wards[ally.id].all||0)+C.ward;msg=`${who} +${C.ward}% resistance to every element for this battle`;b.pops.push({s:'h',hid:ally.id,t:'WARDED'})}
+  else if(C.critUp){if(!b)return false;setBuff(ally,'focus',3,C.critUp);msg=`${who} +${C.critUp}% crit chance for 3 turns`;b.pops.push({s:'h',hid:ally.id,t:'FOCUS'})}
   r.bag[id]-=need;if(r.free&&r.free[id]>0)r.free[id]=Math.max(0,r.free[id]-need);
   const line=`${user&&user!==ally?esc(user.name)+' uses':'Used'} ${need>1?'2 '+C.n+'s':(/^[AEIOU]/.test(C.n)?'an':'a')+' '+C.n}: ${msg}.`;
   if(b)blog(line);else r.fieldMsg=line;
@@ -4599,10 +4611,10 @@ function alchView(){
 }
 function alchShop(){
   const L=state.b.alch,hg=bestHaggler();let s='';
-  s+=`<h3>Supplies</h3><p class="muted">Consumables for the road. Heroes use them in battle like any action. Potions and ethers also work between fights.</p><div class="items">${Object.entries(CONSUMABLES).filter(([,C])=>!C.noShop).map(([id,C])=>{const lock=L<C.lvl;
+  s+=`<h3>Supplies</h3><p class="muted">Consumables for the road. Heroes use them in battle like any action. Potions and ethers also work between fights.</p><div class="items">${Object.entries(CONSUMABLES).filter(([,C])=>!C.noShop).map(([id,C])=>{const lock=L<C.lvl||!consOpen(id);
     const pc=priced(C.cost,hg);
     return `<div class="item"><span class="iname">${C.n} <span class="muted">· ${pc} gold${pc<C.cost?` <s>${C.cost}</s>`:''}</span></span><span class="meta">${C.d}</span><span class="meta">Owned: ${state.items[id]||0}</span>
-      ${lock?`<span class="meta">Needs Cauldron level ${C.lvl}</span>`:`<div class="row"><button class="btn small" data-a="buy" data-x="${id}|1" ${state.gold<pc?'disabled':''}>Buy 1</button><button class="btn small" data-a="buy" data-x="${id}|5" ${state.gold<pc*5?'disabled':''}>Buy 5 · ${pc*5}</button></div>`}</div>`}).join('')}
+      ${lock?`<span class="meta">${consOpen(id)?'Needs Cauldron level '+C.lvl:consOpenNote(id)}</span>`:`<div class="row"><button class="btn small" data-a="buy" data-x="${id}|1" ${state.gold<pc?'disabled':''}>Buy 1</button><button class="btn small" data-a="buy" data-x="${id}|5" ${state.gold<pc*5?'disabled':''}>Buy 5 · ${pc*5}</button></div>`}</div>`}).join('')}
     <div class="item r-epic-b"><span class="iname">Return Scroll <span class="muted">· ${priced(SCROLL_PRICE,hg)} gold</span></span><span class="meta">Brings the whole party home safely with everything they carry. Rarely found on the road, costly to buy.</span><span class="meta">Owned: ${state.scrolls}</span>
       <div class="row"><button class="btn small gold" data-a="buyScroll" ${state.gold<priced(SCROLL_PRICE,hg)?'disabled':''}>Buy</button></div></div></div>`;
   return s;
@@ -4642,7 +4654,7 @@ const RECIPES=[
   {out:'ether',need:{crystal:1,metal:1}},
   {out:'mpotion',need:{crystal:1,carbon:1,metal:1},lvl:2},
   {out:'gpotion',need:{crystal:2,carbon:2,metal:1},lvl:2},
-  ...ALL_EL.map(e=>({out:'ward_'+e,need:{[EL_MAT[e]]:1,crystal:1},lvl:e==='dark'?3:1})),
+  {out:'moonveil',need:{crystal:2,metal:1}},
   {out:'scroll',need:{void:3,metal:2,crystal:2},lvl:3},
 ]
 // 24 farm levels: 1-4 Wheat, 5-8 Fruit, 9-12 Eggs, 13-16 Chicken, 17-20 Pork, 21-24 Beef. Level L yields ((L-1)%4)+1 of that tier's food each week.
@@ -4662,6 +4674,7 @@ const outName=o=>o==='scroll'?'Return Scroll':CONSUMABLES[o].n;
 const outIco=(o,sc=4)=>o==='scroll'?sprite('scroll',null,sc):consIco(o,sc);
 function canMake(rc){
   if(rc.lvl&&state.b.alch<rc.lvl)return false;
+  if(CONSUMABLES[rc.out]&&!consOpen(rc.out))return false;
   for(const [k,v] of Object.entries(rc.need||{}))if((state.mats[k]||0)+1e-9<v)return false;
   for(const [k,v] of Object.entries(rc.needItems||{}))if((state.items[k]||0)<v)return false;
   return true;
@@ -4671,9 +4684,9 @@ const needChips=(need,items)=>Object.entries(need||{}).map(([k,v])=>{const have=
 function craftView(){
   let s=`<div class="matbar"><span class="muted">Materials</span>${Object.keys(MATS).map(k=>`<span class="matchip" data-tip="${MATS[k].n}">${matIco(k,3)}${(state.mats[k]||0).toFixed(1)}</span>`).join('')}</div>
   <p class="muted">Materials drop in fights and chests. Every enemy drops scrap of its own type. ${help('The Witch uses Ice Crystal (Frozen Tundra) and Carbon (Ember Isles). The Farm uses Wood (Rotwood) and Hide (Bone Badlands). Both use Scrap Metal (Storm Spires).'+(voidKnown()?' Void Shards (the Abyss) finish both at the top.':'')+' Stone drops a little everywhere and builds the rest of the town: foundations, Bank and Barracks upgrades, the Forge and whetstones. If everyone dies, half the carried scrap still makes it home.')}</p>
-  <div class="recipes">${RECIPES.map((rc,i)=>{const lock=rc.lvl&&state.b.alch<rc.lvl,ok=canMake(rc);
+  <div class="recipes">${RECIPES.map((rc,i)=>{const shut=CONSUMABLES[rc.out]&&!consOpen(rc.out),lock=(rc.lvl&&state.b.alch<rc.lvl)||shut,ok=canMake(rc);
     return `<div class="recipe ${ok?'ready':''}">${outIco(rc.out)}<span class="hname">${outName(rc.out)}</span><span class="needs">${needChips(rc.need,rc.needItems)}</span>
-      ${lock?`<span class="meta">Needs Cauldron level ${rc.lvl}</span>`:`<button class="btn small ${ok?'gold':''}" data-a="craft" data-x="${i}" ${ok?'':'disabled'}>Make</button>`}</div>`}).join('')}</div>`;
+      ${lock?`<span class="meta">${shut?consOpenNote(rc.out):'Needs Cauldron level '+rc.lvl}</span>`:`<button class="btn small ${ok?'gold':''}" data-a="craft" data-x="${i}" ${ok?'':'disabled'}>Make</button>`}</div>`}).join('')}</div>`;
   return s;
 }
 const salvageOf=it=>{if(it.rarity==='perfect')return null;const v=[.5,1,2,4][RAR[it.rarity].i]*(1+it.ilvl*.03),o={};
@@ -4792,7 +4805,7 @@ function perfectLedger(){
     <p class="muted" style="font-size:19px">Perfect weapons only come from bosses and final bosses on the longest adventures${moonKnown()?", and from the Dark Side":""}.</p></details>`;
 }
 function bankView(){
-  let s=bHead('chest',null,'Bank',`Equipment ${state.bank.length}/${bankCap()} · supplies you can carry: ${packCap()}`,'The Vault stores weapons, armor and accessories you find on adventures. Equipment is never sold in town; it only comes from loot. When it is full, new loot is sold automatically. The Supply Pack sets how many potions and other supplies the party can take on an adventure.',headUp('bank'));
+  let s=bHead('chest',null,'Bank',`Equipment ${state.bank.length}/${bankCap()} · supply slots: ${packCap()} (6 per stack)`,'The Vault stores weapons, armor and accessories you find on adventures. Equipment is never sold in town; it only comes from loot. When it is full, new loot is sold automatically. The Supply Pack sets how many potions and other supplies the party can take on an adventure.',headUp('bank'));
   s+=upgradeBlock(['bag','pack']);
   if(Object.values(state.mats).some(v=>v>0))s+=`<div class="matbar"><span class="muted">Materials</span>${matsLine(state.mats)}<button class="btn small" data-a="atab" data-x="craft">Craft →</button></div>`;
   s+=`<div class="bar xp" data-tip="Vault space used"><i style="width:${clamp(state.bank.length/bankCap()*100,0,100)}%"></i><span>Vault ${state.bank.length} / ${bankCap()}</span></div>`;
@@ -4835,13 +4848,14 @@ function advView(){
     ${state.guide&&ok?'<p class="guidehint">③ Set out!</p>':''}<button class="btn gold big ${state.guide&&ok?'guide':''}" data-a="setOut" ${ok?'':'disabled'}>Equip &amp; set out: ${L.final?'The Dark Side':L.name} with ${esc(listNames(p.map(id=>heroById(id).name)))}</button></div>`;
   s+='</div><div class="stack">';
   // outfitter: supplies
-  const stock=Object.values(state.items||{}).reduce((a,x)=>a+x,0),plan=packPlan(),bring=Object.values(plan).reduce((a,x)=>a+x,0);
-  s+=`<h3>Outfitter · supplies</h3><div class="bar xp" data-tip="Your Supply Pack (upgrade it at the Bank). Use − and + to choose what goes along; the rest stays stored in town."><i style="width:${clamp(bring/packCap()*100,0,100)}%"></i><span>Bringing ${bring} / ${packCap()}${stock>bring?` · ${stock-bring} stay stored`:''}</span></div><p class="muted" style="font-size:19px">Choose how many of each to bring with − and +. The rest stays stored in town, and unused supplies come home if the party survives.${hg&&chaDiscount(hg)?` ${esc(hg.name)} haggles ${Math.round(chaDiscount(hg))}% off.`:''}</p>
-  <div class="shoprow">${Object.entries(CONSUMABLES).filter(([,C])=>state.b.alch>=C.lvl&&!C.noShop).map(([id,C])=>{const pc=priced(C.cost,hg),n=state.items[id]||0;
+  const stock=Object.values(state.items||{}).reduce((a,x)=>a+x,0),plan=packPlan(),bringN=Object.values(plan).reduce((a,x)=>a+x,0),bring=planSlots(plan);
+  s+=`<h3>Outfitter · supplies</h3><div class="bar xp" data-tip="Your Supply Pack (upgrade it at the Bank). Use − and + to choose what goes along; the rest stays stored in town."><i style="width:${clamp(bring/packCap()*100,0,100)}%"></i><span>Slots ${bring} / ${packCap()} · ${bringN} supplies${stock>bringN?` · ${stock-bringN} stay stored`:''}</span></div><p class="muted" style="font-size:19px">Choose how many of each to bring with − and +. Each slot holds a stack of up to 6 of one supply. The rest stays stored in town, and unused supplies come home if the party survives.${hg&&chaDiscount(hg)?` ${esc(hg.name)} haggles ${Math.round(chaDiscount(hg))}% off.`:''}</p>
+  <div class="shoprow">${Object.entries(CONSUMABLES).filter(([id,C])=>!C.noShop&&state.b.alch>=C.lvl&&(consOpen(id)||state.items[id]>0)).map(([id,C])=>{const pc=priced(C.cost,hg),n=state.items[id]||0,open=consOpen(id);
     const k=plan[id]||0;
-    return `<div class="shopitem" data-tip="${esc(C.d)}">${consIco(id)}<span>${C.n}</span><span class="muted">${pc}g · have ${n}</span><button class="btn small" data-a="buy" data-x="${id}|1" ${state.gold<pc?'disabled':''}>Buy</button>
-      ${n?`<span class="bringrow"><span class="muted">Bring</span><button class="btn small pm" data-a="packAdj" data-x="${id}|-1" ${k<=0?'disabled':''} aria-label="Bring one fewer ${esc(C.n)}">−</button><b class="num pc">${k}</b><button class="btn small pm" data-a="packAdj" data-x="${id}|1" ${k>=n||bring>=packCap()?'disabled':''} aria-label="Bring one more ${esc(C.n)}">+</button></span>`:''}</div>`}).join('')}
+    return `<div class="shopitem" data-tip="${esc(C.d)}">${consIco(id)}<span>${C.n}</span><span class="muted">${open?pc+'g · ':''}have ${n}</span>${open?`<button class="btn small" data-a="buy" data-x="${id}|1" ${state.gold<pc?'disabled':''}>Buy</button>`:'<span></span>'}
+      ${n?`<span class="bringrow"><span class="muted">Bring</span><button class="btn small pm" data-a="packAdj" data-x="${id}|-1" ${k<=0?'disabled':''} aria-label="Bring one fewer ${esc(C.n)}">−</button><b class="num pc">${qtyHtml(k)}</b><button class="btn small pm" data-a="packAdj" data-x="${id}|1" ${k>=n||(k%STACK===0&&bring>=packCap())?'disabled':''} aria-label="Bring one more ${esc(C.n)}">+</button></span>`:''}</div>`}).join('')}
     ${(()=>{return freeSupplies().map(([id,q,src])=>`<div class="shopitem" data-tip="${esc(CONSUMABLES[id].d+' Packed free on every adventure; unused ones spoil.')}">${consIco(id)}<span>${q} ${CONSUMABLES[id].n}</span><span class="muted">free ${src}</span></div>`).join('')})()}
+    ${(()=>{const nx=Object.entries(CONSUMABLES).filter(([id,C])=>!C.noShop&&!consOpen(id)&&!(state.items[id]>0));if(!nx.length)return '';const t=CONS_OPEN[nx[0][0]];const same=nx.filter(([id])=>CONS_OPEN[id]===t);return `<p class="muted" style="font-size:17px;grid-column:1/-1">More supplies arrive when ${LENGTHS[t].name} adventures open: ${same.map(([,C])=>C.n).join(', ')}.</p>`})()}
     <div class="shopitem" data-tip="Brings the whole party home safely with everything they carry.">${ico('scroll',null,3)}<span>Return Scroll</span><span class="muted">${priced(SCROLL_PRICE,hg)}g · have ${state.scrolls}</span><button class="btn small gold" data-a="buyScroll" ${state.gold<priced(SCROLL_PRICE,hg)?'disabled':''}>Buy</button></div></div>`;
   s+='</div></div>';
   return s;
@@ -4916,7 +4930,7 @@ function partyPanel(){
     <h3>Bag</h3>${(()=>{const bag=Object.entries(r.bag||{}).filter(([id,n])=>n>0&&CONSUMABLES[id]),field=!(b&&!b.over);
       if(!bag.length)return '<p class="muted">No supplies.</p>';
       return `${r.fieldMsg&&field?`<p class="gold" style="font-size:19px">${r.fieldMsg}</p>`:''}<div class="stack" style="gap:6px">${bag.map(([id,n])=>{const C=CONSUMABLES[id];
-        return `<div class="item"><span class="ihead">${consIco(id,3)}<span class="iname">${C.n} ×${n}</span></span><span class="meta">${C.d}</span>${field&&C.field?(C.party?`<div class="row"><button class="btn small gold" data-a="bagUse" data-x="${id}|${living()[0].id}">Feed the party</button></div>`:`<div class="row">${living().map(h=>`<button class="btn small" data-a="bagUse" data-x="${id}|${h.id}">${esc(h.name)}</button>`).join('')}</div>`):!field&&!C.fieldOnly?'<span class="meta">Use it from the Items row on a hero’s turn</span>':C.field?'<span class="meta">Between fights only</span>':'<span class="meta">Battle only</span>'}</div>`}).join('')}</div>`})()}
+        return `<div class="item"><span class="ihead">${consIco(id,3)}<span class="iname">${C.n} ${stackHtml(n)}</span></span><span class="meta">${C.d}</span>${field&&C.field?(C.party?`<div class="row"><button class="btn small gold" data-a="bagUse" data-x="${id}|${living()[0].id}">Feed the party</button></div>`:`<div class="row">${living().map(h=>`<button class="btn small" data-a="bagUse" data-x="${id}|${h.id}">${esc(h.name)}</button>`).join('')}</div>`):!field&&!C.fieldOnly?'<span class="meta">Use it from the Items row on a hero’s turn</span>':C.field?'<span class="meta">Between fights only</span>':'<span class="meta">Battle only</span>'}</div>`}).join('')}</div>`})()}
     ${Object.keys(r.mats||{}).length?`<h3>Materials</h3><div class="row" style="gap:4px">${matsLine(r.mats)}</div>`:''}
     ${backpackBlock()}`;
 }
@@ -4968,6 +4982,8 @@ function heroInfo(h){
   if(b.jam&&b.jam[h.id])tags.push(`<span class="utag" style="color:#e6d55a" data-tip="Jammed: ${esc(JAM_N(b.jam[h.id]))} can’t be used on their next turn.">Jammed</span>`);
   if(stanceOf(h))tags.push(`<span class="utag" style="color:#8fa8c8" data-tip="${esc(STANCE[h.cls].n+': '+STANCE[h.cls].d(h)+' Ends when this hero acts again.')}">${STANCE[h.cls].n.split(' ')[0]}</span>`);
   if(heroBuff(h,'crit'))tags.push(`<span class="utag gold" data-tip="Sniper: at least 80% crit chance for ${heroBuff(h,'crit').n} more turn${heroBuff(h,'crit').n>1?'s':''}.">Sniper ×${heroBuff(h,'crit').n}</span>`);
+  if(heroBuff(h,'focus'))tags.push(`<span class="utag gold" data-tip="Starsight Elixir: +${heroBuff(h,'focus').v}% crit chance for ${heroBuff(h,'focus').n} more turn${heroBuff(h,'focus').n>1?'s':''}.">Starsight ×${heroBuff(h,'focus').n}</span>`);
+  if(b.wards&&b.wards[h.id]&&b.wards[h.id].all)tags.push(`<span class="utag" style="color:#c9d4e8" data-tip="Moonveil: +${b.wards[h.id].all}% resistance to every element until this battle ends.">Moonveil</span>`);
   if(heroBuff(h,'undying'))tags.push('<span class="utag gold" data-tip="Undying Vow: cannot drop below 1 health, takes 50% less damage and taunts until it fades.">Undying</span>');
   const inc=b.over||!seeIntent()?0:aliveFoes().filter(e=>e.intent&&(aoeAct(e.intent.act)||intentTarget(e)===h)).length;
   if(inc&&h.hp>0)tags.push(`<span class="utag tgtd" data-tip="${inc} enem${inc>1?'ies are':'y is'} aiming at this hero next.">Targeted${inc>1?' ×'+inc:''}</span>`);
@@ -5159,7 +5175,7 @@ function actBar(){
   if(h.cls==='mage'||heroBuff(h,'imbue'))s+=`<div class="hscroll"><span class="lab">${h.cls==='mage'?'Attune (free)':`Arrows (${heroBuff(h,'imbue').n} turns)`}</span>${ELEMENTS.map(el=>`<button class="btn small ${attuned(h)===el?'on':''}" data-a="attune" data-x="${h.id}|${el}">${elTag(el)}${known?` ×${effOf(el).toFixed(2)}`:''}</button>`).join('')}</div>`;
   s+='</div>';
   const bag=Object.entries(r.bag||{}).filter(([id,n])=>n>0&&CONSUMABLES[id]&&!CONSUMABLES[id].fieldOnly);
-  s+=`<div class="asec"><div class="alabel">Items <span>potions use the turn · food and mana drinks are free</span></div><div class="hscroll">${bag.length?bag.map(([id,n])=>`<button class="btn small ${CONSUMABLES[id].quick?'quick':''}" data-a="useItem" data-x="${id}" data-tip="${esc(CONSUMABLES[id].d)}">${consIco(id,2)}${CONSUMABLES[id].n} ×${n}${CONSUMABLES[id].quick?' <small class="gold">free</small>':''}</button>`).join(''):'<span class="lab">No supplies in the bag. Buy them from the Witch or at the Gate.</span>'}</div></div>`;
+  s+=`<div class="asec"><div class="alabel">Items <span>potions use the turn · food and mana drinks are free</span></div><div class="hscroll">${bag.length?bag.map(([id,n])=>`<button class="btn small ${CONSUMABLES[id].quick?'quick':''}" data-a="useItem" data-x="${id}" data-tip="${esc(CONSUMABLES[id].d)}">${consIco(id,2)}${CONSUMABLES[id].n} ${stackHtml(n)}${CONSUMABLES[id].quick?' <small class="gold">free</small>':''}</button>`).join(''):'<span class="lab">No supplies in the bag. Buy them from the Witch or at the Gate.</span>'}</div></div>`;
   return s;
 }
 function nodesView(){return mapView()}
@@ -5374,20 +5390,21 @@ function prepView(){
     <div class="row prepfoot"><button class="btn" data-a="prepClose">Back</button><button class="btn gold big ${state.guide?'guide':''}" data-a="prepGo">Depart: ${LENGTHS[state.sel.len]?LENGTHS[state.sel.len].name:''} with ${esc(listNames(P.map(x=>x.name)))}</button></div>`;
   return modalShell('Prepare the party',body,'prepClose','prep');
 }
-// How many of each supply go along. Default: one of each kind in turn until the Supply Pack is full.
+// How many of each supply go along. The Supply Pack holds slots; each slot is a stack of up to 6 of one supply.
 function packPlan(){
   const cap=packCap(),own=Object.fromEntries(Object.entries(state.items||{}).filter(([id,n])=>n>0&&CONSUMABLES[id]));
-  if(state.sel.pack){const out={};let room=cap;for(const id of Object.keys(own)){const n=Math.max(0,Math.min(own[id],state.sel.pack[id]||0,room));if(n){out[id]=n;room-=n}}return out}
-  const out={};let room=cap,moved=true;while(room>0&&moved){moved=false;for(const id of Object.keys(own))if(room>0&&(out[id]||0)<own[id]){out[id]=(out[id]||0)+1;room--;moved=true}}return out;
+  if(state.sel.pack){const out={};let room=cap;for(const id of Object.keys(own)){const n=Math.max(0,Math.min(own[id],state.sel.pack[id]||0,room*STACK));if(n){out[id]=n;room-=slotsOf(n)}}return out}
+  // Default: one of each kind in turn; a new slot opens only while there is room for it.
+  const out={};let room=cap,moved=true;while(moved){moved=false;for(const id of Object.keys(own)){const n=out[id]||0;if(n>=own[id])continue;const newSlot=n%STACK===0;if(newSlot&&room<=0)continue;out[id]=n+1;if(newSlot)room--;moved=true}}return out;
 }
 function packBlock(){
-  const plan=packPlan(),cap=packCap(),used=Object.values(plan).reduce((a,n)=>a+n,0),ids=Object.keys(state.items||{}).filter(id=>state.items[id]>0&&CONSUMABLES[id]);
+  const plan=packPlan(),cap=packCap(),used=planSlots(plan),ids=Object.keys(state.items||{}).filter(id=>state.items[id]>0&&CONSUMABLES[id]);
   const free=freeSupplies();
-  return `<div class="packblk"><div class="row" style="justify-content:space-between"><h3>Supplies · ${used}/${cap}</h3>${ids.length?`<span class="row" style="gap:6px"><button class="btn small" data-a="packAll" data-x="0">None</button><button class="btn small" data-a="packAll" data-x="1">Fill</button></span>`:''}</div>
+  return `<div class="packblk"><div class="row" style="justify-content:space-between"><h3>Supplies · ${used}/${cap} slots</h3>${ids.length?`<span class="row" style="gap:6px"><button class="btn small" data-a="packAll" data-x="0">None</button><button class="btn small" data-a="packAll" data-x="1">Fill</button></span>`:''}</div>
     ${ids.length?`<div class="packrows">${ids.map(id=>{const n=plan[id]||0;return `<div class="packrow" data-tip="${esc(CONSUMABLES[id].d)}">${consIco(id,2)}<span class="pn">${CONSUMABLES[id].n}</span><span class="muted">of ${state.items[id]}</span>
-      <button class="btn small pm" data-a="packAdj" data-x="${id}|-1" ${n<=0?'disabled':''} aria-label="One fewer">−</button><b class="num pc">${n}</b><button class="btn small pm" data-a="packAdj" data-x="${id}|1" ${n>=state.items[id]||used>=cap?'disabled':''} aria-label="One more">+</button></div>`}).join('')}</div>`:'<p class="muted">No supplies in town. The Witch sells them.</p>'}
+      <button class="btn small pm" data-a="packAdj" data-x="${id}|-1" ${n<=0?'disabled':''} aria-label="One fewer">−</button><b class="num pc">${qtyHtml(n)}</b><button class="btn small pm" data-a="packAdj" data-x="${id}|1" ${n>=state.items[id]||(n%STACK===0&&used>=cap)?'disabled':''} aria-label="One more">+</button></div>`}).join('')}</div>`:'<p class="muted">No supplies in town. The Witch sells them.</p>'}
     ${free.length?`<p class="muted" style="font-size:17px">Also packed free: ${free.map(([id,q])=>`${consIco(id,2)}${q} ${CONSUMABLES[id].n}`).join(', ')} (no pack space).</p>`:''}
-    <p class="muted" style="font-size:17px">Whatever you leave behind stays in storage for later, and unused supplies you bring come home. Bigger Supply Pack: Bank.</p></div>`;
+    <p class="muted" style="font-size:17px">Each slot holds a stack of up to 6 of one supply (a full stack shows in red). Whatever you leave behind stays in storage, and unused supplies you bring come home. More slots: Supply Pack at the Bank.</p></div>`;
 }
 function revealView(){
   const id=state.run.reveal[0],P=PERF[id],L=PERF_LOOK[id]||{c:'#ff5c7a',p:'burst',t:''};if(!P){state.run.reveal.shift();return ''}
@@ -5836,8 +5853,8 @@ const ACT={
     catch(e){ui.importText=txt;ui.importMsg='Could not load that save: '+esc(e.message||'unreadable code')}},
   fullscreen:()=>{try{if(document.fullscreenElement)document.exitFullscreen();else document.documentElement.requestFullscreen({navigationUI:'hide'}).catch(()=>{})}catch(e){}},
   revealOk:()=>{const r=state.run;if(r&&r.reveal)r.reveal.shift()},
-  packAdj:x=>{const [id,d]=x.split('|'),plan=packPlan(),used=Object.values(plan).reduce((a,n)=>a+n,0),n=(plan[id]||0)+(+d);
-    if(n<0||n>(state.items[id]||0)||(+d>0&&used>=packCap()))return;plan[id]=n;state.sel.pack=plan},
+  packAdj:x=>{const [id,d]=x.split('|'),plan=packPlan(),used=planSlots(plan),n=(plan[id]||0)+(+d);
+    if(n<0||n>(state.items[id]||0)||(+d>0&&(plan[id]||0)%STACK===0&&used>=packCap()))return;plan[id]=n;state.sel.pack=plan},
   packAll:x=>{if(x==='0'){state.sel.pack={};return}state.sel.pack=null},
   gear3ok:()=>{state.gear3Msg=null},
   heroSheet:id=>{ui.sheet=id;const h=heroById(id);if(h)h.newSkill=null},
@@ -5864,7 +5881,7 @@ const ACT={
     if(darkIs('selfish')){if(living().length>1)darkHit('selfish');return queueHero('item:'+id,h.id)}
     if(living().length>1){b.pending='item:'+id;return}queueHero('item:'+id,h.id)},
   bagUse:x=>{const [id,hid]=x.split('|'),r=state.run;if(r.battle&&!r.battle.over)return;useConsumable(id,heroById(hid),null)},
-  buy:x=>{const [id,n]=x.split('|'),C=CONSUMABLES[id],k=+n||1,pc=C&&priced(C.cost,bestHaggler());if(!C||C.noShop||state.b.alch<C.lvl||state.gold<pc*k)return;state.gold-=pc*k;state.items[id]=(state.items[id]||0)+k},
+  buy:x=>{const [id,n]=x.split('|'),C=CONSUMABLES[id],k=+n||1,pc=C&&priced(C.cost,bestHaggler());if(!C||C.noShop||state.b.alch<C.lvl||!consOpen(id)||state.gold<pc*k)return;state.gold-=pc*k;state.items[id]=(state.items[id]||0)+k},
   buyScroll:()=>{const c=priced(SCROLL_PRICE,bestHaggler());if(state.gold<c)return;state.gold-=c;state.scrolls++},
   attune:x=>{const [hid,el]=x.split('|'),b=state.run&&state.run.battle;if(b&&ELEMENTS.includes(el)){b.attune[hid]=el;const h=heroById(hid);if(h&&h.cls==='mage')h.attuneEl=el}},
   auto:()=>{const b=state.run.battle;b.auto=!b.auto;state.run.autoPref=b.auto},
@@ -6096,6 +6113,8 @@ function start(d){
   if(state.b.war==null)state.b.war=0;
   if(state.b.barracks==null)state.b.barracks=1;
   if(state.b.pack==null)state.b.pack=1;
+  // Per-element Ward Flasks became the single Moonveil Draught.
+  {const fix=o=>{if(!o)return;for(const k of Object.keys(o))if(k.startsWith('ward_')){o.moonveil=(o.moonveil||0)+(o[k]||0);delete o[k]}};if(Object.keys(state.items||{}).some(k=>k.startsWith('ward_'))&&state.sel)state.sel.pack=null;fix(state.items);if(state.run){fix(state.run.bag);fix(state.run.free)}}
   if(state.b.bag==null)state.b.bag=1;
   if(state.run&&!state.run.ground)state.run.ground=[];
   if(state.tab==='academy'){state.tab='heroes';state.sel.btab='recruit'}
