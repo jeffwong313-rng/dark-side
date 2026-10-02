@@ -1504,6 +1504,17 @@ body.nomotion .px.anim{object-position:0 0}
 .townev{margin-top:8px;padding:10px 12px;background:linear-gradient(#211a2a,#17131d);box-shadow:inset 0 0 0 2px #7a5a20,0 0 18px #e3b34122;display:flex;flex-direction:column;gap:8px}
 body.nomotion .npc{display:none}
 
+.upbadge{display:inline-block;align-self:flex-start;font-size:15px;line-height:1;padding:2px 5px 3px;color:#8fe08a;box-shadow:inset 0 0 0 1px #8fe08a66;background:#14261a}
+.upbadge.none{color:var(--dim);box-shadow:inset 0 0 0 1px #ffffff18;background:none}
+.loadouts{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:17px}
+.lset{display:inline-flex;gap:5px;align-items:center;padding:3px 6px;background:var(--stone);box-shadow:inset 0 0 0 2px var(--edge)}
+.rtable{width:100%;border-collapse:collapse;font-size:17px;margin:4px 0}
+.rtable th{font-weight:normal;color:var(--ash);text-align:right;padding:2px 6px;font-size:15px}.rtable th:first-child,.rtable td:first-child{text-align:left}
+.rtable td{text-align:right;padding:3px 6px;border-top:1px solid #ffffff12;white-space:nowrap}
+.rtable td .ico{vertical-align:-4px;margin-right:4px}
+.rtable tr.fallen td{color:var(--dim)}
+@media (max-width:640px){.rtable th:nth-child(5),.rtable td:nth-child(5){display:none}}
+
 </style>
 
 </head>
@@ -3539,7 +3550,7 @@ function startRun(){
   if(!final)biome=LAND_PICK.includes(state.sel.biome)?state.sel.biome:pick(LAND_PICK);
   const total=final?null:ri(L.min,L.max),bossAt=[];
   if(!final){let k=ri(12,17);while(k<total-2){bossAt.push(k);k+=ri(12,18)}}
-  state.run={id:uid(),mod:final?null:(landMods()[biome]||null),pacts:[],startLv:Object.fromEntries(ids.map(id=>[id,heroById(id).level])),chestAt:[],party:ids,length:len,final,total,bossAt,stage:1,biome,gold:0,loot:[],scrolls,battle:null,nodes:[],event:null,
+  state.run={stats:{},id:uid(),mod:final?null:(landMods()[biome]||null),pacts:[],startLv:Object.fromEntries(ids.map(id=>[id,heroById(id).level])),chestAt:[],party:ids,length:len,final,total,bossAt,stage:1,biome,gold:0,loot:[],scrolls,battle:null,nodes:[],event:null,
     lastStand:{},fallen:[],autoPref:false,kingChance:0,bag:{},mats:{}};
   // The Supply Pack limits how many consumables go along. The rest stay in town.
   // The player picks how many of each supply to bring on the prepare screen (a mix by default).
@@ -4213,7 +4224,7 @@ function hitEnemy(h,e,o){
   if(crit)d*=(critDmg(h)+(o.cdmg||0)+(h.cls==='archer'?cbStacks(h)*4:0))/100;
   {const vp=vanityPen(h);if(vp){d*=1-vp/100;darkHit('vanity')}}
   d=Math.max(1,Math.round(d));
-  e.hp=Math.max(0,e.hp-d);
+  {const was=e.hp;e.hp=Math.max(0,e.hp-d);const S=runStat(h);S.dealt+=Math.min(d,was);if(d>S.big)S.big=d;if(crit)S.crits++;if(was>0&&e.hp<=0)S.kills++}
   b.fx['e'+idx]=1;b.pops.push({s:'e',i:idx,t:d,crit,el,m:m>1?1:(m<1||res>=40)?-1:0});
   if(crit){if(!b.critThisAction&&h.hp>0)critBuff(h);b.fx.shake=1;b.fx.crit=1;b.fx['stop'+idx]=1;b.critThisAction=true}
   // Reckless Fury: every crit tears at the hero's own scars.
@@ -4377,7 +4388,7 @@ function foeStrike(e,i,h,mult,o){
   const crit=chance(.06+(bigE&&e.type==='fighting'?.19:0)+(spOf(e)&&spOf(e)[0]==='keen'?spOf(e)[1]/100:0));if(crit)d*=1.5;
   d*=Math.max(.1,1+tr(h,'taken')/100)*(o.heavy?Math.max(.1,1+tr(h,'heavyTaken')/100):1)*(1-heroDef(h)/100);
   d=Math.max(1,Math.round(d));
-  h.hp=Math.max(0,h.hp-d);b.fx['h'+h.id]=1;if(crit){b.fx.crit=1;b.fx.shake=1}b.pops.push({s:'h',hid:h.id,t:d,crit,el});e.lastHit=h.id;
+  runStat(h).taken+=Math.min(d,h.hp);h.hp=Math.max(0,h.hp-d);b.fx['h'+h.id]=1;if(crit){b.fx.crit=1;b.fx.shake=1}b.pops.push({s:'h',hid:h.id,t:d,crit,el});e.lastHit=h.id;
   {const S=spOf(e);if(S&&S[0]==='leech'&&e.hp>0){const x=Math.round(d*S[1]/100);if(x>0){e.hp=Math.min(e.maxHp,e.hp+x);b.pops.push({s:'e',i,t:'+'+x})}}}
   blog(`${e.name} ${o.verb||'strikes'} ${esc(h.name)}${el!=='physical'?` (${elTag(el)})`:''} for <b>${d}</b>${crit?' <b class="gold">CRIT</b>':''}.`);
   const th=tr(h,'thorns');
@@ -4748,7 +4759,8 @@ function endRun(outcome){
       lines.push(`<b class="gold">The town celebrates, and I’ve earned a promotion! I’ll choose how to grow from my portrait.</b>`)}}
   const recap={stages:r.stage,gold:outcome==='dead'?0:r.gold,dead:outcome==='dead',kills:r.kills||0,best:outcome==='dead'?null:bestIt,
     lv:everyone.filter(h=>r.startLv&&r.startLv[h.id]!=null&&h.level>r.startLv[h.id]).map(h=>({n:h.name,a:r.startLv[h.id],b:h.level})),
-    low:r.low?{n:r.low.n,pct:Math.max(1,Math.round(r.low.p*100)),stage:r.low.stage,foe:r.low.foe}:null};
+    low:r.low?{n:r.low.n,pct:Math.max(1,Math.round(r.low.p*100)),stage:r.low.stage,foe:r.low.foe}:null,
+    who:everyone.map(h=>({id:h.id,n:h.name,cls:h.cls,dead:!survivors.includes(h),...((r.stats||{})[h.id]||{dealt:0,taken:0,kills:0,crits:0,big:0})}))};
   state.summary={outcome,cls:(lead||{cls:'warrior'}).cls,title,sub:`${LENGTHS[r.length].name} · ${sub} A week passes.`,lines,recap};
   for(const h of state.heroes)h.fat=0;
   state.run=null;advanceWeek();state.screen='town';state.tab='town';
@@ -4800,7 +4812,12 @@ function itemCompare(it,h,slot){
   return `<div class="cmp"><span class="cmphead">vs ${esc(h.name)}’s ${cur?itemName(cur):'empty '+SLOTN[sl].toLowerCase()+' slot'}</span>${parts.join('')||'<span class="cmpsame">No change</span>'}</div>`;
 }
 // Heroes in the party this item looks like an upgrade for (a quick guess from rarity, level, upgrades and bonuses).
+const runStat=h=>{const r=state.run;r.stats=r.stats||{};return r.stats[h.id]=r.stats[h.id]||{dealt:0,taken:0,kills:0,crits:0,big:0}};
 const upgradeFor=it=>state.run&&it?living().filter(h=>(!it.cls||it.cls===h.cls)&&itemScore(it)>itemScore(h.gear[equipSlotFor(it,h)])):[];
+// In town: which heroes this stashed item would beat what they wear now (by the same score Auto-equip uses).
+const bankUpFor=it=>it?state.heroes.filter(h=>(!it.cls||it.cls===h.cls)&&itemScore(it)>itemScore(h.gear[equipSlotFor(it,h)])):[];
+function upBadge(it){const U=bankUpFor(it);if(!U.length)return '<span class="upbadge none" data-tip="No hero would wear this over what they have now.">▼ no upgrade</span>';
+  return `<span class="upbadge" data-tip="${esc('Better than what '+listNames(U.map(h=>h.name))+' '+(U.length>1?'wear':'wears')+' now (by the same measure Auto-equip uses).')}">▲ upgrade for ${esc(U.length>2?U.length+' heroes':listNames(U.map(h=>h.name)))}</span>`}
 function itemCard(it,extra='',attrs=''){return `<div class="item r-${it.rarity}-b" ${attrs}>${itemBody(it)}${extra}</div>`}
 // Level and progress to the next level, as a slim labeled bar.
 const xpMini=(h,label=true)=>{const need=xpNeed(h.level),pct=clamp(h.xp/need*100,0,100);return `<div class="ubar xp ${label?'':'thin'}" data-tip="${esc(`Level ${h.level} · ${fmt(h.xp)} / ${fmt(need)} XP to level ${h.level+1}`)}"><i style="width:${pct}%"></i>${label?`<span>Lv ${h.level} · ${Math.floor(pct)}% XP</span>`:''}</div>`};
@@ -5387,10 +5404,21 @@ function topBar(){
 }
 const TABS=[['town','Town','banner','#8a2e2e',null],['heroes','Barracks','tent','#6a4a3a',null],['smith','Weaponsmith','anvil',null,'smith'],['hall','Town Hall','house',null,null],['bank','Bank','chest',null,'bank'],['adventure','The Gate','gate',null,null],['witch','Witch','crescent','#b56fe3',null],['farm','Farm','farmer','#6f8f4a',null],['ledger','Ledger','moon',null,null]];
 // The trip at a glance, at the top of the return summary.
+// Saved gear sets: a hero remembers up to two sets and pulls them back out of the stash in one tap.
+function loadoutRow(h){
+  const sets=h.sets||[],cnt=S=>S?Object.keys(S).length:0;
+  return `<div class="loadouts"><span class="muted">Gear sets ${help('Save what this hero wears now as a set. Later, Wear puts every piece of that set back on from the stash and returns what was in its place. Pieces another hero is wearing, sold or lost are skipped.')}</span>${[0,1].map(k=>{const S=sets[k],miss=S?Object.entries(S).filter(([sl,id])=>!(h.gear[sl]&&h.gear[sl].id===id)&&!state.bank.some(x=>x.id===id)).length:0,worn=S&&Object.entries(S).every(([sl,id])=>h.gear[sl]&&h.gear[sl].id===id);
+    return `<span class="lset"><b>Set ${k+1}</b>${S?`<small class="muted">${cnt(S)} pieces${miss?` · ${miss} missing`:''}</small><button class="btn small ${worn?'':'gold'}" data-a="setWear" data-x="${h.id}|${k}" ${worn?'disabled':''}>${worn?'Wearing':'Wear'}</button>`:'<small class="muted">empty</small>'}<button class="btn small" data-a="setSave" data-x="${h.id}|${k}">Save</button></span>`}).join('')}</div>`;
+}
+function wearSet(h,k){const S=(h.sets||[])[k];if(!S)return;
+  for(const [sl,id] of Object.entries(S)){if(h.gear[sl]&&h.gear[sl].id===id)continue;const it=state.bank.find(x=>x.id===id);if(!it||(it.cls&&it.cls!==h.cls))continue;
+    if(it.slot==='ring')darkHit('greed');state.bank=state.bank.filter(x=>x!==it);if(h.gear[sl])state.bank.push(h.gear[sl]);h.gear[sl]=it}}
 function recapHtml(R){if(!R)return '';const t=(v,l,c)=>`<div class="rtile"><b class="${c||''}">${v}</b><small>${l}</small></div>`,lv=R.lv.reduce((a,x)=>a+x.b-x.a,0);
   let s=`<div class="recap">${t(R.stages,R.stages===1?'stage':'stages')}${t(R.dead?'lost':fmt(R.gold),'gold home','gold')}${t(R.kills,'monsters slain')}${t(lv,lv===1?'level gained':'levels gained',lv?'gold':'')}</div>`;
   if(R.lv.length)s+=`<p class="muted recapln">${R.lv.map(x=>`${esc(x.n)} Lv ${x.a} → <b class="gold">${x.b}</b>`).join(' · ')}</p>`;
   if(R.low)s+=`<p class="recapln"><b class="warn">Closest call:</b> ${esc(R.low.n)} dropped to ${R.low.pct}% health on stage ${R.low.stage}${R.low.foe?`, fighting ${esc(R.low.foe)}`:''}.</p>`;
+  if(R.who&&R.who.length){const top=k=>Math.max(...R.who.map(x=>x[k]||0)),mk=(x,k)=>x[k]&&x[k]===top(k)&&R.who.length>1?' class="gold"':'';
+    s+=`<table class="rtable"><thead><tr><th>Hero</th><th>Damage dealt</th><th>Damage taken</th><th>Kills</th><th>Crits</th><th>Biggest hit</th></tr></thead><tbody>${R.who.map(x=>`<tr${x.dead?' class="fallen"':''}><td>${heroArt({id:x.id,name:x.n,cls:x.cls,gear:{}},2,'ico')}${esc(x.n)}${x.dead?' <span class="warn">†</span>':''}</td><td${mk(x,'dealt')}>${fmt(x.dealt)}</td><td>${fmt(x.taken)}</td><td${mk(x,'kills')}>${x.kills}</td><td>${x.crits}</td><td${mk(x,'big')}>${fmt(x.big)}</td></tr>`).join('')}</tbody></table>`}
   if(R.best)s+=`<p class="muted recapln">Best find</p>${itemCard(R.best)}`;
   return s}
 function townView(){
@@ -5398,7 +5426,7 @@ function townView(){
   if(state.gear3Msg)s+=`<div class="panel row" style="justify-content:space-between"><span>${state.gear3Msg}</span><button class="xbtn" data-a="gear3ok" aria-label="Dismiss">×</button></div>`;
   if(state.summary){
     const m=state.summary,dead=m.outcome==='dead';if(!m.title)m.title=m.name||'Adventure over',m.sub=m.sub||'';
-    ui.summaryHtml=modalShell(`<span class="${m.outcome==='victory'?'gold':dead?'warn':''}">${m.title}</span>`,`<div class="row">${sprite(dead?'tomb':m.outcome==='victory'?'boss':m.cls,m.outcome==='victory'?EL_COL.dark:CLASSES[m.cls].tint,4)}<p class="muted">${m.sub} Week ${state.week} begins.</p></div>
+    ui.summaryHtml=modalShell(`<span class="${m.outcome==='victory'?'gold':dead?'warn':''}">${m.title}</span>`,`<div class="row">${sprite(dead?'tomb':m.outcome==='victory'?'boss':m.cls,m.outcome==='victory'?EL_COL.dark:CLASSES[m.cls].tint,4)}<p class="muted">${m.sub} Week ${state.week} begins.${townEv()?` In town this week: <b class="gold">${TOWN_EVENTS[townEv().ev].n}</b>.`:''}</p></div>
       ${recapHtml(m.recap)}<div class="stack" style="gap:4px">${m.lines.map(l=>`<p>${l}</p>`).join('')}</div>
       <div class="row"><button class="btn gold" data-a="dismiss">Continue</button></div>`,'dismiss',`summary ${dead?'dead':''}`);
   }else ui.summaryHtml='';
@@ -5794,10 +5822,10 @@ function perfectLedger(){
 }
 // Bank filters: item type tabs plus a sort by tier (rarity, then item level and upgrades) or by sell value.
 const BANK_F=[['all','All'],['weapon','Weapons'],['armor','Armor'],['ring','Rings'],['amulet','Amulets']];
-const BANK_SORT=[['new','Newest'],['tierD','Best tier'],['tierA','Low tier'],['valD','Top value'],['valA','Low value']];
+const BANK_SORT=[['new','Newest'],['up','Upgrades first'],['tierD','Best tier'],['tierA','Low tier'],['valD','Top value'],['valA','Low value']];
 const bankCat=(it,f)=>f==='all'||(f==='armor'?!['weapon','ring','amulet'].includes(it.slot):it.slot===f);
 const itemTier=it=>RAR[it.rarity].i*1e4+it.ilvl*10+(it.plus||0);
-function bankSorted(L,srt){const o=L.slice();if(srt==='new')return o.reverse();
+function bankSorted(L,srt){const o=L.slice();if(srt==='new')return o.reverse();if(srt==='up')return o.reverse().sort((a,b)=>(bankUpFor(b).length>0)-(bankUpFor(a).length>0)||itemScore(b)-itemScore(a));
   const k=srt.startsWith('tier')?itemTier:sellVal,d=srt.endsWith('D')?-1:1;return o.sort((a,b)=>d*(k(a)-k(b))||d*(sellVal(a)-sellVal(b)))}
 function bankView(){
   let s=bHead('chest',null,'Bank',`Equipment ${state.bank.length}/${bankCap()} · supply slots: ${packCap()} (6 per stack)`,'The Vault stores weapons, armor and accessories you find on adventures. Equipment is never sold in town; it only comes from loot. When it is full, new loot is sold automatically. The Supply Pack sets how many potions and other supplies the party can take on an adventure.',headUp('bank'));
@@ -5809,7 +5837,7 @@ function bankView(){
   if(state.bank.length)s+=`<div class="invbar bankbar"><div class="subtabs invf" role="tablist" aria-label="Item type">${BANK_F.map(([k,l])=>{const n=state.bank.filter(it=>bankCat(it,k)).length;return `<button class="subtab ${f===k?'cur':''} ${n?'':'empty'}" role="tab" aria-selected="${f===k}" data-a="bankF" data-x="${k}">${l} <small>${n}</small></button>`}).join('')}</div>
     <label class="invsort"><span class="muted">Sort</span><select title="Sort by tier or value" data-banksort aria-label="Sort the vault">${BANK_SORT.map(([k,l])=>`<option value="${k}" ${srt===k?'selected':''}>${l}</option>`).join('')}</select></label></div>`;
   s+=state.bank.length&&!shown.length?'<p class="muted">Nothing of this type in the vault.</p>':'';
-  s+=state.bank.length?`<div class="items">${shown.map(it=>itemCard(it,it.rarity==='perfect'?'<span class="meta">Perfect weapons cannot be sold.</span>':`<div class="row"><button class="btn small" data-a="sell" data-x="${it.id}">Sell · ${sellVal(it)} gold</button></div>`)).join('')}</div>`:'<p class="muted">Empty.</p>';
+  s+=state.bank.length?`<div class="items">${shown.map(it=>itemCard(it,upBadge(it)+(it.rarity==='perfect'?'<span class="meta">Perfect weapons cannot be sold.</span>':`<div class="row"><button class="btn small" data-a="sell" data-x="${it.id}">Sell · ${sellVal(it)} gold</button></div>`))).join('')}</div>`:'<p class="muted">Empty.</p>';
   if(state.graveyard.length)s+=`<h3>Graveyard</h3><div class="grave">${state.graveyard.slice(0,20).map(g=>`<p>${esc(g.name)}, Lv ${g.level} ${CLASSES[g.cls].name}. Fell in ${g.biome} on stage ${g.stage}, week ${g.week}.</p>`).join('')}</div>`;
   return s;
 }
@@ -6545,6 +6573,7 @@ function prepView(){
         <dl class="dl" style="font-size:18px;flex:1;min-width:150px"><dt>Level</dt><dd>${h.level}</dd><dt>Health</dt><dd>${maxHp(h)}</dd><dt>Mana</dt><dd>${maxMp(h)}</dd><dt>Power</dt><dd>${Math.round(power(h))}</dd><dt>Armor</dt><dd>${armor(h)}</dd><dt>Crit</dt><dd>${critChance(h).toFixed(0)}%</dd><dt>Evasion</dt><dd>${evasion(h).toFixed(0)}%</dd></dl></div>${xpMini(h)}
       ${sl?`<div class="slotpanel stack"><div class="row" style="justify-content:space-between"><h3>${SLOTN[sl]}</h3><button class="btn small" data-a="prepSlot" data-x="${h.id}|${sl}">Show all slots</button></div>${cur?itemCard(cur,`<div class="row"><button class="btn small" data-a="prepUnequip" data-x="${sl}">Unequip to stash</button></div>`):'<p class="muted">Empty.</p>'}</div>`:'<p class="muted" style="font-size:17px">Tap a gear slot to see only items for it, or browse everything below.</p>'}
       <div class="row" style="gap:6px"><button class="btn small gold" data-a="prepAuto">Auto-equip the party</button><button class="btn small" data-a="prepStrip" data-x="${h.id}">Unequip ${esc(h.name)}</button></div>
+      ${loadoutRow(h)}
     </div><div class="stack">
       <div class="subtabs">${PREP_FILTERS.map(([k,l])=>`<button class="subtab ${!sl&&f===k?'cur':''}" data-a="prepFilter" data-x="${k}">${l}</button>`).join('')}${sl?`<span class="subtab cur">${SLOTN[sl]}</span>`:''}</div>
       <p class="muted" style="font-size:17px">Drag gear onto a slot to equip it, or back here to unequip. On touch screens, press and hold first. · Stash · ${state.bank.length} item${state.bank.length===1?'':'s'}${list.length!==state.bank.length?` · ${list.length} fit ${esc(h.name)} here`:''}</p>
@@ -6989,6 +7018,8 @@ const ACT={
   prepUnequip:sl=>{const h=heroById(ui.prepHero);if(!h||!h.gear[sl])return;state.bank.push(h.gear[sl]);h.gear[sl]=null},
   prepStrip:id=>{const h=heroById(id);if(!h)return;for(const sl of SLOTS)if(h.gear[sl]){state.bank.push(h.gear[sl]);h.gear[sl]=null}},
   prepAuto:()=>autoEquipParty(),
+  setSave:x=>{const [id,k]=x.split('|'),h=heroById(id);if(!h)return;h.sets=h.sets||[];const S={};for(const sl of SLOTS)if(h.gear[sl])S[sl]=h.gear[sl].id;h.sets[+k]=S},
+  setWear:x=>{const [id,k]=x.split('|'),h=heroById(id);if(h)wearSet(h,+k)},
   govScene:()=>{const G=state.govSetup;if(G.scene<GOV_SCENES.length-1)G.scene++;else{G.step='quiz';G.q=0;G.ans=[]}},
   govSkip:()=>{const G=state.govSetup;G.step='quiz';G.q=0;G.ans=[]},
   govPick:x=>{const [k,d]=x.split('|'),n={hair:10,hc:6,shirt:10,pants:10}[k],D=state.govSetup.d;govKeepName();D[k]=(D[k]+(+d)+n)%n},
