@@ -2343,7 +2343,7 @@ function allItems(){
 function gainXp(h,x,lines){
   h.xp+=x;let ups=0;
   let gained=0;while(h.xp>=xpNeed(h.level)){h.xp-=xpNeed(h.level);h.level++;const pp=pointsFor(h.level);h.points+=pp;gained+=pp;ups++}
-  if(ups){lines.push(`<b class="gold">${esc(h.name)} reached level ${h.level}!</b> +${gained} attribute points, fully restored`);
+  if(ups){sfx('levelup',null,.9);lines.push(`<b class="gold">${esc(h.name)} reached level ${h.level}!</b> +${gained} attribute points, fully restored`);
     const learned=autoLearn(h);if(learned.length)h.newSkill=[...(h.newSkill||[]),...learned];
     for(const id of learned){const k=SKILLS[id];lines.push(`<b class="gold">${esc(h.name)} learned a new skill: ${k.n}!</b> <span class="muted">${k.d}</span>`)}
     while((h.traits||[]).length<traitSlots(h.level)){const id=rollTrait(h.traits,null,h.cls);h.traits.push(id);const t=TRAITS[id];
@@ -2881,6 +2881,7 @@ function startBattle(kind){
   r.battle={enemies:es,target:0,turn:0,log:[],over:null,auto:r.autoPref||set.autoDefault||false,pops:[],fx:{},rewards:null,opened:[],
     ct:{},cur:null,guard:{},taunt:null,warcry:null,attune:{},wards:{},surge:{},pending:null,dot:{},curse:{},howl:null};
   const lead=lead0;
+  if(kind==='boss'||kind==='warden'||kind==='king')sfx('boss');
   if(kind==='king')blog(`<b class="warn">The torches die. The Unlit King rises from his throne of ash, flanked by his knights.</b>`);
   else blog(`${kind==='boss'?'A major boss appears: ':''}${lead.name} (Lv ${Math.round(lead.lvl)}) blocks the path${es.length>1?`, with ${es.length-1} more behind it`:''}.`);
   if(lead.mutation)blog(`Mutation: ${MUT[lead.mutation].n}, ${MUT[lead.mutation].d}.`);
@@ -3276,7 +3277,7 @@ function hitEnemy(h,e,o){
   {const vp=vanityPen(h);if(vp){d*=1-vp/100;darkHit('vanity')}}
   d=Math.max(1,Math.round(d));
   e.hp=Math.max(0,e.hp-d);
-  b.fx['e'+idx]=1;b.pops.push({s:'e',i:idx,t:d,crit});
+  b.fx['e'+idx]=1;b.pops.push({s:'e',i:idx,t:d,crit,el,m:m>1?1:(m<1||res>=40)?-1:0});
   if(crit){if(!b.critThisAction&&h.hp>0)critBuff(h);b.fx.shake=1;b.critThisAction=true}
   // Reckless Fury: every crit tears at the hero's own scars.
   if(crit&&darkIs('fury')&&h.hp>1){const x=Math.max(1,Math.round(maxHp(h)*.02));h.hp=Math.max(1,h.hp-x);b.pops.push({s:'h',hid:h.id,t:x});blog(`<span class="warn">${esc(h.name)}’s fury costs ${x} HP.</span>`);darkHit('fury')}
@@ -3336,7 +3337,7 @@ function heroDown(h){
   if(h.hp<=0)h.regen=[];
   if(heroBuff(h,'undying')){h.hp=1;blog(`<b class="gold">${esc(h.name)} will not fall!</b> The Undying Vow holds.`);return}
   if(tr(h,'lastStand')&&!r.lastStand[h.id]){r.lastStand[h.id]=true;h.hp=1;blog(`<b class="gold">${esc(h.name)} refuses to fall!</b> Last Stand leaves them at 1 health.`);return}
-  blog(`<span class="warn">${esc(h.name)} has fallen.</span>`);
+  blog(`<span class="warn">${esc(h.name)} has fallen.</span>`);sfx('fall',null,.15);
   seizeGear(h);
 }
 /* Lost Godlike and Perfect gear (weapons, armor, rings, amulets): a monster still standing takes what a fallen hero wore.
@@ -3420,7 +3421,7 @@ function foeStrike(e,i,h,mult,o){
   const crit=chance(.06+(bigE&&e.type==='fighting'?.19:0)+(spOf(e)&&spOf(e)[0]==='keen'?spOf(e)[1]/100:0));if(crit)d*=1.5;
   d*=Math.max(.1,1+tr(h,'taken')/100)*(o.heavy?Math.max(.1,1+tr(h,'heavyTaken')/100):1)*(1-heroDef(h)/100);
   d=Math.max(1,Math.round(d));
-  h.hp=Math.max(0,h.hp-d);b.fx['h'+h.id]=1;b.pops.push({s:'h',hid:h.id,t:d,crit});e.lastHit=h.id;
+  h.hp=Math.max(0,h.hp-d);b.fx['h'+h.id]=1;b.pops.push({s:'h',hid:h.id,t:d,crit,el});e.lastHit=h.id;
   {const S=spOf(e);if(S&&S[0]==='leech'&&e.hp>0){const x=Math.round(d*S[1]/100);if(x>0){e.hp=Math.min(e.maxHp,e.hp+x);b.pops.push({s:'e',i,t:'+'+x})}}}
   blog(`${e.name} ${o.verb||'strikes'} ${esc(h.name)}${el!=='physical'?` (${elTag(el)})`:''} for <b>${d}</b>${crit?' <b class="gold">CRIT</b>':''}.`);
   const th=tr(h,'thorns');
@@ -3520,7 +3521,7 @@ function win(){
   const r=state.run,b=r.battle,s=r.stage,L=living();
   if(!L.length){lose();return}
   const regenLines=[];flushRegen(regenLines);
-  b.over='win';r.kills=(r.kills||0)+b.enemies.length;
+  b.over='win';r.kills=(r.kills||0)+b.enemies.length;sfx('victory',null,.35);
   scoutRolls('kill');
   let g=0,xp=0,sc=0,eliteBits=0,chestTier=null;const drops=[];
   // Each defeated enemy keeps a list of what it dropped, so the loot can be shown over its body.
@@ -3571,7 +3572,7 @@ function win(){
   b.rewards=lines;b.lootFresh=true;
   blog(r.kingSlain?'<b class="gold">The Unlit King is dead.</b>':b.enemies.length>1?'The pack is broken.':`${b.enemies[0].name} is slain.`);
 }
-function lose(){const b=state.run.battle;b.over='lose';blog(`<span class="warn">${partyAll().length>1?'The whole party has fallen.':'No one is left standing.'}</span>`);seizePack()}
+function lose(){const b=state.run.battle;b.over='lose';sfx('defeat',null,.3);blog(`<span class="warn">${partyAll().length>1?'The whole party has fallen.':'No one is left standing.'}</span>`);seizePack()}
 // When the whole party falls, the monsters still standing also take the Godlike and Perfect items from the backpack.
 function seizePack(){
   const r=state.run,alive=aliveFoes();if(!alive.length)return;
@@ -4989,8 +4990,24 @@ function foeBrief(e){
   return `hits ${mixText(foeMix(e,'attack'))} · resists ${res.length?res.join(', '):'little'}${weak?` · weak to ${elTag(weak)}`:''}${e.eva?` · ${e.eva}% evasion`:''}${e.mutation?` · <span data-tip="${esc(MUT[e.mutation].d)}">${MUT[e.mutation].n}</span>`:''}${e.skills.length?` · skills: ${e.skills.map(k=>`<span data-tip="${esc(FOE_SKILLS[k].d)}">${FOE_SKILLS[k].n}</span>`).join(', ')}`:''}`;
 }
 /* Damage, healing and misses stay on screen until the player's next move, so nothing is missed during enemy turns. */
+// Every popup also makes a sound: hits carry their element, crits ring, misses whoosh, heals chime.
+function popSounds(b){
+  let n=0;const go=(k,o)=>{if(n++<7)sfx(k,o)};
+  for(const p of b.pops||[]){const t=p.t,num=typeof t==='number',str=String(t);
+    if(num&&p.s==='e'){go(p.crit?'crit':'hit',{el:p.el});if(p.m>0)go('weak');else if(p.m<0)go('resist')}
+    else if(num&&p.s==='h')go(p.crit?'hurtCrit':'hurt',{el:p.el});
+    else if(str==='miss')go('miss');
+    else if(str==='STUNNED')go('stun');
+    else if(str==='CHARGING')go('charge');
+    else if(str==='REVIVED')go('revive');
+    else if(str==='LEVEL UP')go('levelup');
+    else if(str[0]==='+')go(p.s==='h'?'heal':'mana');
+    else if(p.skill||p.sk)go('skill');
+    else if(/^[A-Z ]+$/.test(str))go('buff');}
+  for(const k in b.fx||{})if(k.startsWith('die'))sfx('die',null,.12);
+}
 function collectMarks(){
-  const b=state.run.battle;b.marks=b.marks||{};
+  const b=state.run.battle;b.marks=b.marks||{};popSounds(b);
   for(const p of b.pops||[]){const k=p.s==='e'?'e'+p.i:'h'+p.hid,L=(b.marks[k]=b.marks[k]||[]);
     const num=typeof p.t==='number',hide=num&&p.s==='e'&&!seeFoeNumbers();L.push({t:p.crit&&num?'CRIT!'+(hide?'':`<small>${p.s==='h'?'−':''}${p.t}</small>`):hide?'hit':num?(p.s==='h'?'−':'')+p.t:String(p.t),c:popCls(p)+(num?(p.s==='h'?'dmgin ':'dmgout '):''),fresh:1,g:b.gen||0});if(L.length>4)L.shift()}
   b.pops=[];
@@ -5291,9 +5308,133 @@ function ledgerView(){
 }
 /* ---------- settings ---------- */
 const SET_KEY='dsotm-settings';
-const set={profile:'auto',speed:'normal',motion:true,autoDefault:false,confirmFlee:true,tips:true,govTips:true};
+const set={profile:'auto',speed:'normal',motion:true,autoDefault:false,confirmFlee:true,tips:true,govTips:true,sfx:2,music:2};
 try{Object.assign(set,JSON.parse(localStorage.getItem(SET_KEY)||'{}'))}catch(e){}
 const saveSet=()=>{try{localStorage.setItem(SET_KEY,JSON.stringify(set))}catch(e){}};
+/* ---------- sound: every effect and every piece of music is synthesized in the browser, so the game stays one file and plays offline ---------- */
+const SND=(()=>{
+  let ctx=null,an=null,master,sfxBus,musBus,echoIn,noiseBuf,cur=null,want=null,unlocked=false,lastAt=0;
+  const LV=[0,.3,.65,1];
+  function init(){
+    if(ctx)return ctx;const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;
+    try{ctx=new AC()}catch(e){return null}
+    const comp=ctx.createDynamicsCompressor();comp.threshold.value=-16;comp.ratio.value=4;comp.connect(ctx.destination);
+    master=ctx.createGain();master.gain.value=.9;master.connect(comp);an=ctx.createAnalyser();an.fftSize=2048;comp.connect(an);
+    sfxBus=ctx.createGain();sfxBus.connect(master);musBus=ctx.createGain();musBus.gain.value=0;musBus.connect(master);
+    // A soft echo gives the music some space.
+    echoIn=ctx.createGain();echoIn.gain.value=.28;const dl=ctx.createDelay(1);dl.delayTime.value=.36;const fb=ctx.createGain();fb.gain.value=.32;const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1800;
+    echoIn.connect(dl);dl.connect(lp);lp.connect(fb);fb.connect(dl);lp.connect(musBus);
+    noiseBuf=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate);const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+    apply();return ctx;
+  }
+  function apply(){if(!ctx)return;const t=ctx.currentTime;sfxBus.gain.setTargetAtTime(LV[set.sfx??2]*.9,t,.02);musBus.gain.setTargetAtTime(LV[set.music??2]*.85,t,.4)}
+  const live=()=>ctx&&unlocked&&ctx.state==='running';
+  function tone(t,f,dur,o={}){
+    const {type='square',vol=.2,f2=null,att=.005,bus=sfxBus,lp=null,q=1,det=0}=o;
+    const osc=ctx.createOscillator(),g=ctx.createGain();osc.type=type;osc.frequency.setValueAtTime(f,t);if(det)osc.detune.value=det;
+    if(f2)osc.frequency.exponentialRampToValueAtTime(Math.max(20,f2),t+dur);
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+att);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    let n=osc;if(lp){const F=ctx.createBiquadFilter();F.type='lowpass';F.frequency.value=lp;F.Q.value=q;osc.connect(F);n=F}
+    n.connect(g);g.connect(bus);osc.start(t);osc.stop(t+dur+.05);return g;
+  }
+  function noise(t,dur,o={}){
+    const {vol=.3,type='lowpass',f=2000,f2=null,q=1,bus=sfxBus,att=.002}=o;
+    const s=ctx.createBufferSource();s.buffer=noiseBuf;const F=ctx.createBiquadFilter();F.type=type;F.frequency.setValueAtTime(f,t);if(f2)F.frequency.exponentialRampToValueAtTime(f2,t+dur);F.Q.value=q;
+    const g=ctx.createGain();g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+att);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    s.connect(F);F.connect(g);g.connect(bus);s.start(t,Math.random()*1.2);s.stop(t+dur+.05);
+  }
+  const arp=(t,fs,gap,o)=>fs.forEach((f,i)=>tone(t+i*gap,f,o.dur||.18,o));
+  // Element flavor on top of every impact.
+  const EL_HIT={
+    fire:t=>{noise(t,.28,{type:'bandpass',f:700,f2:2600,q:.8,vol:.35});tone(t,180,.2,{type:'sawtooth',f2:90,vol:.08,lp:900})},
+    ice:t=>{tone(t,1760,.18,{type:'sine',vol:.12});tone(t+.03,2350,.22,{type:'sine',vol:.1});noise(t,.09,{type:'highpass',f:5000,vol:.18})},
+    thunder:t=>{noise(t,.05,{type:'highpass',f:3000,vol:.4});noise(t+.05,.08,{type:'highpass',f:2200,vol:.3});tone(t,70,.22,{type:'square',vol:.1,lp:500})},
+    grass:t=>{noise(t,.16,{type:'bandpass',f:1300,q:2,vol:.25});tone(t,520,.16,{type:'triangle',f2:260,vol:.12})},
+    dark:t=>{tone(t,110,.4,{type:'sawtooth',f2:48,vol:.16,lp:500});tone(t,116,.4,{type:'sawtooth',f2:50,vol:.12,lp:500});noise(t,.3,{f:400,vol:.18})},
+    fighting:t=>{noise(t,.07,{f:3000,vol:.3});tone(t,220,.08,{type:'square',f2:90,vol:.12,lp:1200})},
+  };
+  const FX={
+    click:t=>tone(t,1250,.035,{type:'triangle',vol:.05}),
+    hit:(t,o)=>{noise(t,.13,{f:1800,f2:280,vol:.5});tone(t,150,.13,{type:'sine',f2:48,vol:.55});const E=o&&EL_HIT[o.el];if(E)E(t)},
+    crit:(t,o)=>{FX.hit(t,o);tone(t+.02,880,.08,{vol:.12});tone(t+.07,1320,.14,{vol:.12});noise(t,.2,{type:'highpass',f:6000,vol:.15})},
+    weak:t=>arp(t,[988,1319],.05,{type:'square',vol:.08,dur:.09}),
+    resist:t=>tone(t,220,.14,{type:'square',f2:160,vol:.07,lp:900}),
+    miss:t=>noise(t,.2,{type:'bandpass',f:450,f2:2600,q:1.4,vol:.18}),
+    hurt:(t,o)=>{noise(t,.16,{f:900,vol:.45});tone(t,115,.2,{type:'sine',f2:42,vol:.6});const E=o&&EL_HIT[o.el];if(E)E(t+.01)},
+    hurtCrit:(t,o)=>{FX.hurt(t,o);tone(t,73,.35,{type:'sawtooth',f2:40,vol:.14,lp:400})},
+    heal:t=>arp(t,[523,659,784,1047],.07,{type:'triangle',vol:.14,dur:.25}),
+    mana:t=>arp(t,[784,988,1175],.06,{type:'sine',vol:.12,dur:.22}),
+    skill:t=>{tone(t,330,.12,{type:'square',f2:660,vol:.06,lp:2000});tone(t+.06,990,.2,{type:'triangle',vol:.1})},
+    buff:t=>arp(t,[392,523,659],.06,{type:'triangle',vol:.1,dur:.2}),
+    stun:t=>{tone(t,700,.08,{type:'triangle',vol:.1});tone(t+.08,520,.08,{type:'triangle',vol:.1});tone(t+.16,700,.12,{type:'triangle',vol:.1})},
+    charge:t=>{tone(t,90,.7,{type:'sawtooth',f2:240,vol:.12,lp:700,att:.2});noise(t,.7,{f:300,f2:1200,vol:.12,att:.3})},
+    die:t=>{tone(t,420,.38,{type:'square',f2:70,vol:.13,lp:1400});noise(t+.05,.35,{f:1500,f2:200,vol:.22})},
+    fall:t=>{tone(t,330,.7,{type:'triangle',f2:110,vol:.22});tone(t+.1,262,.8,{type:'triangle',f2:98,vol:.15})},
+    revive:t=>arp(t,[262,392,523,784,1047],.08,{type:'triangle',vol:.14,dur:.35}),
+    victory:t=>{arp(t,[523,659,784],.1,{vol:.12,dur:.14,lp:3000});tone(t+.3,1047,.6,{vol:.13,lp:3000});tone(t+.3,262,.6,{type:'triangle',vol:.2});tone(t+.3,659,.6,{type:'triangle',vol:.08})},
+    defeat:t=>{[392,349,311,262].forEach((f,i)=>tone(t+i*.28,f,.5,{type:'triangle',vol:.18}));tone(t+1.1,131,1.4,{type:'sawtooth',vol:.07,lp:500})},
+    levelup:t=>{arp(t,[523,659,784,1047,1319],.06,{vol:.1,dur:.16,lp:4000});tone(t+.3,1568,.5,{type:'triangle',vol:.12})},
+    coin:t=>{tone(t,988,.07,{vol:.09});tone(t+.07,1319,.3,{vol:.09})},
+    loot:t=>arp(t,[660,880,1320,1760],.05,{type:'triangle',vol:.1,dur:.25}),
+    rare:t=>{arp(t,[784,988,1319,1568,1976],.06,{type:'sine',vol:.11,dur:.4});noise(t,.6,{type:'highpass',f:7000,vol:.08,att:.1})},
+    chest:t=>{noise(t,.12,{f:1200,vol:.3});tone(t+.1,392,.1,{type:'square',vol:.07});FX.loot(t+.2)},
+    boss:t=>{tone(t,55,1.8,{type:'sawtooth',vol:.22,lp:420,att:.05});tone(t,58,1.8,{type:'sawtooth',vol:.18,lp:420,att:.05});noise(t,1.6,{f:180,vol:.35,att:.2});tone(t+.6,82,1.2,{type:'square',vol:.07,lp:300})},
+    build:t=>{for(let i=0;i<3;i++){noise(t+i*.16,.05,{type:'bandpass',f:2400,q:3,vol:.3});tone(t+i*.16,180,.06,{type:'square',vol:.06,lp:900})}},
+    swap:t=>noise(t,.15,{type:'bandpass',f:900,f2:300,q:1.5,vol:.18}),
+    door:t=>{tone(t,196,.3,{type:'triangle',f2:147,vol:.15});noise(t,.25,{f:600,vol:.12})},
+  };
+  // Effects that arrive together are spread a few hundredths of a second apart.
+  function play(name,o,delay=0){
+    if(!live()||!(set.sfx??2))return;const f=FX[name];if(!f)return;
+    const now=ctx.currentTime,t=Math.max(now+delay,lastAt);lastAt=Math.min(now+.5,t+.045);
+    try{f(t+.01,o)}catch(e){}
+  }
+  /* ---- music: generative loops, one per place ---- */
+  const N=f=>f; // frequencies in Hz
+  const TRACKS={
+    menu:{root:N(146.83),scale:[0,2,4,7,9],bpm:66,pad:'sine',padF:900,lead:'triangle',mel:.18,prog:[0,3,4,3],bass:0},
+    town:{root:N(146.83),scale:[0,2,4,7,9],bpm:80,pad:'triangle',padF:1000,lead:'triangle',mel:.32,prog:[0,4,5,3],bass:.5},
+    tundra:{root:N(164.81),scale:[0,2,3,7,8],bpm:70,pad:'sine',padF:1600,lead:'sine',mel:.28,prog:[0,3,1,4],bass:.3,hi:1},
+    island:{root:N(110),scale:[0,1,3,5,7,8,10],bpm:84,pad:'sawtooth',padF:600,lead:'square',mel:.25,prog:[0,5,1,4],bass:.7},
+    sky:{root:N(130.81),scale:[0,2,4,6,7,9,11],bpm:78,pad:'sine',padF:2000,lead:'sine',mel:.3,prog:[0,1,4,3],bass:.3,hi:1},
+    forest:{root:N(98),scale:[0,2,3,5,7,9,10],bpm:72,pad:'triangle',padF:800,lead:'triangle',mel:.26,prog:[0,3,4,1],bass:.5},
+    badlands:{root:N(87.31),scale:[0,1,4,5,7,8,10],bpm:80,pad:'sawtooth',padF:700,lead:'square',mel:.24,prog:[0,1,5,4],bass:.6},
+    abyss:{root:N(69.3),scale:[0,1,3,6,7,10],bpm:60,pad:'sawtooth',padF:500,lead:'sine',mel:.18,prog:[0,1,0,4],bass:.8},
+    boss:{root:N(73.42),scale:[0,1,3,5,7,8,11],bpm:132,pad:'sawtooth',padF:700,lead:'square',mel:.42,prog:[0,5,6,4],bass:1,drum:2},
+  };
+  const trackFor=k=>{if(TRACKS[k])return TRACKS[k];const [base,b]=k.split(':'),T=TRACKS[base]||TRACKS.town;return b?{...T,bpm:Math.round(T.bpm*1.45),mel:Math.min(.55,T.mel+.15),drum:1,bass:Math.max(.6,T.bass)}:T};
+  const fq=(T,deg,oct=0)=>{const n=T.scale.length,o=Math.floor(deg/n)+oct,i=((deg%n)+n)%n;return T.root*Math.pow(2,o+T.scale[i]/12)};
+  function startTrack(name){
+    const T=trackFor(name),g=ctx.createGain();g.gain.value=.0001;g.connect(musBus);g.gain.exponentialRampToValueAtTime(1,ctx.currentTime+2.5);
+    const S={name,T,g,step:0,next:ctx.currentTime+.1,chord:0,ci:0,mel:T.scale.length*1,sd:60/T.bpm/4};
+    const tick=()=>{if(!ctx||ctx.state!=='running')return;while(S.next<ctx.currentTime+.3){stepAt(S,S.next);S.next+=S.sd;S.step++}};
+    S.timer=setInterval(tick,80);tick();return S;
+  }
+  function stopTrack(S){if(!S)return;clearInterval(S.timer);const t=ctx.currentTime;S.g.gain.cancelScheduledValues(t);S.g.gain.setValueAtTime(Math.max(.0001,S.g.gain.value),t);S.g.gain.exponentialRampToValueAtTime(.0001,t+1.4);setTimeout(()=>{try{S.g.disconnect()}catch(e){}},1800)}
+  function stepAt(S,t){
+    const T=S.T,st=S.step%32,bar=S.sd*16;
+    if(st===0){S.chord=T.prog[S.ci++%T.prog.length];
+      for(const d of [0,2,4]){const f=fq(T,S.chord+d);for(const det of [-7,7])tone(t,f,bar*2+.6,{type:T.pad,vol:T.pad==='sawtooth'?.03:.055,att:.9,lp:T.padF,bus:S.g,det})}}
+    if(T.bass&&(st%16===0||(T.drum&&st%8===0)||(T.drum===2&&st%16===10)))tone(t,fq(T,S.chord,-1),S.sd*(T.drum?3:7),{type:'triangle',vol:.16*T.bass,att:.01,bus:S.g});
+    if(st%2===0&&Math.random()<T.mel){S.mel=clamp(S.mel+[-2,-1,-1,1,1,2,0][Math.floor(Math.random()*7)],T.scale.length*.5|0,T.scale.length*2.5|0);
+      const f=fq(T,S.mel,T.hi?1:0),gg=tone(t,f,S.sd*(Math.random()<.3?4:2)+.08,{type:T.lead,vol:T.lead==='square'?.04:.09,att:.01,bus:S.g,lp:T.lead==='square'?2200:null});try{gg.connect(echoIn)}catch(e){}}
+    if(T.drum){
+      if(st%8===0||(T.drum===2&&st%8===6)){tone(t,120,.16,{type:'sine',f2:40,vol:.16,bus:S.g})}
+      if(st%8===4)noise(t,.12,{type:'bandpass',f:1800,q:.8,vol:.08,bus:S.g});
+      if(st%2===1)noise(t,.03,{type:'highpass',f:7000,vol:.035,bus:S.g});
+    }
+  }
+  function sync(){
+    if(!live())return;const name=(set.music??2)?want:null;
+    if(cur&&cur.name===name)return;if(cur){stopTrack(cur);cur=null}if(name)cur=startTrack(name);
+  }
+  function unlock(){if(!init())return;unlocked=true;if(ctx.state!=='running')ctx.resume().then(sync).catch(()=>{});else sync()}
+  ['pointerdown','keydown','touchend'].forEach(ev=>document.addEventListener(ev,unlock,{passive:true}));
+  document.addEventListener('visibilitychange',()=>{if(!ctx)return;if(document.hidden)ctx.suspend().catch(()=>{});else if(unlocked)ctx.resume().then(sync).catch(()=>{})});
+  return {play,music(name){want=name;sync()},apply(){apply();sync()},info:()=>{let pk=0;if(an){const d=new Float32Array(an.fftSize);an.getFloatTimeDomainData(d);for(const v of d)pk=Math.max(pk,Math.abs(v))}return {ctx:ctx&&ctx.state,track:cur&&cur.name,want,peak:+pk.toFixed(3)}}};
+})();
+const sfx=(n,o,d)=>SND.play(n,o,d);
+
 // Two screen profiles, both landscape. Computer: a full-screen window. Phone: a phone held sideways.
 const PROFILES={
   desktop:{n:'Computer',d:'Full-screen window. Everything laid out side by side at a comfortable size.',lay:'wide',zoom:1},
@@ -5315,6 +5456,7 @@ function settingsModal(){
     <h3>Battle</h3>
     <div class="row" style="gap:6px"><span class="muted">Battle pace</span>${Object.entries(SPEED).map(([k,S])=>`<button class="btn small ${set.speed===k?'on':''}" data-a="setSpeed" data-x="${k}">${S.n}</button>`).join('')}</div>
     <div class="row" style="gap:6px">${tog('autoDefault','Start battles on Auto')}${tog('confirmFlee','Ask before running home')}</div>
+    <h3>Sound</h3>${[['sfx','Sound effects'],['music','Music']].map(([k,l])=>`<div class="row" style="gap:6px"><span class="muted" style="min-width:130px">${l}</span>${['Off','Low','Medium','High'].map((n,i)=>`<button class="btn small ${(set[k]??2)===i?'on':''}" data-a="setSnd" data-x="${k}|${i}" aria-pressed="${(set[k]??2)===i}">${n}</button>`).join('')}</div>`).join('')}
     <h3>Display</h3><div class="row" style="gap:6px">${tog('motion','Animations')}${tog('tips','Hover tips')}${tog('govTips','Governor tips & tutorials')}</div><p class="muted" style="font-size:17px">Governor tips & tutorials: the weekly thoughts, the Barracks walkthrough and the summary on the first visit to each building. Story chapters and promotions still appear.</p>
     <h3>Game</h3><div class="row"><button class="btn gold" data-a="mainMenu">Main menu · save slots</button><span class="muted" style="font-size:17px">Slot ${ui.slot||1} is saving automatically.</span></div>
     <h3>Save file</h3><p class="muted" style="font-size:18px">Your town saves automatically in this browser. To move it to another browser or the installed app, export it here and import it there.</p>
@@ -5810,7 +5952,7 @@ const ACT={
   recruit:id=>{const c=state.candidates.find(x=>x.id===id),fee=recruitFee();if(!c||state.heroes.length>=slots()||state.gold<fee)return;darkHit('grim');
     state.gold-=fee;if(state.unlock===2&&c.cls==='mage')state.unlock=3;state.heroes.push(c);state.candidates=state.candidates.filter(x=>x.id!==id);state.sel.hero=c.id;state.sel.slot=null;state.tab='heroes';state.sel.btab='roster';state.sel.justRecruited=c.id;if(!(state.sel.party||[]).length)state.sel.party=[c.id]},
   rest:()=>{advanceWeek();state.summary=null},
-  openChest:()=>openChest(),
+  openChest:()=>{sfx('chest');openChest()},
   openHero:id=>{ui.sheet=null;state.sel.hero=id;state.sel.slot=null;state.tab='heroes';state.sel.btab='roster';},
   buyGear:id=>{return;const mk=marketStock(),it=mk.find(x=>x.id===id);if(!it)return;const pc=marketPrice(it);if(state.gold<pc||state.bank.length>=bankCap())return;
     state.gold-=pc;state.bank.push(it);state.market.items=mk.filter(x=>x.id!==id)},
@@ -5829,7 +5971,7 @@ const ACT={
   retireYes:()=>{const h=heroById(state.sel.retire);if(!h)return;for(const it of gearOf(h))state.bank.push(it);state.heroes=state.heroes.filter(x=>x.id!==h.id);state.sel.retire=null;state.sel.hero=null},
   selItem:id=>{state.sel.item=id;state.sel.smithMsg=null},
   upgrade:()=>{const e=allItems().find(x=>x.it.id===state.sel.item);if(!e)return;const it=e.it,c=upCost(it);if(state.gold<c||!hasMats(whetNeed(it))||it.plus>=forgeMax(state.b.smith))return;
-    state.gold-=c;payMats(whetNeed(it));if(chance(upChance(it))){it.plus++;state.sel.smithMsg=`Success. ${it.name} is now +${it.plus}.`}else state.sel.smithMsg=`The metal cracks. Upgrade failed: ${c} gold and the whetstones are lost.`},
+    state.gold-=c;payMats(whetNeed(it));if(chance(upChance(it))){it.plus++;sfx('rare');state.sel.smithMsg=`Success. ${it.name} is now +${it.plus}.`}else{sfx('resist');state.sel.smithMsg=`The metal cracks. Upgrade failed: ${c} gold and the whetstones are lost.`}},
   reroll:()=>{const e=allItems().find(x=>x.it.id===state.sel.item);if(!e)return;const it=e.it,c=rerollCost(it);if(state.gold<c||!it.affixes.length)return;
     state.gold-=c;const i=ri(0,it.affixes.length-1),have=it.affixes.map(a=>a.k);const pool=AFFIXES.filter(a=>(!have.includes(a.k)||a.k===it.affixes[i].k)&&!(it.cls==='warrior'&&a.k.startsWith('dmg_')));
     it.affixes[i]=rollAffix(pick(pool),RAR[it.rarity].m,it.ilvl);state.sel.smithMsg=`Rerolled into ${AFX[it.affixes[i].k].l}.`},
@@ -5837,7 +5979,7 @@ const ACT={
   elixir:k=>{const h=heroById(state.sel.alch),c=priced(30+state.b.alch*15,h);if(!h||state.gold<c)return;state.gold-=c;h.elixir={stat:k,v:ELIXIR_V[state.b.alch-1]}},
   tonic:k=>{const h=heroById(state.sel.alch),c=h?priced(200*(h.tonics+1),h):0;if(!h||state.gold<c||h.tonics>=state.b.alch)return;state.gold-=c;h.tonics++;h[k]++;if(h.baseStats)h.baseStats[k]++},
   draught:el=>{const h=heroById(state.sel.alch),c=priced(60,h);if(!h||state.gold<c)return;state.gold-=c;h.draught={el,v:20}},
-  build:k=>{const B=BUILD[k],L=state.b[k],c=B.cost(L);if(L>=B.max||!canUp(k,L))return;state.gold-=c;payMats(upStone(k,L));state.b[k]++},
+  build:k=>{const B=BUILD[k],L=state.b[k],c=B.cost(L);if(L>=B.max||!canUp(k,L))return;state.gold-=c;payMats(upStone(k,L));state.b[k]++;sfx('build')},
   sell:id=>{const it=state.bank.find(x=>x.id===id);if(!it||it.rarity==='perfect')return;state.gold+=sellVal(it);state.bank=state.bank.filter(x=>x.id!==id)},
   partyDbl:id=>{if(state.run||!heroById(id))return;const p=selParty();if(!p.includes(id)&&p.length>=partySize()&&partySize()>1)return;state.sel.party=p;ACT.partyToggle(id)},
   partyToggle:id=>{const p=selParty();if(p.includes(id))state.sel.party=p.filter(x=>x!==id);else if(p.length<partySize()){const R={warrior:0,archer:1,mage:2},c=h=>R[(heroById(h)||{}).cls]??3;state.sel.party=[...p,id].sort((a,b)=>c(a)-c(b))}else if(partySize()===1)state.sel.party=[id]},
@@ -5940,6 +6082,7 @@ const ACT={
   setProfile:k=>{if(!PROFILES[k])return;set.profile=k;saveSet();if(PROFILES[k].zoom)applyZoom(PROFILES[k].zoom)},
   setSpeed:k=>{if(SPEED[k]){set.speed=k;saveSet()}},
   setToggle:k=>{if(k in set&&typeof set[k]==='boolean'){set[k]=!set[k];saveSet()}},
+  setSnd:x=>{const [k,v]=x.split('|');if(k!=='sfx'&&k!=='music')return;set[k]=clamp(+v||0,0,3);saveSet();SND.apply();if(k==='sfx')sfx('coin')},
   zoomReset:()=>applyZoom((PROFILES[set.profile]||{}).zoom||1),
   fleeNo:()=>{ui.flee=false},
   fleeYes:()=>{ui.flee=false;ui.drawer=null;if(!canFlee())return;clearTimeout(advTimer);state.run.fleeTerms=fleeTerms();endRun('flee')},
@@ -6038,17 +6181,24 @@ function holdAnchor(){const A=ui.anchor;ui.anchor=null;if(!A)return;
   let d=el.getBoundingClientRect().top-A.top;if(Math.abs(d)<2)return;
   for(let p=el.parentElement;p&&p!==document.body&&Math.abs(d)>=1;p=p.parentElement){const oy=getComputedStyle(p).overflowY;if(!/(auto|scroll)/.test(oy)||p.scrollHeight<=p.clientHeight+1)continue;const b=p.scrollTop;p.scrollTop=b+d;d-=p.scrollTop-b}
   if(Math.abs(d)>=1)window.scrollBy(0,d)}
+// Which music fits the screen: the town theme at home, each land's own loop on the road, a quicker version in battle, and a boss theme for the big fights.
+function musicFor(inBattle){
+  const r=state.run;if(!r||state.screen!=='run')return 'town';
+  if(!inBattle)return r.biome;
+  const b=r.battle;if(b.enemies.some(e=>e.hp>0&&['boss','warden','king'].includes(e.kind)))return 'boss';
+  return r.biome+':b';
+}
 function render(){
   const app=document.getElementById('app');
   const foot=`<footer class="row" style="justify-content:space-between;color:var(--dim);font-size:19px"><span>Your town saves automatically in this browser.</span><button class="btn small" data-a="settings" data-x="1">Settings</button></footer>`;
   hideTip&&tipEl&&hideTip();
-  if(ui.menu){document.body.classList.remove('inbattle');app.innerHTML=menuView();save();clearTimeout(autoTimer);return}
+  if(ui.menu){SND.music('menu');document.body.classList.remove('inbattle');app.innerHTML=menuView();save();clearTimeout(autoTimer);return}
   // Governors from the old profession test retake the new ten questions (once home, never mid-adventure).
   if(state.gov&&!state.gov.picks&&!state.run&&!state.govSetup){const g=state.gov;state.govSetup={v2:true,step:'quiz',q:0,ans:[],redo:true,d:{sex:g.sex,hair:g.hair,hc:g.hc,shirt:g.shirt,pants:g.pants,name:g.name}}}
   if(state.govSetup&&(state.govSetup.q>=GOV_Q.length||(state.govSetup.ans||[]).length>GOV_Q.length)){const G=state.govSetup;G.q=0;G.ans=[];if(G.step!=='create')G.step='quiz'}
   if(state.govSetup&&!state.govSetup.v2){const G=state.govSetup;G.v2=true;if(G.step==='quiz'||G.step==='result'){G.step='quiz';G.q=0;G.ans=[]}}
   if(state.govSetup){const gk='gov:'+state.govSetup.step+':'+(state.govSetup.q||0);if(gk!==lastView){lastView=gk;window.scrollTo(0,0)}
-    document.body.classList.remove('inbattle');app.innerHTML=`<div class="row" style="justify-content:flex-end"><button class="btn small" data-a="mainMenu">Main menu</button></div>`+govView();save();return}
+    SND.music('menu');document.body.classList.remove('inbattle');app.innerHTML=`<div class="row" style="justify-content:flex-end"><button class="btn small" data-a="mainMenu">Main menu</button></div>`+govView();save();return}
   const inBattle=!!(state.screen==='run'&&state.run&&state.run.battle);
   if(!state.run||(!inBattle&&ui.drawer==='log'))ui.drawer=null;
   if(!state.run)ui.flee=false;
@@ -6060,6 +6210,7 @@ function render(){
   const mode=layMode();lastMode=mode;
   document.body.classList.remove('lay-stack','lay-side','lay-wide','dev-pc','dev-phone');document.body.classList.add('lay-'+mode,mode==='side'?'dev-phone':'dev-pc');
   document.body.classList.toggle('nomotion',!set.motion);
+  SND.music(musicFor(inBattle));
   app.innerHTML=rotateNote()+(inBattle?runView():topBar()+(state.screen==='run'&&state.run?runView():townView())+foot)+(!state.run&&ui.summaryHtml?ui.summaryHtml:'')+(!state.run&&ui.prep?prepView():'')+(!inBattle&&ui.sheet?heroSheet():'')+(!state.run&&ui.greenWarn?greenModal():'')+(state.run&&state.run.reveal&&state.run.reveal.length?revealView():'')+(!state.run?(govRevealView()||storyView()||placeTutView()||govPromoView()||govSheetView()):'')+(state.run&&ui.inv?invModal():'')+installModal()+settingsModal()+darkView();
   if(key===lastView){window.scrollTo(0,y);keepScroll(kept);if(!inBattle)holdAnchor()}else if(!inBattle)window.scrollTo(0,0);ui.anchor=null;
   if(inBattle)requestAnimationFrame(drawIntentArrows);
@@ -6104,7 +6255,7 @@ document.addEventListener('change',ev=>{if(ev.target&&ev.target.id==='impfile'&&
 document.addEventListener('fullscreenchange',()=>{if(ui.settings)render()});
 document.addEventListener('click',ev=>{
   const t=ev.target.closest('[data-a]');if(!t||t.disabled)return;
-  const f=ACT[t.dataset.a];if(!f)return;
+  const f=ACT[t.dataset.a];if(!f)return;sfx('click');
   ui.anchor=anchorOf(t);
   // Buttons with data-dbl do something else on a double-click, so their single click waits a moment first.
   if(t.dataset.dbl&&ACT[t.dataset.dbl]){clearTimeout(ui.dblT);const x=t.dataset.x;
