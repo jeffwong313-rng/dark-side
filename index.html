@@ -1485,6 +1485,25 @@ body.nomotion .px.anim{object-position:0 0}
 .unit.voidt .fo img.px{filter:drop-shadow(0 0 3px #a070ff) saturate(.75)}
 .unit.grief .fo img.px{filter:drop-shadow(0 0 3px #ff3a2a) drop-shadow(0 0 1px #ff3a2a)}
 
+/* living town */
+.npc{position:absolute;z-index:1;width:2.7%;transform:translate(-50%,-92%);pointer-events:none}
+.npcf{display:block;line-height:0}
+.npc img{width:100%;height:auto;filter:drop-shadow(0 1px 0 #000a)}
+.px.anim.walk{animation:walkf .5s steps(1) infinite}
+@keyframes walkf{0%{object-position:0 0}50%{object-position:100% 0}}
+.tomb{position:absolute;transform:translate(-50%,-100%);line-height:0;z-index:1;cursor:help}
+.tomb img{width:clamp(9px,1.9vw,18px);height:auto;filter:drop-shadow(0 1px 0 #000)}
+.tprop{position:absolute;transform:translate(-50%,-90%);line-height:0;z-index:1}
+.tprop img{width:clamp(18px,3.4vw,40px);height:auto;filter:drop-shadow(0 2px 0 #000a)}
+.tprop.wagon i{position:absolute;left:-30%;right:-30%;bottom:-6%;height:22%;background:#6a4a2a;box-shadow:0 0 0 2px #1a1010;z-index:-1}
+.tprop .note{position:absolute;top:-30%;left:70%;color:#e3c8ff;font-size:clamp(10px,1.6vw,18px);line-height:1;animation:noteup 2.4s ease-out infinite}
+.tprop .note.n2{left:20%;animation-delay:1.2s}
+@keyframes noteup{0%{transform:translateY(0);opacity:0}20%{opacity:1}100%{transform:translateY(-200%);opacity:0}}
+.lantern{position:absolute;width:clamp(4px,.8vw,8px);height:clamp(5px,1vw,10px);transform:translate(-50%,-50%);background:var(--lc);box-shadow:0 0 8px var(--lc),0 0 0 1px #000;z-index:1;animation:lanternb 1.8s ease-in-out infinite alternate;pointer-events:none}
+@keyframes lanternb{to{transform:translate(-50%,-30%);filter:brightness(1.3)}}
+.townev{margin-top:8px;padding:10px 12px;background:linear-gradient(#211a2a,#17131d);box-shadow:inset 0 0 0 2px #7a5a20,0 0 18px #e3b34122;display:flex;flex-direction:column;gap:8px}
+body.nomotion .npc{display:none}
+
 </style>
 
 </head>
@@ -2473,7 +2492,7 @@ function drawConstruction(R,key,ox,oy,gx,gy){
 function drawBuilding(R,key,ox,oy,gx,gy,lights){
   if(key!=='adventure'&&!bldOpen(key))return drawConstruction(R,key,ox,oy,gx,gy);
   if(key==='adventure')return drawGate(R,ox,oy,gx,gy,lights);
-  const D=BLD_DEF[key],g=drawBox(R,ox,oy,gx,gy,D.a,D.b,D.h,D.wall,D.roof,D.roofH),wc=hexRgb(D.win);
+  const st=bldStage(key),D=BLD_DEF[key],g=drawBox(R,ox,oy,gx,gy,D.a,D.b,D.h+st*3,D.wall,D.roof,D.roofH+st),wc=hexRgb(D.win);
   const nL=D.a>=3?3:2;
   for(let i=0;i<nL;i++){const u=(i+.5)/nL;quad(R,faceL,g,u-.09,u+.09,.45,.78,lit(wc,-.25));const p=faceL(g,u,.6);lights.push([p[0],p[1],8,wc,.35])}
   quad(R,faceR,g,.38,.62,0,.55,[40,26,18]);quad(R,faceR,g,.43,.57,0,.46,lit(wc,-.4));
@@ -2484,6 +2503,7 @@ function drawBuilding(R,key,ox,oy,gx,gy,lights){
     const c=[Math.round(g.peak[0]+5),Math.round(g.peak[1]+5)];for(let y=0;y<8;y++)for(let x=0;x<3;x++)R.set(c[0]+x,c[1]-y,[64,54,54]);lights.push([c[0]+1,c[1]-9,7,[255,120,40],.7])}
   if(key==='hall'){const p=g.peak.map(Math.round);for(let y=0;y<10;y++)R.set(p[0],p[1]-y,[40,30,30]);for(let y=0;y<4;y++)for(let x=1;x<7;x++)R.set(p[0]+x,p[1]-9+y,(x+y)%5===0?[220,70,70]:[170,36,48])}
   const sp=faceR(g,.5,.78),rows=SPR[D.sign[0]];blit(R,D.sign[0],D.sign[1],Math.round(sp[0]-rows[0].length/2),Math.round(sp[1]-rows.length-1));
+  growBuilding(R,key,g,st,lights);
   return g;
 }
 // The ground fills the whole view below the sky line: a stone square in the middle, grass everywhere else, paths out to each building.
@@ -2529,26 +2549,130 @@ const TOWN_LAYOUT=TOWN_SCREEN.map(([k,x,y])=>[k,...isoAt(x,y)]);
 const HERO_SPOTS=[[0,0],[14,3],[-14,3],[7,10],[-7,10],[20,-5],[-20,-5],[0,-8],[27,3],[-27,3],[14,14],[-14,14],[0,17]].map(([dx,dy])=>isoAt(TOWN_SQUARE[0]+dx,TOWN_SQUARE[1]+dy));
 const townCache={};
 function townScene(){
-  const key='t'+Object.keys(OPEN_WEEK).filter(bldOpen).join('');
+  const graves=!!(state&&state.graveyard&&state.graveyard.length),key='t'+Object.keys(OPEN_WEEK).filter(bldOpen).join('')+'|'+Object.keys(BLD_DEF).map(bldStage).join('')+(graves?'g':'');
   if(townCache[key])return townCache[key];
   const R=new Raster(ISO.W,ISO.Hh),{ox,oy,N}=ISO,lights=[],spots={};
   const G=drawGround(R,ox,oy);
   for(const [x,y] of [[100,105],[238,114],[102,180],[260,156],[34,128],[201,92],[178,150]]){const [gx,gy]=isoAt(x,y);lampPost(R,ox,oy,gx,gy,lights)}
   // keep trees off buildings, paths and the square
-  const busy=new Set();for(const [k,bx,by] of TOWN_LAYOUT){const D=BLD_DEF[k]||{a:1,b:3};for(let x=bx-1;x<=bx+D.a;x++)for(let y=by-1;y<=by+D.b;y++)busy.add(x+','+y)}
+  const busy=new Set();if(graves)for(let x=GRAVE_BOX[0]-6;x<=GRAVE_BOX[2]+6;x+=3)for(let y=GRAVE_BOX[1]-8;y<=GRAVE_BOX[3]+6;y+=2){const [gx,gy]=isoAt(x,y);busy.add(gx+','+gy)}
+  if(graves)drawGraveyard(R);
+  for(const [k,bx,by] of TOWN_LAYOUT){const D=BLD_DEF[k]||{a:1,b:3};for(let x=bx-1;x<=bx+D.a;x++)for(let y=by-1;y<=by+D.b;y++)busy.add(x+','+y)}
   const list=TOWN_LAYOUT.map(([k,gx,gy])=>{const D=BLD_DEF[k]||{a:1,b:3};return {k,gx,gy,depth:gx+gy+(D.a+D.b)/2}});
   for(const t of G.T.values())if(t.kind==='grass'&&!busy.has(t.gx+','+t.gy)&&hsh(t.gx*5+3,t.gy*11+1)<.16)list.push({tree:1,gx:t.gx,gy:t.gy,depth:t.gx+t.gy+1});
   list.sort((a,b)=>a.depth-b.depth);
-  for(const o of list){if(o.tree){drawTree(R,ox,oy,o.gx,o.gy);continue}const g=drawBuilding(R,o.k,ox,oy,o.gx,o.gy,lights);spots[o.k]={x0:g.left[0],x1:g.right[0],y0:Math.min(g.peak[1],g.top[1]-g.h)-10,y1:g.bottom[1]}}
+  for(const o of list){if(o.tree){drawTree(R,ox,oy,o.gx,o.gy);continue}const g=drawBuilding(R,o.k,ox,oy,o.gx,o.gy,lights);spots[o.k]={x0:g.left[0],x1:g.right[0],y0:Math.min(g.peak[1],g.top[1]-g.h)-10,y1:g.bottom[1],door:faceR(g,o.k==='adventure'?.5:.5,0)}}
   for(const L of lights)R.glow(...L);
   return townCache[key]={url:R.url(),spots};
 }
 const thumbCache={};
 function buildingThumb(k){
-  const tk=k+(OPEN_WEEK[k]&&!bldOpen(k)?'-c':'');if(thumbCache[tk])return thumbCache[tk];
+  const tk=k+(OPEN_WEEK[k]&&!bldOpen(k)?'-c':'')+bldStage(k);if(thumbCache[tk])return thumbCache[tk];
   const D=BLD_DEF[k]||{a:1,b:3},R=new Raster(84,74),lights=[],ox=42-(D.a-D.b)*ISO.T/2,oy=72-(D.a+D.b)*ISO.H-4;
   drawBuilding(R,k,ox,oy,0,0,lights);for(const L of lights)R.glow(...L);
   return thumbCache[tk]=R.url();
+}
+
+/* ---------- the living town: buildings that grow, townsfolk, weekly happenings, the graveyard ---------- */
+// How far each building has grown: 0 to 3, from its level against its maximum.
+const BLD_LV=k=>!state?0:({hall:state.b.war||0,heroes:state.b.barracks||1,smith:state.b.smith||1,bank:state.b.bank||1,witch:state.b.alch||1,farm:(state.farm&&state.farm.lvl)||0})[k]||0;
+const BLD_MAXLV=k=>({hall:BUILD.war.max,heroes:BUILD.barracks.max,smith:BUILD.smith.max,bank:BUILD.bank.max,witch:BUILD.alch.max,farm:FARM_MAX})[k]||5;
+const bldStage=k=>{if(!BLD_DEF[k]||!state)return 0;const f=BLD_LV(k)/BLD_MAXLV(k);return f>=1?3:f>=.6?2:f>=.3?1:0};
+// Extra touches on a grown building: an upper floor of windows, a pennant, then gold trim and lanterns.
+function growBuilding(R,key,g,st,lights){
+  const D=BLD_DEF[key],wc=hexRgb(D.win);
+  if(st>=1){const n=D.a>=3?3:2;for(let i=0;i<n;i++){const u=(i+.5)/n;quad(R,faceL,g,u-.06,u+.06,.84,.95,lit(wc,-.15));const p=faceL(g,u,.9);lights.push([p[0],p[1],6,wc,.3])}}
+  if(st>=2&&key!=='hall'){const p=g.peak.map(Math.round),c=hexRgb(D.roof);for(let y=0;y<8;y++)R.set(p[0],p[1]-y,[40,30,30]);
+    for(let y=0;y<3;y++)for(let x=1;x<6-y;x++)R.set(p[0]+x,p[1]-7+y,lit(c,.35+(x%2?.05:0)))}
+  if(st>=3){const U=p=>[p[0],p[1]-g.h];for(const [a,b] of [[U(g.left),U(g.bottom)],[U(g.bottom),U(g.right)]])for(let t=0;t<=1;t+=.02)R.set(a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t+1,[230,180,70]);
+    for(const u of [.3,.7]){const p=faceR(g,u,.42).map(Math.round);R.set(p[0],p[1],[255,230,150]);R.set(p[0],p[1]+1,[200,120,40]);lights.push([p[0],p[1],12,[255,190,90],.5])}}
+}
+// The graveyard sits in the lower left corner of town, fenced, once anyone has died.
+const GRAVE_BOX=[10,184,80,210];
+function drawGraveyard(R){
+  const [x0,y0,x1,y1]=GRAVE_BOX;
+  R.poly([[x0,y0+10],[x0+30,y0-2],[x1,y0+12],[x1-30,y1+4]],(x,y)=>lit([40,46,40],hsh(x,y)<.2?-.15:0));
+  const fence=(a,b)=>{for(let t=0;t<=1;t+=.01){const x=a[0]+(b[0]-a[0])*t,y=a[1]+(b[1]-a[1])*t;R.set(x,y-3,[58,54,64]);if(Math.round(t*100)%8===0)for(let k=0;k<5;k++)R.set(x,y-k,[70,66,78])}};
+  fence([x0,y0+10],[x0+30,y0-2]);fence([x0+30,y0-2],[x1,y0+12]);
+}
+function graveSpots(n){const [x0,y0,x1,y1]=GRAVE_BOX,out=[];for(let i=0;i<n;i++){const r=Math.floor(i/5),c=i%5;out.push([x0+14+c*11-r*6,y0+8+r*7+c*1.5])}return out}
+
+/* townsfolk: small villagers who walk between the square and the open buildings */
+DRAW.villager=(type,fr)=>{
+  const g=new ART.Grid(16,20),step=fr===1,cx=8;
+  const child=type==='child',top=child?6:2;
+  // legs
+  if(type==='woman'){g.poly([[cx-4,11],[cx+4,11],[cx+5,18],[cx-5,18]],'A');g.rect(cx-3+(step?1:0),18,2,1,'d');g.rect(cx+1-(step?1:0),18,2,1,'d')}
+  else{g.rect(cx-3+(step?1:0),child?14:13,2,child?4:5,'p');g.rect(cx+1-(step?1:0),child?14:13,2,child?4:5,'p');g.rect(cx-3+(step?1:0),18,2,1,'d');g.rect(cx+1-(step?1:0),18,2,1,'d')}
+  // body
+  g.rect(cx-3,top+6,7,child?6:7,'A');g.rect(cx-3,top+(child?11:12),7,1,'b');
+  g.line(cx+3,top+7,cx+4+(step?0:1),top+11,'A');g.px(cx+4+(step?0:1),top+12,'F');
+  // head
+  g.ell(cx,top+3,2.6,2.8,'F');g.px(cx+1,top+3,'D');
+  if(type==='farmer'){g.rect(cx-4,top,9,1,'H');g.rect(cx-2,top-1,5,1,'H')}
+  else if(type==='woman'){g.ell(cx-.5,top+1.5,3,2,'H');g.rect(cx-3,top+1,2,4,'H')}
+  else if(type==='guard'){g.ell(cx,top+1.5,3,2,'M');g.line(cx+5,top-2,cx+5,18,'b');g.px(cx+5,top-3,'M')}
+  else if(type==='elder'){g.ell(cx,top+1,2.6,1.6,'w');g.line(cx-1,top+5,cx+1,top+6,'w');g.line(cx-5,top+8,cx-5,18,'b')}
+  else{g.ell(cx,top+1,2.6,1.8,'H')}
+  return g;
+};
+const NPC_TYPES=['farmer','woman','guard','child','elder','woman','farmer'];
+const NPC_COATS=['#7a5a3a','#5a6a8a','#8a3a3a','#4a6a3a','#6a4a6a','#8a7a4a'];
+function villagerStrip(type,coat,skin,hair){
+  return unitStrip('V|'+type+coat+skin+hair,()=>({url:ART.strip([0,1].map(f=>DRAW.villager(type,f)),{A:coat,b:'#4a3424',p:'#3e3430',d:'#1e1614',F:skin,D:'#1a1018',H:hair,M:'#a4a8b4',w:'#e8e4dc'}),w:16,h:20}));
+}
+// Walking loops, in town-map pixels. Each villager visits a few doors and stops in the square; the loop is seeded by week so it stays put between redraws.
+function townsfolk(T){
+  const open=Object.entries(T.spots).filter(([k,b])=>b.door&&(k==='adventure'||bldOpen(k)));
+  const n=Math.min(9,2+open.length+Math.floor(state.week/3)+(state.town&&state.town.week===state.week&&state.town.ev==='festival'?3:0));
+  const sq=TOWN_SQUARE,rnd=srng('folk'+state.week);let css='',html='';
+  for(let i=0;i<n;i++){
+    const pts=[[sq[0]+(rnd()-.5)*40,sq[1]+(rnd()-.5)*18]];
+    for(let k=0;k<2+Math.floor(rnd()*2);k++){const d=open[Math.floor(rnd()*open.length)][1].door;pts.push([d[0]+(rnd()-.5)*6,d[1]+3+rnd()*3]);pts.push([sq[0]+(rnd()-.5)*44,sq[1]+(rnd()-.5)*20])}
+    const seg=[];let tot=0;for(let k=0;k<pts.length;k++){const a=pts[k],b=pts[(k+1)%pts.length],t=Math.hypot(b[0]-a[0],(b[1]-a[1])*1.6)/7+2.2;seg.push([a,b,t]);tot+=t}
+    let acc=0,mv='',fl='';const P=v=>(v/tot*100).toFixed(2);
+    for(const [a,b,t] of seg){const pause=2.2,walk=t-pause;
+      mv+=`${P(acc)}%{left:${(a[0]/ISO.W*100).toFixed(2)}%;top:${(a[1]/ISO.Hh*100).toFixed(2)}%}${P(acc+pause)}%{left:${(a[0]/ISO.W*100).toFixed(2)}%;top:${(a[1]/ISO.Hh*100).toFixed(2)}%}`;
+      fl+=`${P(acc+pause)}%{transform:scaleX(${b[0]<a[0]?-1:1})}`;acc+=t}
+    mv+=`100%{left:${(pts[0][0]/ISO.W*100).toFixed(2)}%;top:${(pts[0][1]/ISO.Hh*100).toFixed(2)}%}`;
+    const id='np'+i,type=NPC_TYPES[i%NPC_TYPES.length],coat=NPC_COATS[Math.floor(rnd()*NPC_COATS.length)],skin=H_SKIN[Math.floor(rnd()*H_SKIN.length)],hair=H_HAIR[Math.floor(rnd()*H_HAIR.length)];
+    const s=villagerStrip(type,coat,skin,hair),delay=-((Date.now()/1000)%tot).toFixed(2);
+    css+=`@keyframes ${id}{${mv}}@keyframes ${id}f{${fl}}`;
+    html+=`<span class="npc" style="animation:${id} ${tot.toFixed(1)}s linear ${delay}s infinite" aria-hidden="true"><span class="npcf" style="animation:${id}f ${tot.toFixed(1)}s step-end ${delay}s infinite"><img class="px anim walk" src="${s.url}" alt="" width="16" height="20" style="aspect-ratio:16/20"></span></span>`;
+  }
+  return `<style>${css}</style>${html}`;
+}
+
+/* weekly happenings in town */
+const TOWN_EVENTS={
+  merchant:{n:'Traveling Merchant',ico:['chest','#c8a050'],d:'A merchant’s wagon stands in the square. She sells three finds from the road, this week only.'},
+  festival:{n:'Moon Festival',ico:['crescent','#ffcf6a'],d:'Lanterns over the square and music until dawn. Every hero is rested (fatigue cleared), and adventures this week give +15% XP.'},
+  bard:{n:'Wandering Bard',ico:['book','#b56fe3'],d:'A bard sings of your heroes’ deeds, and folk are generous: +15% gold from adventures this week.'},
+  pilgrims:{n:'Pilgrims at the Gate',ico:['flask','#b83a3a'],d:'Pilgrims on their way to the moon shrine leave gifts at the gate: healing potions and a Return Scroll.'},
+};
+const townEv=()=>state&&state.town&&state.town.week===state.week?state.town:null;
+function rollTownEvent(){
+  state.town=null;if(state.week<2||!chance(.6))return;
+  const ev=weighted({merchant:35,festival:25,bard:20,pilgrims:20});state.town={ev,week:state.week};
+  if(ev==='festival')for(const h of state.heroes)h.fat=0;
+  if(ev==='merchant'){const lv=Math.max(1,...state.heroes.map(h=>h.level),1),out=[];for(let i=0;i<3;i++){const it=makeItem(i===2?'boss':'elite',lv+ri(0,2));if(it.rarity==='common')it.rarity='rare';out.push(it)}state.town.stock=out}
+}
+const merchPrice=it=>Math.round(sellVal(it)*3.2);
+function townEventBlock(){
+  const E=townEv();if(!E)return '';const D=TOWN_EVENTS[E.ev];
+  let s=`<div class="townev"><div class="row" style="gap:10px;flex-wrap:nowrap;align-items:flex-start">${sprite(D.ico[0],D.ico[1],4)}<div class="stack" style="gap:2px;min-width:0"><span class="hname">This week: ${D.n}</span><span class="muted">${D.d}</span></div></div>`;
+  if(E.ev==='merchant'){const st=E.stock||[];s+=st.length?`<div class="items">${st.map(it=>itemCard(it,`<div class="row"><button class="btn small gold" data-a="merchBuy" data-x="${it.id}" ${state.gold<merchPrice(it)||state.bank.length>=bankCap()?'disabled':''}>Buy · ${fmt(merchPrice(it))} gold</button>${state.bank.length>=bankCap()?'<span class="warn">Vault full</span>':''}</div>`)).join('')}</div>`:'<p class="muted">Sold out. She’ll be on the road again next week.</p>'}
+  if(E.ev==='pilgrims')s+=E.claimed?'<p class="muted">You took the pilgrims’ gifts. Safe travels to them.</p>':'<div class="row"><button class="btn gold" data-a="pilgrimGift">Accept the gifts · 2 Small Healing Potions and a Return Scroll</button></div>';
+  return s+'</div>';
+}
+// What the week's happening adds to the picture of the square.
+function townEventProps(){
+  const E=townEv();if(!E)return '';const sq=TOWN_SQUARE,at=(x,y)=>`left:${(x/ISO.W*100).toFixed(2)}%;top:${(y/ISO.Hh*100).toFixed(2)}%`;
+  if(E.ev==='merchant')return `<span class="tprop wagon" style="${at(sq[0]+30,sq[1]+12)}" data-tip="The Traveling Merchant’s wagon">${sprite('chest','#c8a050',4)}<i></i></span>`;
+  if(E.ev==='festival'){let s='';for(let k=0;k<11;k++){const t=k/10,x=sq[0]-55+t*110,y=sq[1]-26+Math.sin(t*Math.PI)*10;s+=`<span class="lantern" style="${at(x,y)};animation-delay:${(k*.27).toFixed(2)}s;--lc:${['#ffcf6a','#ff8a5a','#b07cff','#7fe0ff'][k%4]}"></span>`}return s}
+  if(E.ev==='bard')return `<span class="tprop bard" style="${at(sq[0]-18,sq[1]+4)}" data-tip="The Wandering Bard">${sprite('book','#b56fe3',3)}<b class="note">♪</b><b class="note n2">♫</b></span>`;
+  if(E.ev==='pilgrims'&&!E.claimed)return `<span class="tprop" style="${at(296,170)}" data-tip="Pilgrims’ gifts by the gate">${sprite('flask','#b83a3a',3)}</span>`;
+  return '';
 }
 
 /* battle backdrops: two parallax layers and a perspective floor per land */
@@ -3130,6 +3254,7 @@ function allItems(){
   return out;
 }
 function gainXp(h,x,lines){
+  if(state.run&&townEv()&&townEv().ev==='festival')x=Math.round(x*1.15);
   h.xp+=x;let ups=0;
   let gained=0;while(h.xp>=xpNeed(h.level)){h.xp-=xpNeed(h.level);h.level++;const pp=pointsFor(h.level);h.points+=pp;gained+=pp;ups++}
   if(ups){sfx('levelup',null,.9);lines.push(`<b class="gold">${esc(h.name)} reached level ${h.level}!</b> +${gained} attribute points, fully restored`);
@@ -3235,7 +3360,7 @@ const greenFor=(len,ids)=>{const L=LENGTHS[len];return L&&L.rec?ids.map(heroById
 const ilvl=()=>Math.max(1,Math.round(enemyLevel()));
 function goldAmt(base){
   const r=state.run,L=living(),n=L.length||1;
-  return Math.round(base*LENGTHS[r.length].mult*(1+.25*(n-1))*rand(.8,1.2)*(1+L.reduce((s,h)=>s+aff(h,'goldfind')+luckRate(h,'gold'),0)/100)*runMod('gold'));
+  return Math.round(base*LENGTHS[r.length].mult*(1+.25*(n-1))*rand(.8,1.2)*(1+L.reduce((s,h)=>s+aff(h,'goldfind')+luckRate(h,'gold'),0)/100)*runMod('gold')*(townEv()&&townEv().ev==='bard'?1.15:1));
 }
 // Just before the final boss: the party sees it coming and makes camp. Same as a campsite, no stop on the map.
 function finalApproach(){
@@ -5634,7 +5759,7 @@ function farmFields(tabs){
   return s;
 }
 function advanceWeek(){
-  state.week++;rollCandidates();for(const h of state.heroes)injOf(h);
+  state.week++;rollCandidates();for(const h of state.heroes)injOf(h);rollTownEvent();
 }
 function hallView(){
   let s=bHead('house',null,'Town Hall','The War Table sets how many heroes go on each adventure.','Other upgrades are inside each building. Stronger towns also draw slightly stronger monsters.',headUp('war'));
@@ -5765,12 +5890,14 @@ function homeView(){
     return `<button class="spot ${k==='adventure'?'gatespot':''} ${open?'':'building'} ${known?'':'mystery'} ${guideAt()===k?'guide':''}" style="left:${pct(b.x0,ISO.W)};top:${pct(b.y0,ISO.Hh)};width:${pct(b.x1-b.x0,ISO.W)};height:${pct(b.y1-b.y0,ISO.Hh)}" ${known?`data-a="tab" data-x="${k}"`:'disabled'} aria-label="${known?NAMES[k]:'Unknown building'}${open?'':': under construction'}" ${known?'':'data-tip="The builders are waiting to hear what this lot is for."'}>${open?'':`<span class="worker w1">${sprite('worker','#c98b5c',3)}<i class="hammer"></i><i class="dust"></i></span><span class="worker w2">${sprite('worker','#6a8ab8',3)}<i class="hammer"></i><i class="dust"></i></span>`}<span class="plaque ${k==='adventure'?'gold':''}">${!known?'?':NAMES[k]+(open?(lv[k]?` <span class="lvpill">${lv[k]}</span>`:''):` <span class="soon">${hasMats(BLD_NEED[k])?'ready to build!':`needs ${Object.entries(BLD_NEED[k]).map(([m,v])=>v+' '+MATS[m].n).join(', ')}`}</span>`)}</span>${open&&alert[k]?'<span class="alert">!</span>':''}</button>`}).join('');
   const heroes=state.heroes.slice(0,HERO_SPOTS.length).map((h,i)=>{const [gx,gy]=HERO_SPOTS[i],p=isoPt(ISO.ox,ISO.oy,gx+.5,gy+.5);
     return `<button class="isohero" style="left:${pct(p[0],ISO.W)};top:${pct(p[1],ISO.Hh)}" data-a="openHero" data-x="${h.id}" data-tip="${esc(`${h.name} · Lv ${h.level} ${C_(h).name} · ${maxHp(h)} HP`)}">${heroArt(h,4,'bob')}${h.points?'<span class="alert">!</span>':''}</button>`}).join('');
+  const graves=graveSpots(Math.min(10,state.graveyard.length)).map(([x,y],i)=>{const G=state.graveyard[i];return `<span class="tomb" style="left:${pct(x,ISO.W)};top:${pct(y,ISO.Hh)}" data-tip="${esc(`Here lies ${G.name}, Lv ${G.level} ${CLASSES[G.cls].name}. Fell in ${G.biome} on stage ${G.stage}, week ${G.week}.`)}">${sprite('tomb',null,2)}</span>`}).join('');
   let s=`<div class="iso">
     <img class="px isoimg" src="${T.url}" alt="Your town at night">
     <div class="iso-title"><span class="hname">Week ${state.week}</span><span class="muted">Your town</span></div>
     <button class="iso-moon" data-tip="${esc(moonTip())}" data-a="tab" data-x="ledger" aria-label="Open the Moon Ledger">${moonImg(m.shown,4)}<span class="moonpct">${moonKnown()?`${Math.round(m.shown)}% dark · `:''}Ledger</span>${ledgerNewCount()?`<span class="alert">${ledgerNewCount()}</span>`:''}</button>
-    ${spots}${heroes}<div class="fireflies"></div>
+    ${graves}${townEventProps()}${townsfolk(T)}${spots}${heroes}<div class="fireflies"></div>
   </div>
+  ${townEventBlock()}
   <button class="nextstep ${guidePts()?'guide':''}" data-a="${n.a}" data-x="${n.x}">${n.i}<span><small>Next step</small><b>${esc(n.t)}</b></span><span class="arrow">→</span></button>
 `;
   return s;
@@ -6979,6 +7106,8 @@ const ACT={
   inv:()=>{ui.inv=true;ui.invSel=null;ui.drawer=null},
   invClose:()=>{ui.inv=false;ui.invSel=null},
   invF:k=>{ui.invF=k},
+  merchBuy:id=>{const E=townEv();if(!E||E.ev!=='merchant')return;const it=(E.stock||[]).find(x=>x.id===id);if(!it)return;const pc=merchPrice(it);if(state.gold<pc||state.bank.length>=bankCap())return;state.gold-=pc;state.bank.push(it);E.stock=E.stock.filter(x=>x!==it);sfx('coin')},
+  pilgrimGift:()=>{const E=townEv();if(!E||E.ev!=='pilgrims'||E.claimed)return;E.claimed=true;state.items.potion=(state.items.potion||0)+2;state.scrolls=(state.scrolls||0)+1;sfx('loot')},
   bankF:k=>{state.sel.bankF=k},
   invSel:x=>{ui.invSel=ui.invSel===x?null:x;ui.invMsg=null},
   invGear:x=>{const [hid,sl]=x.split('|'),h=heroById(hid);const k='gear:'+x;ui.invSel=ui.invSel===k||!h||!h.gear[sl]?null:k},
