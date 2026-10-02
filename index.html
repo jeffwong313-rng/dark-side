@@ -1496,6 +1496,7 @@ body.nomotion .px.anim{object-position:0 0}
 .tprop{position:absolute;transform:translate(-50%,-90%);line-height:0;z-index:1}
 .tprop img{width:clamp(18px,3.4vw,40px);height:auto;filter:drop-shadow(0 2px 0 #000a)}
 .tprop.wagon i{position:absolute;left:-30%;right:-30%;bottom:-6%;height:22%;background:#6a4a2a;box-shadow:0 0 0 2px #1a1010;z-index:-1}
+.tprop .bardimg{width:clamp(14px,2.7vw,30px);animation:walkf 1.2s steps(1) infinite}
 .tprop .note{position:absolute;top:-30%;left:70%;color:#e3c8ff;font-size:clamp(10px,1.6vw,18px);line-height:1;animation:noteup 2.4s ease-out infinite}
 .tprop .note.n2{left:20%;animation-delay:1.2s}
 @keyframes noteup{0%{transform:translateY(0);opacity:0}20%{opacity:1}100%{transform:translateY(-200%);opacity:0}}
@@ -2681,7 +2682,7 @@ function townEventProps(){
   const E=townEv();if(!E)return '';const sq=TOWN_SQUARE,at=(x,y)=>`left:${(x/ISO.W*100).toFixed(2)}%;top:${(y/ISO.Hh*100).toFixed(2)}%`;
   if(E.ev==='merchant')return `<span class="tprop wagon" style="${at(sq[0]+30,sq[1]+12)}" data-tip="The Traveling Merchant’s wagon">${sprite('chest','#c8a050',4)}<i></i></span>`;
   if(E.ev==='festival'){let s='';for(let k=0;k<11;k++){const t=k/10,x=sq[0]-55+t*110,y=sq[1]-26+Math.sin(t*Math.PI)*10;s+=`<span class="lantern" style="${at(x,y)};animation-delay:${(k*.27).toFixed(2)}s;--lc:${['#ffcf6a','#ff8a5a','#b07cff','#7fe0ff'][k%4]}"></span>`}return s}
-  if(E.ev==='bard')return `<span class="tprop bard" style="${at(sq[0]-18,sq[1]+4)}" data-tip="The Wandering Bard">${sprite('book','#b56fe3',3)}<b class="note">♪</b><b class="note n2">♫</b></span>`;
+  if(E.ev==='bard')return `<span class="tprop bard" style="${at(sq[0]-18,sq[1]+4)}" data-tip="The Wandering Bard"><img class="px anim walk bardimg" src="${villagerStrip('farmer','#7a4aa8','#e8c09a','#c8a050').url}" alt="" width="16" height="20" style="aspect-ratio:16/20"><b class="note">♪</b><b class="note n2">♫</b></span>`;
   if(E.ev==='pilgrims'&&!E.claimed)return `<span class="tprop" style="${at(296,170)}" data-tip="Pilgrims’ gifts by the gate">${sprite('flask','#b83a3a',3)}</span>`;
   return '';
 }
