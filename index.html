@@ -1516,6 +1516,12 @@ body.nomotion .npc{display:none}
 .rtable tr.fallen td{color:var(--dim)}
 @media (max-width:640px){.rtable th:nth-child(5),.rtable td:nth-child(5){display:none}}
 
+.lookpick{display:flex;flex-direction:column;gap:4px}
+.lookpick .row{gap:4px;flex-wrap:wrap;align-items:center}.lookpick small{min-width:46px}
+.swatch{width:20px;height:20px;padding:0;border:0;cursor:pointer;background:var(--sw);box-shadow:inset 0 0 0 2px #0008,0 0 0 1px #000}
+.swatch.cur{box-shadow:inset 0 0 0 2px #fff8,0 0 0 2px var(--gold)}
+@media (pointer:coarse){.swatch{width:26px;height:26px}}
+
 </style>
 
 </head>
@@ -2412,13 +2418,29 @@ function artImg(s,scale,cls){const w=s.crop?12*scale:Math.round(s.w*.375*scale),
   return `<img class="px anim ${s.crop&&w<s.w*2?'smooth':''} ${cls||''}" src="${s.url}" width="${w}" height="${h}" style="aspect-ratio:${s.w}/${s.h}" alt="">`}
 const SMALL=4; // at this scale and below, units are shown as close-cropped portraits
 function foeArt(e,scale,cls){const s=e&&foeStripFor(e.base||e.name,e.kind,e.type,scale<=SMALL);return s?artImg(s,scale,cls):sprite(e.spr,EL_COL[e.type]||null,scale,cls)}
-const H_SKIN=['#e8c09a','#d6a47e','#b9835a','#8a5a3a','#f0d0b0','#c89070'],H_HAIR=['#5a3a24','#2a1e18','#c8a050','#8a3a20','#d8d0c0','#3a2a40','#6a2a1a'];
 const strHash=s=>{let n=0;for(const c of String(s))n=(n*31+c.charCodeAt(0))>>>0;return n};
+const H_SKIN=['#e8c09a','#d6a47e','#b9835a','#8a5a3a','#f0d0b0','#c89070'],H_HAIR=['#5a3a24','#2a1e18','#c8a050','#8a3a20','#d8d0c0','#3a2a40','#6a2a1a'];
+// Eight outfit colorways. Every hero arrives in one at random; the player can change it on the hero's page.
+const COLORWAYS=[
+  {n:'Crimson',A:'#a83838',p:'#4a3a30',b:'#6a4a2a'},{n:'Forest',A:'#3f7a3a',p:'#4a3a2a',b:'#6a4a2a'},
+  {n:'Midnight',A:'#3d3c96',p:'#2e2a40',b:'#5a4a6a'},{n:'Ash',A:'#7a7a86',p:'#3a3a44',b:'#4a4048'},
+  {n:'Sunlit',A:'#c89a2e',p:'#5a4428',b:'#7a5228'},{n:'Amethyst',A:'#7a3c9a',p:'#3a2a40',b:'#5a3a5a'},
+  {n:'Tidal',A:'#2e8a8a',p:'#24404a',b:'#4a5a5a'},{n:'Ember',A:'#c0602a',p:'#4a2e22',b:'#6a3a1e'}];
+const CW_DEFAULT={warrior:0,archer:1,mage:2};
+// A hero's look: colorway, skin and hair. Heroes from older saves keep the colors they had.
+function heroLook(h){
+  if(!h.look){const n=strHash(h.id||h.name);h.look={cw:CW_DEFAULT[h.cls]||0,skin:n%H_SKIN.length,hair:(n>>4)%H_HAIR.length}}
+  const L=h.look;return {cw:COLORWAYS[L.cw]||COLORWAYS[0],skin:H_SKIN[L.skin]||H_SKIN[0],hair:H_HAIR[L.hair]||H_HAIR[0],i:L}}
+const randomLook=()=>({cw:ri(0,COLORWAYS.length-1),skin:ri(0,H_SKIN.length-1),hair:ri(0,H_HAIR.length-1)});
+// Colorway, skin and hair swatches on the hero's page.
+function lookPicker(h){const L=heroLook(h),i=L.i,sw=(k,cols,cur,names)=>cols.map((c,j)=>`<button class="swatch ${j===cur?'cur':''}" style="--sw:${c}" data-a="setLook" data-x="${h.id}|${k}|${j}" aria-label="${esc(names?names[j]:k+' '+(j+1))}" aria-pressed="${j===cur}" data-tip="${esc(names?names[j]:'')}"></button>`).join('');
+  return `<div class="lookpick"><span class="row"><small class="muted">Colors</small>${sw('cw',COLORWAYS.map(c=>c.A),i.cw,COLORWAYS.map(c=>c.n))}</span>
+    <span class="row"><small class="muted">Skin</small>${sw('skin',H_SKIN,i.skin)}</span><span class="row"><small class="muted">Hair</small>${sw('hair',H_HAIR,i.hair)}</span></div>`}
 function heroArt(h,scale,cls){
   const gear={};for(const sl of ['weapon','helmet','chest','pants']){const it=h.gear&&h.gear[sl];if(it)gear[sl]=it.rarity}
-  const n=strHash(h.id||h.name),skin=H_SKIN[n%H_SKIN.length],hair=H_HAIR[(n>>4)%H_HAIR.length],tint=(CLASSES[h.cls]||{}).tint||'#888';
-  const key=['H',h.cls,gear.weapon,gear.helmet,gear.chest,gear.pants,skin,hair].join('|');
-  const fr=()=>frames4(f=>DRAW.hero(h.cls,gear,f)),pal=()=>heroPal(h.cls,tint,gear,skin,hair);
+  const LK=h.look||h.id?heroLook(h):{cw:COLORWAYS[CW_DEFAULT[h.cls]||0],skin:H_SKIN[strHash(h.name)%H_SKIN.length],hair:H_HAIR[0]},skin=LK.skin,hair=LK.hair,tint=LK.cw.A;
+  const key=['H',h.cls,gear.weapon,gear.helmet,gear.chest,gear.pants,skin,hair,tint].join('|');
+  const fr=()=>frames4(f=>DRAW.hero(h.cls,gear,f)),pal=()=>({...heroPal(h.cls,tint,gear,skin,hair),p:LK.cw.p,b:LK.cw.b});
   const s=!CLASSES[h.cls]?null:scale<=SMALL?portraitOf(key,fr,pal()):unitStrip(key,()=>({url:ART.strip(fr(),pal()),w:32,h:32}));
   return s?artImg(s,scale,cls):sprite(h.cls,tint,scale,cls);
 }
@@ -3215,7 +3237,7 @@ function makeHero(force){
   const used=new Set([...(state.heroes||[]),...(state.candidates||[]),...(state.graveyard||[]),...(state.lastRecruits||[]).map(n=>({name:n}))].map(x=>x.name)),free=NAMES.filter(n=>!used.has(n));
   const h={id:uid(),name:pick(free.length?free:NAMES),cls,level:1,xp:0,points:0,str:0,per:0,end:0,cha:0,int:0,agi:0,lck:0,pool:0,dice:true,
     bonusHp:0,bonusMp:0,res:{},gear:{},tonics:0,elixir:null,draught:null,runs:0,kills:0,hp:0,mp:0,traits:[],
-    skills:classSkills(cls).sort(()=>Math.random()-.5).slice(0,2),affinity:pick(ELEMENTS),innate:{}};
+    skills:classSkills(cls).sort(()=>Math.random()-.5).slice(0,2),affinity:pick(ELEMENTS),innate:{},look:randomLook()};
   // Everyone is born a little different: 2-3 elements they shrug off (or suffer from), and archers and mages
   // may have a knack for dealing one or two elements. Warriors never do, since they only deal physical damage.
   for(const e of [...ALL_EL].sort(()=>Math.random()-.5).slice(0,ri(2,4)))h.res[e]=chance(.25)?-ri(5,15):ri(5,30);
@@ -4761,7 +4783,7 @@ function endRun(outcome){
   const recap={stages:r.stage,gold:outcome==='dead'?0:r.gold,dead:outcome==='dead',kills:r.kills||0,best:outcome==='dead'?null:bestIt,
     lv:everyone.filter(h=>r.startLv&&r.startLv[h.id]!=null&&h.level>r.startLv[h.id]).map(h=>({n:h.name,a:r.startLv[h.id],b:h.level})),
     low:r.low?{n:r.low.n,pct:Math.max(1,Math.round(r.low.p*100)),stage:r.low.stage,foe:r.low.foe}:null,
-    who:everyone.map(h=>({id:h.id,n:h.name,cls:h.cls,dead:!survivors.includes(h),...((r.stats||{})[h.id]||{dealt:0,taken:0,kills:0,crits:0,big:0})}))};
+    who:everyone.map(h=>({id:h.id,n:h.name,cls:h.cls,look:h.look,dead:!survivors.includes(h),...((r.stats||{})[h.id]||{dealt:0,taken:0,kills:0,crits:0,big:0})}))};
   state.summary={outcome,cls:(lead||{cls:'warrior'}).cls,title,sub:`${LENGTHS[r.length].name} · ${sub} A week passes.`,lines,recap};
   for(const h of state.heroes)h.fat=0;
   state.run=null;advanceWeek();state.screen='town';state.tab='town';
@@ -5419,7 +5441,7 @@ function recapHtml(R){if(!R)return '';const t=(v,l,c)=>`<div class="rtile"><b cl
   if(R.lv.length)s+=`<p class="muted recapln">${R.lv.map(x=>`${esc(x.n)} Lv ${x.a} → <b class="gold">${x.b}</b>`).join(' · ')}</p>`;
   if(R.low)s+=`<p class="recapln"><b class="warn">Closest call:</b> ${esc(R.low.n)} dropped to ${R.low.pct}% health on stage ${R.low.stage}${R.low.foe?`, fighting ${esc(R.low.foe)}`:''}.</p>`;
   if(R.who&&R.who.length){const top=k=>Math.max(...R.who.map(x=>x[k]||0)),mk=(x,k)=>x[k]&&x[k]===top(k)&&R.who.length>1?' class="gold"':'';
-    s+=`<table class="rtable"><thead><tr><th>Hero</th><th>Damage dealt</th><th>Damage taken</th><th>Kills</th><th>Crits</th><th>Biggest hit</th></tr></thead><tbody>${R.who.map(x=>`<tr${x.dead?' class="fallen"':''}><td>${heroArt({id:x.id,name:x.n,cls:x.cls,gear:{}},2,'ico')}${esc(x.n)}${x.dead?' <span class="warn">†</span>':''}</td><td${mk(x,'dealt')}>${fmt(x.dealt)}</td><td>${fmt(x.taken)}</td><td${mk(x,'kills')}>${x.kills}</td><td>${x.crits}</td><td${mk(x,'big')}>${fmt(x.big)}</td></tr>`).join('')}</tbody></table>`}
+    s+=`<table class="rtable"><thead><tr><th>Hero</th><th>Damage dealt</th><th>Damage taken</th><th>Kills</th><th>Crits</th><th>Biggest hit</th></tr></thead><tbody>${R.who.map(x=>`<tr${x.dead?' class="fallen"':''}><td>${heroArt(heroById(x.id)||{id:x.id,name:x.n,cls:x.cls,gear:{},look:x.look},2,'ico')}${esc(x.n)}${x.dead?' <span class="warn">†</span>':''}</td><td${mk(x,'dealt')}>${fmt(x.dealt)}</td><td>${fmt(x.taken)}</td><td${mk(x,'kills')}>${x.kills}</td><td>${x.crits}</td><td${mk(x,'big')}>${fmt(x.big)}</td></tr>`).join('')}</tbody></table>`}
   if(R.best)s+=`<p class="muted recapln">Best find</p>${itemCard(R.best)}`;
   return s}
 function townView(){
@@ -5573,6 +5595,7 @@ function heroesView(){
   let s=`${head}${state.sel.justRecruited===h.id?`<p class="gold">${esc(h.name)} has joined. Give them a name and spend their ${h.points} starting points.</p>`:''}${heroChips('selHero',h.id)}${state.heroes.length>1?`<div class="heronav"><button class="btn navarrow" data-a="heroStep" data-x="-1" aria-label="Previous hero">◀ Prev</button><span class="muted">${state.heroes.indexOf(h)+1} of ${state.heroes.length}</span><button class="btn navarrow" data-a="heroStep" data-x="1" aria-label="Next hero">Next ▶</button></div>`:''}<div class="hdetail"><div class="stack">
     <div class="hc-top"><div class="portrait">${heroArt(h,6)}</div><div class="stack" style="gap:4px;flex:1;min-width:140px">
       <input type="text" id="rename" value="${esc(h.name)}" maxlength="16" aria-label="Hero name (tap to rename)" data-tip="Tap to rename. Up to 16 characters.">
+      ${lookPicker(h)}
       <span class="muted">Lv ${h.level} ${C.name} ${badgeIco(h.badge||0)} <span class="grade" style="color:${gc}">${g}</span></span>
       <span class="muted" style="font-size:18px">${maxHp(h)} HP · ${maxMp(h)} MP · ${h.runs} run${h.runs===1?'':'s'} · ${h.kills} kills</span>
       ${h.elixir||h.draught?`<span class="gold" style="font-size:18px">${h.elixir?`Elixir +${h.elixir.v} ${STATN[h.elixir.stat]}`:''}${h.elixir&&h.draught?' · ':''}${h.draught?`Draught +${h.draught.v}% ${cap(h.draught.el)} res`:''}</span>`:''}</div>${gearDoll(h,'selSlot',state.sel.slot)}</div>
@@ -7138,6 +7161,7 @@ const ACT={
   inv:()=>{ui.inv=true;ui.invSel=null;ui.drawer=null},
   invClose:()=>{ui.inv=false;ui.invSel=null},
   invF:k=>{ui.invF=k},
+  setLook:x=>{const [id,k,j]=x.split('|'),h=heroById(id);if(!h||!['cw','skin','hair'].includes(k))return;heroLook(h);const max={cw:COLORWAYS,skin:H_SKIN,hair:H_HAIR}[k].length;h.look[k]=clamp(+j||0,0,max-1)},
   merchBuy:id=>{const E=townEv();if(!E||E.ev!=='merchant')return;const it=(E.stock||[]).find(x=>x.id===id);if(!it)return;const pc=merchPrice(it);if(state.gold<pc||state.bank.length>=bankCap())return;state.gold-=pc;state.bank.push(it);E.stock=E.stock.filter(x=>x!==it);sfx('coin')},
   pilgrimGift:()=>{const E=townEv();if(!E||E.ev!=='pilgrims'||E.claimed)return;E.claimed=true;state.items.potion=(state.items.potion||0)+2;state.scrolls=(state.scrolls||0)+1;sfx('loot')},
   bankF:k=>{state.sel.bankF=k},
