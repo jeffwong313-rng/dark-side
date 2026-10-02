@@ -507,7 +507,7 @@ body.inbattle{overflow:hidden;overscroll-behavior:none}
 .stage .lay.mid{bottom:29%;height:32%}
 .stage .stage-label{font-size:18px;top:6px;left:8px}
 .side{position:relative;z-index:1;display:flex;align-items:flex-end;gap:clamp(4px,1.4vw,16px);min-width:0}
-.side.heroes{flex-direction:row-reverse}
+.side.heroes{flex-direction:row}
 .unit{--us:clamp(46px,7vw,84px);position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;width:clamp(96px,13vw,150px);color:var(--bone);text-align:center;min-width:0}
 .unit.big{--us:clamp(64px,10.5vw,126px)}
 .unit.foe{cursor:pointer}
@@ -574,6 +574,7 @@ body.lay-wide .ufat{flex-basis:58px;height:15px}body.lay-wide .ufat span{font-si
 /* roster: labeled bars under the pixel-art lineup on small screens */
 .roster{display:none;grid-area:roster;grid-template-columns:1fr 1fr;gap:6px;min-width:0}
 .rcol{display:flex;flex-direction:column;gap:4px;min-width:0}
+.rcol.hcol{flex-direction:column-reverse}
 .rframe.foe{cursor:pointer}
 .rframe.act{box-shadow:0 0 0 2px #000,inset 0 0 0 2px var(--gold)}.rframe.act .uname{color:var(--gold)}
 .rframe.tgt{box-shadow:0 0 0 2px #000,inset 0 0 0 2px #e0736c}
@@ -920,7 +921,7 @@ body.lay-side .roster{display:none!important}
 body.lay-side .unit .uinfo{display:flex;padding:1px 3px 2px;gap:1px}
 body.lay-side .scene.stage{align-items:flex-end;padding:18px 4px 4px;gap:4px}
 body.lay-side .side{flex-direction:row;gap:3px}
-body.lay-side .side.heroes{flex-direction:row-reverse}
+body.lay-side .side.heroes{flex-direction:row}
 body.lay-side .unit{flex-direction:column;width:calc((100cqw - 24px) / 6);gap:1px;--us:clamp(26px,min(11cqw,calc(100cqh - 110px)),90px)}
 body.lay-side .unit.big{--us:clamp(34px,min(14cqw,calc(100cqh - 100px)),110px)}
 body.lay-side .unit .umeta,body.lay-side .unit .utags{display:none}
@@ -931,7 +932,7 @@ body.lay-side .uname{font-size:16px}body.lay-side .uintent{font-size:15px}
 .bscreen .roster{display:grid!important;grid-template-columns:1fr 1fr;gap:6px}
 body:not(.lay-side) .bscreen{grid-template-rows:auto auto clamp(140px,25dvh,280px) auto auto minmax(0,1fr);grid-template-areas:"hdr" "turn" "stage" "roster" "log" "act"}
 body:not(.lay-side) .actbar{max-height:none;min-height:0}
-body.lay-wide .rcol{flex-direction:row;gap:6px}
+body.lay-wide .rcol,body.lay-wide .rcol.hcol{flex-direction:row;gap:6px}
 body.lay-wide .rcol>.rframe{flex:1 1 0;min-width:0}
 body.lay-wide .scene.stage{align-items:flex-end;padding:10px 3% 6px}
 body.lay-wide .unit{width:auto;--us:clamp(40px,min(12cqw,82cqh),220px)}
@@ -1025,6 +1026,7 @@ button.chestbox:hover img.px{filter:drop-shadow(0 0 18px #e3b341cc) brightness(1
 .invbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;position:sticky;top:-12px;z-index:2;background:#17131d;padding:6px 0}
 .invf .subtab{font-size:19px;padding:4px 10px 6px}.invf .subtab small{color:var(--dim);font-size:16px}
 .invsort{display:flex;align-items:center;gap:6px}
+.bankbar{position:static;background:none;padding:2px 0;flex-wrap:nowrap}.bankbar{align-items:flex-start}.bankbar .subtabs,body .bankbar .subtabs{flex:1 1 auto;min-width:0;flex-wrap:wrap;overflow:visible;gap:4px}.bankbar .subtabs::-webkit-scrollbar{display:none}.bankbar .subtabs>*{flex:none}.bankbar .invsort{flex:none;margin-left:auto}.bankbar .subtab{font-size:17px;padding:3px 7px 5px;gap:3px}.bankbar .subtab small{font-size:14px}.bankbar .invsort>span{display:none}.bankbar .invsort select{font-size:17px;padding:3px 4px}.bankbar .subtab.empty{opacity:.55}
 .invsort select{font:inherit;font-size:19px;color:var(--bone);background:var(--stone);border:0;box-shadow:inset 0 0 0 2px var(--edge);padding:3px 8px}
 .invgrid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}
 @media (max-width:900px){.invgrid{grid-template-columns:1fr}}
@@ -1192,7 +1194,15 @@ body.dragging [data-drop]{outline:2px dashed #e3b34166;outline-offset:1px}
 @media (prefers-reduced-motion:reduce){.dawn .mdark,.dawn .msun,.dawn .mbeam,.dawn .mref,.dawn .mctl,.dawn .mirrorsay{animation:none}}
 .govhint{font-size:22px;margin:0}.govhint.small{font-size:19px;color:var(--ash)}
 .storycard.govresult{flex-direction:column}
-.march{gap:8px;flex-wrap:wrap}.mslot{display:flex;flex-direction:column;gap:4px;padding:8px 10px;background:var(--stone);box-shadow:inset 0 0 0 2px var(--edge);min-width:180px;flex:1}
+.march{display:flex;gap:8px;align-items:stretch;flex-wrap:nowrap;overflow-x:auto}.mslot{display:flex;flex-direction:column;gap:4px;padding:8px 10px;background:var(--stone);box-shadow:inset 0 0 0 2px var(--edge);min-width:150px;flex:1}
+.mslot.front{box-shadow:inset 0 0 0 2px #c0503f}
+.mfoe{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0 6px;color:#e0736c;font-size:16px;text-transform:uppercase;letter-spacing:.06em}.mfoe b{font-size:26px}
+@media (max-width:640px){.march{flex-direction:column-reverse}.mslot{min-width:0}.mfoe{flex-direction:row;padding:2px 0}.mfoe b{transform:rotate(-90deg)}}
+/* marching position badge: front-liner red, middle amber, back line blue */
+.upos{flex:none;display:inline-block;font-size:14px;line-height:1;padding:2px 4px 3px;margin-right:4px;text-transform:uppercase;letter-spacing:.04em;vertical-align:2px;box-shadow:inset 0 0 0 1px currentColor;background:#0008}
+.utags .upos{font-size:15px;margin-right:0;vertical-align:0;padding:1px 4px 2px;background:none}
+.upos.p-front{color:#ef8a7a}.upos.p-middle{color:#e3b341}.upos.p-back{color:#8fb8e0}
+
 .lands{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}.land{font:inherit;color:var(--bone);display:flex;gap:8px;align-items:center;padding:6px 10px;border:0;cursor:pointer;background:var(--stone);box-shadow:inset 0 0 0 2px var(--edge);text-align:left}.land span{display:flex;flex-direction:column;line-height:1.05}.land small{color:var(--c)}.land.cur{box-shadow:inset 0 0 0 2px var(--c);background:#241c2c}
 .stranger p{margin:6px 0 2px}.stranger ul{margin:0 0 4px 20px;padding:0}.stranger li{font-size:19px;color:var(--ash)}
 .spot.mystery{cursor:default}.spot.mystery .plaque{color:var(--ash)}
@@ -3348,6 +3358,13 @@ const POS_W={1:[100],2:[65,35],3:[50,30,20]};
 // The front monster mostly hits the front hero; monsters standing further back prefer the back line.
 const foePos=e=>Math.max(0,aliveFoes().indexOf(e));
 const posChance=(i,n)=>(POS_W[n]||POS_W[3])[i]||0;
+// Marching position names. Index 0 walks in front, nearest the monsters; with two heroes the second is the back line.
+const posName=(i,n)=>n<2?'':['Front','Middle','Back'][n===2&&i===1?2:i];
+// Party drawn left to right as the monsters see it: back line on the far left, front-liner nearest the enemies.
+const lineup=P=>P.map((h,i)=>({h,i})).reverse();
+// Fallen heroes step out of the line, so positions count living heroes only (as enemy targeting does).
+function posBadge(h){const P=state.run?living():[],i=P.indexOf(h),n=P.length;if(n<2||i<0)return '';const k=posName(i,n);
+  return `<span class="upos p-${k.toLowerCase()}" data-tip="${esc(`${k} · position ${i+1} of ${n}. ${i===0?'Walks nearest the monsters and draws most attacks':'Further back, safer from attacks'} (${posChance(i,n)}% of them).`)}">${i+1}·${k}</span>`}
 function pickTarget(e){const L=living();if(!L.length)return null;const b=state.run.battle,t=b.taunt&&heroById(b.taunt);if(t&&t.hp>0)return t;
   {const S=spOf(e),hb=S&&S[2];
    if(hb==='weak'&&chance(.75))return L.reduce((a,x)=>x.hp/maxHp(x)<a.hp/maxHp(a)?x:a,L[0]);
@@ -4805,12 +4822,24 @@ function perfectLedger(){
     const w=where(P.id);return `<p><span class="r-perfect">${P.n}</span> <span class="muted">· ${P.base} · ${w||'<span class="warn">Lost forever</span>'}</span></p>`}).join('')}</div>
     <p class="muted" style="font-size:19px">Perfect weapons only come from bosses and final bosses on the longest adventures${moonKnown()?", and from the Dark Side":""}.</p></details>`;
 }
+// Bank filters: item type tabs plus a sort by tier (rarity, then item level and upgrades) or by sell value.
+const BANK_F=[['all','All'],['weapon','Weapons'],['armor','Armor'],['ring','Rings'],['amulet','Amulets']];
+const BANK_SORT=[['new','Newest'],['tierD','Best tier'],['tierA','Low tier'],['valD','Top value'],['valA','Low value']];
+const bankCat=(it,f)=>f==='all'||(f==='armor'?!['weapon','ring','amulet'].includes(it.slot):it.slot===f);
+const itemTier=it=>RAR[it.rarity].i*1e4+it.ilvl*10+(it.plus||0);
+function bankSorted(L,srt){const o=L.slice();if(srt==='new')return o.reverse();
+  const k=srt.startsWith('tier')?itemTier:sellVal,d=srt.endsWith('D')?-1:1;return o.sort((a,b)=>d*(k(a)-k(b))||d*(sellVal(a)-sellVal(b)))}
 function bankView(){
   let s=bHead('chest',null,'Bank',`Equipment ${state.bank.length}/${bankCap()} · supply slots: ${packCap()} (6 per stack)`,'The Vault stores weapons, armor and accessories you find on adventures. Equipment is never sold in town; it only comes from loot. When it is full, new loot is sold automatically. The Supply Pack sets how many potions and other supplies the party can take on an adventure.',headUp('bank'));
   s+=upgradeBlock(['bag','pack']);
   if(Object.values(state.mats).some(v=>v>0))s+=`<div class="matbar"><span class="muted">Materials</span>${matsLine(state.mats)}<button class="btn small" data-a="atab" data-x="craft">Craft →</button></div>`;
   s+=`<div class="bar xp" data-tip="Vault space used"><i style="width:${clamp(state.bank.length/bankCap()*100,0,100)}%"></i><span>Vault ${state.bank.length} / ${bankCap()}</span></div>`;
-  s+=state.bank.length?`<div class="items">${state.bank.map(it=>itemCard(it,it.rarity==='perfect'?'<span class="meta">Perfect weapons cannot be sold.</span>':`<div class="row"><button class="btn small" data-a="sell" data-x="${it.id}">Sell · ${sellVal(it)} gold</button></div>`)).join('')}</div>`:'<p class="muted">Empty.</p>';
+  const f=BANK_F.some(([k])=>k===state.sel.bankF)?state.sel.bankF:'all',srt=BANK_SORT.some(([k])=>k===state.sel.bankSort)?state.sel.bankSort:'new';
+  const shown=bankSorted(state.bank.filter(it=>bankCat(it,f)),srt);
+  if(state.bank.length)s+=`<div class="invbar bankbar"><div class="subtabs invf" role="tablist" aria-label="Item type">${BANK_F.map(([k,l])=>{const n=state.bank.filter(it=>bankCat(it,k)).length;return `<button class="subtab ${f===k?'cur':''} ${n?'':'empty'}" role="tab" aria-selected="${f===k}" data-a="bankF" data-x="${k}">${l} <small>${n}</small></button>`}).join('')}</div>
+    <label class="invsort"><span class="muted">Sort</span><select title="Sort by tier or value" data-banksort aria-label="Sort the vault">${BANK_SORT.map(([k,l])=>`<option value="${k}" ${srt===k?'selected':''}>${l}</option>`).join('')}</select></label></div>`;
+  s+=state.bank.length&&!shown.length?'<p class="muted">Nothing of this type in the vault.</p>':'';
+  s+=state.bank.length?`<div class="items">${shown.map(it=>itemCard(it,it.rarity==='perfect'?'<span class="meta">Perfect weapons cannot be sold.</span>':`<div class="row"><button class="btn small" data-a="sell" data-x="${it.id}">Sell · ${sellVal(it)} gold</button></div>`)).join('')}</div>`:'<p class="muted">Empty.</p>';
   if(state.graveyard.length)s+=`<h3>Graveyard</h3><div class="grave">${state.graveyard.slice(0,20).map(g=>`<p>${esc(g.name)}, Lv ${g.level} ${CLASSES[g.cls].name}. Fell in ${g.biome} on stage ${g.stage}, week ${g.week}.</p>`).join('')}</div>`;
   return s;
 }
@@ -4923,7 +4952,7 @@ function partyPanel(){
   const r=state.run,b=r.battle,P=partyAll(),cur=b&&!b.over?currentActor():null,many=P.length>1;
   return `${P.map(h=>{const open=ui.pdet===h.id,sel=(ui.pslot||'').split('|');
     return `<div class="stack pcard ${h.hp<=0?'down':''} ${many&&cur===h?'cur':''}" style="gap:5px">
-      <div class="pc-head"><div class="portrait">${sprite(h.cls,C_(h).tint,3)}</div><div class="stack" style="gap:3px;flex:1;min-width:0"><span class="hname">${esc(h.name)} <small class="muted">Lv ${h.level} ${C_(h).name}</small>${h.hp<=0?' <span class="warn">fallen</span>':''}</span>
+      <div class="pc-head"><div class="portrait">${sprite(h.cls,C_(h).tint,3)}</div><div class="stack" style="gap:3px;flex:1;min-width:0"><span class="hname">${posBadge(h)}${esc(h.name)} <small class="muted">Lv ${h.level} ${C_(h).name}</small>${h.hp<=0?' <span class="warn">fallen</span>':''}</span>
         ${bars(h)}${fatLine(h)}<button class="linkbtn ${h.points&&h.hp>0&&!open?'guide':''}" data-a="pdet" data-x="${h.id}" aria-expanded="${open}">${open?'Hide details ▴':'Details ▾'}${h.points?` <span class="gold">· ${h.points} pts</span>`:''}</button></div>
         ${gearDoll(h,'pslot',sel[0]===h.id?sel[1]:null,true)}</div>${pslotDetail(h)}
       ${open?`<div class="stack" style="gap:6px">${traitChips(h)}<div class="traits">${h.skills.map(id=>skillChip(h,id)).join('')}</div>${h.hp>0?learnBlock(h):''}${xpBar(h)}${h.hp>0?allocBtns(h):''}${statPips(h)}${statTable(h)}${heroElTable(h)}</div>`:''}</div>`}).join('')}
@@ -4942,7 +4971,7 @@ function runView(){
   const P=partyAll();
   const cells=r.final?FINAL.stages:r.total;
   let prog='';if(r.final)for(let i=1;i<=cells;i++){const boss=i%15===0;prog+=`<i class="${i<r.stage?'done':i===r.stage?'now':''} ${boss?'boss':''}"></i>`}
-  let s=`<section class="panel runhdr" style="--s1:${B.s[0]};--s2:${B.s[1]}"><div class="rh-row"><div class="rh-party">${P.map(h=>`<span class="fo ${h.hp<=0?'dead':''}">${sprite(h.cls,C_(h).tint,3,h.hp>0?'bob':'')}</span>`).join('')}</div>
+  let s=`<section class="panel runhdr" style="--s1:${B.s[0]};--s2:${B.s[1]}"><div class="rh-row"><div class="rh-party">${lineup(P).map(({h})=>`<span class="fo ${h.hp<=0?'dead':''}">${sprite(h.cls,C_(h).tint,3,h.hp>0?'bob':'')}</span>`).join('')}</div>
     <div class="stack" style="gap:0;min-width:0;flex:1"><h2>${r.final?'The Dark Side · ':''}${B.name}</h2><span class="muted" style="font-size:18px">${stageText(r)}</span>${runModTags(r)?`<span class="lmodrow">${runModTags(r)}</span>`:''}</div>
     <div class="res"><span class="chip" data-tip="Gold carried">${sprite('coin',null,2)}<b class="num">${r.gold}</b></span><span class="chip" data-tip="Backpack">${sprite('chest',null,2)}<b class="num">${r.loot.length}/${bagCap()}</b></span><span class="chip" data-tip="Return Scrolls">${sprite('scroll',null,2)}<b class="num">${r.scrolls}</b></span><button class="btn small ${(r.ground||[]).length?'guide':''}" data-a="inv" data-tip="Gear, backpack and anything on the ground">Inventory</button><button class="btn small partybtn ${partyAll().some(x=>x.hp>0&&x.points)&&ui.drawer!=='party'?'guide':''}" data-a="drawer" data-x="party" ${partyAll().some(x=>x.hp>0&&x.points)?'data-tip="Level up! Open the party to spend attribute points."':''}>Party</button>${fleeBtn('small red')}</div></div>${scrapStrip(r.mats,'Scrap gathered this trip. It comes home if the party returns or flees, and is lost if everyone falls.')}
     ${r.final?`<div class="prog" title="Red marks are bosses">${prog}</div>`:''}</section>`;
@@ -4996,7 +5025,7 @@ function heroInfo(h){
       <div class="ubar hp"><i style="width:${clamp(h.hp/mh*100,0,100)}%"></i><span>HP ${Math.max(0,h.hp)}/${mh}</span></div>
       <div class="ubar mp"><i style="width:${clamp(h.mp/mm*100,0,100)}%"></i><span>MP ${h.mp}/${mm}</span></div>
       ${xpMini(h)}
-      <div class="utags">${tags.join('')||'&nbsp;'}</div>`;
+      <div class="utags">${posBadge(h)}${tags.join('')||(posBadge(h)?'':'&nbsp;')}</div>`;
 }
 // Everything known about a monster in one explanation, for tapping its name (the phone layout hides the small tags).
 function nameTip(e){const lv=scoutLv(e),S=spOf(e),w=e.type!=='dark'&&e.type!=='physical'?ELEMENTS.find(x=>BEATS[x]===e.type):null;
@@ -5090,7 +5119,7 @@ function foeUnit(e,i,fx,pops){
 // On small screens the fighters stand across the top as pixel art, and their labeled bars sit in this roster beneath them.
 function roster(P,cur){
   const b=state.run.battle;
-  return `<div class="roster"><div class="rcol">${P.map(h=>`<div class="rframe uinfo ${h.hp<=0?'down':''} ${cur===h?'act':''}" data-tip="${esc(heroTip(h))}">${heroInfo(h)}</div>`).join('')}</div>
+  return `<div class="roster"><div class="rcol hcol">${lineup(P).map(({h})=>`<div class="rframe uinfo ${h.hp<=0?'down':''} ${cur===h?'act':''}" data-tip="${esc(heroTip(h))}">${heroInfo(h)}</div>`).join('')}</div>
     <div class="rcol">${b.enemies.map((e,i)=>`<div class="rframe uinfo foe ${e.hp<=0?'down':''} ${i===b.target&&!b.over&&e.hp>0?'tgt':''}" ${foeTargetAttrs(e,i)} aria-label="${esc(e.name)}">${foeInfo(e)}</div>`).join('')}</div></div>`;
 }
 // One loot tile: icon plus a short label. Used over defeated enemies and in the results.
@@ -5129,7 +5158,7 @@ function battleScreen(){
       <div class="lay far" style="background-image:url(${Ly.far});animation-delay:${panDelay(480)}"></div><div class="lay mid" style="background-image:url(${Ly.mid});animation-delay:${panDelay(240)}"></div><div class="gnd" style="background-image:url(${Ly.gnd})"></div>
       ${label?`<span class="stage-label">${label}</span>`:''}
       ${b.windup?`<div class="wbanner ${b.windup.foe?'foe':''}" role="status">${b.windup.txt}</div>`:''}
-      <div class="side heroes">${P.map(h=>heroUnit(h,cur,fx,pops)).join('')}</div>
+      <div class="side heroes">${lineup(P).map(({h})=>heroUnit(h,cur,fx,pops)).join('')}</div>
       <div class="side foes">${b.enemies.map((e,i)=>foeUnit(e,i,fx,pops)).join('')}</div>
       <svg class="intentarrows" aria-hidden="true"></svg>
     </div>
@@ -5386,7 +5415,7 @@ function prepView(){
       <p class="muted" style="font-size:17px">Drag gear onto a slot to equip it, or back here to unequip. On touch screens, press and hold first. · Stash · ${state.bank.length} item${state.bank.length===1?'':'s'}${list.length!==state.bank.length?` · ${list.length} fit ${esc(h.name)} here`:''}</p>
       <div class="dropzone" data-drop="bank">${list.length?`<div class="items preplist">${list.map(it=>{const to=equipSlotFor(it,h),old=h.gear[to];return itemCard(it,`<div class="row"><button class="btn small gold" data-a="prepEquip" data-x="${it.id}">${old?'Swap in':'Equip'}</button>${old?`<span class="meta">replaces ${itemName(old)}</span>`:''}</div>${itemCompare(it,h,to)}`,`data-drag="bank:${it.id}"`)}).join('')}</div>`:'<p class="muted">Nothing in the stash fits here. Drop gear here to unequip it.</p>'}</div>
     </div></div>
-    ${P.length>1?`<h3>Marching order</h3><p class="muted" style="font-size:17px">Enemies mostly attack whoever walks in front.</p><div class="row march">${P.map((x,i)=>`<div class="mslot"><span class="lab">${['Front','Middle','Back'][P.length===2&&i===1?2:i]} · ${posChance(i,P.length)}% of attacks</span><span class="row" style="gap:6px">${sprite(x.cls,C_(x).tint,2,'ico')}<b>${esc(x.name)}</b> <span class="muted">${C_(x).name}</span></span><span class="row" style="gap:4px"><button class="btn small" data-a="prepOrder" data-x="${x.id}|-1" ${i===0?'disabled':''} aria-label="Move ${esc(x.name)} forward">◀ Forward</button><button class="btn small" data-a="prepOrder" data-x="${x.id}|1" ${i===P.length-1?'disabled':''} aria-label="Move ${esc(x.name)} back">Back ▶</button></span></div>`).join('')}</div>`:''}
+    ${P.length>1?`<h3>Marching order</h3><p class="muted" style="font-size:17px">The party walks toward the monsters on the right. Whoever is in front (nearest the enemies) draws most of the attacks.</p><div class="march">${lineup(P).map(({h:x,i})=>`<div class="mslot ${i===0?'front':''}"><span class="lab"><span class="upos p-${posName(i,P.length).toLowerCase()}">${i+1}·${posName(i,P.length)}</span> ${posChance(i,P.length)}% of attacks</span><span class="row" style="gap:6px;flex-wrap:nowrap">${sprite(x.cls,C_(x).tint,3,'ico')}<span class="stack" style="gap:0;min-width:0"><b>${esc(x.name)}</b><span class="muted">${C_(x).name}</span></span></span><span class="row" style="gap:4px"><button class="btn small" data-a="prepOrder" data-x="${x.id}|1" ${i===P.length-1?'disabled':''} aria-label="Move ${esc(x.name)} back">◀ Back</button><button class="btn small" data-a="prepOrder" data-x="${x.id}|-1" ${i===0?'disabled':''} aria-label="Move ${esc(x.name)} forward">Forward ▶</button></span></div>`).join('')}<div class="mfoe" aria-hidden="true"><span>Monsters</span><b>▶</b></div></div>`:''}
     ${packBlock()}
     <div class="row prepfoot"><button class="btn" data-a="prepClose">Back</button><button class="btn gold big ${state.guide?'guide':''}" data-a="prepGo">Depart: ${LENGTHS[state.sel.len]?LENGTHS[state.sel.len].name:''} with ${esc(listNames(P.map(x=>x.name)))}</button></div>`;
   return modalShell('Prepare the party',body,'prepClose','prep');
@@ -5941,6 +5970,7 @@ const ACT={
   inv:()=>{ui.inv=true;ui.invSel=null;ui.drawer=null},
   invClose:()=>{ui.inv=false;ui.invSel=null},
   invF:k=>{ui.invF=k},
+  bankF:k=>{state.sel.bankF=k},
   invSel:x=>{ui.invSel=ui.invSel===x?null:x;ui.invMsg=null},
   invGear:x=>{const [hid,sl]=x.split('|'),h=heroById(hid);const k='gear:'+x;ui.invSel=ui.invSel===k||!h||!h.gear[sl]?null:k},
   invEquip:hid=>{const S=invSelItem(),h=heroById(hid),r=state.run;if(!S||!h)return;
@@ -5975,8 +6005,10 @@ const ACT={
 
 /* ---------- render ---------- */
 let autoTimer=null,lastView=null,lastMode=null;
-try{if(screen.orientation&&screen.orientation.lock)document.addEventListener('change',ev=>{if(ev.target&&ev.target.matches&&ev.target.matches('[data-invsort]')){ui.invSort=ev.target.value;render()}});
-document.addEventListener('fullscreenchange',()=>{if(document.fullscreenElement)screen.orientation.lock('landscape').catch(()=>{})})}catch(e){}
+document.addEventListener('change',ev=>{const t=ev.target;if(!t||!t.matches)return;
+  if(t.matches('[data-invsort]')){ui.invSort=t.value;render()}
+  else if(t.matches('[data-banksort]')){state.sel.bankSort=t.value;save();render()}});
+try{document.addEventListener('fullscreenchange',()=>{if(document.fullscreenElement)screen.orientation.lock('landscape').catch(()=>{})})}catch(e){}
 function drawIntentArrows(){
   const svg=document.querySelector('.bscreen .intentarrows');if(!svg||!state.run||!state.run.battle)return;
   const b=state.run.battle,L=living();svg.innerHTML='';if(b.over||!seeIntent()||L.length<2)return;
