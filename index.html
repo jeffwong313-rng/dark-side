@@ -1477,6 +1477,14 @@ body.nomotion .px.anim{object-position:0 0}
 .utag.posgood,.sub2 .posgood{color:#8fe08a}.utag.posbad,.sub2 .posbad{color:#ff8a7a}
 .mfx{font-size:15px;line-height:1.15}.mfx.posgood{color:#8fe08a}.mfx.posbad{color:#ff8a7a}
 
+/* elites wear their mutation: a colored aura and a badge */
+.unit.mut .fo img.px{filter:drop-shadow(0 0 2px var(--mc,#b56fe3)) drop-shadow(0 0 5px var(--mc,#b56fe3))}
+.unit.mut-regen{--mc:#6fdc6a}.unit.mut-thorns{--mc:#d8d8e8}.unit.mut-frenzy{--mc:#ff6a2a}.unit.mut-warded{--mc:#7aa8ff}.unit.mut-colossal{--mc:#e3b341}
+.mutbadge{position:absolute;top:0;right:4%;z-index:3;display:inline-flex;padding:2px;background:#0a0810e0;box-shadow:0 0 0 1px var(--mc),0 0 6px var(--mc)}
+.mutbadge .ico{margin:0}
+.unit.voidt .fo img.px{filter:drop-shadow(0 0 3px #a070ff) saturate(.75)}
+.unit.grief .fo img.px{filter:drop-shadow(0 0 3px #ff3a2a) drop-shadow(0 0 1px #ff3a2a)}
+
 </style>
 
 </head>
@@ -3480,6 +3488,20 @@ const SHIFT_BY_EL=Object.fromEntries(Object.entries(SHIFT_SK).map(([k,v])=>[v.el
 // Final-boss styles. Charger: flurries, then spends a whole turn charging, then unleashes a huge blow (a skill fight).
 // Relentless: a plain hit every turn, but it grows 8% stronger each time it acts (a race against the clock).
 FOE_SKILLS.weary={n:'Wearying Blow',d:'A grinding hit that adds 8–12% fatigue.'};
+/* Teamwork: some monsters look after the pack instead of hitting you. */
+FOE_SKILLS.mend={n:'Mend Kin',d:'Heals its most wounded ally for 18% of that ally’s health.'};
+FOE_SKILLS.rally={n:'Rally',d:'An ally’s next attack deals 35% more damage.'};
+FOE_SKILLS.guard={n:'Shield Kin',d:'An ally takes 50% less damage until this monster acts again.'};
+const TEAM_SK=['mend','rally','guard'];
+// Who works with the pack: one healer, one rallier and one guardian in every land.
+const TEAM_OF={'Rime Slime':'mend','Flame Wisp':'mend','Volt Jelly':'mend','Spore Wisp':'mend','Dust Shade':'mend','Hollow Shade':'mend',
+  'Glacier Brute':'rally','Cinder Hound':'rally','Thunder Harpy':'rally','Bark Brute':'rally','Bandit Brute':'rally','Abyssal Knight':'rally',
+  'Frozen Dead':'guard','Obsidian Brute':'guard','Stormbound Golem':'guard','Rooted Dead':'guard','Grit Slime':'guard','Unlit Dead':'guard'};
+// Pack animals grieve: when one falls, the others get angry.
+const PACK_SPR=['beast','bat'];
+const allyOf=(e,pickFn)=>{const A=aliveFoes().filter(x=>x!==e);return A.length?pickFn(A):null};
+const woundedAlly=e=>allyOf(e,A=>A.reduce((a,x)=>x.hp/x.maxHp<a.hp/a.maxHp?x:a,A[0]));
+const strongAlly=e=>allyOf(e,A=>A.reduce((a,x)=>x.atk>a.atk?x:a,A[0]));
 FOE_SKILLS.flurry={n:'Flurry',d:'Two quick blows on one hero.'};
 FOE_SKILLS.windup={n:'Charging',d:'Spends this turn gathering power. Its next move is a devastating blow. Brace for it.'};
 const UNLEASH_MULT=1.5;
@@ -3496,6 +3518,8 @@ function foeSkillsFor(spr,kind,tier,type){
   const L=(SHAPE_SKILLS[spr]||[]).slice(0,n);
   if((kind==='elite'||kind==='boss')&&SHIFT_BY_EL[type])L.push(SHIFT_BY_EL[type]);
   return L;
+}
+function addTeamSkill(e){const t=TEAM_OF[e.base];if(t&&(e.kind==='normal'||e.kind==='elite')&&!e.skills.includes(t))e.skills.push(t);return e;
 }
 // Seeded random numbers, so a species at a given tier always has the same resistances (what the ledger records stays true).
 function srng(str){let h=2166136261;for(const c of str)h=Math.imul(h^c.charCodeAt(0),16777619);return ()=>{h=(h+0x6D2B79F5)|0;let t=h;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296}}
@@ -3578,7 +3602,7 @@ function scoutRolls(when){
     const study=when==='kill'&&(state.ledgerKills[k]||0)>=STUDY_KILLS*(scoutLv(e)+1);
     if(study||chance(fullScoutChance(per)/100*(when==='kill'?.5:1)))scoutFoe(e,spotter,when==='kill'?'studies the remains':'reads the enemy');}
 }
-function makeEnemy(kind,add,forceSpr){return modFoe(applySpecies(makeEnemy0(kind,add,forceSpr)))}
+function makeEnemy(kind,add,forceSpr){return addTeamSkill(modFoe(applySpecies(makeEnemy0(kind,add,forceSpr))))}
 // Land conditions and pacts reshape every monster that appears.
 function modFoe(e){const hp=runMod('foeHp'),at=runMod('foeAtk'),sp=runMod('foeSpd'),rs=runMod('foeRes');
   if(hp!==1){e.hp=e.maxHp=Math.max(1,Math.round(e.hp*hp))}e.atk*=at;e.spd*=sp;if(rs)for(const k in e.res)e.res[k]=Math.min(80,e.res[k]+rs);return e}
@@ -3714,8 +3738,13 @@ function turnOrder(n){const b=state.run.battle,ct={...b.ct},out=[];for(let i=0;i
 // Runs enemy turns until it is a hero's turn or the battle ends.
 // The trip's closest call: the lowest a living hero's health has dropped.
 function noteLow(){const r=state.run;if(!r||!r.battle)return;for(const h of living()){const p=h.hp/maxHp(h);if(p>0&&p<1&&(!r.low||p<r.low.p))r.low={p,n:h.name,stage:r.stage,foe:(aliveFoes()[0]||{}).name||''}}}
+// When a monster falls, the rest of its pack (same species, or any beast or bat) grows angrier: +25% damage, up to twice.
+function packGrief(){const b=state.run&&state.run.battle;if(!b)return;
+  for(const d of b.enemies){if(d.hp>0||d.mourned)continue;d.mourned=true;
+    for(const [j,x] of b.enemies.entries()){if(x.hp<=0||x===d)continue;if(x.base!==d.base&&!(PACK_SPR.includes(x.spr)&&PACK_SPR.includes(d.spr)))continue;if((x.grief||0)>=2)continue;
+      x.grief=(x.grief||0)+1;b.pops.push({s:'e',i:j,t:'ENRAGED',skill:1});blog(`<span class="warn">${x.name} is enraged by ${d.name}’s death (+${x.grief*25}% damage).</span>`)}}}
 function advance(){
-  const b=state.run.battle;let guard=0;
+  const b=state.run.battle;let guard=0;packGrief();
   while(!b.over&&guard++<300){
     noteLow();
     if(!living().length){lose();return}
@@ -3753,6 +3782,7 @@ function foeWindup(e,i){
   let tg=[],to='';
   if(aoeAct(it.act)){tg=living().map(h=>'h'+h.id);to='the whole party'}
   else if(!self){const h=intentTarget(e)||null;if(h){tg=['h'+h.id];to=esc(h.name)}}
+  if(TEAM_SK.includes(it.act)){const a=state.run.battle.enemies[it.ally];if(a&&a.hp>0){to=esc(a.name);tg=['e'+it.ally]}}
   return {u:'e'+i,foe:true,heavy:it.act==='heavy',txt:`${esc(e.name)} readies <b>${name}</b>${to?' → '+to:''}`,tg};
 }
 function heroWindup(h,act,allyId){
@@ -4047,6 +4077,7 @@ function hitEnemy(h,e,o){
   if(b.warcry)d*=1.25;
   if(e.hex)d*=1.25;
   if(e.hardened)d*=.6;
+  if(e.guardBy!=null){const gd=state.run.battle.enemies[e.guardBy];if(gd&&gd.hp>0)d*=.5;else e.guardBy=null}
   {const S=spOf(e);if(S&&S[0]==='thick'&&el==='physical')d*=1-S[1]/100;if(S&&S[0]==='skin'&&el!=='physical')d*=1-S[1]/100}
   if(b.curse&&b.curse[h.id]!=null)d*=.75;
   const m=heroMatch(h,el,e.type),res=el==='physical'?0:Math.min(80,e.res[el]||0);
@@ -4174,7 +4205,7 @@ function enemyTurn(){
   b.enemies.forEach((e,i)=>{if(e.hp>0&&living().length)enemyAct(e,i)});
 }
 /* enemy intents: every enemy decides its next move in advance, and the battle screen shows it */
-const SELF_SKILLS=['howl','harden','ooze','windup'];
+const SELF_SKILLS=['howl','harden','ooze','windup','mend','rally','guard'];
 const INTENT_MULT={flurry:1.3,unleash:1.5,attack:1,heavy:1.6,sweep:.6,web:.6,drain:.9,curse:.9,rend:1,whirl:.8,jolt:.8,hook:.8,blast:.8,charge:.8,grasp:.8};
 function planIntent(e){
   if(!e||e.hp<=0){if(e)e.intent=null;return}
@@ -4183,6 +4214,7 @@ function planIntent(e){
   const L=living(),sh=SHIFT_SK[act];
   const t=SELF_SKILLS.includes(act)||act==='sweep'?null:sh?(sh.how==='pull'?L[L.length-1]:L[0]):pickTarget(e);
   e.intent={act,tid:t?t.id:null};
+  if(TEAM_SK.includes(act)){const a=act==='rally'?strongAlly(e):woundedAlly(e);e.intent.ally=a?state.run.battle.enemies.indexOf(a):null}
 }
 // Who the intent will actually hit right now: a Shield Wall redirects it, and a fallen target means a random pick.
 function intentTarget(e){
@@ -4192,7 +4224,7 @@ function intentTarget(e){
 }
 // Expected damage before evasion, variance and crits.
 function foeEst(e,h,mult,heavy,act){
-  const r=state.run,b=r.battle;let d=e.atk*mult*(e.weak?.7:1)*(b.guard[h.id]?.5:1)*(b.howl&&b.howl.n>0?1.2:1)*(1+(e.rage||0))*spDmg(e,h);
+  const r=state.run,b=r.battle;let d=e.atk*mult*(e.weak?.7:1)*(b.guard[h.id]?.5:1)*(b.howl&&b.howl.n>0?1.2:1)*(1+(e.rage||0))*(1+.25*(e.grief||0))*(e.rallied?1.35:1)*spDmg(e,h);
   d=mitigate(h,d,foeMix(e,act||(heavy?'heavy':'attack')));
   d*=Math.max(.1,1+tr(h,'taken')/100)*(heavy?Math.max(.1,1+tr(h,'heavyTaken')/100):1)*(1-heroDef(h)/100);
   return Math.max(1,Math.round(d));
@@ -4205,6 +4237,7 @@ function intentHtml(e){
   const self=SELF_SKILLS.includes(it.act);let who='',dmg='';
   if(aoeAct(it.act)){who='all';if(known)dmg=' ~'+Math.round(living().reduce((a,h)=>a+foeEst(e,h,INTENT_MULT[it.act],it.act==='unleash',it.act==='sweep'?'sweep':'heavy'),0)/Math.max(1,living().length))+' each'}
   else if(!self){const h=intentTarget(e);who=living().length>1?(h?esc(h.name):'someone'):'';if(known&&h)dmg=' ~'+foeEst(e,h,it.act==='heavy'?heavyMult(e):INTENT_MULT[it.act]||1,it.act==='heavy',it.act)}
+  if(TEAM_SK.includes(it.act)){const a=b.enemies[it.ally];if(a&&a.hp>0)who=esc(a.name)}
   const tip=`Next move: ${name}${who?' on '+(who==='all'?'every hero':who):''}.${!known&&!self?' Scout this enemy to see how hard it will hit.':''}${it.act!=='attack'&&it.act!=='heavy'?' '+FOE_SKILLS[it.act].d:it.act==='heavy'?` ${heavyMult(e)}× damage.`:''}`;
   return `<span class="uintent ${self?'self':''}" data-tip="${esc(tip)}">${ico(ic,tint,2)}${name}${who?` → ${who}`:''}${!self?(known?dmg:' <small class="muted">dmg ?</small>'):''}</span>`;
 }
@@ -4212,7 +4245,7 @@ function intentHtml(e){
 function foeStrike(e,i,h,mult,o){
   const r=state.run,b=r.battle;o=o||{};
   if(chance(heroEva(h)/100)){blog(`${esc(h.name)} dodges ${e.name}’s ${o.name||'attack'}.`);b.pops.push({s:'h',hid:h.id,t:'miss'});return -1}
-  let d=e.atk*mult*rand(.85,1.15)*(e.weak?.7:1)*(b.guard[h.id]?.5:1)*(b.howl&&b.howl.n>0?1.2:1)*(1+(e.rage||0))*spDmg(e,h);e.struck=true;
+  let d=e.atk*mult*rand(.85,1.15)*(e.weak?.7:1)*(b.guard[h.id]?.5:1)*(b.howl&&b.howl.n>0?1.2:1)*(1+(e.rage||0))*(1+.25*(e.grief||0))*(e.rallied?1.35:1)*spDmg(e,h);e.struck=true;e.rallied=false;
   const mix=foeMix(e,o.act||(o.heavy?'heavy':'attack')),el=Object.keys(mix).filter(k=>k!=='physical'&&mix[k]>0).sort((a,c)=>mix[c]-mix[a])[0]||'physical';
   d=mitigate(h,d,mix);
   const bigE=e.kind==='boss'||e.kind==='warden';
@@ -4238,7 +4271,12 @@ const SKILL_RATE={short:.15,medium:.25,long:.6,expedition:.9,descent:.9};
 const SELF_RATE=.15;
 const skillRate=()=>SKILL_RATE[(state.run&&state.run.length)||'short']||.4;
 function foeSkillPick(e){
-  const b=state.run.battle,ok=(e.skills||[]).filter(id=>SHIFT_SK[id]?living().length>1:id==='ooze'?e.hp<e.maxHp*.7:id==='howl'?!(b.howl&&b.howl.n>0):id==='harden'?!e.hardened:true);
+  const b=state.run.battle;
+  {const W=woundedAlly(e);
+   if(e.skills.includes('mend')&&W&&W.hp<W.maxHp*.6&&chance(.6))return 'mend';
+   if(e.skills.includes('guard')&&W&&W.hp<W.maxHp*.5&&!W.guardBy&&chance(.4))return 'guard';
+   if(e.skills.includes('rally')&&strongAlly(e)&&!strongAlly(e).rallied&&chance(.3))return 'rally'}
+  const ok=(e.skills||[]).filter(id=>!TEAM_SK.includes(id)&&(SHIFT_SK[id]?living().length>1:id==='ooze'?e.hp<e.maxHp*.7:id==='howl'?!(b.howl&&b.howl.n>0):id==='harden'?!e.hardened:true));
   // Damaging skills follow the length's skill rate; self-buffs (Harden, War Howl, Reform) keep a small flat chance.
   const hit=ok.filter(id=>!SELF_SKILLS.includes(id)),self=ok.filter(id=>SELF_SKILLS.includes(id));
   if(hit.length&&chance(skillRate()))return pick(hit);
@@ -4265,6 +4303,12 @@ function foeSkill(e,i,id,h){
   if(id==='sweep'){blog(`<span class="warn">${e.name} uses ${S.n}!</span>`);for(const x of living())if(e.hp>0)foeStrike(e,i,x,.6,{name:S.n,verb:'sweeps',act:'sweep'});return}
   if(id==='howl'){b.howl={n:3*aliveFoes().length};blog(`<span class="warn">${e.name} lets out a ${S.n}. Every enemy deals 20% more damage for a while.</span>`);return}
   if(id==='harden'){e.hardened=true;blog(`${e.name} uses ${S.n} and takes 40% less damage until its next turn.`);return}
+  if(TEAM_SK.includes(id)){const it=e.intent||{},b2=state.run.battle;let a=b2.enemies[it.ally];if(!a||a.hp<=0||a===e)a=id==='rally'?strongAlly(e):woundedAlly(e);
+    if(!a){blog(`${e.name} looks for a packmate, but stands alone.`);return}const j=b2.enemies.indexOf(a);
+    if(id==='mend'){const x=Math.max(1,Math.round(a.maxHp*.18));a.hp=Math.min(a.maxHp,a.hp+x);b.pops.push({s:'e',i:j,t:'+'+x});b.fx['burst'+j]='#8fe08a';blog(`${e.name} uses ${S.n} on ${a.name}, healing ${x}.`)}
+    if(id==='rally'){a.rallied=true;b.pops.push({s:'e',i:j,t:'RALLIED',skill:1});blog(`<span class="warn">${e.name} rallies ${a.name}: its next attack hits 35% harder.</span>`)}
+    if(id==='guard'){for(const x of b.enemies)if(x.guardBy===i)x.guardBy=null;a.guardBy=i;b.pops.push({s:'e',i:j,t:'SHIELDED',skill:1});blog(`${e.name} shields ${a.name}. It takes half damage until ${e.name} acts again.`)}
+    return}
   if(id==='ooze'){const x=Math.round(e.maxHp*.08);e.hp=Math.min(e.maxHp,e.hp+x);b.pops.push({s:'e',i,t:'+'+x});blog(`${e.name} uses ${S.n} and heals ${x}.`);return}
   const d=foeStrike(e,i,h,id==='web'?.6:id==='drain'||id==='curse'||id==='weary'?.9:1,{name:S.n,verb:`uses ${S.n} on`,act:id});
   if(d<=0||h.hp<=0)return;
@@ -4276,7 +4320,7 @@ function foeSkill(e,i,id,h){
 }
 function enemyAct(e,i){
   const r=state.run,b=r.battle;
-  e.hardened=false;
+  e.hardened=false;for(const x of b.enemies)if(x.guardBy===i)x.guardBy=null;
   {const S=spOf(e);if(S&&S[0]==='regen'&&e.hp>0&&e.hp<e.maxHp){const x=Math.max(1,Math.round(e.maxHp*S[1]/100));e.hp=Math.min(e.maxHp,e.hp+x);b.pops.push({s:'e',i,t:'+'+x});blog(`${e.name}’s ${S[3]} heals ${x}.`)}}
   if(e.poison){const x=e.poison.dmg;e.hp=Math.max(0,e.hp-x);e.poison.n--;if(!e.poison.n)e.poison=null;b.pops.push({s:'e',i,t:x});b.fx['burst'+i]=EL_COL.grass;blog(`${e.name} takes ${x} poison damage.`);
     if(e.hp<=0){b.fx['die'+i]=1;blog(`${e.name} falls.`);return}}
@@ -5870,6 +5914,10 @@ function foeInfo(e){
   if(e.bossType)tags.push(`<span class="utag" style="color:#e3b341" data-tip="${esc(BOSS_STYLE[e.bossType].d)}">${BOSS_STYLE[e.bossType].n.toLowerCase()}</span>`);
   if((e.kind==='boss'||e.kind==='warden')&&BOSS_AFFLICT[e.type])tags.push(`<span class="utag" style="color:${EL_COL[e.type]}" data-tip="${esc(BOSS_AFFLICT[e.type])}">${BOSS_AFFLICT[e.type].split(':')[0].toLowerCase()}</span>`);
   if(e.rage)cond.push(`<span class="utag" style="color:#ff8a5a" data-tip="Enraged: deals ${Math.round(e.rage*100)}% more damage, and it keeps growing.">+${Math.round(e.rage*100)}%</span>`);
+  if(e.grief)cond.push(`<span class="utag" style="color:#ff5a3a" data-tip="Enraged by a fallen packmate: +${e.grief*25}% damage for the rest of the fight.">enraged ×${e.grief}</span>`);
+  if(e.rallied)cond.push('<span class="utag" style="color:#ffb02e" data-tip="Rallied: its next attack deals 35% more damage.">rallied</span>');
+  if(e.guardBy!=null&&(state.run.battle.enemies[e.guardBy]||{}).hp>0)cond.push(`<span class="utag" style="color:#8fa8c8" data-tip="${esc(`Shielded by ${state.run.battle.enemies[e.guardBy].name}: takes 50% less damage until that monster acts again. Kill the guardian to break it.`)}">shielded</span>`);
+  if(TEAM_OF[e.base]&&isScouted(e))cond.push(`<span class="utag" style="color:#8fe08a" data-tip="${esc('Pack role: '+FOE_SKILLS[TEAM_OF[e.base]].n+'. '+FOE_SKILLS[TEAM_OF[e.base]].d)}">${({mend:'healer',rally:'leader',guard:'guardian'})[TEAM_OF[e.base]]}</span>`);
   if(e.hex)cond.push(`<span class="utag" style="color:#b56fe3" data-tip="Hexed: takes 25% more damage from everyone for ${e.hex} more turn${e.hex>1?'s':''}.">hexed</span>`);
   if(e.stun>0)cond.push(`<span class="utag" style="color:#e3b341" data-tip="Stunned: loses its next ${e.stun>1?e.stun+' turns':'turn'}.">stunned${e.stun>1?' ×'+e.stun:''}</span>`);
   if(e.weak)cond.push(`<span class="utag" style="color:#8fcf6f" data-tip="Crippled: deals 30% less damage for ${e.weak} more turn${e.weak>1?'s':''}.">crippled</span>`);
@@ -5944,8 +5992,10 @@ function heroUnit(h,cur,fx,pops){
 function foeUnit(e,i,fx,pops){
   const b=state.run.battle,big=e.kind==='boss'||e.kind==='warden'||e.kind==='king',dead=e.hp<=0,tgt=i===b.target&&!b.over&&!dead;
   const noreach=!dead&&!b.over&&frontOnly()&&aliveFoes()[0]!==e?'noreach':'';
-  return `<div class="unit foe ${big?'big':''} ${dead?'down':''} ${tgt?'tgt':''} ${e.carry&&e.carry.length&&!dead?'carrier':''} ${noreach} ${wuCls('e'+i)}" data-u="e${i}" ${foeTargetAttrs(e,i)} aria-label="${esc(e.name)}${tgt?' (targeted)':''}" data-tip="${esc(foeTip(e)+(noreach?' Out of reach: warriors can only strike the front enemy.':''))}">
-    <div class="fo ${dead?(fx['die'+i]?'dead dying':'dead'):''} ${fx.act==='e:'+i?'lunge-foe':''} ${fx['stop'+i]?'hitstop':''} ${e.poison?'poisoned':''}">${fx['die'+i]?shards(EL_COL[e.type]||'#d8cfc0'):''}${foeArt(e,5,fx['e'+i]&&!dead?'hit':!dead?'bob':'')}${fx['burst'+i]?`<span class="burst" style="--c:${fx['burst'+i]}"></span>`:''}${fx['frz'+i]?'<span class="burst frz" style="--c:#bfe9ff"></span>':''}${skFx(fx,'e:'+i)}${weaponFx(fx,'e:'+i)}${marksHtml('e'+i)}</div>${b.over==='win'&&e.drop&&e.drop.length?`<span class="dropfan ${b.lootFresh?'fresh':''}">${e.drop.map((x,j)=>`<span style="animation-delay:${j*.18}s">${lootTile(x,true)}</span>`).join('')}</span>`:''}
+  const MUT_ICO={regen:['heart','#8fe08a'],thorns:['blade','#c8c8d4'],frenzy:['flame','#ff7a2a'],warded:['shield','#8fa8c8'],colossal:['fist','#e3b341']};
+  const mutB=e.mutation&&!dead?`<span class="mutbadge" style="--mc:${(MUT_ICO[e.mutation]||[])[1]||'#b56fe3'}" data-tip="${esc('Elite · '+MUT[e.mutation].n+': '+MUT[e.mutation].d+'.')}">${ico(...(MUT_ICO[e.mutation]||['star',null]),2)}</span>`:'';
+  return `<div class="unit foe ${big?'big':''} ${dead?'down':''} ${tgt?'tgt':''} ${e.mutation?'mut mut-'+e.mutation:''} ${/^Void /.test(e.name)?'voidt':''} ${e.grief?'grief':''} ${e.carry&&e.carry.length&&!dead?'carrier':''} ${noreach} ${wuCls('e'+i)}" data-u="e${i}" ${foeTargetAttrs(e,i)} aria-label="${esc(e.name)}${tgt?' (targeted)':''}" data-tip="${esc(foeTip(e)+(noreach?' Out of reach: warriors can only strike the front enemy.':''))}">
+    ${mutB}<div class="fo ${dead?(fx['die'+i]?'dead dying':'dead'):''} ${fx.act==='e:'+i?'lunge-foe':''} ${fx['stop'+i]?'hitstop':''} ${e.poison?'poisoned':''}">${fx['die'+i]?shards(EL_COL[e.type]||'#d8cfc0'):''}${foeArt(e,5,fx['e'+i]&&!dead?'hit':!dead?'bob':'')}${fx['burst'+i]?`<span class="burst" style="--c:${fx['burst'+i]}"></span>`:''}${fx['frz'+i]?'<span class="burst frz" style="--c:#bfe9ff"></span>':''}${skFx(fx,'e:'+i)}${weaponFx(fx,'e:'+i)}${marksHtml('e'+i)}</div>${b.over==='win'&&e.drop&&e.drop.length?`<span class="dropfan ${b.lootFresh?'fresh':''}">${e.drop.map((x,j)=>`<span style="animation-delay:${j*.18}s">${lootTile(x,true)}</span>`).join('')}</span>`:''}
     <div class="uinfo">${foeInfo(e)}</div></div>`;
 }
 // On small screens the fighters stand across the top as pixel art, and their labeled bars sit in this roster beneath them.
