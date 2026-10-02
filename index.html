@@ -1522,6 +1522,16 @@ body.nomotion .npc{display:none}
 .swatch.cur{box-shadow:inset 0 0 0 2px #fff8,0 0 0 2px var(--gold)}
 @media (pointer:coarse){.swatch{width:26px;height:26px}}
 
+/* controller highlight */
+body.padmode .padfocus{outline:3px solid #fff!important;outline-offset:2px;box-shadow:0 0 0 6px #e3b341cc,0 0 18px #e3b341!important;position:relative;z-index:5;animation:padpulse 1.2s ease-in-out infinite}
+@keyframes padpulse{50%{outline-color:#e3b341}}
+body.padmode .unit.padfocus{outline-offset:-2px}
+body:not(.padmode) .padfocus{outline:none}
+#padtoast{position:fixed;left:50%;bottom:18px;transform:translate(-50%,40px);opacity:0;z-index:200;background:#17131df2;color:var(--bone);padding:8px 14px;box-shadow:inset 0 0 0 2px var(--gold),0 6px 20px #000a;font-size:18px;transition:transform .25s,opacity .25s;pointer-events:none;max-width:92vw}
+#padtoast.show{transform:translate(-50%,0);opacity:1}
+.padmap{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:17px;margin-top:6px}
+.padmap .pk{color:var(--gold);white-space:nowrap}
+
 </style>
 
 </head>
@@ -6357,7 +6367,8 @@ function ledgerView(){
 }
 /* ---------- settings ---------- */
 const SET_KEY='dsotm-settings';
-const set={profile:'auto',speed:'normal',motion:true,autoDefault:false,confirmFlee:true,tips:true,govTips:true,sfx:2,music:2};
+const PAD_GUIDE=[['Left stick / D-pad','Move between buttons'],['✕','Press the highlighted button'],['○','Back: close a window, cancel a skill, or return to town'],['□','Auto-battle on/off · add or remove a hero from the party'],['△','Inventory on an adventure · the Bank in town'],['L1 / R1','Previous / next building, enemy target, or hero (on a hero sheet)'],['L2','Jump to the menu on the left (buildings, or attacks in battle)'],['Hold R2','Hero menu (let go to return)'],['OPTIONS or PS','Settings'],['SHARE','Moon Ledger'],['Right stick','Scroll']];
+const set={profile:'auto',speed:'normal',motion:true,autoDefault:false,confirmFlee:true,tips:true,govTips:true,sfx:2,music:2,pad:true};
 try{Object.assign(set,JSON.parse(localStorage.getItem(SET_KEY)||'{}'))}catch(e){}
 const saveSet=()=>{try{localStorage.setItem(SET_KEY,JSON.stringify(set))}catch(e){}};
 /* ---------- sound: every effect and every piece of music is synthesized in the browser, so the game stays one file and plays offline ---------- */
@@ -6506,6 +6517,8 @@ function settingsModal(){
     <div class="row" style="gap:6px"><span class="muted">Battle pace</span>${Object.entries(SPEED).map(([k,S])=>`<button class="btn small ${set.speed===k?'on':''}" data-a="setSpeed" data-x="${k}">${S.n}</button>`).join('')}</div>
     <div class="row" style="gap:6px">${tog('autoDefault','Start battles on Auto')}${tog('confirmFlee','Ask before running home')}</div>
     <h3>Sound</h3>${[['sfx','Sound effects'],['music','Music']].map(([k,l])=>`<div class="row" style="gap:6px"><span class="muted" style="min-width:130px">${l}</span>${['Off','Low','Medium','High'].map((n,i)=>`<button class="btn small ${(set[k]??2)===i?'on':''}" data-a="setSnd" data-x="${k}|${i}" aria-pressed="${(set[k]??2)===i}">${n}</button>`).join('')}</div>`).join('')}
+    <h3>Controller</h3><div class="row" style="gap:6px">${tog('pad','Controller support')}<span class="muted" style="font-size:17px">${navigator.getGamepads&&[...navigator.getGamepads()].some(Boolean)?'Controller connected.':'Plug in or pair a PS4, PS5 or Xbox controller, then press any button.'}</span></div>
+    ${set.pad?`<details class="padguide" ${navigator.getGamepads&&[...navigator.getGamepads()].some(Boolean)?'open':''}><summary class="muted">Controller buttons</summary><div class="padmap">${PAD_GUIDE.map(([k,d])=>`<span class="pk">${k}</span><span>${d}</span>`).join('')}</div></details>`:''}
     <h3>Display</h3><div class="row" style="gap:6px">${tog('motion','Animations')}${tog('tips','Hover tips')}${tog('govTips','Governor tips & tutorials')}</div><p class="muted" style="font-size:17px">Governor tips & tutorials: the weekly thoughts, the Barracks walkthrough and the summary on the first visit to each building. Story chapters and promotions still appear.</p>
     <h3>Game</h3><div class="row"><button class="btn gold" data-a="mainMenu">Main menu · save slots</button><span class="muted" style="font-size:17px">Slot ${ui.slot||1} is saving automatically.</span></div>
     <h3>Save file</h3><p class="muted" style="font-size:18px">Your town saves automatically in this browser. To move it to another browser or the installed app, export it here and import it there.</p>
@@ -7133,7 +7146,7 @@ const ACT={
   settings:x=>{ui.settings=!!x;state.sel.reset=false},
   setProfile:k=>{if(!PROFILES[k])return;set.profile=k;saveSet();if(PROFILES[k].zoom)applyZoom(PROFILES[k].zoom)},
   setSpeed:k=>{if(SPEED[k]){set.speed=k;saveSet()}},
-  setToggle:k=>{if(k in set&&typeof set[k]==='boolean'){set[k]=!set[k];saveSet()}},
+  setToggle:k=>{if(k in set&&typeof set[k]==='boolean'){set[k]=!set[k];saveSet();if(k==='pad'){if(set.pad)PAD.start();else document.body.classList.remove('padmode')}}},
   setSnd:x=>{const [k,v]=x.split('|');if(k!=='sfx'&&k!=='music')return;set[k]=clamp(+v||0,0,3);saveSet();SND.apply();if(k==='sfx')sfx('coin')},
   zoomReset:()=>applyZoom((PROFILES[set.profile]||{}).zoom||1),
   fleeNo:()=>{ui.flee=false},
@@ -7361,6 +7374,135 @@ document.addEventListener('click',ev=>{const el=ev.target.closest&&ev.target.clo
   if(el&&(!el.closest('[data-a]')||el.classList.contains('utag')||el.classList.contains('badge'))){tapTip(el)}else if(!el)hideTip()},true);
 window.addEventListener('scroll',hideTip,{passive:true});
 let booted=false;
+/* ---------- controller support (PS4 / PS5 / Xbox, any pad in the browser's "standard" layout) ----------
+   Left stick / D-pad: move between buttons · ✕: press · ○: back · □: auto-battle, or the second action (add to party)
+   △: inventory on the road, Bank in town · L1 / R1: previous / next building, enemy or hero · L2: jump to the main menu
+   Hold R2: the hero menu · OPTIONS or PS: settings · SHARE: Moon Ledger · Right stick: scroll */
+const PAD=(()=>{
+  const B={x:0,o:1,sq:2,tri:3,l1:4,r1:5,l2:6,r2:7,share:8,opt:9,l3:10,r3:11,up:12,down:13,left:14,right:15,ps:16};
+  let on=false,prev=[],held={},rep={},focusSig=null,focusRect=null,r2Open=null,r2Was=null,tipT=null,loopOn=false,lastStick={x:0,y:0};
+  const SEL='button:not([disabled]),[data-a]:not([disabled]),input:not([type=hidden]):not([type=file]),select,a[href],[role=button],label.btn,summary';
+  const vis=el=>{if(el.closest('[hidden]'))return false;const r=el.getBoundingClientRect();if(r.width<2||r.height<2)return false;const cs=getComputedStyle(el);return cs.visibility!=='hidden'&&cs.display!=='none'&&+cs.opacity!==0};
+  // Where the controller can go right now: the open dialog or drawer, the hero menu while R2 is held, or the whole screen.
+  function scope(){
+    const mods=[...document.querySelectorAll('.modal,.drawer,#tip ~ .modal')].filter(vis);if(mods.length)return mods[mods.length-1];
+    if(held.r2){const h=document.querySelector('.hrail')||document.querySelector('.drawer');if(h&&vis(h))return h}
+    return document.getElementById('app')||document.body;
+  }
+  const items=sc=>[...sc.querySelectorAll(SEL)].filter(el=>!el.closest('.npc,.tomb,.marks')&&vis(el)&&!(el.parentElement&&el.parentElement.closest(SEL)&&!el.matches('input,select')));
+  const sigOf=el=>el?[el.dataset.a||el.id||el.tagName,el.dataset.x||'',el.dataset.drag||'',(el.textContent||'').trim().slice(0,24)].join('|'):null;
+  const cur=()=>{const el=document.querySelector('.padfocus');return el&&document.contains(el)&&vis(el)?el:null};
+  function setFocus(el,quiet){
+    document.querySelectorAll('.padfocus').forEach(x=>x.classList.remove('padfocus'));if(!el)return;
+    el.classList.add('padfocus');focusSig=sigOf(el);focusRect=el.getBoundingClientRect();
+    if(el.matches('input[type=text]'))el.blur();else{try{el.focus({preventScroll:true})}catch(e){}}
+    el.scrollIntoView({block:'nearest',inline:'nearest'});
+    clearTimeout(tipT);hideTip&&hideTip();if(!quiet&&el.getAttribute('data-tip'))tipT=setTimeout(()=>{if(cur()===el)showTip(el,true)},650);
+    if(!quiet)sfx('click');
+  }
+  // Pick the nearest button in a direction: straight ahead counts most, sideways drift counts against it.
+  function move(dx,dy){
+    const sc=scope(),L=items(sc);if(!L.length)return;let c=cur();
+    if(!c||!sc.contains(c)){setFocus(nearest(L,focusRect)||L[0]);return}
+    const a=c.getBoundingClientRect(),ax=a.left+a.width/2,ay=a.top+a.height/2;let best=null,bs=1e9;
+    for(const el of L){if(el===c)continue;const r=el.getBoundingClientRect(),bx=r.left+r.width/2,by=r.top+r.height/2;
+      const along=dx?(bx-ax)*dx:(by-ay)*dy;if(along<=4)continue;
+      // overlap on the cross axis is free; beyond it, sideways distance costs more
+      const gap=dx?Math.max(0,Math.max(r.top,a.top)-Math.min(r.bottom,a.bottom)):Math.max(0,Math.max(r.left,a.left)-Math.min(r.right,a.right));
+      const side=dx?Math.abs(by-ay):Math.abs(bx-ax),s=along+(gap>0?gap*3+side:side*.3);
+      if(s<bs){bs=s;best=el}}
+    if(best)setFocus(best);else sfx('resist');
+  }
+  function nearest(L,r){if(!r)return null;const cx=r.left+r.width/2,cy=r.top+r.height/2;let b=null,bs=1e9;for(const el of L){const q=el.getBoundingClientRect(),d=Math.hypot(q.left+q.width/2-cx,q.top+q.height/2-cy);if(d<bs){bs=d;b=el}}return b}
+  function press(el){
+    if(!el)return;
+    if(el.matches('select')){const n=el.options.length;el.selectedIndex=(el.selectedIndex+1)%n;el.dispatchEvent(new Event('change',{bubbles:true}));return}
+    if(el.matches('input[type=text],input:not([type])')){el.focus();return}
+    if(el.matches('summary')){el.click();return}
+    el.click();
+  }
+  const key=k=>document.dispatchEvent(new KeyboardEvent('keydown',{key:k,bubbles:true}));
+  function back(){
+    const b=state.run&&state.run.battle;
+    if(ui.inv||ui.sheet||ui.drawer||ui.flee||ui.settings||ui.prep||state.summary||(b&&b.over&&!ui.hideResult)){key('Escape');return}
+    if(b&&b.pending){ACT.cancelCast();render();return}
+    if(document.querySelector('.modal')){const x=document.querySelector('.modal .xbtn');if(x){x.click();return}}
+    if(!state.run&&state.tab!=='town'){ACT.tab('town');render();return}
+    sfx('resist');
+  }
+  // L1 / R1: step through buildings in town, enemies in battle, heroes on an open hero sheet.
+  function shoulder(d){
+    const r=state.run,b=r&&r.battle;
+    if(document.querySelector('.modal')){const tabs=[...document.querySelectorAll('.modal .tabs .btn,.modal .subtabs .subtab')].filter(vis);if(tabs.length){const i=tabs.findIndex(t=>t.classList.contains('on')||t.classList.contains('cur'));(tabs[(i+d+tabs.length)%tabs.length]).click();return}}
+    if(b&&!b.over){const A=b.enemies.map((e,i)=>[e,i]).filter(([e])=>e.hp>0&&!(frontOnly()&&aliveFoes()[0]!==e));if(A.length<2)return;const k=A.findIndex(([,i])=>i===b.target);ACT.target(String(A[(k+d+A.length)%A.length][1]));render();return}
+    if(r)return;
+    if(ui.sheet){const H=state.heroes,i=H.findIndex(h=>h.id===ui.sheet);if(H.length>1){ui.sheet=H[(i+d+H.length)%H.length].id;render()}return}
+    const T=TABS.map(t=>t[0]).filter(k=>bldKnown(k));
+    const i=Math.max(0,T.indexOf(state.tab));ACT.tab(T[(i+d+T.length)%T.length]);render();
+  }
+  // L2: the menu on the left. In town that is the street of buildings; in battle, the attack buttons; on the road, the choices.
+  function leftMenu(){
+    const pick=sel=>{const L=[...document.querySelectorAll(sel)].filter(vis);return L.find(x=>x.classList.contains('cur')||x.classList.contains('on'))||L[0]};
+    const el=pick('.bscreen .actbar .skgrid button:not([disabled])')||pick('.bscreen .actbar button:not([disabled])')||pick('.street .bld')||pick('.iso .spot:not([disabled])')||pick('.tmain button:not([disabled])')||pick('#app button:not([disabled])');
+    if(el)setFocus(el);
+  }
+  function r2Down(){
+    const r=state.run;r2Was=sigOf(cur());
+    if(r){if(!ui.drawer){ACT.drawer('party');r2Open='drawer';render()}else r2Open=null}
+    else r2Open='rail';
+    requestAnimationFrame(()=>{const sc=scope(),L=items(sc);if(L.length)setFocus(L.find(x=>x.matches('.hrcard,[data-a=pdet]'))||L[0])});
+  }
+  function r2Up(){
+    if(r2Open==='drawer'&&ui.drawer==='party'&&!ui.sheet){ui.drawer=null;render()}
+    r2Open=null;if(r2Was&&!ui.sheet){const el=items(scope()).find(x=>sigOf(x)===r2Was);if(el)setFocus(el,true)}
+  }
+  function tri(){const r=state.run;if(r){ui.inv?(ui.inv=false):ACT.inv();render()}else if(bldOpen('bank')){ACT.tab('bank');render()}}
+  function sq(){const b=state.run&&state.run.battle,c=cur();
+    if(c&&c.dataset.dbl&&ACT[c.dataset.dbl]){ACT[c.dataset.dbl](c.dataset.x);sfx('click');render();return}
+    if(b&&!b.over){ACT.auto();render();return}sfx('resist')}
+  function down(i){
+    if(!set.pad)return;
+    if(!on){on=true;document.body.classList.add('padmode')}
+    switch(i){
+      case B.up:return move(0,-1);case B.down:return move(0,1);case B.left:return move(-1,0);case B.right:return move(1,0);
+      case B.x:return press(cur()||(move(0,1),null));case B.o:return back();case B.sq:return sq();case B.tri:return tri();
+      case B.l1:return shoulder(-1);case B.r1:return shoulder(1);case B.l2:return leftMenu();case B.r2:return r2Down();
+      case B.opt:case B.ps:ACT.settings(ui.settings?'':'1');render();return;
+      case B.share:if(!state.run){ACT.tab('ledger');render()}return;
+    }
+  }
+  function up(i){if(i===B.r2)r2Up()}
+  const REPEAT=[B.up,B.down,B.left,B.right];
+  function poll(t){
+    const pads=navigator.getGamepads?[...navigator.getGamepads()].filter(Boolean):[];
+    if(!pads.length){loopOn=false;return}
+    const p=pads[0],bt=p.buttons.map(b=>b.pressed||b.value>.5);
+    // left stick acts as the D-pad
+    const ax=p.axes[0]||0,ay=p.axes[1]||0,st={x:Math.abs(ax)>.55?Math.sign(ax):0,y:Math.abs(ay)>.55?Math.sign(ay):0};
+    if(st.y<0)bt[B.up]=true;if(st.y>0)bt[B.down]=true;if(st.x<0)bt[B.left]=true;if(st.x>0)bt[B.right]=true;
+    for(let i=0;i<bt.length;i++){
+      if(bt[i]&&!prev[i]){held[i]=true;if(i===B.r2)held.r2=true;rep[i]=t+380;down(i)}
+      else if(bt[i]&&REPEAT.includes(i)&&t>=rep[i]){rep[i]=t+115;down(i)}
+      else if(!bt[i]&&prev[i]){held[i]=false;if(i===B.r2)held.r2=false;up(i)}}
+    prev=bt;
+    // right stick scrolls whatever is under focus (or the page)
+    const sy=p.axes[3]||0;if(Math.abs(sy)>.2&&set.pad){const c=cur(),box=(c&&c.closest('.mbody,.drawer,.hrlist,.log,.blogpanel,.invlist'))||document.scrollingElement;box.scrollBy(0,sy*18)}
+    requestAnimationFrame(poll);
+  }
+  const startLoop=()=>{if(!loopOn&&set.pad){loopOn=true;requestAnimationFrame(poll)}};
+  addEventListener('gamepadconnected',e=>{startLoop();if(set.pad)toast(`Controller connected: ${((e.gamepad&&e.gamepad.id)||'Gamepad').replace(/\s*\(.*$/,'').slice(0,40)}. Press OPTIONS for settings.`)});
+  addEventListener('gamepaddisconnected',()=>{on=false;document.body.classList.remove('padmode');document.querySelectorAll('.padfocus').forEach(x=>x.classList.remove('padfocus'))});
+  // Touch or mouse hides the controller highlight until the pad is used again.
+  addEventListener('pointerdown',()=>{if(on){on=false;document.body.classList.remove('padmode')}},true);
+  function toast(t){let el=document.getElementById('padtoast');if(!el){el=document.createElement('div');el.id='padtoast';document.body.appendChild(el)}el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),3200)}
+  return {
+    // After each redraw, put the highlight back on the same button (or the closest one).
+    after(){if(!on||!set.pad)return;const sc=scope(),L=items(sc);if(!L.length)return;const el=L.find(x=>sigOf(x)===focusSig)||nearest(L,focusRect)||L[0];setFocus(el,true)},
+    start:startLoop,poll,_t:{down,up,move,cur,scope}
+  };
+})();
+// Every redraw puts the controller highlight back where it was.
+{const R0=render;render=function(){const r=R0.apply(this,arguments);try{PAD.after()}catch(e){}return r}}
 function start(d){
   applyZoom(ui.zoom);
   const hot=d&&d.state&&d.state.v===1&&d.state,had=hot||load();
