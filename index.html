@@ -1461,6 +1461,19 @@ body.lay-stack .lunge-foe{animation-name:lungeFoeDown}
 @keyframes gotloot{0%{transform:scale(1.35);box-shadow:inset 0 0 0 2px var(--gold),0 0 12px var(--gold)}100%{transform:none}}
 body.nomotion .shards{display:none}
 
+/* ======== unit art: four frames in one strip (idle, breath, attack, hurt) ======== */
+.px.anim{object-fit:cover;object-position:0 0;height:auto}
+.px.anim.smooth{image-rendering:auto}
+.px.anim.bob{animation:bob 1.2s steps(2) infinite,idlef 1.2s steps(1) infinite}
+@keyframes idlef{0%{object-position:0 0}50%{object-position:33.333% 0}}
+.px.anim.hit{animation:hit .35s steps(3),hurtf .45s steps(1)}
+@keyframes hurtf{0%,100%{object-position:100% 0}}
+.fo.hitstop img.px.anim.hit{animation:hitstop .1s steps(1),hit .35s steps(3) .1s,hurtf .5s steps(1)}
+.fo.dead img.px.anim,.fo.dying img.px.anim{object-position:100% 0}
+.fo[class*="pose-"] img.px.anim,.fo.castpose img.px.anim,.lunge-foe img.px.anim{animation:atkf .55s steps(1)}
+@keyframes atkf{0%,100%{object-position:66.667% 0}}
+body.nomotion .px.anim{object-position:0 0}
+
 </style>
 
 </head>
@@ -1631,6 +1644,743 @@ function sprite(name,tint,scale=4,cls=''){
   const s=sprCache[key];
   return `<img class="px ${cls}" src="${s.url}" width="${s.w*scale}" height="${s.h*scale}" alt="">`;
 }
+/* ---------- unit art: every hero, monster and boss is drawn by code at 32×32 (bosses 40×40) in four frames ----------
+   Frames: 0 idle, 1 idle (breath), 2 attack, 3 hurt. A drawer paints flat materials; the renderer adds volume
+   (light from the upper left, shade below, a cool moonlight rim on the right) and a dark outline. */
+const ART=(()=>{
+  const hx=h=>{h=h.replace('#','');if(h.length===3)h=[...h].map(c=>c+c).join('');const n=parseInt(h,16);return [n>>16&255,n>>8&255,n&255]};
+  const sh=(c,f)=>f>=0?c.map(v=>v+(255-v)*f):c.map(v=>v*(1+f));
+  const mx=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
+  function Grid(w,h){this.w=w;this.h=h;this.m=new Array(w*h).fill('');this.t=new Int8Array(w*h)}
+  const P=Grid.prototype;
+  P.px=function(x,y,m,t){x=Math.round(x);y=Math.round(y);if(x<0||y<0||x>=this.w||y>=this.h)return;const i=y*this.w+x;this.m[i]=m;this.t[i]=t||0};
+  P.get=function(x,y){x=Math.round(x);y=Math.round(y);return x<0||y<0||x>=this.w||y>=this.h?'':this.m[y*this.w+x]};
+  P.rect=function(x,y,w,h,m,t){for(let j=0;j<h;j++)for(let i=0;i<w;i++)this.px(x+i,y+j,m,t);return this};
+  // Filled ellipse centered on (cx,cy), radii rx, ry. Half-pixel centers make even widths possible.
+  P.ell=function(cx,cy,rx,ry,m,t){for(let y=Math.floor(cy-ry);y<=Math.ceil(cy+ry);y++)for(let x=Math.floor(cx-rx);x<=Math.ceil(cx+rx);x++){const dx=(x+.5-cx)/rx,dy=(y+.5-cy)/ry;if(dx*dx+dy*dy<=1)this.px(x,y,m,t)}return this};
+  P.line=function(x0,y0,x1,y1,m,t,th){th=th||1;const n=Math.max(Math.abs(x1-x0),Math.abs(y1-y0),1);for(let k=0;k<=n;k++){const x=x0+(x1-x0)*k/n,y=y0+(y1-y0)*k/n;if(th===1)this.px(x,y,m,t);else this.ell(x+.5,y+.5,th/2,th/2,m,t)}return this};
+  P.poly=function(pts,m,t){const ys=pts.map(p=>p[1]),y0=Math.floor(Math.min(...ys)),y1=Math.ceil(Math.max(...ys));
+    for(let y=y0;y<=y1;y++){const yy=y+.5,xs=[];for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length];if((a[1]<=yy&&b[1]>yy)||(b[1]<=yy&&a[1]>yy))xs.push(a[0]+(yy-a[1])*(b[0]-a[0])/(b[1]-a[1]))}
+      xs.sort((a,b)=>a-b);for(let k=0;k+1<xs.length;k+=2)for(let x=Math.round(xs[k]);x<Math.round(xs[k+1]);x++)this.px(x,y,m,t)}return this};
+  P.clear=function(x,y){this.px(x,y,'',0)};
+  P.clearEll=function(cx,cy,rx,ry){return this.ell(cx,cy,rx,ry,'',0)};
+  // Recolors every pixel of one material inside a shape (used for markings, cracks and patterns).
+  P.paint=function(test,from,to,t){for(let y=0;y<this.h;y++)for(let x=0;x<this.w;x++){const i=y*this.w+x;if((from==null?this.m[i]:this.m[i]===from)&&test(x,y)){this.m[i]=to;this.t[i]=t||0}}return this};
+  P.shift=function(dx,dy,test){const m=this.m.slice(),t=new Int8Array(this.t);const out=new Grid(this.w,this.h);
+    for(let y=0;y<this.h;y++)for(let x=0;x<this.w;x++){const i=y*this.w+x;if(!m[i])continue;const mv=!test||test(x,y);out.px(x+(mv?dx:0),y+(mv?dy:0),m[i],t[i])}
+    // pixels that did not move stay underneath
+    this.m=out.m;this.t=out.t;return this};
+  P.flipX=function(){const m=this.m.slice(),t=new Int8Array(this.t);for(let y=0;y<this.h;y++)for(let x=0;x<this.w;x++){const j=y*this.w+(this.w-1-x),i=y*this.w+x;this.m[i]=m[j];this.t[i]=t[j]}return this};
+  P.copy=function(){const g=new Grid(this.w,this.h);g.m=this.m.slice();g.t=new Int8Array(this.t);return g};
+
+  // Palette entry: a hex color (shaded), or {c, flat:true} for glowing parts that ignore light, or {c, soft:true} for low-contrast shading.
+  function shade(g,pal,flash){
+    const W=g.w,Hh=g.h,out=new Uint8ClampedArray(W*Hh*4),E=(x,y)=>!g.get(x,y);
+    // per-column run positions for the vertical volume gradient
+    const pos=new Float32Array(W*Hh);
+    for(let x=0;x<W;x++){let y=0;while(y<Hh){if(!g.m[y*W+x]){y++;continue}let y1=y;while(y1<Hh&&g.m[y1*W+x])y1++;const n=y1-y;for(let k=y;k<y1;k++)pos[k*W+x]=n<3?.5:(k-y+.5)/n;y=y1}}
+    for(let y=0;y<Hh;y++)for(let x=0;x<W;x++){const i=y*W+x,m=g.m[i];if(!m)continue;
+      const P0=pal[m]||'#ff00ff',ent=typeof P0==='string'?{c:P0}:P0,base=hx(ent.c);let c;
+      if(ent.flat)c=base;
+      else{let t=g.t[i];const k=ent.soft?.55:1;
+        if(!t){t=2;const p=pos[i];
+          if(E(x,y-1)||(E(x-1,y-1)&&E(x-1,y)))t=1;
+          else if(E(x,y+1))t=E(x+1,y)?4:3;
+          else if(p>.74||(p>.6&&(x+y)%2===0))t=3;
+          else if(p<.2&&E(x-1,y))t=1}
+        c=t===1?mx(sh(base,.24*k),[255,236,190],.08*k):t===3?mx(sh(base,-.3*k),[36,24,80],.14*k):t===4?mx(sh(base,-.5*k),[20,12,50],.2*k):t===5?sh(base,.5):base;
+        if(E(x+1,y)&&t!==1&&!ent.norim)c=mx(c,[160,182,255],.28)}
+      if(flash)c=mx(c,[255,255,255],flash);
+      out[i*4]=c[0];out[i*4+1]=c[1];out[i*4+2]=c[2];out[i*4+3]=255}
+    // Outline: every empty pixel touching the sprite takes a near-black tinted by its neighbor.
+    for(let y=0;y<Hh;y++)for(let x=0;x<W;x++){const i=y*W+x;if(g.m[i])continue;let nb=null;
+      for(const [dx,dy] of [[0,1],[0,-1],[1,0],[-1,0]]){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=W||yy>=Hh)continue;const j=yy*W+xx,m=g.m[j];if(m&&!(pal[m]&&pal[m].noline)){nb=j;break}}
+      if(nb==null)continue;const c=mx([out[nb*4],out[nb*4+1],out[nb*4+2]],[8,6,14],.82);out[i*4]=c[0];out[i*4+1]=c[1];out[i*4+2]=c[2];out[i*4+3]=255}
+    return out;
+  }
+  // Renders frames side by side into one strip and returns a data URL.
+  function strip(frames,pal,opt){
+    opt=opt||{};const W=frames[0].w,Hh=frames[0].h,n=frames.length,cv=document.createElement('canvas');cv.width=W*n;cv.height=Hh;const x=cv.getContext('2d');
+    frames.forEach((g,k)=>{const d=shade(g,pal,opt.flash&&opt.flash[k]),im=x.createImageData(W,Hh);im.data.set(d);x.putImageData(im,k*W,0)});
+    if(!opt.crop)return cv.toDataURL();
+    // Portrait: a square around the figure in the first frame (upper part for tall figures), same window on every frame.
+    const g0=frames[0];let x0=W,y0=Hh,x1=0,y1=0;for(let y=0;y<Hh;y++)for(let xx=0;xx<W;xx++)if(g0.m[y*W+xx]){x0=Math.min(x0,xx);x1=Math.max(x1,xx);y0=Math.min(y0,y);y1=Math.max(y1,y)}
+    const side=Math.min(Math.max(x1-x0,Math.min(y1-y0,Math.round((x1-x0)*1.1)))+3,W),cx=(x0+x1)/2,sx=Math.round(Math.min(Math.max(cx-side/2,0),W-side)),sy=Math.max(0,Math.min(y0-1,Hh-side));
+    const c2=document.createElement('canvas');c2.width=side*n;c2.height=side;const x2=c2.getContext('2d');
+    for(let k=0;k<n;k++)x2.drawImage(cv,k*W+sx,sy,side,side,k*side,0,side,side);
+    return {url:c2.toDataURL(),side};
+  }
+  return {Grid,strip,hx,sh,mx};
+})();
+
+/* Beasts: four-legged hunters facing left. */
+const DRAW={};
+DRAW.beast=(S,fr)=>{
+  const g=new ART.Grid(32,32),F=S.feat;
+  const atk=fr===2,hurt=fr===3,br=fr===1;
+  const bx=hurt?1:atk?-1:0,by=br?1:0,lean=atk?1:hurt?-1:0;
+  const lanky=F==='scav',bulky=F==='thorn';
+  // tail
+  if(F==='bolt'){const z=[[26,15],[28,12],[27,11],[30,8],[29,7],[31,4]];for(let k=0;k+1<z.length;k++)g.line(z[k][0]+bx,z[k][1]+by,z[k+1][0]+bx,z[k+1][1]+by,'C',0,2)}
+  else if(F==='void'){for(let k=0;k<6;k++)g.ell(27.5+k*.6+bx,14.5-k*1.5+by+(fr%2?1:0)*(k%2),1.7-k*.17,1.4,'C')}
+  else if(F==='scav'){g.line(27+bx,15+by,30+bx,18+by,'A');g.line(30+bx,18+by,30+bx,22+by,'A');g.px(30+bx,23+by,'d')}
+  else{const bushy=F==='ice'||F==='fire';g.line(26+bx,15+by,29+bx,11+by+(br?1:0),'A',0,bushy?3:2);g.ell(29.6+bx,9.8+by+(br?1:0),bushy?2.3:1.5,bushy?2.6:1.8,F==='fire'?'C':'A')}
+  // far legs (darker)
+  const fleg=(x,y,dx)=>{g.line(x,y,x+dx,26,'a',0,2);g.rect(x+dx-1,27,2,2,'a');g.rect(x+dx-2,29,3,1,'d')};
+  fleg(13+bx+(atk?-2:0),19,0);fleg(25+bx,19,-1);
+  // body: chest, waist, haunch
+  g.ell(13+bx+lean,16.5+by,bulky?6:5,bulky?6:lanky?5:5.6,'A');
+  g.ell(18.5+bx,16+by,bulky?7.5:6.5,bulky?4.8:lanky?3.4:4,'A');
+  g.ell(24+bx,16.8+by,bulky?5:4.2,bulky?5:4.6,'A');
+  g.paint((x,y)=>y>=19+by&&x>=12+bx&&x<=22+bx,'A','b');
+  // near legs: front straight, back with a backward hock
+  const nf=11+bx+(atk?-3:0);g.ell(nf+1.5,19.5+by,2.2,3,'A');g.line(nf+1,20,nf+(atk?-1:1),27,'A',0,2);g.rect(nf-(atk?2:0),27,2,2,'A');g.rect(nf-1-(atk?2:0),29,3,1,'d');
+  const nb=22+bx;g.ell(nb+1.5,18.5+by,2.8,3.4,'A');g.line(nb+2,21,nb+3,24,'A',0,2);g.line(nb+3,24,nb+1,27,'A',0,2);g.rect(nb,27,2,2,'A');g.rect(nb-1,29,3,1,'d');
+  // head
+  const hx=7+bx+lean*2,hy=11+by+(atk?2:hurt?-1:0),sn=lanky?6:5;
+  g.ell(hx+1,hy+1,3.8,3.4,'A');
+  g.ell(hx+3,hy+3.5,2.6,2.6,'A'); // neck
+  g.poly([[hx-.5,hy-1],[hx-sn,hy+.6],[hx-sn,hy+2.6],[hx,hy+3.4]],'A');
+  g.line(hx-sn+1,hy+2,hx-1,hy+3,'b');
+  g.rect(hx-sn-1,hy,2,2,'n');
+  if(atk){g.poly([[hx-sn+1,hy+3],[hx+1,hy+3],[hx+1,hy+6],[hx-sn+2,hy+5]],'m');g.line(hx-sn+2,hy+5,hx+1,hy+6,'A');for(let k=0;k<sn-1;k+=2){g.px(hx-sn+1+k,hy+3,'w');g.px(hx-sn+2+k,hy+5,'w')}}
+  else g.line(hx-sn+1,hy+2,hx-1,hy+2,'m');
+  // ears
+  const ear=lanky?6:3.5;g.poly([[hx,hy-1.5],[hx+2,hy-2-ear],[hx+3.5,hy-.8]],'A');g.poly([[hx+2.5,hy-1.5],[hx+4.2,hy-1-ear],[hx+5,hy+.4]],'a');
+  g.px(hx+2,hy-2-ear+2.5,'m');if(lanky)g.px(hx+2,hy-2-ear+3.5,'m');
+  // eye: glowing slit with a dark brow
+  if(hurt){g.px(hx-2,hy,'k0');g.px(hx-1,hy+1,'k0');g.px(hx-1,hy,'k0');g.px(hx-2,hy+1,'k0')}
+  else{g.px(hx-2,hy,'E');g.px(hx-1,hy,'E');g.px(hx-2,hy-1,'a');g.px(hx-1,hy-1,'a');g.px(hx,hy-1,'a');
+    if(F==='void'){g.px(hx+1,hy-.6,'E2');g.px(hx,hy+1,'E2')}}
+  // species features
+  if(F==='ice'){for(let k=0;k<5;k++){const x=12+k*3.4+bx,y=11.5+by+(k===0||k===4?1:0);g.poly([[x,y+1.5],[x+1.3,y-3-(k%2)*2.5],[x+2.6,y+1.5]],'C')}
+    g.paint((x,y)=>y>=27&&(x+y)%2===0,'A','C');g.px(hx+3,hy+.5,'C')}
+  if(F==='fire'){g.paint((x,y)=>y>13&&y<22&&(x*7+y*3)%17===0,'A','C');g.paint((x,y)=>y>13&&y<22&&(x*7+y*3)%17===1,'A','C');g.paint((x,y)=>y>13&&y<22&&(x*5+y*11)%23===0,'A','G');
+    [[11,10],[13,8.5],[15,9],[17,8],[19,9.5],[21,11]].forEach(([x,y],k)=>{const h=2+((k+fr)%3);g.poly([[x+bx-1.2,y+by+3],[x+bx,y+by-h],[x+bx+1.3,y+by+3]],k%2?'G':'C')})}
+  if(F==='bolt'){for(let k=0;k<5;k++){const x=11+k*2.4+bx,y=11.5+by;g.line(x,y,x+1,y-2-(k+fr)%3,'C')}
+    g.paint((x,y)=>y>13&&y<21&&(x-y*2+40)%9===0,'A','a');if(!hurt){g.px(3+bx+(fr*5)%9,5+fr,'C');g.px(20+bx-fr,6+(fr*3)%4,'C');g.px(16-fr,4,'C')}}
+  if(F==='thorn'){for(let k=0;k<6;k++){const x=10.5+k*3+bx,y=11+by+(k===0||k===5?1.5:0);g.poly([[x,y+1.5],[x+1.1,y-3.5],[x+2.2,y+1.5]],'C')}
+    g.ell(20+bx,11.6+by,2.4,1.3,'L');g.ell(15.5+bx,11.2+by,1.6,1,'L');g.px(25+bx,13+by,'L');g.paint((x,y)=>(x*5+y*3)%14===0&&y>14&&y<21,'A','a')}
+  if(F==='scav'){g.paint((x,y)=>y>=14&&y<=19&&x%3===0&&x>15&&x<23,'A','a');for(let x=11;x<26;x+=2)g.px(x+bx,12.5+by-(x%4?0:1.5),'A');
+    g.rect(hx+2,hy+4,4,1,'r');g.px(hx+3,hy+5,'w')}
+  if(F==='void'){for(const x of [10,13,21,24])g.paint((xx,y)=>y>=26&&xx>=x+bx-1&&xx<=x+bx+3&&(xx+y+fr)%2===0,null,'');
+    g.paint((x,y)=>(x*5+y*7)%17===0&&y>12&&y<22,'A','C');
+    if(!hurt)for(let k=0;k<3;k++)g.px(14+k*5+bx+(fr%2),9-k%2+by,'C')}
+  return g;
+};
+const BEASTS={
+  'Frost Wolf':{feat:'ice',pal:{A:'#dfe8f0',a:'#a9bccd',b:'#f4f8fb',d:'#5d6f86',C:{c:'#7fd0ff',soft:true},n:'#1b2430',m:'#5a2230',w:'#ffffff',E:{c:'#7fe9ff',flat:true},k0:'#10141c'}},
+  'Cinder Hound':{feat:'fire',pal:{A:'#3d3030',a:'#271e1f',b:'#4e3a34',d:'#1b1414',C:{c:'#ff7a2a',flat:true},G:{c:'#ffd34a',flat:true},n:'#120c0c',m:'#7a1e10',w:'#ffd9a0',E:{c:'#ffd34a',flat:true},k0:'#0c0808'}},
+  'Static Hound':{feat:'bolt',pal:{A:'#5b6788',a:'#3f4862',b:'#7682a0',d:'#262b3c',C:{c:'#fff07a',flat:true},n:'#151824',m:'#4a2040',w:'#ffffff',E:{c:'#fff07a',flat:true},k0:'#0c0e16'}},
+  'Thornback':{feat:'thorn',pal:{A:'#62703c',a:'#45502a',b:'#7d8450',d:'#2c3018',C:'#7a4e2a',L:'#86c94e',n:'#1a1c10',m:'#4a1a14',w:'#f0e8c8',E:{c:'#ffb02e',flat:true},k0:'#10120a'}},
+  'Scav Jackal':{feat:'scav',pal:{A:'#c7a068',a:'#9a7646',b:'#e0c592',d:'#5e4426',r:'#9a2e22',n:'#1e140c',m:'#5a1e14',w:'#f2ead6',E:{c:'#ffe066',flat:true},k0:'#140e08'}},
+  'Gloom Hound':{feat:'void',pal:{A:'#32284a',a:'#211a32',b:'#3e3258',d:'#140f1e',C:{c:'#a070ff',flat:true},n:'#0a0812',m:'#3a1450',w:'#d8c8ff',E:{c:'#d090ff',flat:true},E2:{c:'#ff60c0',flat:true},k0:'#08060c'}},
+};
+
+/* Slimes and oozes: blobs that squash, stretch and lunge. */
+DRAW.slime=(S,fr)=>{
+  const g=new ART.Grid(32,32),F=S.feat,atk=fr===2,hurt=fr===3,br=fr===1;
+  if(F==='jelly'){ // Volt Jelly floats: a bell with trailing tendrils
+    const lift=br?1:0,cx=16+(atk?-3:hurt?1:0),cy=11+lift+(atk?1:0),rx=atk?9:hurt?11:10,ry=atk?8:hurt?6:7;
+    for(let k=0;k<6;k++){const x0=cx-7+k*2.8,len=10+(k%3)*3;let x=x0;for(let y=cy+3;y<cy+3+len&&y<31;y++){x+=Math.sin((y+k*2+fr*2)*.7)*.6;g.px(x,y,k%2?'a':'C')}}
+    g.ell(cx,cy,rx,ry,'A');g.rect(cx-rx,cy,rx*2,ry*.4,'');g.ell(cx,cy+1,rx,2.2,'a');
+    g.paint((x,y)=>y<cy+1&&(x-cx)*(x-cx)/((rx-2.5)*(rx-2.5))+(y-cy+1)*(y-cy+1)/((ry-2.5)*(ry-2.5))<1&&(x+y)%3===0,'A','C');
+    slimeFace(g,cx-3,cy-2,hurt,atk,S,true);
+    if(!hurt){g.px(cx-11+fr*3,cy-6+fr,'G');g.px(cx+10-fr*2,cy-3+fr,'G');g.px(cx-1+fr*2,cy-9,'G')}
+    slimeHl(g,cx-rx*.5,cy-ry*.55);return g}
+  const bx=atk?-3:hurt?1:0,rx=atk?9:br?12:hurt?13:11,ry=atk?11:br?7.4:hurt?6:8.4,cy=29-ry+1,cx=16+bx;
+  if(F==='magma'){for(const [x,l] of [[-6,2+fr%2],[3,3-(fr%2)],[8,2]])g.rect(cx+x,29,1,l>2?2:1,'C')}
+  g.ell(cx,cy+ry*.15,rx,ry,'A');g.paint((x,y)=>y>29,null,'');g.rect(cx-rx+1.5,28,rx*2-3,2,'A');
+  if(F==='grit'){g.ell(cx-rx*.55,cy+ry*.3,rx*.45,ry*.7,'A');g.ell(cx+rx*.5,cy+ry*.4,rx*.5,ry*.6,'A');g.paint((x,y)=>y>29,null,'')}
+  if(atk)g.ell(cx-rx+1,cy+ry*.6,3,2.4,'A');
+  g.paint((x,y)=>y>=28,'A','a');
+  // inner core / pattern
+  if(F==='ice'){g.ell(cx+2,cy+ry*.4,rx*.45,ry*.4,'a');g.paint((x,y)=>(x*3+y*5)%11===0,'a','C')}
+  if(F==='magma'){g.paint((x,y)=>{const n=(Math.sin(x*1.3+y*.7)+Math.cos(x*.6-y*1.1));return n>1.05},'A','r');g.paint((x,y)=>{const n=(Math.sin(x*1.3+y*.7)+Math.cos(x*.6-y*1.1));return n>.8&&n<=1.05},'A','R')}
+  if(F==='moss'){g.paint((x,y)=>(x*7+y*13)%19<2&&y>cy,'A','a')}
+  if(F==='grit'){g.paint((x,y)=>(x*11+y*7)%23===0||(x*5+y*3)%29===0,'A','r');g.paint((x,y)=>(x*11+y*7)%23===1,'A','R')}
+  if(F==='void'){g.paint((x,y)=>(x*13+y*7)%29===0,'A','G');g.paint((x,y)=>(x*7+y*17)%31===0,'A','C')}
+  slimeFace(g,cx-4-(atk?1:0),cy+ry*.05-(atk?2:0),hurt,atk,S);
+  // crowns and growths on top
+  const top=cy+ry*.15-ry;
+  if(F==='ice'){[[-5,3],[-1,5],[3,4],[6,2.5]].forEach(([dx,h])=>{const x=cx+dx;g.poly([[x-1.6,top+3],[x,top-h],[x+1.6,top+3]],'C')})}
+  if(F==='moss'){g.rect(cx-1,top-2,2,4,'w');g.ell(cx,top-2.5,4,2.4,'M');g.px(cx-2,top-3,'w');g.px(cx+1,top-4,'w');g.px(cx+2,top-2,'w');
+    for(const dx of [-8,-5,5,8]){g.line(cx+dx,top+3+Math.abs(dx)*.3,cx+dx+(dx<0?-1:1),top+Math.abs(dx)*.3,'C')}}
+  if(F==='magma'){if(!hurt){g.ell(cx+5,top+2+((fr+1)%3),1.2,1.2,'G');g.ell(cx-3,top+1-(fr%2),1,1,'C')}}
+  if(F==='void'){for(const [dx,dy] of [[6,0],[-8,3],[4,-3]]){if(hurt)continue;g.px(cx+dx,top+ry*.6+dy,'E');g.px(cx+dx+1,top+ry*.6+dy,'E')}}
+  slimeHl(g,cx-rx*.55,top+2.5);
+  return g;
+};
+function slimeHl(g,x,y){if(g.get(x,y)&&g.get(x+1,y)&&g.get(x,y+1)){g.px(x,y,'h');g.px(x+1,y,'h');g.px(x,y+1,'h');if(g.get(x+3,y-1))g.px(x+3,y-1,'h')}}
+function slimeFace(g,x,y,hurt,atk,S,small){
+  if(hurt){for(const ex of [0,5]){g.px(x+ex,y,'k0');g.px(x+ex+1,y+1,'k0');g.px(x+ex+1,y,'k0');g.px(x+ex,y+1,'k0')}g.rect(x+2,y+4,3,1,'k0');return}
+  for(const ex of [0,5]){g.rect(x+ex,y,2,small?2:3,'w');g.rect(x+ex+(atk?0:1),y+1,1,small?1:2,'E')}
+  if(atk){g.rect(x+1,y+4,6,3,'m');g.px(x+1,y+4,'w');g.px(x+3,y+4,'w');g.px(x+5,y+4,'w')}
+  else g.line(x+2,y+(small?3:4),x+5,y+(small?3:4),'m');
+}
+const SLIMES={
+  'Rime Slime':{feat:'ice',pal:{A:{c:'#a9dcf2',soft:true},a:{c:'#7ab6d6',soft:true},C:{c:'#e8faff',soft:true},h:{c:'#ffffff',flat:true},w:'#f4fbff',E:{c:'#16324a',flat:true},m:'#2a4a66',k0:'#16324a'}},
+  'Magma Ooze':{feat:'magma',pal:{A:{c:'#ff6a24',soft:true},a:{c:'#d9441c',soft:true},r:'#3a2420',R:'#5a3428',C:{c:'#ff9a3a',flat:true},G:{c:'#ffe05a',flat:true},h:{c:'#fff2b0',flat:true},w:'#fff2d0',E:{c:'#2a0c06',flat:true},m:'#4a0c06',k0:'#2a0c06'}},
+  'Volt Jelly':{feat:'jelly',pal:{A:{c:'#8e7ce8',soft:true},a:{c:'#6650c4',soft:true},C:{c:'#f2e86a',flat:true},G:{c:'#ffffff',flat:true},h:{c:'#ffffff',flat:true},w:'#f0eaff',E:{c:'#1e1450',flat:true},m:'#2e1a60',k0:'#1e1450'}},
+  'Moss Slime':{feat:'moss',pal:{A:{c:'#6fae4a',soft:true},a:{c:'#4e8a36',soft:true},C:'#a8d86a',M:'#c4402e',w:'#f4ecd8',h:{c:'#e6ffc8',flat:true},E:{c:'#1a2a10',flat:true},m:'#2a3a18',k0:'#1a2a10'}},
+  'Grit Slime':{feat:'grit',pal:{A:'#b08a5c',a:'#8a6a44',r:'#6e6458',R:'#d8ccb4',h:{c:'#f4e2c0',flat:true},w:'#f4ead8',E:{c:'#2a1a0c',flat:true},m:'#3a2412',k0:'#2a1a0c'}},
+  'Void Ooze':{feat:'void',pal:{A:{c:'#2a1c40',soft:true},a:{c:'#1a1028',soft:true},G:{c:'#ffffff',flat:true},C:{c:'#a070ff',flat:true},h:{c:'#8a70c0',flat:true},w:'#d8c8ff',E:{c:'#ff60c0',flat:true},m:'#4a1460',k0:'#c0a0ff'}},
+};
+
+/* Wraiths and spirits: things that float. Each one is its own design. */
+DRAW.wraith=(S,fr)=>{
+  const g=new ART.Grid(32,32),F=S.feat,atk=fr===2,hurt=fr===3,br=fr===1,fy=br?-1:0,bx=atk?-2:hurt?2:0;
+  if(F==='ghost'||F==='hollow'){
+    const cx=17+bx,top=4+fy;
+    // tattered robe tail
+    for(let y=16;y<30;y++){const w=8.5-(y-16)*.35+Math.sin(y*.9+fr)*1;for(let x=Math.round(cx-w);x<=cx+w-1;x++){const edge=y>24&&((x+y+fr)%3===0);if(!edge)g.px(x+Math.sin(y*.5+fr)*1.2,y+fy,'A')}}
+    g.ell(cx,top+8,7.5,8,'A');
+    // hood opening
+    g.ell(cx-1.5,top+9,4.6,5.2,'D');
+    if(F==='hollow'){g.ell(cx-1.5,top+9,3.4,4,'h');g.ell(cx-1.5,top+9,2.2,2.8,'D');if(!hurt){g.px(cx-3,top+8,'E');g.px(cx,top+8,'E')}}
+    else if(!hurt){g.rect(cx-4,top+8,2,1,'E');g.rect(cx-1,top+8,2,1,'E');g.px(cx-4,top+9,'E2');g.px(cx-1,top+9,'E2')}
+    else{g.px(cx-4,top+8,'k0');g.px(cx-3,top+9,'k0');g.px(cx-1,top+8,'k0');g.px(cx,top+9,'k0')}
+    // arms reaching toward the party
+    const ax=atk?cx-14:cx-9,ay=top+15+(hurt?-2:0);
+    g.line(cx-4,top+13,ax+3,ay,'A',0,3);
+    for(let k=0;k<3;k++)g.line(ax+3,ay-1+k,ax-(atk?2:0)-1,ay-2+k*2,'C');
+    if(F==='ghost'){g.paint((x,y)=>(x*5+y*3)%13===0&&y>top+12,'A','a');g.ell(cx+1,top+1.5,3,1.5,'C');g.px(cx-3,top+1,'C')}
+    if(F==='hollow'){g.paint((x,y)=>y>top+18&&(x*3+y*7+fr)%5===0,'A','C')}
+    return g}
+  if(F==='flame'){
+    const cx=15+bx,base=26+fy,fl=k=>[0,1,-1,1][(k+fr)%4];
+    g.poly([[cx-8,base-6],[cx-6+fl(0),base-16],[cx-3,base-13],[cx-1+fl(1),base-24],[cx+3,base-15],[cx+6+fl(2),base-20],[cx+8,base-8],[cx+5,base],[cx-5,base]],'A');
+    g.poly([[cx-5,base-5],[cx-2+fl(3),base-15],[cx+1,base-11],[cx+4+fl(1),base-15],[cx+5,base-5],[cx+2,base-1],[cx-3,base-1]],'C');
+    g.ell(cx,base-5,3.4,3.6,'G');
+    if(hurt){g.px(cx-2,base-7,'k0');g.px(cx+1,base-7,'k0')}else{g.rect(cx-2,base-8,1,2,'k0');g.rect(cx+1,base-8,1,2,'k0');if(atk)g.rect(cx-1,base-5,2,2,'k0')}
+    for(let k=0;k<4;k++){if(hurt&&k>1)continue;const x=cx-9+((k*7+fr*3)%19),y=base-14-((k*5+fr*4)%12);g.px(x,y,k%2?'C':'G')}
+    if(atk){g.ell(cx-10,base-9,2.2,2,'C');g.px(cx-12,base-9,'G')}
+    return g}
+  if(F==='harpy'){
+    const cx=17+bx,y0=7+fy,wf=br?2:atk?-3:hurt?3:0;
+    // far wing
+    g.poly([[cx+2,y0+6],[cx+12,y0-4+wf],[cx+14,y0+2+wf],[cx+11,y0+8+wf],[cx+5,y0+12]],'a');
+    // legs + talons
+    g.line(cx-1,y0+15,cx-2+(atk?-3:0),y0+20,'L',0,2);g.line(cx+2,y0+15,cx+2,y0+20,'L',0,2);
+    for(const lx of [cx-3+(atk?-3:0),cx+1]){g.line(lx,y0+21,lx-2,y0+22,'w');g.px(lx+1,y0+22,'w')}
+    // body
+    g.ell(cx,y0+10,4.5,6.5,'A');g.ell(cx-1,y0+9,2.8,3.4,'b');
+    // near wing
+    g.poly([[cx+1,y0+5],[cx+8,y0-7+wf],[cx+13,y0-6+wf],[cx+12,y0+1+wf],[cx+9,y0+5+wf],[cx+3,y0+10]],'A');
+    for(let k=0;k<4;k++)g.line(cx+5+k*2,y0-3+wf+k*.5,cx+4+k*2,y0+3+wf+k*.6,'a');
+    // head with crest
+    g.ell(cx-2,y0+1,3.2,3.4,'F');g.poly([[cx-1,y0-2],[cx+5,y0-6],[cx+4,y0-2],[cx+6,y0-3],[cx+2,y0+1]],'C');
+    g.poly([[cx-5,y0+1],[cx-8,y0+2],[cx-5,y0+3]],'w');
+    if(hurt){g.px(cx-3,y0,'k0');g.px(cx-4,y0+1,'k0')}else{g.px(cx-3,y0,'E');g.px(cx-4,y0,'E')}
+    if(!hurt){g.px(cx+10-fr*2,y0+14,'C');g.px(cx-8+fr,y0-3,'C')}
+    return g}
+  if(F==='spore'){
+    const cx=16+bx,cy=11+fy+(atk?2:0);
+    g.ell(cx,cy+1,11,6.6,'A');g.rect(cx-11,cy+2,22,6,'');
+    g.ell(cx,cy+9,3.4,5,'b');g.line(cx-3,cy+9,cx-6+(atk?-3:0),cy+11,'b',0,2);g.line(cx+3,cy+9,cx+5,cy+12,'b',0,2);
+    for(let k=0;k<4;k++)g.line(cx-2+k*1.4,cy+13,cx-2+k*1.4+Math.sin(k+fr),cy+17+k%2,'b');
+    g.ell(cx,cy+2,10,2.4,'a');
+    for(const [dx,dy,r] of [[-6,-2,1.6],[1,-4,1.8],[6,-1,1.3],[-1,0,1]])g.ell(cx+dx,cy+dy,r,r*.9,'C');
+    for(let k=0;k<3;k++)g.line(cx-7+k*7,cy+3,cx-6+k*7,cy+4,'D');
+    if(hurt){g.px(cx-2,cy+7,'k0');g.px(cx+1,cy+7,'k0')}else{g.rect(cx-2,cy+6,1,2,'E');g.rect(cx+1,cy+6,1,2,'E')}
+    for(let k=0;k<6;k++){if(hurt&&k>2)continue;const x=cx-12+((k*9+fr*5)%25),y=cy-5+((k*7+fr*6)%22);g.px(x,y,k%2?'G':'C')}
+    return g}
+  if(F==='dust'){
+    const cx=17+bx;
+    for(let y=8;y<30;y++){const w=2+(y-8)*.0+ (30-y)*.38,sw=Math.sin(y*.55+fr*1.4)*2;for(let x=Math.round(cx-w+sw);x<=cx+w+sw;x++)g.px(x,y+fy,((y+fr)%4<2)?'A':'a')}
+    g.ell(cx,8+fy,6.5,5,'A');g.ell(cx-1.5,9+fy,3.6,3.2,'D');
+    if(hurt){g.px(cx-3,9+fy,'k0');g.px(cx,9+fy,'k0')}else{g.rect(cx-3,9+fy,1,1,'E');g.rect(cx,9+fy,1,1,'E')}
+    for(let k=0;k<7;k++){const a=(k/7)*Math.PI*2+fr*.8,r=9+(k%3)*2;g.px(cx+Math.cos(a)*r,18+Math.sin(a)*4+fy,k%2?'C':'w')}
+    if(atk){g.line(cx-6,14,cx-13,13,'a',0,2);g.px(cx-14,12,'C')}
+    return g}
+  return g;
+};
+const WRAITHS={
+  'Ice Wraith':{feat:'ghost',pal:{A:{c:'#b9d4e8',soft:true},a:{c:'#8eb2cf',soft:true},C:{c:'#e8faff',soft:true},D:{c:'#0c1626',flat:true},E:{c:'#7fe9ff',flat:true},E2:{c:'#2a8ab4',flat:true},k0:'#7fe9ff'}},
+  'Flame Wisp':{feat:'flame',pal:{A:{c:'#e8461c',flat:true},C:{c:'#ff9a2e',flat:true},G:{c:'#fff1a0',flat:true},k0:{c:'#5a1606',flat:true}}},
+  'Thunder Harpy':{feat:'harpy',pal:{A:'#5a6a9a',a:'#3e4a72',b:'#c8cfe0',F:'#e2b08a',C:{c:'#f2e66a',flat:true},L:'#c8a050',w:'#f4f0e0',E:{c:'#fff07a',flat:true},k0:'#1a1a2a'}},
+  'Spore Wisp':{feat:'spore',pal:{A:'#7a4aa8',a:'#4e2c74',b:'#d8cfb8',C:'#e0d0ff',D:'#2e1a46',G:{c:'#c8ff8a',flat:true},E:{c:'#2a1a40',flat:true},k0:'#2a1a40'}},
+  'Dust Shade':{feat:'dust',pal:{A:{c:'#c9a774',soft:true},a:{c:'#a4835a',soft:true},C:'#7a6248',w:'#e8dcc0',D:{c:'#1e140c',flat:true},E:{c:'#ffcf5a',flat:true},k0:'#ffcf5a'}},
+  'Hollow Shade':{feat:'hollow',pal:{A:{c:'#2c2244',soft:true},a:{c:'#1c1630',soft:true},C:{c:'#9a6ae0',flat:true},D:{c:'#06040a',flat:true},h:{c:'#e8e0f4',flat:true},E:{c:'#ff60c0',flat:true},k0:'#e8e0f4'}},
+};
+
+/* Brutes: hulking two-legged bruisers, each built from different stuff. */
+DRAW.brute=(S,fr)=>{
+  const g=new ART.Grid(32,32),F=S.feat,atk=fr===2,hurt=fr===3,br=fr===1;
+  const bx=atk?-2:hurt?2:0,by=br?1:0,cx=16+bx;
+  const human=F==='thug'||F==='knight';
+  // far arm (behind)
+  const farA=atk?[[cx+5,10+by],[cx+9,15+by],[cx+8,21+by]]:[[cx+6,10+by],[cx+9,16+by],[cx+9,22+by]];
+  g.line(farA[0][0],farA[0][1],farA[1][0],farA[1][1],'a',0,4);g.line(farA[1][0],farA[1][1],farA[2][0],farA[2][1],'a',0,4);
+  // legs
+  const leg=(x,m)=>{g.rect(x,20+by,4,8-by,m);g.rect(x-1,28,6,2,F==='golem'||F==='lava'?m:'d')};
+  leg(cx+2,'a');leg(cx-5,'A');
+  // torso
+  if(F==='golem'){g.rect(cx-7,8+by,14,13,'A');g.rect(cx-6,20+by,12,2,'A')}
+  else if(F==='treant'){g.poly([[cx-7,9+by],[cx+7,9+by],[cx+6,22+by],[cx-6,22+by]],'A')}
+  else{g.ell(cx,14+by,human?6.5:8.5,human?7:8,'A');g.rect(cx-(human?5:6),17+by,human?10:12,5,'A')}
+  // head
+  const hx=cx-3+(atk?-1:hurt?1:0),hy=(human?4:5)+by+(hurt?-1:0);
+  if(F==='yeti'){g.ell(hx+1,hy+2,4.2,4,'A');g.ell(hx,hy+3,2.8,2.4,'F')}
+  else if(F==='lava'){g.ell(hx+1,hy+2,4,3.6,'A')}
+  else if(F==='golem'){g.rect(hx-2,hy-1,7,6,'A')}
+  else if(F==='treant'){g.ell(hx+1,hy+2,4,4,'A');for(const [x,y,x2,y2] of [[hx-1,hy-1,hx-4,hy-6],[hx+2,hy-1,hx+3,hy-7],[hx+4,hy,hx+8,hy-4]])g.line(x,y,x2,y2,'a',0,2);for(const [x,y] of [[hx-4,hy-7],[hx+3,hy-8],[hx+8,hy-5]])g.ell(x,y,2.2,1.8,'L')}
+  else if(F==='thug'){g.ell(hx+1,hy+2,3.6,3.8,'F');g.rect(hx-2,hy+3,6,3,'r');g.ell(hx+1,hy+6,3,1.6,'H')}
+  else if(F==='knight'){g.rect(hx-2,hy-1,7,7,'A');g.poly([[hx+3,hy-1],[hx+7,hy-6],[hx+6,hy]],'C');g.poly([[hx-2,hy-1],[hx-4,hy-5],[hx,hy-1]],'C')}
+  // eyes / face
+  if(hurt){g.px(hx-1,hy+1,'k0');g.px(hx+1,hy+1,'k0')}
+  else if(F==='knight'){g.rect(hx-2,hy+2,5,1,'E')}
+  else if(F==='thug'){g.px(hx-1,hy+1,'k0');g.px(hx+1,hy+1,'k0')}
+  else{g.px(hx-1,hy+1,'E');g.px(hx+1,hy+1,'E');if(F==='yeti'){g.rect(hx-1,hy+4,3,1,'m');g.px(hx-1,hy+4,'w');g.px(hx+1,hy+4,'w')}}
+  // near arm with fist/weapon
+  const sh=[cx-5,10+by],el=atk?[cx-10,11+by]:hurt?[cx-6,15+by]:[cx-8,15+by],hd=atk?[cx-14,11+by]:hurt?[cx-6,21+by]:[cx-9,21+by];
+  g.line(sh[0],sh[1],el[0],el[1],'A',0,human?3:4);g.line(el[0],el[1],hd[0],hd[1],'A',0,human?3:4);
+  if(F==='thug'||F==='knight'){
+    // weapon in the fist
+    if(F==='thug'){const tip=atk?[hd[0]-4,hd[1]+5]:[hd[0]+1,hd[1]-9];g.line(hd[0],hd[1],tip[0],tip[1],'K',0,4);g.ell(tip[0],tip[1],3.6,3.6,'K');g.line(hd[0],hd[1],tip[0],tip[1],'b',0,2);g.ell(tip[0],tip[1],2.4,2.4,'b');for(const [dx,dy] of [[-2,-2],[2,-2],[0,-3],[-3,0],[3,0]])g.px(tip[0]+dx,tip[1]+dy,'w')}
+    else{const tip=atk?[hd[0]-7,hd[1]+2]:[hd[0]+2,hd[1]-13];g.line(hd[0],hd[1],tip[0],tip[1],'K',0,4);g.line(hd[0],hd[1],tip[0],tip[1],'S',0,2);g.line(hd[0]-2,hd[1]+(atk?-2:1),hd[0]+2,hd[1]+(atk?2:-1),'C');g.px(tip[0],tip[1],'h')}
+  }
+  g.ell(hd[0],hd[1]+1,human?1.8:2.6,human?1.8:2.6,human?'F':'A');
+  if(F==='knight')g.ell(hd[0],hd[1]+1,1.8,1.8,'A');
+  // materials and details
+  if(F==='yeti'){g.paint((x,y)=>(x*3+y*5)%7===0,'A','a');g.ell(cx-7,11+by,2.6,2,'C');g.ell(cx+6,10+by,3,2,'C');g.poly([[hx+3,hy-1],[hx+5,hy-4],[hx+5,hy]],'C')}
+  if(F==='lava'){const vein=(x,y)=>Math.abs(Math.sin(x*.62+y*.41)+Math.sin(y*.83-x*.27));g.paint((x,y)=>vein(x,y)<.2,'A','C');g.paint((x,y)=>vein(x,y)<.07,'C','G');g.paint((x,y)=>vein(x,y)<.16,'a','C')}
+  if(F==='golem'){g.paint((x,y)=>(y%4===0)||((x+(Math.floor(y/4)%2)*3)%6===0),'A','a');g.ell(cx,14+by,2.4,2.4,'C');g.ell(cx,14+by,1.2,1.2,'G');
+    if(!hurt){g.line(cx-1,13+by,cx-4,10+by,'C');g.line(cx+1,15+by,cx+4,17+by,'C')}
+    g.rect(cx-10,6+by+(fr%2),4,3,'A');g.rect(cx+7,5+by-(fr%2),4,3,'A');g.px(hx-1,hy+1,hurt?'k0':'E');g.px(hx+2,hy+1,hurt?'k0':'E')}
+  if(F==='treant'){g.paint((x,y)=>(x%3===0&&y%5!==2),'A','a');g.paint((x,y)=>(x*7+y*3)%17<2&&y<16,'A','L');g.rect(cx-7,28,14,2,'a')}
+  if(F==='thug'){g.rect(cx-6,10+by,12,8,'V');g.paint((x,y)=>x===cx-1||x===cx,'V','A');g.rect(cx-6,19+by,12,2,'b');g.px(cx-1,19+by,'S')}
+  if(F==='knight'){g.paint((x,y)=>y%5===0||x===cx,'A','a');g.rect(cx-5,9+by,10,2,'C');
+    for(let y=10;y<28;y++)for(let x=cx+5;x<cx+8+(y-10)*.25;x++){if((x+y+fr)%5!==0)g.px(x,y+by,'R')}}
+  return g;
+};
+const BRUTES={
+  'Glacier Brute':{feat:'yeti',pal:{A:'#e4ecf2',a:'#b8c8d8',F:'#5a76a2',C:{c:'#8fd8ff',soft:true},d:'#5d6f86',m:'#3a2440',w:'#ffffff',E:{c:'#a8f4ff',flat:true},k0:'#1c2c4a'}},
+  'Obsidian Brute':{feat:'lava',pal:{A:'#2e2630',a:'#1e1820',C:{c:'#ff6a24',flat:true},G:{c:'#ffd04a',flat:true},d:'#140f14',E:{c:'#ffb02e',flat:true},k0:'#ffb02e'}},
+  'Stormbound Golem':{feat:'golem',pal:{A:'#7c7f8e',a:'#5c5f6e',C:{c:'#f2e66a',flat:true},G:{c:'#ffffff',flat:true},d:'#383a46',E:{c:'#fff07a',flat:true},k0:'#202230'}},
+  'Bark Brute':{feat:'treant',pal:{A:'#6e4e30',a:'#4e361f',L:'#7fbf4a',d:'#2e1f12',E:{c:'#b6ff6a',flat:true},k0:'#1e140a'}},
+  'Bandit Brute':{feat:'thug',pal:{A:'#c8946a',a:'#9e7050',F:'#d6a47e',r:'#8a2a24',H:'#3a2a1e',V:'#5a3e2a',b:'#9a6a3a',S:'#b8b8c4',K:{c:'#120c08',flat:true},w:'#e8e8f0',d:'#2e2014',E:{c:'#ffffff',flat:true},k0:'#1a100a'}},
+  'Abyssal Knight':{feat:'knight',pal:{A:'#3a3450',a:'#26223a',C:'#7a5aa8',S:'#b8b4d4',K:{c:'#0a0812',flat:true},h:{c:'#ffffff',flat:true},F:'#3a3450',R:'#5a1a3a',d:'#14101e',E:{c:'#ff4ab0',flat:true},k0:'#14101e'}},
+};
+
+/* Bats: wings beat between the two idle frames. */
+DRAW.bat=(S,fr)=>{
+  const g=new ART.Grid(32,32),F=S.feat,atk=fr===2,hurt=fr===3;
+  const cx=16+(atk?-3:hurt?1:0),cy=15+(fr===1?1:0)+(atk?2:0);
+  const up=fr===0?-5:fr===1?1:atk?-7:4; // wing tip height relative to the shoulder
+  const wing=(side)=>{const s=side,tipx=cx+s*14,tipy=cy-4+up;
+    const pts=[[cx+s*2,cy-3],[cx+s*7,cy-6+up*.6],[tipx,tipy],[tipx-s*1,tipy+4],[cx+s*10,cy+4+up*.3],[cx+s*8,cy+2+up*.2],[cx+s*6,cy+6],[cx+s*4,cy+3],[cx+s*2,cy+3]];
+    g.poly(pts.map(p=>[Math.min(p[0],p[0]),p[1]]),s<0?'A':'a');
+    // finger bones
+    g.line(cx+s*2,cy-3,cx+s*7,cy-6+up*.6,'B');g.line(cx+s*7,cy-6+up*.6,tipx,tipy,'B');g.line(cx+s*7,cy-6+up*.6,cx+s*10,cy+4+up*.3,'B');g.line(cx+s*7,cy-6+up*.6,cx+s*6,cy+6,'B');
+    if(F==='rot')for(const [dx,dy] of [[9,1],[5,2]])g.clear(cx+s*dx,cy+dy+up*.2);
+    if(F==='ice'){for(const dx of [6,10])g.line(cx+s*dx,cy+5+up*.25,cx+s*dx,cy+8+up*.25,'C')}
+    if(F==='fire'){g.paint((x,y)=>(s<0?x<cx-3:x>cx+3)&&!g.get(x,y+1),'A','C');g.paint((x,y)=>(s<0?x<cx-3:x>cx+3)&&!g.get(x,y+1),'a','C')}
+    if(F==='storm'){g.line(cx+s*4,cy-1,cx+s*7,cy+1+up*.3,'C');g.line(cx+s*7,cy+1+up*.3,cx+s*9,cy-1+up*.5,'C')}
+    if(F==='void')g.px(cx+s*9,cy-1+up*.5,'E2');
+  };
+  if(!hurt){wing(1);wing(-1)}
+  else{g.poly([[cx-4,cy-3],[cx-6,cy+6],[cx-2,cy+8]],'A');g.poly([[cx+4,cy-3],[cx+6,cy+6],[cx+2,cy+8]],'a')}
+  // body + head
+  g.ell(cx,cy+1,3.4,4.6,'A');g.ell(cx,cy+2,2,3,'b');
+  const hy=cy-5;g.ell(cx,hy,3.2,2.8,'A');
+  g.poly([[cx-3,hy-1],[cx-3.5,hy-5.5],[cx-1,hy-2]],'A');g.poly([[cx+1,hy-2],[cx+3.5,hy-5.5],[cx+3,hy-1]],'A');
+  if(F==='carrion'){g.ell(cx,hy+.5,2.6,2.2,'w');g.px(cx-1,hy,'k0');g.px(cx+1,hy,'k0')}
+  if(hurt){g.px(cx-1.5,hy,'k0');g.px(cx+1,hy,'k0')}
+  else{g.px(cx-1.5,hy,'E');g.px(cx+1,hy,'E');if(F==='void'){g.px(cx-.3,hy-1.5,'E2')}}
+  if(atk){g.rect(cx-1,hy+2,3,2,'m');g.px(cx-1,hy+2,'w');g.px(cx+1,hy+2,'w')}else{g.px(cx-1,hy+2,'w');g.px(cx+1,hy+2,'w')}
+  // feet
+  g.px(cx-1,cy+6,'B');g.px(cx+1,cy+6,'B');
+  if(F==='fire'){g.line(cx,cy+5,cx+(fr%2?1:-1),cy+9,'C');g.px(cx,cy+10,'G')}
+  if(F==='rot'&&!hurt){for(let k=0;k<3;k++)g.px(cx-10+((k*11+fr*5)%22),cy+9+((k*3+fr)%4),'G')}
+  if(F==='ice')g.ell(cx,hy-3,1.2,.8,'C');
+  return g;
+};
+const BATS={
+  'Rime Bat':{feat:'ice',pal:{A:'#a6c4dc',a:'#7f9fbc',b:'#d8e6f0',B:'#5a7490',C:{c:'#e8faff',soft:true},w:'#ffffff',m:'#5a2230',E:{c:'#3fd8ff',flat:true},k0:'#1c2c40'}},
+  'Cinder Bat':{feat:'fire',pal:{A:'#4a2020',a:'#331414',b:'#6a3020',B:'#1e0c0a',C:{c:'#ff7a2a',flat:true},G:{c:'#ffe05a',flat:true},w:'#ffd9a0',m:'#7a1e10',E:{c:'#ffd34a',flat:true},k0:'#0c0606'}},
+  'Storm Bat':{feat:'storm',pal:{A:'#3e4a78',a:'#2c355a',b:'#5a6894',B:'#1c2240',C:{c:'#fff07a',flat:true},w:'#ffffff',m:'#4a2040',E:{c:'#fff07a',flat:true},k0:'#0c0e1c'}},
+  'Rot Bat':{feat:'rot',pal:{A:'#6a7a52',a:'#4e5a3c',b:'#8a8a62',B:'#2e3420',G:{c:'#c8ff6a',flat:true},w:'#e8e0c0',m:'#3a1a14',E:{c:'#e04a2e',flat:true},k0:'#14180c'}},
+  'Carrion Bat':{feat:'carrion',pal:{A:'#7a5236',a:'#5a3a24',b:'#9a7050',B:'#2e1e12',w:'#efe6d2',m:'#5a1e14',E:{c:'#ff3a2a',flat:true},k0:'#2a0a06'}},
+  'Shade Bat':{feat:'void',pal:{A:'#2a2040',a:'#1c1630',b:'#3a2e54',B:'#0c0814',w:'#d8c8ff',m:'#3a1450',E:{c:'#d090ff',flat:true},E2:{c:'#ff60c0',flat:true},k0:'#08060c'}},
+};
+
+/* Spiders and crawlers: eight legs and a heavy abdomen; the Sand Stalker is a scorpion. */
+DRAW.spider=(S,fr)=>{
+  const g=new ART.Grid(32,32),F=S.feat,atk=fr===2,hurt=fr===3,br=fr===1;
+  const bx=atk?-2:hurt?2:0,by=br?1:0,hx=10+bx,hy=19+by;
+  if(F==='scorpion'){
+    // tail arcs over the back
+    const seg=[[22,20],[25,17],[26,13],[25,9],[22,7],[19,8]];const ss=atk?seg.map(([x,y],k)=>[x-k*.8,y+k*.3]):seg;
+    ss.forEach(([x,y],k)=>g.ell(x+bx,y+by,2.3-k*.15,2.1-k*.15,k%2?'a':'A'));const st=ss[ss.length-1];g.poly([[st[0]+bx-1,st[1]+by],[st[0]+bx-4,st[1]+by+2],[st[0]+bx-1,st[1]+by+2]],'C');
+    for(let k=0;k<4;k++){const x=13+k*3+bx;g.line(x,23+by,x-2+(fr%2)*(k%2),28,'a');g.px(x-2,29,'a')}
+    g.ell(18+bx,21+by,7,3.6,'A');g.paint((x,y)=>x%3===0,'A','a');
+    g.ell(hx+1,hy+1,3.6,2.8,'A');
+    const pin=atk?-4:0;for(const [py,m] of [[18,'a'],[22,'A']]){g.line(hx,py+by,hx-4+pin,py-1+by,m,0,2);g.ell(hx-6+pin,py-2+by,2.2,1.6,m);g.px(hx-8+pin,py-3+by,m);g.clear(hx-8+pin,py-2+by)}
+    if(hurt){g.px(hx-1,hy,'k0');g.px(hx+1,hy,'k0')}else{g.px(hx-1,hy,'E');g.px(hx+1,hy,'E')}
+    return g}
+  const big=F==='mother';
+  // far legs
+  const KX=[-5,0,6,11],KY=[-7,-9,-9,-7],FX=[-10,-5,13,19];
+  const legs=(m,side)=>{for(let k=0;k<4;k++){const sx=hx+2+k*1.3,sy=hy-1,wig=((k+fr)%2&&!hurt)?1:0,reach=k===0&&atk?-4:0,
+    kx=hx+KX[k]+(side?2:0)+reach,ky=hy+KY[k]+wig+(side?1:0)+(hurt?3:0),fx=hx+FX[k]+(side?2:0)+reach*1.5,fy=k===0&&atk?hy+2:29;
+    g.line(sx,sy,kx,ky,m);g.line(kx,ky,fx,fy,m);if(!side)g.line(sx+1,sy,kx+1,ky,m);if(F==='ice')g.px(kx,ky,'C')}};
+  legs('a',1);
+  // abdomen
+  const ax=20+bx+(big?1:0),ay=17+by-(big?1:0),arx=big?9:7,ary=big?7.5:6;
+  g.ell(ax,ay,arx,ary,'A');
+  if(F==='mother'){for(const [dx,dy] of [[3,-3],[-2,-4],[5,2],[0,1]])g.ell(ax+dx,ay+dy,1.8,1.4,'w')}
+  if(F==='ice'){g.poly([[ax-2,ay-4],[ax+1,ay-1],[ax-2,ay+2],[ax-5,ay-1]],'C');g.paint((x,y)=>(x+y*2)%7===0,'A','a')}
+  if(F==='lava'){const vein=(x,y)=>Math.abs(Math.sin(x*.8+y*.5)+Math.sin(y*.9-x*.35));g.paint((x,y)=>vein(x,y)<.25,'A','C');g.paint((x,y)=>vein(x,y)<.09,'C','G')}
+  if(F==='storm'){g.line(ax-4,ay-3,ax,ay,'C');g.line(ax,ay,ax-1,ay+1,'C');g.line(ax-1,ay+1,ax+4,ay+4,'C');g.paint((x,y)=>y<ay-3&&(x+y)%3===0,'A','a')}
+  if(F==='void'){for(const [dx,dy] of [[-3,-2],[2,-4],[4,1],[-1,2],[1,-1]]){if(hurt)continue;g.px(ax+dx,ay+dy,'E2');g.px(ax+dx+1,ay+dy,'E2')}}
+  // spinnerets / web line
+  if(F==='storm'||F==='mother'||F==='ice')g.line(ax+arx-1,ay+2,31,ay-14+(fr%2),'W');
+  // cephalothorax + head
+  g.ell(hx+3,hy-1,4.4,3.6,'A');g.ell(hx-.5,hy+.5,3.6,3.2,'A');g.line(hx-3,hy+1,hx-5,hy+3,'a');g.line(hx-1,hy+2,hx-3,hy+4,'a');
+  legs('A',0);
+  // eyes: a cluster
+  if(hurt){g.px(hx-1,hy-1,'k0');g.px(hx+1,hy-1,'k0')}
+  else{for(const [dx,dy] of [[-1,-1],[0,-2],[1,-1],[-2,0]])g.px(hx+dx,hy+dy,'E')}
+  // fangs
+  g.px(hx-2,hy+2,'w');g.px(hx,hy+2,'w');if(atk){g.px(hx-2,hy+3,'w');g.px(hx,hy+3,'w')}
+  if(F==='mother'&&!hurt){for(let k=0;k<2;k++){const x=4+k*20+fr,y=28;g.ell(x,y,1.4,1,'A');g.px(x-2,y,'a');g.px(x+2,y,'a')}}
+  if(F==='storm'&&!hurt){g.px(27-fr,6+fr*2,'C');g.px(29,10-fr,'C')}
+  return g;
+};
+const SPIDERS={
+  'Snow Weaver':{feat:'ice',pal:{A:'#e6eef4',a:'#a8bccf',C:{c:'#7fd0ff',soft:true},W:{c:'#e8f4ff',flat:true,noline:true},w:'#ffffff',E:{c:'#2aa8e0',flat:true},k0:'#1c2c40'}},
+  'Lava Crawler':{feat:'lava',pal:{A:'#2e2228',a:'#1c1418',C:{c:'#ff6a24',flat:true},G:{c:'#ffd04a',flat:true},W:'#888',w:'#ffd9a0',E:{c:'#ffb02e',flat:true},k0:'#ffb02e'}},
+  'Sky Weaver':{feat:'storm',pal:{A:'#4a5680',a:'#323b5c',C:{c:'#fff07a',flat:true},W:{c:'#c8d0ff',flat:true,noline:true},w:'#ffffff',E:{c:'#fff07a',flat:true},k0:'#10121e'}},
+  'Web Mother':{feat:'mother',pal:{A:'#4a3a2a',a:'#30251a',W:{c:'#e8e0d0',flat:true,noline:true},w:'#efe6c8',E:{c:'#ff3a2a',flat:true},k0:'#140e08'}},
+  'Sand Stalker':{feat:'scorpion',pal:{A:'#c69a5a',a:'#9e7440',C:'#3a2a18',E:{c:'#ff3a2a',flat:true},k0:'#1e140c'}},
+  'Void Weaver':{feat:'void',pal:{A:'#2a2040',a:'#1a1428',W:'#888',w:'#d8c8ff',E:{c:'#d090ff',flat:true},E2:{c:'#ff60c0',flat:true},k0:'#d090ff'}},
+};
+
+/* Serpents: a coil on the ground and a neck that rears up and strikes. */
+DRAW.serpent=(S,fr)=>{
+  const g=new ART.Grid(32,32),F=S.feat,atk=fr===2,hurt=fr===3,br=fr===1;
+  const thick=F==='magma'?3.4:F==='eel'?2.8:3;
+  const sway=br?1:0;
+  // the coil: two stacked rings and a tail tip
+  const ring=(cx,cy,rx,ry,t)=>{for(let k=0;k<64;k++){const a=k/64*Math.PI*2;g.ell(cx+Math.cos(a)*rx,cy+Math.sin(a)*ry,t,t*.9,'A')}};
+  if(F!=='eel'&&F!=='cloud'){ring(17,26.5,8.5,2.6,thick*.85);ring(18,23,6,2,thick*.8);g.line(25,27,30,29,'A',0,2);g.px(31,29,'A')}
+  // the neck: from the back of the coil up to the head
+  let pts=[[21,21],[23,17],[22,13],[18,10],[14,10]];
+  if(atk)pts=[[21,21],[20,17],[16,14],[11,13],[6,14]];
+  if(hurt)pts=[[21,21],[24,17],[25,13],[23,9],[20,8]];
+  pts=pts.map(([x,y],k)=>[x+(k>1?sway*.5:0),y-(k>1?sway:0)]);
+  if(F==='eel'||F==='cloud'){const lift=F==='eel'?2:0;const tail=[[30,26],[26,28],[21,27],[17,24],[17,21-lift]];pts=tail.concat(pts.slice(1)).map(([x,y],k)=>[x,y-lift+Math.sin(k*1.1+fr)*.8])}
+  const body=(m,th)=>{for(let k=0;k+1<pts.length;k++){const [x0,y0]=pts[k],[x1,y1]=pts[k+1],t=th*(F==='eel'||F==='cloud'?(k<2?.55+k*.2:1):1);for(let s=0;s<=1;s+=.1)g.ell(x0+(x1-x0)*s,y0+(y1-y0)*s,t,t*.95,m)}};
+  if(F==='eel'){for(let k=2;k<pts.length-1;k++){const [x,y]=pts[k];g.poly([[x-1.5,y-thick+.5],[x,y-thick-2.5],[x+1.5,y-thick+.5]],'C')}}
+  body('A',thick);
+  // belly stripe along the inner side
+  for(let k=0;k+1<pts.length;k++){const [x0,y0]=pts[k],[x1,y1]=pts[k+1];for(let s=0;s<=1;s+=.1){const x=x0+(x1-x0)*s,y=y0+(y1-y0)*s;g.px(x-thick*.6,y+thick*.3,'b')}}
+  if(F!=='eel'&&F!=='cloud')g.paint((x,y)=>y>=28&&x>9&&x<26,'A','b');
+  // head
+  const [hx,hy]=pts[pts.length-1];
+  g.ell(hx-1,hy,4,3,'A');g.poly([[hx-3,hy-2],[hx-7,hy],[hx-7,hy+1.5],[hx-3,hy+2.5]],'A');
+  if(atk){g.poly([[hx-7,hy+2],[hx-2,hy+2],[hx-2,hy+5],[hx-6,hy+4]],'m');g.px(hx-6,hy+2,'w');g.px(hx-4,hy+2,'w');g.px(hx-6,hy+4,'w');
+    if(F!=='eel'){g.line(hx-8,hy+3,hx-11,hy+4,'t');g.line(hx-11,hy+4,hx-12,hy+3,'t');g.line(hx-11,hy+4,hx-12,hy+5,'t')}}
+  else g.line(hx-6,hy+1.5,hx-2,hy+2,'m');
+  if(hurt){g.px(hx-3,hy-1,'k0');g.px(hx-2,hy,'k0')}else{g.px(hx-3,hy-1,'E');g.px(hx-2,hy-1,'E')}
+  // features
+  if(F==='ice'){for(let k=0;k<4;k++){const x=hx+k*1.4,y=hy-2.5;g.poly([[x-1,y],[x+.5,y-3-(k%2)*1.5],[x+1.5,y]],'C')}g.paint((x,y)=>(x+y)%4===0,'A','a')}
+  if(F==='magma'){g.poly([[hx-1,hy-2],[hx+2,hy-6],[hx+2,hy-2]],'h');g.poly([[hx+1,hy-1],[hx+5,hy-4],[hx+4,hy]],'h');g.paint((x,y)=>(x*3+y*5)%9===0,'A','a');
+    g.paint((x,y)=>true,'b','C');if(atk){g.line(hx-12,hy+3,hx-15,hy+2,'G');g.px(hx-14,hy+5,'C');g.paint((x,y)=>true,'t','G')}}
+  if(F==='cloud'){g.line(hx-6,hy+1,hx-10,hy+5-(fr%2),'w');g.line(hx-5,hy-1,hx-9,hy-3+(fr%2),'w');g.poly([[hx,hy-2],[hx+4,hy-5],[hx+3,hy-1]],'C');
+    for(const [x,y] of [[9,27],[22,29],[26,22]]){g.ell(x,y,3.4,1.7,'w');g.ell(x+3,y-.5,2.2,1.4,'w')}g.paint((x,y)=>(x+y*2)%5===0,'A','a')}
+  if(F==='vine'){g.paint((x,y)=>(x+y)%3===0,'A','a');for(const [x,y] of [[12,24],[22,22],pts[2]]){g.ell(x+2,y-3,1.6,1,'L');g.px(x+1,y-2,'a')}g.ell(hx+2,hy-3,1.8,1.8,'F');g.px(hx+2,hy-3,'G')}
+  if(F==='dune'){g.paint((x,y)=>((x+y)%6===0||(x-y+60)%6===0),'A','a');g.poly([[hx-3,hy-2],[hx-2,hy-5],[hx-1,hy-2]],'h')}
+  if(F==='eel'){if(!hurt){g.line(hx-3,hy-3,hx-6,hy-7,'a');g.ell(hx-7,hy-8,1.2,1.2,'G')}g.paint((x,y)=>(x*5+y*3)%13===0,'A','G')}
+  return g;
+};
+const SERPENTS={
+  'Ice Serpent':{feat:'ice',pal:{A:'#8ec4e2',a:'#6aa2c6',b:'#dceef8',C:{c:'#e8faff',soft:true},m:'#4a1a2a',w:'#ffffff',t:'#d04a6a',E:{c:'#1e3a5a',flat:true},k0:'#1e3a5a'}},
+  'Magma Wyrm':{feat:'magma',pal:{A:'#6a2418',a:'#4a160e',b:'#ff7a2a',C:{c:'#ff7a2a',flat:true},G:{c:'#ffe05a',flat:true},h:'#2a1a18',m:'#2a0806',w:'#ffd9a0',t:'#ffd05a',E:{c:'#ffe05a',flat:true},k0:'#1a0604'}},
+  'Cloud Serpent':{feat:'cloud',pal:{A:'#e8eef8',a:'#b4c4dc',b:'#ffffff',C:'#e6c84a',w:{c:'#f4f8ff',soft:true},m:'#6a2a4a',t:'#e0607a',E:{c:'#2a5ab0',flat:true},k0:'#2a3a5a'}},
+  'Vine Serpent':{feat:'vine',pal:{A:'#4e8a3a',a:'#386628',b:'#9ac86a',L:'#8ad050',F:'#e04a8a',G:{c:'#fff07a',flat:true},m:'#3a1a14',w:'#f4ecd8',t:'#c04a5a',E:{c:'#ffd02e',flat:true},k0:'#14200c'}},
+  'Dune Serpent':{feat:'dune',pal:{A:'#d0aa6c',a:'#a8844a',b:'#ecd8a8',h:'#8a6a40',m:'#5a1e14',w:'#ffffff',t:'#c04a5a',E:{c:'#2a1a0a',flat:true},k0:'#2a1a0a'}},
+  'Abyssal Eel':{feat:'eel',pal:{A:'#1e3a48',a:'#14283a',b:'#3a6a6a',C:'#2a5a6a',G:{c:'#7affd8',flat:true},m:'#0a1418',w:'#d8fff4',t:'#3affc8',E:{c:'#7affd8',flat:true},k0:'#7affd8'}},
+};
+
+/* The walking dead: skeletons, each marked by how it died. */
+DRAW.skeleton=(S,fr)=>{
+  const g=new ART.Grid(32,32),F=S.feat,atk=fr===2,hurt=fr===3,br=fr===1;
+  const bx=atk?-2:hurt?2:0,by=br?1:0,cx=16+bx;
+  // shroud behind
+  if(F==='unlit'){g.poly([[cx-5,7+by],[cx+6,7+by],[cx+8,28],[cx-6,28]],'D');g.paint((x,y)=>y>25&&(x+y+fr)%3===0,'D','')}
+  // legs
+  for(const [lx,m] of [[cx+2,'a'],[cx-2,'A']]){g.line(lx,20+by,lx-(m==='A'&&atk?2:0),25,m,0,2);g.line(lx-(m==='A'&&atk?2:0),25,lx-(m==='A'&&atk?2:0),28,m,0,1);g.rect(lx-1-(m==='A'&&atk?2:0),29,3,1,m)}
+  // pelvis + spine + ribs
+  g.ell(cx,19.5+by,3.2,1.6,'A');g.line(cx,18+by,cx,10+by,'A',0,2);
+  for(let k=0;k<4;k++){const y=11+k*2+by,w=4.5-k*.6;g.line(cx-w,y,cx+w,y,'A');g.px(cx-w,y+1,'a');g.px(cx+w,y+1,'a')}
+  g.paint((x,y)=>y>=11+by&&y<=18+by&&x!==cx&&x!==cx+1&&(y-by)%2===0,null,'');
+  g.line(cx,10+by,cx,18+by,'A');
+  // skull
+  const sx=cx-1+(atk?-1:hurt?1:0),sy=6+by+(hurt?-1:0);
+  g.ell(sx,sy,3.4,3.2,'A');g.rect(sx-2,sy+2,4,2,'A');
+  if(hurt){g.px(sx-2,sy,'k0');g.px(sx+1,sy,'k0')}else{g.rect(sx-2,sy,2,2,'D');g.rect(sx+1,sy,2,2,'D');g.px(sx-2,sy,'E');g.px(sx+1,sy,'E')}
+  g.px(sx-1,sy+2,'D');g.line(sx-2,sy+3,sx+1,sy+3,'D');if(atk)g.line(sx-2,sy+4,sx+1,sy+4,'D');
+  // arms
+  const sh=[cx-4,11+by],el=atk?[cx-8,10+by]:[cx-6,15+by],hd=atk?[cx-12,10+by]:[cx-7,19+by];
+  g.line(cx+4,11+by,cx+6,16+by,'a');g.line(cx+6,16+by,cx+5,20+by,'a');
+  // weapon
+  if(F==='bandit'){const tip=atk?[hd[0]-6,hd[1]-1]:[hd[0]-1,hd[1]-8];g.line(hd[0]+1,hd[1]+1,tip[0]+1,tip[1]+1,'K',0,2);g.line(hd[0],hd[1],tip[0],tip[1],'S',0,2);g.px(tip[0],tip[1],'h')}
+  if(F==='frozen'||F==='rooted'||F==='charred'){}
+  g.line(sh[0],sh[1],el[0],el[1],'A');g.line(el[0],el[1],hd[0],hd[1],'A');g.px(hd[0]-1,hd[1]+1,'A');g.px(hd[0],hd[1]+1,'A');
+  // how they died
+  if(F==='frozen'){g.ell(cx+5,10+by,2.6,2,'C');g.ell(sx+1,sy-3,2.4,1.2,'C');g.poly([[cx-3,20+by],[cx-1,25],[cx+1,20+by]],'C');g.px(hd[0],hd[1]+2,'C')}
+  if(F==='charred'){g.paint(()=>true,'A','a');g.paint((x,y)=>(x*5+y*3)%7===0,'a','A');g.ell(cx,14+by,2,2,'C');g.px(cx,14+by,'G');if(!hurt)for(let k=0;k<3;k++)g.px(cx-6+((k*7+fr*3)%13),3+((k*5+fr*2)%6),'C')}
+  if(F==='struck'){g.line(sx-1,sy-3,sx+1,sy-1,'C');g.line(cx-2,12+by,cx+1,15+by,'C');g.line(cx+1,15+by,cx-1,17+by,'C');for(const dx of [-3,-1,1,3])g.line(sx+dx,sy-3,sx+dx*1.5,sy-6-(fr%2),'h');if(!hurt){g.px(cx+8,8+fr,'C');g.px(cx-9,6-fr,'C')}}
+  if(F==='rooted'){g.paint((x,y)=>(x+y)%4===0,'A','L');g.line(cx-1,20+by,cx-5,29,'R');g.line(cx+1,20+by,cx+6,29,'R');g.line(cx-4,12+by,cx+4,16+by,'R');g.ell(sx+2,sy-3,1.8,1.4,'L');g.ell(sx+3,sy-4,1,1,'F')}
+  if(F==='bandit'){g.rect(sx-3,sy-3,7,2,'r');g.px(sx+4,sy-2,'r');g.px(sx+5,sy-1,'r');g.rect(cx-4,19+by,8,2,'b')}
+  if(F==='unlit'){g.poly([[sx-4,sy-1],[sx,sy-6],[sx+4,sy-1],[sx+4,sy+3],[sx-4,sy+3]],'D');g.ell(sx,sy+1,3,3,'A');g.rect(sx-2,sy,2,2,'D');g.rect(sx+1,sy,2,2,'D');if(!hurt){g.px(sx-2,sy,'E');g.px(sx+1,sy,'E')}
+    if(!hurt){g.line(hd[0],hd[1],hd[0],hd[1]-4,'w');g.px(hd[0],hd[1]-5,'G');g.px(hd[0],hd[1]-6,'C')}}
+  return g;
+};
+const SKELETONS={
+  'Frozen Dead':{feat:'frozen',pal:{A:'#dfe6ec',a:'#a8b8c8',C:{c:'#8fd8ff',soft:true},D:'#1c2a3a',E:{c:'#7fe9ff',flat:true},k0:'#1c2a3a'}},
+  'Charred Bones':{feat:'charred',pal:{A:'#5a4a44',a:'#2e2624',C:{c:'#ff7a2a',flat:true},G:{c:'#ffe05a',flat:true},D:'#0c0806',E:{c:'#ffb02e',flat:true},k0:'#0c0806'}},
+  'Lightning-Struck Dead':{feat:'struck',pal:{A:'#d8d4c4',a:'#a8a490',C:{c:'#fff07a',flat:true},h:'#8a8aa0',D:'#1a1a2a',E:{c:'#fff07a',flat:true},k0:'#1a1a2a'}},
+  'Rooted Dead':{feat:'rooted',pal:{A:'#d6ccb0',a:'#a89a7a',L:'#6aa844',R:'#5a3e24',F:'#e04a8a',D:'#1a1a10',E:{c:'#b6ff6a',flat:true},k0:'#1a1a10'}},
+  'Bandit Bones':{feat:'bandit',pal:{A:'#e6dcc4',a:'#b4a888',r:'#a82a24',b:'#5a3e2a',S:'#c8c8d4',K:{c:'#120c08',flat:true},h:{c:'#ffffff',flat:true},D:'#1e140c',E:{c:'#ff5a3a',flat:true},k0:'#1e140c'}},
+  'Unlit Dead':{feat:'unlit',pal:{A:'#bcb0d0',a:'#8a80a0',D:'#1c1430',w:'#e8e0d0',C:{c:'#ffe8a0',flat:true},G:{c:'#a070ff',flat:true},E:{c:'#a070ff',flat:true},k0:'#0c0814'}},
+};
+
+/* Bosses, wardens, the Unlit King and the Mimic: one-off designs on a 40×40 grid. */
+const BOSS_DRAW={
+  // Frost giant king: horned crown, beard, fur mantle, a great ice axe.
+  jarl:(g,fr)=>{const atk=fr===2,hurt=fr===3,by=fr===1?1:0,bx=atk?-2:hurt?2:0,cx=21+bx;
+    g.rect(cx+1,27+by,5,10-by,'a');g.rect(cx-6,27+by,5,10-by,'A');g.rect(cx-7,37,7,2,'d');g.rect(cx,37,7,2,'d');
+    g.poly([[cx-10,12+by],[cx+11,12+by],[cx+9,29+by],[cx-9,29+by]],'M');g.ell(cx,19+by,8,9,'A');g.rect(cx-7,25+by,14,3,'b');g.px(cx-1,26+by,'G');
+    g.ell(cx-9,13+by,4,3,'M');g.ell(cx+9,13+by,4,3,'M');
+    const hx=cx-2+(atk?-1:0),hy=8+by+(hurt?-1:0);g.ell(hx,hy,4.6,4.4,'F');
+    g.poly([[hx-5,hy+1],[hx+5,hy+1],[hx+3,hy+11],[hx,hy+13],[hx-3,hy+11]],'W');
+    g.rect(hx-5,hy-4,11,3,'G');for(const dx of [-4,0,4])g.poly([[hx+dx-1,hy-4],[hx+dx,hy-7],[hx+dx+1,hy-4]],'G');
+    g.poly([[hx-5,hy-3],[hx-9,hy-8],[hx-8,hy-3]],'w');g.poly([[hx+5,hy-3],[hx+9,hy-8],[hx+8,hy-3]],'w');
+    if(hurt){g.px(hx-2,hy,'k0');g.px(hx+1,hy,'k0')}else{g.px(hx-2,hy,'E');g.px(hx+1,hy,'E')}
+    const hd=atk?[cx-14,14+by]:[cx-11,24+by],top=atk?[hd[0]-4,hd[1]+8]:[hd[0]+1,hd[1]-18];
+    g.line(cx-7,13+by,hd[0],hd[1],'A',0,4);
+    g.line(hd[0],hd[1],top[0],top[1],'K',0,3);g.line(hd[0],hd[1],top[0],top[1],'b',0,2);
+    const ax=atk?[top[0]-1,top[1]-1]:[top[0],top[1]+1];g.poly([[ax[0],ax[1]-3],[ax[0]-6,ax[1]-5],[ax[0]-7,ax[1]+3],[ax[0],ax[1]+3]],'C');g.line(ax[0]-6,ax[1]-4,ax[0]-6,ax[1]+2,'w');
+    g.ell(hd[0],hd[1]+1,2.4,2.4,'A');g.paint((x,y)=>(x*3+y*5)%7===0,'M','m')},
+  // Phoenix matriarch: flaming wings, a long fiery tail.
+  ash:(g,fr)=>{const atk=fr===2,hurt=fr===3,up=fr===0?-3:fr===1?2:atk?-5:5,cx=20+(atk?-3:hurt?2:0),cy=19+(fr===1?1:0);
+    for(let k=0;k<5;k++){let x=cx+2,y=cy+5;const ang=.35+k*.28;for(let st=0;st<14;st++){x+=Math.cos(ang)*1.1;y+=Math.sin(ang)*1.1+Math.sin(st*.6+k+fr)*.35;g.ell(x,y,1.3-st*.06,1.3-st*.06,(k+st)%3?'C':'G')}}
+    const wing=(s,m)=>{g.poly([[cx+s*2,cy-2],[cx+s*10,cy-10+up],[cx+s*18,cy-14+up],[cx+s*17,cy-8+up],[cx+s*19,cy-6+up],[cx+s*15,cy-2+up*.5],[cx+s*17,cy+1+up*.4],[cx+s*11,cy+3],[cx+s*4,cy+5]],m);
+      for(let k=0;k<4;k++)g.line(cx+s*(6+k*3),cy-3+up*.4,cx+s*(8+k*3),cy+2+up*.3,'C')};
+    wing(1,'a');g.ell(cx,cy+1,5,7,'A');g.ell(cx-1,cy+2,3,4.5,'C');wing(-1,'A');
+    g.ell(cx-2,cy-8,3.6,3.4,'A');g.poly([[cx-5,cy-8],[cx-9,cy-7],[cx-5,cy-6]],'G');
+    for(let k=0;k<4;k++)g.poly([[cx-3+k*2,cy-10],[cx-2+k*2+(fr+k)%2,cy-16+k],[cx-1+k*2,cy-10]],k%2?'C':'G');
+    if(hurt){g.px(cx-3,cy-9,'k0');g.px(cx-2,cy-8,'k0')}else{g.px(cx-3,cy-9,'E');g.px(cx-4,cy-9,'E')}
+    g.paint((x,y)=>!g.get(x,y-1)&&y<cy,'A','C');if(atk)g.ell(cx-12,cy-6,3,2.4,'G')},
+  // A floating crown of storms around one great eye.
+  tempest:(g,fr)=>{const atk=fr===2,hurt=fr===3,cx=20+(atk?-2:hurt?2:0),cy=18+(fr===1?1:0);
+    for(let k=0;k<5;k++){const a=k/5*Math.PI*2+fr*.5;g.ell(cx+Math.cos(a)*15,cy+Math.sin(a)*5+8,1.8,1.8,k%2?'C':'G')}
+    g.ell(cx,cy+11,12,4,'a');g.ell(cx-5,cy+9,6,4,'a');g.ell(cx+6,cy+10,6,3.6,'a');
+    g.ell(cx,cy+2,9,8,'A');g.ell(cx,cy+2,6,5.6,'w');g.ell(cx-(atk?2:0),cy+2,3.4,3.6,hurt?'w':'E');if(!hurt)g.ell(cx-(atk?2:0),cy+2,1.4,2.2,'k0');if(hurt){g.line(cx-5,cy+2,cx+5,cy+2,'k0')}
+    g.rect(cx-11,cy-9,22,4,'G');for(let k=0;k<6;k++){const x=cx-10+k*4;g.poly([[x-1.5,cy-9],[x,cy-15-(k%2)*2],[x+1.5,cy-9]],'G');g.px(x,cy-7,'R')}
+    g.line(cx-12,cy+12,cx-15,cy+18,'C');g.line(cx-15,cy+18,cx-13,cy+20,'C');g.line(cx-13,cy+20,cx-17,cy+28,'C');
+    g.line(cx+11,cy+13,cx+14,cy+19,'C');g.line(cx+14,cy+19,cx+12,cy+21,'C');g.line(cx+12,cy+21,cx+15,cy+29,'C');
+    if(atk){g.line(cx-6,cy+3,cx-18,cy+6,'G',0,2);g.line(cx-18,cy+6,cx-17,cy+8,'G');g.line(cx-17,cy+8,cx-21,cy+12,'G')}},
+  // The Rotting Oak: a gnarled tree with a face, grasping branches and roots.
+  oak:(g,fr)=>{const atk=fr===2,hurt=fr===3,by=fr===1?1:0,bx=atk?-2:hurt?2:0,cx=22+bx;
+    for(const [dx,ex] of [[-8,-13],[-3,-6],[3,6],[8,13]])g.line(cx+dx,32,cx+ex,38,'a',0,3);
+    g.poly([[cx-8,10+by],[cx+8,10+by],[cx+9,34],[cx-9,34]],'A');
+    g.ell(cx,8+by,14,7,'L');g.ell(cx-9,10+by,6,4.6,'L');g.ell(cx+10,9+by,6,5,'L');g.paint((x,y)=>(x*5+y*3)%7<2,'L','l');
+    for(let k=0;k<5;k++)g.line(cx-10+k*5,14+by,cx-10+k*5+(k%2),19+by+(k%3),'l');
+    g.paint((x,y)=>x%4===0&&y>14,'A','a');
+    const fy=19+by;g.ell(cx-3,fy,2,2.4,'D');g.ell(cx+3,fy,2,2.4,'D');if(!hurt){g.px(cx-3,fy,'E');g.px(cx+3,fy,'E')}
+    g.ell(cx,fy+6,3.6,atk?2.8:1.6,'D');
+    const arm=atk?[[cx-8,18],[cx-14,16],[cx-20,19]]:[[cx-8,18],[cx-13,22],[cx-15,28]];
+    g.line(arm[0][0],arm[0][1]+by,arm[1][0],arm[1][1]+by,'A',0,3);g.line(arm[1][0],arm[1][1]+by,arm[2][0],arm[2][1]+by,'A',0,2);
+    for(const d of [-2,0,2])g.line(arm[2][0],arm[2][1]+by,arm[2][0]-3,arm[2][1]+by+d,'a');
+    g.line(cx+8,18+by,cx+14,24+by,'a',0,3);g.ell(cx+5,28,2,1.4,'M');g.px(cx+4,27,'w');g.ell(cx-6,30,1.6,1,'M')},
+  // Warlord Vask: skull helm, fur mantle, a cleaver as tall as a man, a war banner.
+  vask:(g,fr)=>{const atk=fr===2,hurt=fr===3,by=fr===1?1:0,bx=atk?-2:hurt?2:0,cx=21+bx;
+    g.line(cx+8,4,cx+8,30,'b',0,2);g.poly([[cx+9,4],[cx+17,6],[cx+15,10],[cx+17,14],[cx+9,13]],'r');g.ell(cx+13,9,1.6,1.6,'w');
+    g.rect(cx+1,27+by,5,10-by,'a');g.rect(cx-6,27+by,5,10-by,'A');g.rect(cx-7,37,7,2,'d');g.rect(cx,37,7,2,'d');
+    g.ell(cx,19+by,8.5,9,'V');g.rect(cx-7,24+by,14,4,'b');g.rect(cx-2,24+by,4,4,'S');
+    g.ell(cx-8,12+by,5,3.4,'M');g.ell(cx+8,12+by,5,3.4,'M');g.paint((x,y)=>(x+y)%3===0,'M','m');
+    const hx=cx-2+(atk?-1:0),hy=7+by+(hurt?-1:0);g.ell(hx,hy+1,4.4,4.6,'F');g.ell(hx,hy-1,4.6,3.6,'w');g.rect(hx-3,hy-1,2,2,'D');g.rect(hx+1,hy-1,2,2,'D');
+    if(!hurt){g.px(hx-3,hy+3,'E');g.px(hx+1,hy+3,'E')}g.rect(hx-3,hy+5,6,2,'H');
+    g.poly([[hx-4,hy-2],[hx-8,hy-6],[hx-5,hy-1]],'w');g.poly([[hx+4,hy-2],[hx+8,hy-6],[hx+5,hy-1]],'w');
+    const hd=atk?[cx-15,13+by]:[cx-11,24+by],blade=atk?[[hd[0],hd[1]-2],[hd[0]-8,hd[1]+5],[hd[0]-4,hd[1]+9],[hd[0]+2,hd[1]+2]]:[[hd[0]-1,hd[1]],[hd[0]-2,hd[1]-15],[hd[0]+4,hd[1]-15],[hd[0]+3,hd[1]-2]];
+    g.line(cx-7,12+by,hd[0],hd[1],'F',0,4);g.poly(blade,'K');g.poly(blade.map(([x,y])=>[x+(x<hd[0]?1:-1)*.6,y+(y<hd[1]?1:-1)*.6]),'S');g.ell(hd[0],hd[1]+1,2.4,2.4,'F')},
+  // The Abyssal Tyrant: horned void demon with many eyes and grasping tendrils.
+  tyrant:(g,fr)=>{const atk=fr===2,hurt=fr===3,by=fr===1?1:0,bx=atk?-2:hurt?2:0,cx=21+bx;
+    for(let k=0;k<5;k++){let x=cx-6+k*3,y=28;for(let s=0;s<10;s++){x+=Math.sin(s*.8+k+fr)*.9;g.px(x,y+s,'a');g.px(x+1,y+s,'a')}}
+    g.poly([[cx-10,10+by],[cx+10,10+by],[cx+12,30+by],[cx-12,30+by]],'A');g.ell(cx,12+by,11,6,'A');
+    g.paint((x,y)=>(x*13+y*7)%31===0||(x*5+y*11)%37===0,'A','C');g.paint((x,y)=>y>14&&(x*3+y*5)%17===0,'A','a');
+    const hx=cx-1+(atk?-1:0),hy=7+by;g.ell(hx,hy,5.4,4.6,'A');
+    g.poly([[hx-4,hy-3],[hx-10,hy-12],[hx-6,hy-2]],'h');g.poly([[hx+4,hy-3],[hx+10,hy-12],[hx+6,hy-2]],'h');g.poly([[hx-1,hy-4],[hx,hy-9],[hx+1,hy-4]],'h');
+    for(const [dx,dy] of [[-3,0],[2,0],[-1,-2],[0,2],[-5,2],[4,2]]){if(hurt)g.px(hx+dx,hy+dy,'k0');else{g.px(hx+dx,hy+dy,'E');}}
+    g.rect(hx-3,hy+3,7,1,'D');
+    for(const [s,a0] of [[-1,0],[1,1]]){const pts=[[cx+s*9,16+by]];for(let k=1;k<7;k++)pts.push([cx+s*(9+k*2)+(atk&&s<0?-k*1.4:0),16+by+k*2+Math.sin(k+fr+a0)*2-(atk&&s<0?k*2:0)]);
+      for(let k=0;k+1<pts.length;k++)g.line(pts[k][0],pts[k][1],pts[k+1][0],pts[k+1][1],s<0?'A':'a',0,3-k*.35)}
+    g.ell(cx,20+by,2.4,2.4,'C');g.px(cx,20+by,'G')},
+  // Wardens: ancient sentinels carrying their land's element in a crystal heart.
+  warden:(g,fr,el)=>{const atk=fr===2,hurt=fr===3,by=fr===1?1:0,bx=atk?-2:hurt?2:0,cx=21+bx;
+    g.rect(cx+1,26+by,5,11-by,'a');g.rect(cx-6,26+by,5,11-by,'A');g.rect(cx-7,37,7,2,'d');g.rect(cx,37,7,2,'d');
+    g.poly([[cx-9,10+by],[cx+9,10+by],[cx+7,27+by],[cx-7,27+by]],'A');g.paint((x,y)=>y%4===1||x===cx,'A','a');
+    g.ell(cx-9,11+by,4,3,'A');g.ell(cx+9,11+by,4,3,'A');
+    const hx=cx-1,hy=5+by;g.rect(hx-4,hy-2,9,8,'A');g.rect(hx-3,hy+1,7,2,'D');if(!hurt)g.rect(hx-3,hy+1,7,1,'E');
+    g.poly([[hx-4,hy-2],[hx,hy-7],[hx+4,hy-2]],'C');
+    // the crystal heart, shaped by element
+    const hc=[cx,17+by];
+    if(el==='fire')g.poly([[hc[0]-3,hc[1]+3],[hc[0]-1,hc[1]-4],[hc[0],hc[1]-1],[hc[0]+2,hc[1]-5],[hc[0]+3,hc[1]+3]],'G');
+    else if(el==='thunder'){g.poly([[hc[0]+1,hc[1]-5],[hc[0]-3,hc[1]+1],[hc[0],hc[1]+1],[hc[0]-1,hc[1]+5],[hc[0]+3,hc[1]-1],[hc[0],hc[1]-1]],'G')}
+    else if(el==='grass'){g.ell(hc[0],hc[1],2.6,3.6,'G');g.line(hc[0],hc[1]-3,hc[0],hc[1]+3,'C')}
+    else if(el==='fighting'){g.rect(hc[0]-3,hc[1]-2,6,5,'G');g.line(hc[0]-3,hc[1],hc[0]+2,hc[1],'C')}
+    else if(el==='dark'){g.ell(hc[0],hc[1],3.4,2.4,'G');g.ell(hc[0],hc[1],1.2,2,'C')}
+    else g.poly([[hc[0],hc[1]-5],[hc[0]+3,hc[1]],[hc[0],hc[1]+5],[hc[0]-3,hc[1]]],'G');
+    // great shield in front, halberd behind
+    const sx=atk?cx-14:cx-10,sy=12+by;
+    g.line(cx+10,3,cx+10,34,'K',0,2);g.line(cx+10,3,cx+10,34,'S');g.poly([[cx+10,2],[cx+15,6],[cx+10,9]],'S');
+    g.poly([[sx-4,sy],[sx+4,sy],[sx+4,sy+11],[sx,sy+15],[sx-4,sy+11]],'M');g.poly([[sx-2,sy+2],[sx+2,sy+2],[sx+2,sy+10],[sx,sy+12],[sx-2,sy+10]],'C');g.ell(sx,sy+6,1.4,1.4,'G')},
+  // The Unlit King: a crowned corpse-king in rags with a scepter of black fire.
+  king:(g,fr)=>{const atk=fr===2,hurt=fr===3,by=fr===1?1:0,bx=atk?-2:hurt?2:0,cx=21+bx;
+    g.poly([[cx-7,12+by],[cx+8,12+by],[cx+12,38],[cx-11,38]],'R');g.paint((x,y)=>y>34&&(x+y+fr)%3===0,'R','');
+    g.poly([[cx-6,13+by],[cx+6,13+by],[cx+5,34],[cx-5,34]],'A');g.paint((x,y)=>y%3===0&&y>15&&y<26,'A','a');
+    g.ell(cx-7,13+by,3.4,2.4,'M');g.ell(cx+7,13+by,3.4,2.4,'M');
+    const hx=cx-1,hy=7+by+(hurt?-1:0);g.ell(hx,hy,4,4.2,'w');g.rect(hx-3,hy+2,6,3,'w');g.rect(hx-3,hy-1,2,2,'D');g.rect(hx+1,hy-1,2,2,'D');if(!hurt){g.px(hx-3,hy-1,'E');g.px(hx+1,hy-1,'E')}g.line(hx-2,hy+3,hx+2,hy+3,'D');
+    g.rect(hx-5,hy-5,11,3,'G');for(let k=0;k<5;k++)g.poly([[hx-5+k*2.5,hy-5],[hx-4+k*2.5,hy-11-(k%2)*2],[hx-3+k*2.5,hy-5]],'G');g.px(hx,hy-4,'C');
+    const hd=atk?[cx-14,12+by]:[cx-10,22+by],top=atk?[hd[0]-6,hd[1]-3]:[hd[0],hd[1]-14];
+    g.line(cx-6,14+by,hd[0],hd[1],'A',0,3);g.line(hd[0],hd[1]+(atk?0:8),top[0],top[1],'K',0,3);g.line(hd[0],hd[1]+(atk?0:8),top[0],top[1],'S');
+    g.ell(top[0],top[1]-1,2.6,2.6,'D');g.ell(top[0],top[1]-1,1.4,1.4,'C');for(let k=0;k<3;k++)g.px(top[0]-2+((k*3+fr)%5),top[1]-4-k,'C');
+    g.ell(hd[0],hd[1]+1,1.8,1.8,'w')},
+  // The Mimic: a chest that bites.
+  mimic:(g,fr)=>{const atk=fr===2,hurt=fr===3,open=atk?8:fr===1?4:hurt?1:3,cx=20+(atk?-2:hurt?2:0);
+    for(const [x,d] of [[cx-9,-1],[cx-4,0],[cx+5,0],[cx+10,1]]){g.line(x,33,x+d*2-(atk?2:0),38,'a',0,2)}
+    g.rect(cx-12,24,24,10,'A');g.rect(cx-12,24,24,2,'M');g.rect(cx-12,31,24,2,'M');g.rect(cx-2,25,4,5,'G');
+    g.rect(cx-11,24-open,22,open,'D');g.ell(cx-2,24-open*.4,6,open*.35+.5,'m');
+    for(let k=0;k<6;k++){g.poly([[cx-11+k*4,24],[cx-9+k*4,24-2.5],[cx-7+k*4,24]],'w');g.poly([[cx-11+k*4,24-open],[cx-9+k*4,24-open+2.5],[cx-7+k*4,24-open]],'w')}
+    g.rect(cx-12,24-open-7,24,7,'A');g.rect(cx-12,24-open-7,24,2,'M');g.rect(cx-12,24-open-2,24,2,'M');
+    if(!hurt){g.ell(cx-6,24-open-4,1.6,1.6,'E');g.ell(cx+5,24-open-4,1.6,1.6,'E')}else{g.line(cx-7,24-open-4,cx-5,24-open-4,'k0');g.line(cx+4,24-open-4,cx+6,24-open-4,'k0')}
+    if(atk){g.line(cx-4,22,cx-12,26,'t',0,2);g.px(cx-13,27,'t')}},
+};
+const BOSSES={
+  'The Pale Jarl':{d:'jarl',pal:{A:'#a8c4dc',a:'#86a4c0',F:'#bcd4e8',M:'#e8eef4',m:'#c4ccd8',W:'#f4f8fc',b:'#5a4632',G:'#e3b341',w:'#e8e4d8',C:{c:'#8fd8ff',soft:true},K:{c:'#0c1018',flat:true},d:'#3a4a5c',E:{c:'#7fe9ff',flat:true},k0:'#1c2a3a'}},
+  'Mother of Ash':{d:'ash',pal:{A:'#c8361a',a:'#962410',C:{c:'#ff9a2e',flat:true},G:{c:'#ffe46a',flat:true},E:{c:'#fff4c0',flat:true},k0:'#3a0a04'}},
+  'The Tempest Crown':{d:'tempest',pal:{A:'#4a5680',a:{c:'#6a7090',soft:true},w:'#eef0ff',E:{c:'#fff07a',flat:true},k0:'#10121e',G:{c:'#f2d84a',flat:true},C:{c:'#fff7a8',flat:true},R:{c:'#7aa0ff',flat:true}}},
+  'The Rotting Oak':{d:'oak',pal:{A:'#5a4028',a:'#3e2c1a',L:'#4e7a34',l:'#3a5a26',D:{c:'#120c06',flat:true},E:{c:'#c8ff5a',flat:true},M:'#b03a6a',w:'#f0e0e8',k0:'#120c06'}},
+  'Warlord Vask':{d:'vask',pal:{A:'#7a5a40',a:'#5a402c',F:'#c8946a',V:'#4a3a2e',b:'#5a3e24',S:'#c8c8d4',K:{c:'#120c08',flat:true},M:'#8a6a4a',m:'#6a4e34',w:'#e8e0cc',D:'#1e140c',H:'#3a2a1e',r:'#a82a24',d:'#2e2014',E:{c:'#ff5a3a',flat:true},k0:'#1e140c'}},
+  'The Abyssal Tyrant':{d:'tyrant',pal:{A:'#2c2044',a:'#1c1430',h:'#c8b8e8',C:{c:'#a070ff',flat:true},G:{c:'#ffffff',flat:true},D:'#0a0612',E:{c:'#ff4ab0',flat:true},k0:'#ff4ab0'}},
+  'Mimic':{d:'mimic',pal:{A:'#8a5a30',a:'#5a3a1e',M:'#c8a050',G:'#e3b341',D:{c:'#2a0a0a',flat:true},m:'#a82a3a',w:'#f4ecd8',t:'#d04a6a',E:{c:'#ffe05a',flat:true},k0:'#2a0a0a'}},
+  'The Unlit King':{d:'king',pal:{A:'#2a2238',a:'#1c1628',R:'#4a1a3a',M:'#3a3050',w:'#d8d0c0',D:'#0a0612',G:'#c8a040',S:'#5a5070',K:{c:'#0a0812',flat:true},C:{c:'#a070ff',flat:true},E:{c:'#d090ff',flat:true},k0:'#0a0612'}},
+};
+const WARDEN_PAL={
+  ice:{A:'#8aa4bc',a:'#6a84a0',C:{c:'#8fd8ff',soft:true},G:{c:'#e8faff',flat:true},E:{c:'#7fe9ff',flat:true}},
+  fire:{A:'#5a3a34',a:'#3e2622',C:{c:'#ff7a2a',flat:true},G:{c:'#ffd04a',flat:true},E:{c:'#ffb02e',flat:true}},
+  thunder:{A:'#6a6e88',a:'#4e5268',C:{c:'#f2e66a',flat:true},G:{c:'#ffffff',flat:true},E:{c:'#fff07a',flat:true}},
+  grass:{A:'#6a7a5a',a:'#4e5c42',C:'#86c94e',G:{c:'#c8ff8a',flat:true},E:{c:'#b6ff6a',flat:true}},
+  fighting:{A:'#8a6a4a',a:'#6a4e34',C:'#c98b5c',G:{c:'#ffd0a0',flat:true},E:{c:'#ff8a3a',flat:true}},
+  dark:{A:'#3a3050',a:'#26203a',C:{c:'#a070ff',flat:true},G:{c:'#ff60c0',flat:true},E:{c:'#d090ff',flat:true}},
+};
+const wardenPal=el=>({...WARDEN_PAL[el]||WARDEN_PAL.dark,M:'#4a4658',D:{c:'#0a0812',flat:true},S:'#b8b8c8',K:{c:'#0a0812',flat:true},d:'#26222e',k0:'#0a0812'});
+
+/* Heroes face right. What they wear shows: helmets, armor, leg guards and weapons take the color of their rarity. */
+const RAR_METAL={common:'#a4a8b4',rare:'#5f97e3',epic:'#b56fe3',godlike:'#f2a83a',perfect:'#ff5c7a'};
+DRAW.hero=(cls,gear,fr)=>{
+  const g=new ART.Grid(32,32),atk=fr===2,hurt=fr===3,br=fr===1,by=br?1:0,bx=hurt?-1:atk?1:0,cx=15+bx;
+  const hasH=!!gear.helmet,hasC=!!gear.chest,hasP=!!gear.pants,glow=gear.weapon==='godlike'||gear.weapon==='perfect';
+  // far arm (behind the body)
+  if(cls==='warrior'){ // shield on the far arm
+    g.line(cx-3,13+by,cx-6,17+by,'A',0,2);
+    g.poly([[cx-10,12+by],[cx-4,12+by],[cx-4,21+by],[cx-7,24+by],[cx-10,21+by]],'S');g.poly([[cx-9,13+by],[cx-5,13+by],[cx-5,20+by],[cx-7,22+by],[cx-9,20+by]],'A');g.line(cx-7,14+by,cx-7,20+by,'G');g.line(cx-9,16+by,cx-5,16+by,'G')}
+  else if(cls==='archer'){ // quiver on the back
+    g.line(cx-6,9+by,cx-3,21+by,'b',0,3);for(let k=0;k<3;k++){g.line(cx-6+k,8+by-k%2,cx-7+k,5+by-k%2,'w');g.px(cx-7+k,4+by-k%2,'R')}
+    g.line(cx-3,13+by,cx-4,19+by,'A',0,2)}
+  else g.line(cx-3,13+by,cx-5,19+by,'A',0,2);
+  // legs
+  const legC=hasP?'P':'p';
+  if(cls==='mage'){g.poly([[cx-5,17+by],[cx+5,17+by],[cx+7,29],[cx-7,29]],'A');g.rect(cx-6,28,13,1,hasC?'M':'a');g.rect(cx-5,29,4,1,'d');g.rect(cx+1,29,4,1,'d')}
+  else{const st=atk?2:0;g.rect(cx-4-st,20+by,3,8-by,legC);g.rect(cx+1+st,20+by,3,8-by,legC);g.rect(cx-5-st,28,4,2,'d');g.rect(cx+1+st,28,4,2,'d');
+    if(hasP){g.rect(cx-4-st,23,3,1,'p');g.rect(cx+1+st,23,3,1,'p')}}
+  // torso
+  if(cls==='mage'){g.poly([[cx-5,11+by],[cx+5,11+by],[cx+6,19+by],[cx-6,19+by]],'A');g.line(cx,12+by,cx,19+by,'a');if(hasC){g.rect(cx-5,11+by,10,2,'M');g.line(cx-1,13+by,cx-1,19+by,'M');g.line(cx+1,13+by,cx+1,19+by,'M')}g.rect(cx-5,18+by,11,1,'b')}
+  else{g.rect(cx-5,11+by,10,9,'A');g.rect(cx-5,19+by,10,2,'b');g.px(cx,19+by,'G');
+    if(hasC){if(cls==='warrior'){g.rect(cx-4,11+by,8,7,'M');g.line(cx-4,14+by,cx+3,14+by,'m');g.ell(cx-5,11.5+by,2.6,2,'M');g.ell(cx+5,11.5+by,2.6,2,'M')}
+      else{g.rect(cx-4,12+by,8,6,'M');g.line(cx,12+by,cx,18+by,'m');g.ell(cx+4,11.5+by,2,1.6,'M')}}
+    else if(cls==='archer'){g.rect(cx-4,12+by,8,6,'V');g.line(cx-4,12+by,cx+3,18+by,'b')}}
+  // head
+  const hx=cx+(atk?1:hurt?-1:0),hy=7+by+(hurt?-1:0);
+  g.ell(hx,hy,3.6,3.8,'F');
+  if(cls==='warrior'){
+    if(hasH){g.ell(hx,hy-1,4,4,'N');g.rect(hx-4,hy-1,8,5,'N');g.rect(hx,hy,4,1,'D');g.line(hx,hy+2,hx+3,hy+2,'n');g.poly([[hx-2,hy-4],[hx-6,hy-8],[hx-4,hy-9],[hx,hy-4]],'A')}
+    else{g.ell(hx-.5,hy-2.5,3.8,2,'H');g.rect(hx-4,hy-2,2,4,'H');g.px(hx+2,hy,'D');g.line(hx-3,hy-1,hx+3,hy-1,'A')}}
+  else if(cls==='archer'){
+    g.poly([[hx-5,hy+4],[hx-4,hy-3],[hx,hy-6],[hx+4,hy-3],[hx+4,hy-1],[hx+1,hy-3],[hx-1,hy+4]],'A');
+    if(hasH){g.ell(hx,hy-3,4,2.4,'N');g.line(hx-4,hy-2,hx+4,hy-2,'n')}g.ell(hx+1.2,hy+.6,2.6,2.8,'F');g.px(hx+2,hy,'D');g.px(hx+1,hy+2,'a')}
+  else{ // wizard hat
+    g.poly([[hx-6,hy-2],[hx+6,hy-2],[hx+4,hy-4],[hx+1,hy-10],[hx-3,hy-14],[hx-2,hy-9],[hx-3,hy-4]],'A');
+    if(hasH){g.rect(hx-4,hy-4,8,2,'N');g.px(hx,hy-4,'X')}g.rect(hx-6,hy-2,12,1,'a');g.px(hx+2,hy,'D');g.ell(hx-1,hy+3,2,1.6,'H')}
+  if(hurt){g.px(hx+1,hy,'D');g.px(hx+2,hy+1,'D')}
+  // near arm + weapon
+  if(cls==='warrior'){
+    const sh=[cx+3,12+by],hd=atk?[cx+8,13+by]:hurt?[cx+5,19+by]:[cx+6,18+by];
+    const tip=atk?[hd[0]+11,hd[1]-1]:hurt?[hd[0]+6,hd[1]+6]:[hd[0]+4,hd[1]-12];
+    g.line(hd[0],hd[1],tip[0],tip[1],'K',0,3);g.line(hd[0],hd[1],tip[0],tip[1],'X',0,2);g.px(tip[0],tip[1],'h');
+    const gx=atk?[[hd[0],hd[1]-2],[hd[0],hd[1]+2]]:[[hd[0]-2,hd[1]],[hd[0]+2,hd[1]]];g.line(gx[0][0],gx[0][1],gx[1][0],gx[1][1],'G');
+    g.line(sh[0],sh[1],hd[0],hd[1],hasC?'M':'A',0,2);g.ell(hd[0],hd[1],1.4,1.4,'F');
+    if(glow&&!hurt)for(let k=0;k<3;k++)g.px(hd[0]+((k*5+fr*3)%9)-1,hd[1]-3-((k*7+fr*2)%10),'h')}
+  else if(cls==='archer'){
+    const draw=atk?4:0,hd=[cx+7,14+by],top=[hd[0]+1,hd[1]-9],bot=[hd[0]+1,hd[1]+9];
+    g.line(cx+3,12+by,hd[0],hd[1],'A',0,2);
+    for(let k=0;k<=18;k++){const t=k/18,x=hd[0]+2+Math.sin(t*Math.PI)*3,y=top[1]+t*18;g.px(x,y,'X');if(k%6===0)g.px(x+1,y,'X')}
+    const sx=hd[0]+1-draw;g.line(top[0]+1,top[1],sx,hd[1],'w');g.line(sx,hd[1],bot[0]+1,bot[1],'w');
+    if(atk){g.line(sx,hd[1],hd[0]+10,hd[1],'b');g.px(hd[0]+11,hd[1],'S');g.px(sx-1,hd[1]-1,'R');g.line(cx+2,13,sx,hd[1],'A',0,2)}
+    g.ell(hd[0]+1,hd[1],1.3,1.3,'F');
+    if(glow&&!hurt)for(let k=0;k<3;k++)g.px(hd[0]+4+((k*3+fr)%3),top[1]+((k*7+fr*4)%18),'h')}
+  else{
+    const hd=atk?[cx+8,12+by]:[cx+6,16+by],top=atk?[hd[0]+6,hd[1]-8]:[hd[0]+1,hd[1]-13],bot=atk?[hd[0]-3,hd[1]+6]:[hd[0]-1,hd[1]+12];
+    g.line(bot[0],bot[1],top[0],top[1],'K',0,3);g.line(bot[0],bot[1],top[0],top[1],'b',0,2);
+    g.ell(top[0],top[1]-1,2.2,2.2,'X');g.px(top[0]-1,top[1]-2,'h');
+    g.line(cx+3,12+by,hd[0],hd[1],'A',0,2);g.ell(hd[0],hd[1],1.3,1.3,'F');
+    if(!hurt){const n=glow?4:atk?3:1;for(let k=0;k<n;k++)g.px(top[0]+((k*3+fr*2)%7)-3,top[1]-4-((k*5+fr)%5),'X')}}
+  return g;
+};
+// Palette for one hero: their class tint, skin and the rarity colors of what they wear.
+function heroPal(cls,tint,gear,skin,hair){
+  const T=ART.hx(tint||'#888'),dk=c=>'#'+ART.sh(c,-.35).map(v=>Math.round(v).toString(16).padStart(2,'0')).join('');
+  const met=r=>RAR_METAL[r]||'#a4a8b4',wc=gear.weapon?met(gear.weapon):'#b8bcc8';
+  return {A:tint,a:dk(T),F:skin||'#e0b08a',H:hair||'#5a3a24',D:'#1a1018',b:'#6a4a2a',p:'#4a3a30',P:met(gear.pants),d:'#2a1e18',G:'#e3b341',
+    M:met(gear.chest),m:dk(ART.hx(met(gear.chest))),N:met(gear.helmet),n:dk(ART.hx(met(gear.helmet))),S:'#7a6a5a',V:'#7a5a3a',w:'#e8e0d0',R:'#b83a3a',K:{c:'#0a0810',flat:true},
+    X:cls==='mage'?{c:gear.weapon?met(gear.weapon):'#9fd6ff',flat:true}:wc,h:{c:'#ffffff',flat:true}};
+}
+
+// Which drawing belongs to which monster, by species name.
+const UNIT_ART=(()=>{const R={};const add=(T,fam)=>{for(const [n,S] of Object.entries(T))R[n]={fam,S}};
+  add(BEASTS,'beast');add(SLIMES,'slime');add(WRAITHS,'wraith');add(BRUTES,'brute');add(BATS,'bat');add(SPIDERS,'spider');add(SERPENTS,'serpent');add(SKELETONS,'skeleton');return R})();
+const artCache={};
+function unitStrip(key,make){if(!(key in artCache)){try{artCache[key]=make()}catch(e){console.error(e);artCache[key]=null}}return artCache[key]}
+// Small pictures (turn order, rosters, ledger cards) use a close crop around the figure so it fills its box.
+function portraitOf(key,frames,pal){return unitStrip('P|'+key,()=>{const r=ART.strip(frames(),pal,{crop:1});return {url:r.url,w:r.side,h:r.side,crop:1}})}
+const frames4=draw=>[0,1,2,3].map(draw);
+function foeStripFor(base,kind,type,small){
+  let key,fr,pal,sz=40;
+  if(kind==='warden'){key='W|'+type;fr=()=>frames4(f=>{const g=new ART.Grid(40,40);BOSS_DRAW.warden(g,f,type);return g});pal=wardenPal(type)}
+  else if(BOSSES[base]){const S=BOSSES[base];key='B|'+base;fr=()=>frames4(f=>{const g=new ART.Grid(40,40);BOSS_DRAW[S.d](g,f);return g});pal=S.pal}
+  else{const U=UNIT_ART[base];if(!U)return null;key='U|'+base;fr=()=>frames4(f=>DRAW[U.fam](U.S,f));pal=U.S.pal;sz=32}
+  return small?portraitOf(key,fr,pal):unitStrip(key,()=>({url:ART.strip(fr(),pal),w:sz,h:sz}));
+}
+// One animated unit picture: four frames in a strip, showing one at a time. Small sizes are smoothed into thumbnails.
+function artImg(s,scale,cls){const w=s.crop?12*scale:Math.round(s.w*.375*scale),h=s.crop?12*scale:Math.round(s.h*.375*scale);
+  return `<img class="px anim ${s.crop&&w<s.w*2?'smooth':''} ${cls||''}" src="${s.url}" width="${w}" height="${h}" style="aspect-ratio:${s.w}/${s.h}" alt="">`}
+const SMALL=4; // at this scale and below, units are shown as close-cropped portraits
+function foeArt(e,scale,cls){const s=e&&foeStripFor(e.base||e.name,e.kind,e.type,scale<=SMALL);return s?artImg(s,scale,cls):sprite(e.spr,EL_COL[e.type]||null,scale,cls)}
+const H_SKIN=['#e8c09a','#d6a47e','#b9835a','#8a5a3a','#f0d0b0','#c89070'],H_HAIR=['#5a3a24','#2a1e18','#c8a050','#8a3a20','#d8d0c0','#3a2a40','#6a2a1a'];
+const strHash=s=>{let n=0;for(const c of String(s))n=(n*31+c.charCodeAt(0))>>>0;return n};
+function heroArt(h,scale,cls){
+  const gear={};for(const sl of ['weapon','helmet','chest','pants']){const it=h.gear&&h.gear[sl];if(it)gear[sl]=it.rarity}
+  const n=strHash(h.id||h.name),skin=H_SKIN[n%H_SKIN.length],hair=H_HAIR[(n>>4)%H_HAIR.length],tint=(CLASSES[h.cls]||{}).tint||'#888';
+  const key=['H',h.cls,gear.weapon,gear.helmet,gear.chest,gear.pants,skin,hair].join('|');
+  const fr=()=>frames4(f=>DRAW.hero(h.cls,gear,f)),pal=()=>heroPal(h.cls,tint,gear,skin,hair);
+  const s=!CLASSES[h.cls]?null:scale<=SMALL?portraitOf(key,fr,pal()):unitStrip(key,()=>({url:ART.strip(fr(),pal()),w:32,h:32}));
+  return s?artImg(s,scale,cls):sprite(h.cls,tint,scale,cls);
+}
+
 
 /* isometric town */
 const ISO={T:12,H:6,N:12,W:326,Hh:214,ox:163,oy:60,horizon:63};
@@ -2592,7 +3342,7 @@ function arrive(){
   if(!P.fog){const fc=fogChance(pp);P.fog=P.nodes.map(t=>!['boss','warden','king'].includes(t)&&chance(fc))}
   for(const k of Object.keys(r.plan))if(+k<r.stage-1)delete r.plan[k];
 }
-const nodeIco=(t,sc=3)=>t==='mystery'?'<span class="qm">?</span>':t==='merchant'?sprite('flask','#e3b341',sc):t==='king'?sprite('boss',EL_COL.dark,sc):NODE[t].icon==='boss'?sprite('boss',EL_COL[BIOMES[state.run.biome].el],sc):sprite(NODE[t].icon,null,sc);
+const nodeIco=(t,sc=3)=>t==='mystery'?'<span class="qm">?</span>':t==='merchant'?sprite('flask','#e3b341',sc):t==='king'?foeArt({base:'The Unlit King',kind:'king',type:'dark',spr:'boss'},sc):NODE[t].icon==='boss'?foeArt({base:BIOMES[state.run.biome].boss,kind:'boss',type:BIOMES[state.run.biome].el,spr:'boss'},sc):sprite(NODE[t].icon,null,sc);
 // What the party's current Perception does right now (nothing about higher tiers).
 function perNow(pp){
   const sight=sightRange(pp),base=lenBase().per,parts=[`Party Perception ${partyPer()} (everyone's Perception added together)${base?`. This land is harder to read: the first ${base} points only get you started, leaving ${pp} to work with`:''}.`];
@@ -3961,7 +4711,7 @@ function tutBox(){
 function heroCard(h,footer,sel,tut){
   const [g,gc]=grade(h),C=C_(h);
   return `<div class="card ${sel?'sel':''} ${tut?'tut-'+tut:''}">
-    <div class="hc-top" data-tut="top"><div class="portrait big">${sprite(h.cls,C.tint,6)}<span class="clsbadge" data-tip="${esc(C.name+': '+C.style)}">${ico(({warrior:'sword',archer:'bow',mage:'staff'})[h.cls],C.tint,2)}</span></div>
+    <div class="hc-top" data-tut="top"><div class="portrait big">${heroArt(h,6)}<span class="clsbadge" data-tip="${esc(C.name+': '+C.style)}">${ico(({warrior:'sword',archer:'bow',mage:'staff'})[h.cls],C.tint,2)}</span></div>
       <div class="stack" style="gap:2px"><span class="hname">${esc(h.name)}<span class="grade" style="color:${gc}" data-tip="Roll grade from S to D: how well the stats fit the class. The class stat counts most." tabindex="0">${g}</span></span>
       <span class="muted" data-tut="vit">Lv ${h.level} ${C.name} · <b class="hpc">${maxHp(h)} HP</b> · <b class="mpc">${maxMp(h)} MP</b> ${badgeIco(h.badge||0)}</span>${injOf(h)?`<span class="warn" style="font-size:18px" data-tip="${esc('Injured from exhaustion: '+INJURY[injOf(h)].d+'. Heals after week '+h.injury.until+'. Campsites don’t heal injuries.')}">✚ ${INJURY[injOf(h)].n}: ${INJURY[injOf(h)].d} (heals after week ${h.injury.until})</span>`:''}${h.points?`<span class="gold" style="font-size:19px">${h.points} points to assign</span>`:''}</div></div>
     <div data-tut="traits">${traitChips(h)}</div><div class="traits" data-tut="skills">${h.skills.map(id=>skillChip(h,id)).join('')}</div><div data-tut="xp">${xpBar(h)}</div><div data-tut="stats">${statPips(h,true)}</div><div data-tut="el">${innateLine(h)}${heroElTable(h)}</div><div data-tut="go">${footer||''}</div></div>`;
@@ -4443,7 +5193,7 @@ function topBar(){
       <span class="chip" data-tip="Return Scrolls">${sprite('scroll',null,2)}<b class="num">${state.scrolls}</b><span class="lbl"> scroll${state.scrolls===1?'':'s'}</span></span>
       <span class="chipgrp" style="display:inline-flex;gap:inherit"><span class="chip week" data-tip="Current week"><b class="num">Week ${state.week}</b></span>
       <span class="chip" data-tip="Heroes / room in the Barracks">${sprite('warrior',CLASSES.warrior.tint,2)}<b class="num">${state.heroes.length}/${slots()}</b><span class="lbl"> heroes</span></span></span>
-      ${state.won?`<span class="chip won">${sprite('boss',EL_COL.dark,2)}King slain, week ${state.won.week}</span>`:`<span class="chip" data-tip="Major bosses slain">${sprite('skull',null,2)}<b class="num">${state.bossKills||0}</b><span class="lbl"> bosses</span></span>`}
+      ${state.won?`<span class="chip won">${foeArt({base:'The Unlit King',kind:'king',type:'dark',spr:'boss'},2)}King slain, week ${state.won.week}</span>`:`<span class="chip" data-tip="Major bosses slain">${sprite('skull',null,2)}<b class="num">${state.bossKills||0}</b><span class="lbl"> bosses</span></span>`}
     </div>${scrapStrip(state.mats,'Scrap in storage. Builders use it to raise buildings; the Farm and Still use it for upgrades.')}</header>`;
 }
 const TABS=[['town','Town','banner','#8a2e2e',null],['heroes','Barracks','tent','#6a4a3a',null],['smith','Weaponsmith','anvil',null,'smith'],['hall','Town Hall','house',null,null],['bank','Bank','chest',null,'bank'],['adventure','The Gate','gate',null,null],['witch','Witch','crescent','#b56fe3',null],['farm','Farm','farmer','#6f8f4a',null],['ledger','Ledger','moon',null,null]];
@@ -4484,7 +5234,7 @@ function heroRail(){
   const H=state.heroes,party=state.run?[]:selParty();
   const card=h=>{const C=C_(h),mh=maxHp(h),mm=maxMp(h),need=xpNeed(h.level),ts=(h.traits||[]).map(id=>TRAITS[id]).filter(Boolean),busy=onRun(h),hp=shownHp(h),mp=shownMp(h);
     return `<button class="hrcard ${party.includes(h.id)?'inparty':''}" data-a="heroSheet" ${state.run?'':'data-dbl="partyDbl"'} data-x="${h.id}" aria-label="${esc(h.name)}, level ${h.level} ${C.name}${party.includes(h.id)?', in this week’s party':''}. Open full sheet${state.run?'':'; double-click to add to or remove from this week’s party'}">
-      <span class="hrport" style="--ct:${C.tint}">${sprite(h.cls,C.tint,4)}<b class="hrlv">${h.level}</b></span>
+      <span class="hrport" style="--ct:${C.tint}">${heroArt(h,4)}<b class="hrlv">${h.level}</b></span>
       <span class="hrbody"><span class="hrname">${esc(h.name)}</span>
         <span class="hrcls">Lv ${h.level} ${C.name}${busy?' · away':''} ${badgeIco(h.badge||0)}</span>
         <span class="bar hp"><i style="width:${clamp(hp/mh*100,0,100)}%"></i><span>${hp} / ${mh} HP</span></span>
@@ -4498,7 +5248,7 @@ function heroSheet(){
   const h=heroById(ui.sheet);if(!h){ui.sheet=null;return ''}
   const C=C_(h),[g,gc]=grade(h),ts=(h.traits||[]).map(id=>TRAITS[id]).filter(Boolean),mh=maxHp(h),mm=maxMp(h);
   const body=`<div class="sheet">
-    <div class="hc-top"><div class="portrait">${sprite(h.cls,C.tint,6)}</div><div class="stack" style="gap:4px;flex:1;min-width:150px">
+    <div class="hc-top"><div class="portrait">${heroArt(h,6)}</div><div class="stack" style="gap:4px;flex:1;min-width:150px">
       <span class="muted">Lv ${h.level} ${C.name} ${badgeIco(h.badge||0)} <span class="grade" style="color:${gc}">${g}</span> · ${h.runs} run${h.runs===1?'':'s'} · ${h.kills} kills</span>
       <div class="bar hp"><i style="width:${clamp(shownHp(h)/mh*100,0,100)}%"></i><span>${shownHp(h)} / ${mh} HP</span></div>
       <div class="bar mp"><i style="width:${clamp(shownMp(h)/mm*100,0,100)}%"></i><span>${shownMp(h)} / ${mm} MP · +${focusRegen(h)}/turn</span></div>
@@ -4603,7 +5353,7 @@ function heroesView(){
   const C=C_(h),[g,gc]=grade(h);
   const ht=state.sel.htab||'stats';if(ht==='skills'&&h.newSkill)h.newSkill=null;
   let s=`${head}${state.sel.justRecruited===h.id?`<p class="gold">${esc(h.name)} has joined. Give them a name and spend their ${h.points} starting points.</p>`:''}${heroChips('selHero',h.id)}${state.heroes.length>1?`<div class="heronav"><button class="btn navarrow" data-a="heroStep" data-x="-1" aria-label="Previous hero">◀ Prev</button><span class="muted">${state.heroes.indexOf(h)+1} of ${state.heroes.length}</span><button class="btn navarrow" data-a="heroStep" data-x="1" aria-label="Next hero">Next ▶</button></div>`:''}<div class="hdetail"><div class="stack">
-    <div class="hc-top"><div class="portrait">${sprite(h.cls,C.tint,6)}</div><div class="stack" style="gap:4px;flex:1;min-width:140px">
+    <div class="hc-top"><div class="portrait">${heroArt(h,6)}</div><div class="stack" style="gap:4px;flex:1;min-width:140px">
       <input type="text" id="rename" value="${esc(h.name)}" maxlength="16" aria-label="Hero name (tap to rename)" data-tip="Tap to rename. Up to 16 characters.">
       <span class="muted">Lv ${h.level} ${C.name} ${badgeIco(h.badge||0)} <span class="grade" style="color:${gc}">${g}</span></span>
       <span class="muted" style="font-size:18px">${maxHp(h)} HP · ${maxMp(h)} MP · ${h.runs} run${h.runs===1?'':'s'} · ${h.kills} kills</span>
@@ -4936,8 +5686,8 @@ function nextStep(){
   const pts=state.heroes.find(h=>h.points>0),vet=null;
   if(!state.heroes.length)return {t:'Recruit your first hero',i:sprite('book','#5a3f7a',3),a:'tab',x:'academy'};
   {const k=Object.keys(OPEN_WEEK).find(canBuild);if(k)return {t:`Finish building the ${({bank:'Bank',smith:'Weaponsmith',farm:'Farm',witch:'Witch'})[k]}`,i:sprite('worker','#c98b5c',3),a:'tab',x:k}}
-  if(pts)return {t:`Spend ${pts.name}’s ${pts.points} points`,i:sprite(pts.cls,C_(pts).tint,3),a:'openHero',x:pts.id};
-  if(vet)return {t:`${vet.name} can learn a new skill`,i:sprite(vet.cls,C_(vet).tint,3),a:'openHero',x:vet.id};
+  if(pts)return {t:`Spend ${pts.name}’s ${pts.points} points`,i:heroArt(pts,3),a:'openHero',x:pts.id};
+  if(vet)return {t:`${vet.name} can learn a new skill`,i:heroArt(vet,3),a:'openHero',x:vet.id};
   return {t:'Venture out',i:sprite('gate',null,3),a:'tab',x:'adventure'};
 }
 function homeView(){
@@ -4950,7 +5700,7 @@ function homeView(){
   const spots=Object.entries(T.spots).map(([k,b])=>{const open=k==='adventure'||bldOpen(k),known=bldKnown(k);
     return `<button class="spot ${k==='adventure'?'gatespot':''} ${open?'':'building'} ${known?'':'mystery'} ${guideAt()===k?'guide':''}" style="left:${pct(b.x0,ISO.W)};top:${pct(b.y0,ISO.Hh)};width:${pct(b.x1-b.x0,ISO.W)};height:${pct(b.y1-b.y0,ISO.Hh)}" ${known?`data-a="tab" data-x="${k}"`:'disabled'} aria-label="${known?NAMES[k]:'Unknown building'}${open?'':': under construction'}" ${known?'':'data-tip="The builders are waiting to hear what this lot is for."'}>${open?'':`<span class="worker w1">${sprite('worker','#c98b5c',3)}<i class="hammer"></i><i class="dust"></i></span><span class="worker w2">${sprite('worker','#6a8ab8',3)}<i class="hammer"></i><i class="dust"></i></span>`}<span class="plaque ${k==='adventure'?'gold':''}">${!known?'?':NAMES[k]+(open?(lv[k]?` <span class="lvpill">${lv[k]}</span>`:''):` <span class="soon">${hasMats(BLD_NEED[k])?'ready to build!':`needs ${Object.entries(BLD_NEED[k]).map(([m,v])=>v+' '+MATS[m].n).join(', ')}`}</span>`)}</span>${open&&alert[k]?'<span class="alert">!</span>':''}</button>`}).join('');
   const heroes=state.heroes.slice(0,HERO_SPOTS.length).map((h,i)=>{const [gx,gy]=HERO_SPOTS[i],p=isoPt(ISO.ox,ISO.oy,gx+.5,gy+.5);
-    return `<button class="isohero" style="left:${pct(p[0],ISO.W)};top:${pct(p[1],ISO.Hh)}" data-a="openHero" data-x="${h.id}" data-tip="${esc(`${h.name} · Lv ${h.level} ${C_(h).name} · ${maxHp(h)} HP`)}">${sprite(h.cls,C_(h).tint,4,'bob')}${h.points?'<span class="alert">!</span>':''}</button>`}).join('');
+    return `<button class="isohero" style="left:${pct(p[0],ISO.W)};top:${pct(p[1],ISO.Hh)}" data-a="openHero" data-x="${h.id}" data-tip="${esc(`${h.name} · Lv ${h.level} ${C_(h).name} · ${maxHp(h)} HP`)}">${heroArt(h,4,'bob')}${h.points?'<span class="alert">!</span>':''}</button>`}).join('');
   let s=`<div class="iso">
     <img class="px isoimg" src="${T.url}" alt="Your town at night">
     <div class="iso-title"><span class="hname">Week ${state.week}</span><span class="muted">Your town</span></div>
@@ -4983,7 +5733,7 @@ function partyPanel(){
   const r=state.run,b=r.battle,P=partyAll(),cur=b&&!b.over?currentActor():null,many=P.length>1;
   return `${P.map(h=>{const open=ui.pdet===h.id,sel=(ui.pslot||'').split('|');
     return `<div class="stack pcard ${h.hp<=0?'down':''} ${many&&cur===h?'cur':''}" style="gap:5px">
-      <div class="pc-head"><div class="portrait">${sprite(h.cls,C_(h).tint,3)}</div><div class="stack" style="gap:3px;flex:1;min-width:0"><span class="hname">${posBadge(h)}${esc(h.name)} <small class="muted">Lv ${h.level} ${C_(h).name}</small>${h.hp<=0?' <span class="warn">fallen</span>':''}</span>
+      <div class="pc-head"><div class="portrait">${heroArt(h,3)}</div><div class="stack" style="gap:3px;flex:1;min-width:0"><span class="hname">${posBadge(h)}${esc(h.name)} <small class="muted">Lv ${h.level} ${C_(h).name}</small>${h.hp<=0?' <span class="warn">fallen</span>':''}</span>
         ${bars(h)}${fatLine(h)}<button class="linkbtn ${h.points&&h.hp>0&&!open?'guide':''}" data-a="pdet" data-x="${h.id}" aria-expanded="${open}">${open?'Hide details ▴':'Details ▾'}${h.points?` <span class="gold">· ${h.points} pts</span>`:''}</button></div>
         ${gearDoll(h,'pslot',sel[0]===h.id?sel[1]:null,true)}</div>${pslotDetail(h)}
       ${open?`<div class="stack" style="gap:6px">${traitChips(h)}<div class="traits">${h.skills.map(id=>skillChip(h,id)).join('')}</div>${h.hp>0?learnBlock(h):''}${xpBar(h)}${h.hp>0?allocBtns(h):''}${statPips(h)}${statTable(h)}${heroElTable(h)}</div>`:''}</div>`}).join('')}
@@ -5002,7 +5752,7 @@ function runView(){
   const P=partyAll();
   const cells=r.final?FINAL.stages:r.total;
   let prog='';if(r.final)for(let i=1;i<=cells;i++){const boss=i%15===0;prog+=`<i class="${i<r.stage?'done':i===r.stage?'now':''} ${boss?'boss':''}"></i>`}
-  let s=`<section class="panel runhdr" style="--s1:${B.s[0]};--s2:${B.s[1]}"><div class="rh-row"><div class="rh-party">${lineup(P).map(({h})=>`<span class="fo ${h.hp<=0?'dead':''}">${sprite(h.cls,C_(h).tint,3,h.hp>0?'bob':'')}</span>`).join('')}</div>
+  let s=`<section class="panel runhdr" style="--s1:${B.s[0]};--s2:${B.s[1]}"><div class="rh-row"><div class="rh-party">${lineup(P).map(({h})=>`<span class="fo ${h.hp<=0?'dead':''}">${heroArt(h,3,h.hp>0?'bob':'')}</span>`).join('')}</div>
     <div class="stack" style="gap:0;min-width:0;flex:1"><h2>${r.final?'The Dark Side · ':''}${B.name}</h2><span class="muted" style="font-size:18px">${stageText(r)}</span>${runModTags(r)?`<span class="lmodrow">${runModTags(r)}</span>`:''}</div>
     <div class="res"><span class="chip" data-tip="Gold carried">${sprite('coin',null,2)}<b class="num">${r.gold}</b></span><span class="chip" data-tip="Backpack">${sprite('chest',null,2)}<b class="num">${r.loot.length}/${bagCap()}</b></span><span class="chip" data-tip="Return Scrolls">${sprite('scroll',null,2)}<b class="num">${r.scrolls}</b></span><button class="btn small ${(r.ground||[]).length?'guide':''}" data-a="inv" data-tip="Gear, backpack and anything on the ground">Inventory</button><button class="btn small partybtn ${partyAll().some(x=>x.hp>0&&x.points)&&ui.drawer!=='party'?'guide':''}" data-a="drawer" data-x="party" ${partyAll().some(x=>x.hp>0&&x.points)?'data-tip="Level up! Open the party to spend attribute points."':''}>Party</button>${fleeBtn('small red')}</div></div>${scrapStrip(r.mats,'Scrap gathered this trip. It comes home if the party returns or flees, and is lost if everyone falls.')}
     ${r.final?`<div class="prog" title="Red marks are bosses">${prog}</div>`:''}</section>`;
@@ -5168,14 +5918,14 @@ function flyLoot(){
 }
 function heroUnit(h,cur,fx,pops){
   return `<div class="unit hero ${h.hp<=0?'down':''} ${cur===h?'act':''} ${wuCls('h'+h.id)}" data-u="h${h.id}" data-tip="${esc(heroTip(h))}">
-    <div class="fo ${h.hp<=0?'dead':''} ${fx.act==='h:'+h.id?heroPose(h,fx):''} ${h.gear.weapon&&h.gear.weapon.pid?'perfect-aura':''}">${sprite(h.cls,C_(h).tint,5,fx['h'+h.id]&&h.hp>0?'hit':h.hp>0?'bob':'')}${skFx(fx,'h:'+h.id)}${weaponFx(fx,'h:'+h.id)}${marksHtml('h'+h.id)}</div>
+    <div class="fo ${h.hp<=0?'dead':''} ${fx.act==='h:'+h.id?heroPose(h,fx):''} ${h.gear.weapon&&h.gear.weapon.pid?'perfect-aura':''}">${heroArt(h,5,fx['h'+h.id]&&h.hp>0?'hit':h.hp>0?'bob':'')}${skFx(fx,'h:'+h.id)}${weaponFx(fx,'h:'+h.id)}${marksHtml('h'+h.id)}</div>
     <div class="uinfo">${heroInfo(h)}</div></div>`;
 }
 function foeUnit(e,i,fx,pops){
   const b=state.run.battle,big=e.kind==='boss'||e.kind==='warden'||e.kind==='king',dead=e.hp<=0,tgt=i===b.target&&!b.over&&!dead;
   const noreach=!dead&&!b.over&&frontOnly()&&aliveFoes()[0]!==e?'noreach':'';
   return `<div class="unit foe ${big?'big':''} ${dead?'down':''} ${tgt?'tgt':''} ${e.carry&&e.carry.length&&!dead?'carrier':''} ${noreach} ${wuCls('e'+i)}" data-u="e${i}" ${foeTargetAttrs(e,i)} aria-label="${esc(e.name)}${tgt?' (targeted)':''}" data-tip="${esc(foeTip(e)+(noreach?' Out of reach: warriors can only strike the front enemy.':''))}">
-    <div class="fo ${dead?(fx['die'+i]?'dead dying':'dead'):''} ${fx.act==='e:'+i?'lunge-foe':''} ${fx['stop'+i]?'hitstop':''} ${e.poison?'poisoned':''}">${fx['die'+i]?shards(EL_COL[e.type]||'#d8cfc0'):''}${sprite(e.spr,EL_COL[e.type],5,fx['e'+i]&&!dead?'hit':!dead?'bob':'')}${fx['burst'+i]?`<span class="burst" style="--c:${fx['burst'+i]}"></span>`:''}${fx['frz'+i]?'<span class="burst frz" style="--c:#bfe9ff"></span>':''}${skFx(fx,'e:'+i)}${weaponFx(fx,'e:'+i)}${marksHtml('e'+i)}</div>${b.over==='win'&&e.drop&&e.drop.length?`<span class="dropfan ${b.lootFresh?'fresh':''}">${e.drop.map((x,j)=>`<span style="animation-delay:${j*.18}s">${lootTile(x,true)}</span>`).join('')}</span>`:''}
+    <div class="fo ${dead?(fx['die'+i]?'dead dying':'dead'):''} ${fx.act==='e:'+i?'lunge-foe':''} ${fx['stop'+i]?'hitstop':''} ${e.poison?'poisoned':''}">${fx['die'+i]?shards(EL_COL[e.type]||'#d8cfc0'):''}${foeArt(e,5,fx['e'+i]&&!dead?'hit':!dead?'bob':'')}${fx['burst'+i]?`<span class="burst" style="--c:${fx['burst'+i]}"></span>`:''}${fx['frz'+i]?'<span class="burst frz" style="--c:#bfe9ff"></span>':''}${skFx(fx,'e:'+i)}${weaponFx(fx,'e:'+i)}${marksHtml('e'+i)}</div>${b.over==='win'&&e.drop&&e.drop.length?`<span class="dropfan ${b.lootFresh?'fresh':''}">${e.drop.map((x,j)=>`<span style="animation-delay:${j*.18}s">${lootTile(x,true)}</span>`).join('')}</span>`:''}
     <div class="uinfo">${foeInfo(e)}</div></div>`;
 }
 // On small screens the fighters stand across the top as pixel art, and their labeled bars sit in this roster beneath them.
@@ -5208,8 +5958,8 @@ function battleScreen(){
   const r=state.run,b=r.battle,B=BIOMES[r.biome],P=partyAll(),cur=!b.over?currentActor():null,fx=b.fx||{},pops=b.pops||[];
   const Ly=biomeLayers(r.biome);
   const tstrip=!b.over?`<div class="tstrip" aria-label="Turn order"><span class="lbl">Next</span>${turnOrder(8).map((k,i)=>{const id=k.slice(2);
-    if(k[0]==='h'){const h=heroById(id);return `<div class="tb ${i===0?'now':''}">${sprite(h.cls,C_(h).tint,2)}<span>${esc(h.name)}</span></div>`}
-    const e=b.enemies[+id];return `<div class="tb foe ${i===0?'now':''}">${sprite(e.spr,EL_COL[e.type],2)}<span>${esc(e.name)}</span></div>`}).join('')}</div>`:'<div class="tstrip"></div>';
+    if(k[0]==='h'){const h=heroById(id);return `<div class="tb ${i===0?'now':''}">${heroArt(h,2)}<span>${esc(h.name)}</span></div>`}
+    const e=b.enemies[+id];return `<div class="tb foe ${i===0?'now':''}">${foeArt(e,2)}<span>${esc(e.name)}</span></div>`}).join('')}</div>`:'<div class="tstrip"></div>';
   const label=r.nodes[0]==='king'?'<span class="bossmark">The King</span>':r.nodes[0]==='warden'?'<span class="bossmark">Final boss</span>':r.nodes[0]==='boss'?'<span class="bossmark">Boss stage</span>':'';
   let s=`<div class="bscreen">
     <div class="bhdr"><span class="ttl">${r.final?'Dark Side · ':''}${B.name} · <span class="muted">${stageText(r)}</span>${runModTags(r)}</span>
@@ -5278,7 +6028,7 @@ function eventView(){
   const last=!state.run.final&&state.run.stage>=state.run.total;
   if(ev.shop)return `<div class="row" style="gap:12px;flex-wrap:nowrap;align-items:flex-start"><span class="portrait">${sprite('flask','#e3b341',5,'bob')}</span><div class="stack" style="gap:6px"><h2>${ev.title}</h2><p>${ev.text}</p></div></div>${shopView(ev)}<div class="row"><button class="btn gold" data-a="cont">Move on</button></div>`;
   if(ev.chest)return `<h2>${ev.chest.opened?'The chest is open':(CHEST_TIER[ev.chest.tier]||CHEST_TIER.map).n}</h2>${chestScene()}${ev.chest.opened?`<p>${ev.text}</p>${(state.run.ground||[]).length?`<div class="row"><span class="warn">Backpack full: some gear is on the ground.</span><button class="btn small gold" data-a="inv">Open inventory</button></div>`:''}<div class="row"><button class="btn gold" data-a="cont">${last?'Head home':'Continue'}</button></div>`:'<p class="muted">Old iron bands, a heavy lid. Open it to see what spills out.</p>'}`;
-  return `<div class="row" style="gap:12px;flex-wrap:nowrap;align-items:flex-start">${ev.approach?`<span class="approach"><span class="afar">${sprite('boss',EL_COL[BIOMES[state.run.biome].el],3,'bob')}</span><span class="portrait">${sprite('camp',null,5,'bob')}</span></span>`:ev.icon?`<span class="portrait">${sprite(ev.icon,null,5,'bob')}</span>`:''}<div class="stack" style="gap:6px"><h2>${ev.title}</h2><p class="${wf?'wheelres':''}">${ev.text}</p></div></div>${wheel}<div class="row">${ev.choices?ev.choices.map(c=>`<button class="btn ${c.x==='leave'?'':'gold'}" data-a="${c.myst?'myst':c.ev?'evPick':'gamble'}" data-x="${c.x}" ${c.off?'disabled':''}>${c.l}</button>`).join(''):`<button class="btn gold" data-a="cont">${ev.intro?'Press on':'Continue'}</button>`}</div>`;
+  return `<div class="row" style="gap:12px;flex-wrap:nowrap;align-items:flex-start">${ev.approach?`<span class="approach"><span class="afar">${foeArt({base:BIOMES[state.run.biome].boss,kind:'boss',type:BIOMES[state.run.biome].el,spr:'boss'},5,'bob')}</span><span class="portrait">${sprite('camp',null,5,'bob')}</span></span>`:ev.icon?`<span class="portrait">${sprite(ev.icon,null,5,'bob')}</span>`:''}<div class="stack" style="gap:6px"><h2>${ev.title}</h2><p class="${wf?'wheelres':''}">${ev.text}</p></div></div>${wheel}<div class="row">${ev.choices?ev.choices.map(c=>`<button class="btn ${c.x==='leave'?'':'gold'}" data-a="${c.myst?'myst':c.ev?'evPick':'gamble'}" data-x="${c.x}" ${c.off?'disabled':''}>${c.l}</button>`).join(''):`<button class="btn gold" data-a="cont">${ev.intro?'Press on':'Continue'}</button>`}</div>`;
 }
 function skillChip(h,id){const k=SKILLS[id];return `<span class="trait tk-skill" tabindex="0" data-tip="${esc(k.n+' · '+k.mp+' MP. '+skillStats(id)+'. '+k.d)}">${k.n}</span>`}
 function skillList(h){return `<div class="stack" style="gap:6px">${h.skills.map(id=>{const k=SKILLS[id];return `<div class="item"><span class="iname">${k.n} <span class="muted">· ${skillMp(h,id)} MP</span></span><span class="afx">${skillStats(id)}</span><span class="meta">${k.d}</span></div>`}).join('')}</div>`}
@@ -5319,7 +6069,7 @@ function ledgerDetail(k){
   const weak=e.type!=='dark'&&e.type!=='physical'?ELEMENTS.find(x=>BEATS[x]===e.type):null;
   const lean=(v,lo,hi)=>v<lo?'<span style="color:#8fcf6f">Low</span>':v>hi?'<span style="color:#e0736c">High</span>':'Average';
   const lock=n=>`<p class="lmlock">🔒 ${SCOUT_LV[n]}: keep scouting or fighting it to reveal.</p>`;
-  return `<div class="ldetail"><div class="row" style="gap:14px;align-items:center"><span class="portrait">${sprite(e.spr,EL_COL[e.type],6)}</span><div class="stack" style="gap:3px;min-width:0">
+  return `<div class="ldetail"><div class="row" style="gap:14px;align-items:center"><span class="portrait">${foeArt(e,6)}</span><div class="stack" style="gap:3px;min-width:0">
       <h2>${esc(e.base)}</h2>
       <span><span class="utag" style="color:${TIER_COL[e.tier]}">${TIER_N[e.tier]}</span> ${TIER_LV[e.tier]}${e.kind!=='normal'?' · '+cap(e.kind):''} · attacks with ${elTag(e.type)}</span>
       ${weak?`<span>Weak to ${elTag(weak)} <span class="muted">(1.5× damage)</span></span>`:e.type==='dark'?'<span class="muted">Dark has no weakness on the wheel.</span>':''}
@@ -5347,7 +6097,7 @@ function ledgerView(){
     if(!any)return `<div class="lcard mystery"><div class="lspr"><span class="qmark">?</span></div><span class="hname">???</span>${r.kind!=='normal'?`<span class="meta">${cap(r.kind)}</span>`:''}
       <div class="tchips">${tiersOf(r).map(t=>`<span class="tchip" style="--c:${TIER_COL[t]}" aria-label="Unknown ${TIER_N[t]} monster, not scouted">${TIER_N[t]} ?</span>`).join('')}</div></div>`;
     const hasNew=tiersOf(r).some(t=>N[r.base+'|'+t]&&L[r.base+'|'+t]);
-    return `<div class="lcard ${r.kind!=='normal'?'major':''} ${hasNew?'newinfo':''}"><div class="lspr">${sprite(r.spr,any?EL_COL[r.type]:'#2a2233',4)}</div><span class="hname">${esc(r.base)}</span>${r.kind!=='normal'?`<span class="meta">${cap(r.kind)}</span>`:''}
+    return `<div class="lcard ${r.kind!=='normal'?'major':''} ${hasNew?'newinfo':''}"><div class="lspr">${any?foeArt(r,4):sprite(r.spr,'#2a2233',4)}</div><span class="hname">${esc(r.base)}</span>${r.kind!=='normal'?`<span class="meta">${cap(r.kind)}</span>`:''}
       <div class="tchips">${tiersOf(r).map(t=>{const k=r.base+'|'+t,ok=!!L[k],nw=ok&&N[k];return `<button class="tchip ${ok?'ok':''} ${sel===k?'cur':''} ${nw?'nw':''}" style="--c:${TIER_COL[t]}" data-a="lent" data-x="${k}" ${ok?'':'disabled'} aria-label="${esc(r.base+' '+TIER_N[t]+(ok?` (knowledge ${entLv(L[k])}/4${nw?', new information':''})`:' (not scouted)'))}">${TIER_N[t]}${ok?` <small>${entLv(L[k])}/4</small>`:' ?'}${nw?'<b class="nwdot">NEW</b>':''}</button>`}).join('')}</div></div>`}).join('')}</div>`;
   return s;
 }
@@ -5537,7 +6287,7 @@ function witchView(){
     let h=heroById(state.sel.whero);if(!h){h=state.heroes[0];state.sel.whero=h.id}
     s+=heroChips('whero',h.id);
     const tc=heroWitchCost(h,'trait'),rc=heroWitchCost(h,'respec');
-    s+=`<div class="row" style="gap:10px"><span class="portrait">${sprite(h.cls,C_(h).tint,4)}</span><div class="stack" style="gap:2px"><span class="hname">${esc(h.name)} <small class="muted">Lv ${h.level} ${C_(h).name}</small></span><span class="muted">Visits to the witch: ${h.witch||0}. Next visit costs ${Math.round(Math.pow(1.6,h.witch||0)*100)}% of base, plus level.</span></div></div>
+    s+=`<div class="row" style="gap:10px"><span class="portrait">${heroArt(h,4)}</span><div class="stack" style="gap:2px"><span class="hname">${esc(h.name)} <small class="muted">Lv ${h.level} ${C_(h).name}</small></span><span class="muted">Visits to the witch: ${h.witch||0}. Next visit costs ${Math.round(Math.pow(1.6,h.witch||0)*100)}% of base, plus level.</span></div></div>
       <h3>${WITCH_HERO.trait.n} · <span class="gold">${fmt(tc)} gold</span></h3><p class="muted">${WITCH_HERO.trait.d}</p>
       <div class="stack" style="gap:6px">${(h.traits||[]).map(id=>TRAITS[id]).filter(Boolean).map(t=>`<div class="row" style="gap:8px;justify-content:space-between;flex-wrap:nowrap"><span><span class="tk-${t.kind}">${t.n}</span> <span class="muted" style="font-size:17px">${traitDesc(t,h)}</span></span><button class="btn small" data-a="witchTrait" data-x="${h.id}|${t.id}" ${state.gold<tc||state.run?'disabled':''}>Reroll</button></div>`).join('')}</div>
       <h3>${WITCH_HERO.respec.n} · <span class="gold">${fmt(rc)} gold</span></h3><p class="muted">${WITCH_HERO.respec.d} ${h.spent?`${h.spent} point${h.spent>1?'s':''} would come back.`:'Nothing spent to undo yet.'}</p>
@@ -5591,9 +6341,9 @@ function prepView(){
   const f=ui.prepFilter||'all',sl=ui.prepSlot&&SLOTS.includes(ui.prepSlot)?ui.prepSlot:null;
   const list=state.bank.filter(it=>prepFits(it,h,f,sl)).sort((a,b)=>itemScore(b)-itemScore(a));
   const cur=sl?h.gear[sl]:null;
-  const body=`<div class="tabs">${P.map(x=>`<button class="btn small ${x===h?'on':''}" data-a="prepHero" data-x="${x.id}">${sprite(x.cls,C_(x).tint,2,'ico')}${esc(x.name)} · Lv ${x.level} ${C_(x).name} · ${SLOTS.filter(s=>x.gear[s]).length}/${SLOTS.length}</button>`).join('')}</div>
+  const body=`<div class="tabs">${P.map(x=>`<button class="btn small ${x===h?'on':''}" data-a="prepHero" data-x="${x.id}">${heroArt(x,2,'ico')}${esc(x.name)} · Lv ${x.level} ${C_(x).name} · ${SLOTS.filter(s=>x.gear[s]).length}/${SLOTS.length}</button>`).join('')}</div>
     <div class="prepgrid"><div class="stack">
-      <div class="row" style="gap:12px;align-items:flex-start;flex-wrap:wrap"><span class="portrait">${sprite(h.cls,C_(h).tint,5)}</span>${gearDoll(h,'prepSlot',sl)}
+      <div class="row" style="gap:12px;align-items:flex-start;flex-wrap:wrap"><span class="portrait">${heroArt(h,5)}</span>${gearDoll(h,'prepSlot',sl)}
         <dl class="dl" style="font-size:18px;flex:1;min-width:150px"><dt>Level</dt><dd>${h.level}</dd><dt>Health</dt><dd>${maxHp(h)}</dd><dt>Mana</dt><dd>${maxMp(h)}</dd><dt>Power</dt><dd>${Math.round(power(h))}</dd><dt>Armor</dt><dd>${armor(h)}</dd><dt>Crit</dt><dd>${critChance(h).toFixed(0)}%</dd><dt>Evasion</dt><dd>${evasion(h).toFixed(0)}%</dd></dl></div>${xpMini(h)}
       ${sl?`<div class="slotpanel stack"><div class="row" style="justify-content:space-between"><h3>${SLOTN[sl]}</h3><button class="btn small" data-a="prepSlot" data-x="${h.id}|${sl}">Show all slots</button></div>${cur?itemCard(cur,`<div class="row"><button class="btn small" data-a="prepUnequip" data-x="${sl}">Unequip to stash</button></div>`):'<p class="muted">Empty.</p>'}</div>`:'<p class="muted" style="font-size:17px">Tap a gear slot to see only items for it, or browse everything below.</p>'}
       <div class="row" style="gap:6px"><button class="btn small gold" data-a="prepAuto">Auto-equip the party</button><button class="btn small" data-a="prepStrip" data-x="${h.id}">Unequip ${esc(h.name)}</button></div>
@@ -5602,7 +6352,7 @@ function prepView(){
       <p class="muted" style="font-size:17px">Drag gear onto a slot to equip it, or back here to unequip. On touch screens, press and hold first. · Stash · ${state.bank.length} item${state.bank.length===1?'':'s'}${list.length!==state.bank.length?` · ${list.length} fit ${esc(h.name)} here`:''}</p>
       <div class="dropzone" data-drop="bank">${list.length?`<div class="items preplist">${list.map(it=>{const to=equipSlotFor(it,h),old=h.gear[to];return itemCard(it,`<div class="row"><button class="btn small gold" data-a="prepEquip" data-x="${it.id}">${old?'Swap in':'Equip'}</button>${old?`<span class="meta">replaces ${itemName(old)}</span>`:''}</div>${itemCompare(it,h,to)}`,`data-drag="bank:${it.id}"`)}).join('')}</div>`:'<p class="muted">Nothing in the stash fits here. Drop gear here to unequip it.</p>'}</div>
     </div></div>
-    ${P.length>1?`<h3>Marching order</h3><p class="muted" style="font-size:17px">The party walks toward the monsters on the right. Whoever is in front (nearest the enemies) draws most of the attacks.</p><div class="march">${lineup(P).map(({h:x,i})=>`<div class="mslot ${i===0?'front':''}"><span class="lab"><span class="upos p-${posName(i,P.length).toLowerCase()}">${i+1}·${posName(i,P.length)}</span> ${posChance(i,P.length)}% of attacks</span><span class="row" style="gap:6px;flex-wrap:nowrap">${sprite(x.cls,C_(x).tint,3,'ico')}<span class="stack" style="gap:0;min-width:0"><b>${esc(x.name)}</b><span class="muted">${C_(x).name}</span></span></span><span class="row" style="gap:4px"><button class="btn small" data-a="prepOrder" data-x="${x.id}|1" ${i===P.length-1?'disabled':''} aria-label="Move ${esc(x.name)} back">◀ Back</button><button class="btn small" data-a="prepOrder" data-x="${x.id}|-1" ${i===0?'disabled':''} aria-label="Move ${esc(x.name)} forward">Forward ▶</button></span></div>`).join('')}<div class="mfoe" aria-hidden="true"><span>Monsters</span><b>▶</b></div></div>`:''}
+    ${P.length>1?`<h3>Marching order</h3><p class="muted" style="font-size:17px">The party walks toward the monsters on the right. Whoever is in front (nearest the enemies) draws most of the attacks.</p><div class="march">${lineup(P).map(({h:x,i})=>`<div class="mslot ${i===0?'front':''}"><span class="lab"><span class="upos p-${posName(i,P.length).toLowerCase()}">${i+1}·${posName(i,P.length)}</span> ${posChance(i,P.length)}% of attacks</span><span class="row" style="gap:6px;flex-wrap:nowrap">${heroArt(x,3,'ico')}<span class="stack" style="gap:0;min-width:0"><b>${esc(x.name)}</b><span class="muted">${C_(x).name}</span></span></span><span class="row" style="gap:4px"><button class="btn small" data-a="prepOrder" data-x="${x.id}|1" ${i===P.length-1?'disabled':''} aria-label="Move ${esc(x.name)} back">◀ Back</button><button class="btn small" data-a="prepOrder" data-x="${x.id}|-1" ${i===0?'disabled':''} aria-label="Move ${esc(x.name)} forward">Forward ▶</button></span></div>`).join('')}<div class="mfoe" aria-hidden="true"><span>Monsters</span><b>▶</b></div></div>`:''}
     ${packBlock()}
     <div class="row prepfoot"><button class="btn" data-a="prepClose">Back</button><button class="btn gold big ${state.guide?'guide':''}" data-a="prepGo">Depart: ${LENGTHS[state.sel.len]?LENGTHS[state.sel.len].name:''} with ${esc(listNames(P.map(x=>x.name)))}</button></div>`;
   return modalShell('Prepare the party',body,'prepClose','prep');
@@ -5697,7 +6447,7 @@ function invModal(){
   const bar=`<div class="invbar"><div class="subtabs invf">${INV_F.filter(([k])=>k==='all'||cnt(k)||f===k).map(([k,l])=>`<button class="subtab ${f===k?'cur':''}" data-a="invF" data-x="${k}">${l} <small>${cnt(k)}</small></button>`).join('')}</div>
     <label class="invsort"><span class="muted">Sort</span><select data-invsort aria-label="Sort items">${INV_SORT.map(([k,l])=>`<option value="${k}" ${srt===k?'selected':''}>${l}</option>`).join('')}</select></label></div>`;
   const heroes=P.map(h=>{const gs=S&&S.k==='gear'&&S.h===h?S.sl:null,can=S&&S.k!=='gear'&&invFits(S.it,h);
-    return `<div class="invhero ${h.hp<=0?'down':''}" ${can?`data-pick="${pick}"`:''} ${h.hp>0?`data-drop="hero:${h.id}"`:''}><div class="row" style="gap:8px;align-items:flex-start;flex-wrap:nowrap"><span class="portrait">${sprite(h.cls,C_(h).tint,3)}</span><div class="stack" style="gap:2px;flex:1;min-width:0"><span class="hname">${esc(h.name)}</span><small class="muted">Lv ${h.level} ${C_(h).name}${h.hp<=0?' · <span class="warn">fallen</span>':''}</small><small class="muted">${Math.round(power(h))} power · ${armor(h)} armor</small></div>${gearDoll(h,'invGear',gs,true)}</div>${gs?invActions(S):''}</div>`}).join('');
+    return `<div class="invhero ${h.hp<=0?'down':''}" ${can?`data-pick="${pick}"`:''} ${h.hp>0?`data-drop="hero:${h.id}"`:''}><div class="row" style="gap:8px;align-items:flex-start;flex-wrap:nowrap"><span class="portrait">${heroArt(h,3)}</span><div class="stack" style="gap:2px;flex:1;min-width:0"><span class="hname">${esc(h.name)}</span><small class="muted">Lv ${h.level} ${C_(h).name}${h.hp<=0?' · <span class="warn">fallen</span>':''}</small><small class="muted">${Math.round(power(h))} power · ${armor(h)} armor</small></div>${gearDoll(h,'invGear',gs,true)}</div>${gs?invActions(S):''}</div>`}).join('');
   const pk=invSorted(r.loot),gd=invSorted(G),hid=r.loot.length-pk.length,ghid=G.length-gd.length;
   const body=`${bar}<div class="invgrid">
     <div class="invcol"><h3>Heroes</h3><p class="muted invtip">Tap a slot to see what is worn. Drag items onto a hero (or a slot), the backpack or the ground. Drop onto another item to swap the two.</p>${ui.invMsg?`<p class="warn invtip">${ui.invMsg}</p>`:''}${heroes}</div>
