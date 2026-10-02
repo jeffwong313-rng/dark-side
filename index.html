@@ -2867,7 +2867,7 @@ const NODE={
   elite:{s:'Elite',n:'Mutated Elite',icon:'skull',d:'Harder, twisted foe. Always drops gold and a potion, often gear, sometimes a chest.'},
   chest:{s:'Chest',n:'Chest',icon:'chest',d:'Loot or gold. Sometimes it bites.'},
   gold:{s:'Gold',n:'Gold Cache',icon:'coin',d:'Coin left behind by the dead.'},
-  heal:{s:'Camp',n:'Campsite',icon:'camp',d:'Rest by the fire: fatigue is halved, and every hero recovers 40% health and 40% mana. Injuries don’t heal here.'},
+  heal:{s:'Camp',n:'Campsite',icon:'camp',d:'Rest by the fire: fatigue drops by 50 points (to 0 at best), and every hero recovers 40% health and 40% mana. Injuries don’t heal here.'},
   gamble:{s:'Stranger',n:'Hooded Stranger',icon:'dice',d:'Offers a game of chance.'},
   merchant:{s:'Shop',n:'Traveling Merchant',icon:'flask',d:'Spend the gold you carry: healing potions of every size, Ethers, Return Scrolls cheaper than in town, and now and then a piece of gear.'},
   mystery:{s:'?',n:'Unknown',icon:'q',d:'Anything could be here: a strange encounter, a wheel of fortune, a spring, an ambush, even a chest.'},
@@ -3100,7 +3100,7 @@ const HERO_HP_SCALE=.5,HERO_DMG_SCALE=.67,FOE_HP_SCALE=.5,FOE_DMG_SCALE=.75;
 /* Fatigue: builds as a hero goes deeper into an adventure (nothing on stages 1-5), and from Wearying Blows.
    Stages 6-9 add 0-1% per stage, 10-19 add 1-3%, 20-29 add 2-5%, and from stage 30 on 5-8%. Strength and Endurance tilt the roll toward the low end.
    50%+: 10% slower. 80%+: deals 33% less damage and takes 33% more. 100%: a random injury (one at a time) that lasts the rest
-   of this week and all of next. Campsites halve fatigue, Energy Brew removes 25%. Everyone is rested when they get home. */
+   of this week and all of next. Campsites take 50 points of fatigue off (Rest) or 25 (Forage), Energy Brew removes 25. Everyone is rested when they get home. */
 const INJURY={
   ankle:{n:'Sprained Ankle',d:'moves 15% slower'},
   cramp:{n:'Cramping Muscles',d:'deals 20% less damage'},
@@ -3129,7 +3129,7 @@ function addFat(h,x,out){
 }
 function fatLine(h){const f=fatOf(h),j=injOf(h);
   return `<div class="bar fatb ${f>=80?'hi':f>=50?'mid':''}" data-tip="${esc(fatTip(h))}"><i style="width:${f}%"></i><span>Fatigue ${f}%${j?' · '+INJURY[j].n:''}</span></div>`}
-const fatTip=h=>{const f=fatOf(h),j=injOf(h);return `Fatigue ${f}%${f>=80?' (exhausted: 10% slower, 33% less damage dealt, 33% more taken)':f>=50?' (tiring: 10% slower)':''}. Builds from stage 6 on and after every fight (+2% battle, +5% elite, +10% major boss); Strength and Endurance slow the stage build-up. 50%: 10% slower. 80%: 33% less damage dealt and 33% more taken. 100%: an injury. A campsite halves it, Energy Brew removes 25%, and heroes are rested when they get home.${j?` Injured: ${INJURY[j].n}, ${INJURY[j].d} (heals after week ${h.injury.until}).`:''}`};
+const fatTip=h=>{const f=fatOf(h),j=injOf(h);return `Fatigue ${f}%${f>=80?' (exhausted: 10% slower, 33% less damage dealt, 33% more taken)':f>=50?' (tiring: 10% slower)':''}. Builds from stage 6 on and after every fight (+2% battle, +5% elite, +10% major boss); Strength and Endurance slow the stage build-up. 50%: 10% slower. 80%: 33% less damage dealt and 33% more taken. 100%: an injury. A resting at a campsite removes 50% (foraging 25%), Energy Brew removes 25%, and heroes are rested when they get home.${j?` Injured: ${INJURY[j].n}, ${INJURY[j].d} (heals after week ${h.injury.until}).`:''}`};
 function fatBar(h){const f=fatOf(h),j=injOf(h),tip=fatTip(h);
   return `<span class="ufat ${f>=80?'hi':f>=50?'mid':''}" data-tip="${esc(tip)}"><i style="width:${f}%"></i><span>${j?'✚ ':''}${f}%</span></span>`}
 // Everyone has 15% less health than before; archers and mages lose another 10% on top (fragile on purpose). Always rounded down.
@@ -4687,7 +4687,7 @@ function chooseNode(i){
   }else if(t==='heal'){
     const F=eventBonus(),rp=Math.round(clamp(.4*(1+F/100),.25,.65)*100);
     r.event={title:'Campsite',icon:'camp',kind:'camp',text:`A sheltered hollow with a ring of old stones. How will the ${L.length>1?'party':'hero'} spend the night?${chaNote()}`,
-      choices:[{l:`Rest by the fire (heal ${rp}%, halve fatigue)`,x:'rest',ev:1},{l:'Forage (heal 20%, fatigue −25%, find supplies)',x:'forage',ev:1},{l:'Drill by firelight (heal 20%, +20% of a level in XP, fatigue stays)',x:'drill',ev:1}]};
+      choices:[{l:`Rest by the fire (heal ${rp}%, fatigue −50%)`,x:'rest',ev:1},{l:'Forage (heal 20%, fatigue −25%, find supplies)',x:'forage',ev:1},{l:'Drill by firelight (heal 20%, +20% of a level in XP, fatigue stays)',x:'drill',ev:1}]};
   }else if(t==='merchant'){
     r.event={title:'Traveling Merchant',icon:'coin',text:'A merchant has set up a stall by the path, lantern swinging.',shop:makeShop(1)};
   }else if(t==='mystery'){
@@ -6861,11 +6861,11 @@ function eventPick(x){
   const done=t=>{r.event={title:ev.title,icon:ev.icon,text:t}};
   if(ev.kind==='camp'){const F=eventBonus(),rest=x==='rest',hp=rest?clamp(.4*(1+F/100),.25,.65):.2,inj=[];
     const parts=L.map(h=>{const v=Math.round(maxHp(h)*hp*healMult(h)*depthsMult()),m=Math.round(maxMp(h)*hp*depthsMult());h.hp=Math.min(maxHp(h),h.hp+v);h.mp=Math.min(maxMp(h),h.mp+m);
-      if(rest)h.fat=(h.fat||0)/2;else if(x==='forage')h.fat=(h.fat||0)*.75;if(injOf(h))inj.push(`${esc(h.name)}’s ${INJURY[injOf(h)].n} still aches.`);return `${esc(h.name)} +${v} HP, +${m} MP, fatigue ${fatOf(h)}%`});
+      if(rest)h.fat=Math.max(0,(h.fat||0)-50);else if(x==='forage')h.fat=Math.max(0,(h.fat||0)-25);if(injOf(h))inj.push(`${esc(h.name)}’s ${INJURY[injOf(h)].n} still aches.`);return `${esc(h.name)} +${v} HP, +${m} MP, fatigue ${fatOf(h)}%`});
     let extra='';
     if(x==='forage'){const got=[];for(let i=0,n=ri(1,2);i<n;i++){const id=pick(['potion','potion','mpotion','ether']);r.bag[id]=(r.bag[id]||0)+1;got.push(CONSUMABLES[id].n)}extra=`<br>Foraging turns up: <b>${got.join(', ')}</b> (bag).`}
     if(x==='drill'){for(const h of L)xpTo(h,.2,lines);extra='<br>'+lines.join('<br>')}
-    const head={rest:'The party sleeps by the fire. Fatigue is halved.',forage:'Half the night goes to foraging. Fatigue drops by a quarter.',drill:'They drill by firelight instead of sleeping.'}[x];
+    const head={rest:'The party sleeps by the fire. Fatigue drops by 50%.',forage:'Half the night goes to foraging. Fatigue drops by 25%.',drill:'They drill by firelight instead of sleeping.'}[x];
     return done(`${head} ${parts.join(', ')}.${extra}${inj.length?'<br><span class="warn">'+inj.join(' ')+'</span>':''}`)}
   if(ev.kind==='cache'){
     if(x==='take'){r.gold+=ev.g;return done(`You pocket the purse. <b class="gold">+${ev.g} gold</b>.`)}
