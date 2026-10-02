@@ -1494,6 +1494,7 @@ body.nomotion .px.anim{object-position:0 0}
 .tomb{position:absolute;transform:translate(-50%,-100%);line-height:0;z-index:1;cursor:help}
 .tomb img{width:clamp(9px,1.9vw,18px);height:auto;filter:drop-shadow(0 1px 0 #000)}
 .tprop{position:absolute;transform:translate(-50%,-90%);line-height:0;z-index:1}
+.tprop.tworker img{width:clamp(10px,2vw,22px)}
 .tprop img{width:clamp(18px,3.4vw,40px);height:auto;filter:drop-shadow(0 2px 0 #000a)}
 .tprop.wagon i{position:absolute;left:-30%;right:-30%;bottom:-6%;height:22%;background:#6a4a2a;box-shadow:0 0 0 2px #1a1010;z-index:-1}
 .tprop .bardimg{width:clamp(14px,2.7vw,30px);animation:walkf 1.2s steps(1) infinite}
@@ -2668,7 +2669,7 @@ function villagerStrip(type,coat,skin,hair){
 // Walking loops, in town-map pixels. Each villager visits a few doors and stops in the square; the loop is seeded by week so it stays put between redraws.
 function townsfolk(T){
   const open=Object.entries(T.spots).filter(([k,b])=>b.door&&(k==='adventure'||bldOpen(k)));
-  const n=Math.min(9,2+open.length+Math.floor(state.week/3)+(state.town&&state.town.week===state.week&&state.town.ev==='festival'?3:0));
+  const n=Math.min(9,2+open.length+Math.floor(state.week/3)+(state.town&&state.town.week===state.week&&(state.town.ev==='festival'||state.town.ev==='rebuild')?3:0));
   const sq=TOWN_SQUARE,rnd=srng('folk'+state.week);let css='',html='';
   for(let i=0;i<n;i++){
     const pts=[[sq[0]+(rnd()-.5)*40,sq[1]+(rnd()-.5)*18]];
@@ -2691,6 +2692,7 @@ function townsfolk(T){
 const TOWN_EVENTS={
   merchant:{n:'Traveling Merchant',ico:['chest','#c8a050'],d:'A merchant’s wagon stands in the square. She sells three finds from the road, this week only.'},
   festival:{n:'Moon Festival',ico:['crescent','#ffcf6a'],d:'Lanterns over the square and music until dawn. Every hero is rested (fatigue cleared), and adventures this week give +15% XP.'},
+  rebuild:{n:'Rebuilding Fever',ico:['worker','#c98b5c'],d:'Our heroes keep coming home alive, and the town believes again. Hammers ring in the square, and five heroes have come to the Barracks this week: two mages, plus warriors and archers ready to fight beside them.'},
   bard:{n:'Wandering Bard',ico:['book','#b56fe3'],d:'A bard sings of your heroes’ deeds, and folk are generous: +15% gold from adventures this week.'},
   pilgrims:{n:'Pilgrims at the Gate',ico:['flask','#b83a3a'],d:'Pilgrims on their way to the moon shrine leave gifts at the gate: healing potions and a Return Scroll.'},
 };
@@ -2713,6 +2715,7 @@ function townEventBlock(){
 function townEventProps(){
   const E=townEv();if(!E)return '';const sq=TOWN_SQUARE,at=(x,y)=>`left:${(x/ISO.W*100).toFixed(2)}%;top:${(y/ISO.Hh*100).toFixed(2)}%`;
   if(E.ev==='merchant')return `<span class="tprop wagon" style="${at(sq[0]+30,sq[1]+12)}" data-tip="The Traveling Merchant’s wagon">${sprite('chest','#c8a050',4)}<i></i></span>`;
+  if(E.ev==='rebuild')return [[-40,8],[36,-6],[8,16],[-12,-14]].map(([dx,dy],k)=>`<span class="tprop tworker" style="${at(sq[0]+dx,sq[1]+dy)}" data-tip="Townsfolk pitching in on the rebuilding">${sprite('worker','#c98b5c',3,k%2?'bob':'')}</span>`).join('');
   if(E.ev==='festival'){let s='';for(let k=0;k<11;k++){const t=k/10,x=sq[0]-55+t*110,y=sq[1]-26+Math.sin(t*Math.PI)*10;s+=`<span class="lantern" style="${at(x,y)};animation-delay:${(k*.27).toFixed(2)}s;--lc:${['#ffcf6a','#ff8a5a','#b07cff','#7fe0ff'][k%4]}"></span>`}return s}
   if(E.ev==='bard')return `<span class="tprop bard" style="${at(sq[0]-18,sq[1]+4)}" data-tip="The Wandering Bard"><img class="px anim walk bardimg" src="${villagerStrip('farmer','#7a4aa8','#e8c09a','#c8a050').url}" alt="" width="16" height="20" style="aspect-ratio:16/20"><b class="note">♪</b><b class="note n2">♫</b></span>`;
   if(E.ev==='pilgrims'&&!E.claimed)return `<span class="tprop" style="${at(296,170)}" data-tip="Pilgrims’ gifts by the gate">${sprite('flask','#b83a3a',3)}</span>`;
@@ -4776,7 +4779,8 @@ function endRun(outcome){
     if(fallenAll.length)lines.push(`<span class="warn">Lost on the way: ${esc(listNames(fallenAll))}.</span>`);
   }
   if(state.unlock<2&&survivors.some(h=>h.cls===UNLOCK_CLS[state.unlock])){state.unlock++;const c=UNLOCK_CLS[state.unlock];
-    lines.push(`<b class="gold">Word of the safe return spreads. ${c==='archer'?'Archers':'A mage'} ${c==='archer'?'have':'has'} come to the Barracks asking to join.</b>`)}
+    if(c==='mage'){state.mageRush=true;lines.push(`<b class="gold">Word of the safe return spreads, and the whole town is buzzing about the rebuilding. Two mages have come to the Barracks, and three more fighters have followed them.</b>`)}
+    else lines.push(`<b class="gold">Word of the safe return spreads. Archers have come to the Barracks asking to join.</b>`)}
   if(state.hideBld){state.reveal=state.reveal||{};const nb=[];
     if(!state.reveal.bank&&survivors.some(h=>h.cls==='mage')){state.reveal.bank=state.reveal.smith=true;nb.push('the Bank','the Weaponsmith')}
     if(!state.reveal.farm&&outcome!=='dead'&&outcome!=='flee'&&outcome!=='scroll'&&outcome!=='victory'&&r.length==='short'){state.reveal.farm=state.reveal.witch=true;nb.push('the Farm','the Witch’s hut')}
@@ -5518,7 +5522,7 @@ function heroSheet(){
 function academyView(){
   const full=state.heroes.length>=slots(),fee=recruitFee();
   let s=`<div class="stack" style="gap:4px"><h3>This week’s recruits</h3><p class="muted">Pick a recruit. You assign their stat points after. ${help('Every recruit rolls a six-sided die for each SPECIAL stat (1–6, +2 in their class stat) with a random pool of points you assign after recruiting. Higher stats cost more points. Class, skills, resistances and traits are rolled. Two permanent traits now, and another at every 10th level (Lv 10, 20, 30...). Candidates you don’t recruit leave at the end of the week.')} · Barracks ${state.heroes.length}/${slots()}</p></div>`;
-  if(state.unlock!=null&&state.unlock<3)s+=`<p class="muted">${['Only warriors answer the call for now. If one comes home alive, others will follow.','Archers have come asking to join. Bring one home alive and word will reach others.','A mage has arrived. Once one joins, all kinds of heroes will start turning up.'][state.unlock]}</p>`;
+  if(state.unlock!=null&&state.unlock<3)s+=`<p class="muted">${['Only warriors answer the call for now. If one comes home alive, others will follow.','Archers have come asking to join. Bring one home alive and word will reach others.',townEv()&&townEv().ev==='rebuild'?'The rebuilding has the whole town excited: two mages and three more fighters have come this week. Once a mage joins, all kinds of heroes will start turning up.':'A mage has arrived. Once one joins, all kinds of heroes will start turning up.'][state.unlock]}</p>`;
   s+=tutBox();
   if(state.candidates.length)s+=`<div class="cards">${state.candidates.map((c,ci)=>heroCard(c,`<button class="btn gold ${state.guide&&!state.heroes.length&&!tutBOn()?'guide':''}" data-a="recruit" data-x="${c.id}" ${full||state.gold<fee?'disabled':''}>Recruit · ${fee?fee+' gold':'free'}</button>`,false,ci===0&&tutBOn()?TUT_B[state.tutB||0][0]:'')).join('')}</div>`;
   else s+=`<p class="muted">No candidates left this week.</p>`;
@@ -5826,6 +5830,14 @@ function farmFields(tabs){
 }
 function advanceWeek(){
   state.week++;rollCandidates();for(const h of state.heroes)injOf(h);rollTownEvent();
+  if(state.mageRush){state.mageRush=false;rebuildRush()}
+}
+// The week mages unlock: excitement about the rebuilding brings two mages plus three warriors and archers (at least one of each, never a third mage).
+function rebuildRush(){
+  const other=pick([['warrior','archer','archer'],['warrior','warrior','archer']]).sort(()=>Math.random()-.5);
+  state.lastRecruits=(state.candidates||[]).map(c=>c.name).concat(state.lastRecruits||[]);state.candidates=[];
+  for(const cls of ['mage','mage',...other])state.candidates.push(makeHero(cls)); // one at a time so no two share a name
+  state.town={ev:'rebuild',week:state.week};
 }
 function hallView(){
   let s=bHead('house',null,'Town Hall','The War Table sets how many heroes go on each adventure.','Other upgrades are inside each building. Stronger towns also draw slightly stronger monsters.',headUp('war'));
