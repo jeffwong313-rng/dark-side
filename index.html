@@ -3983,11 +3983,12 @@ const heroDef=h=>{const b=state.run.battle,x=heroBuff(h,'def'),m=Math.max(x?x.v:
 function setBuff(h,k,n,v){const b=state.run.battle;b.hb=b.hb||{};const x=b.hb[h.id]=b.hb[h.id]||{};x[k]={n,v}}
 const BUFF_N={def:'guard',eva:'Featherweight',crit:'Sniper',undying:'Undying Vow',focus:'Starsight'};
 // Food and mana items restore a slice at the start of each of the hero's next 3 turns.
-function regenAmt(h,x,n){const mx=x.k==='hp'?maxHp(h):maxMp(h);return Math.max(1,Math.round(mx*x.p*n*(x.k==='hp'?healMult(h):manaMult())))}
+function regenAmt(h,x,n){if(x.k==='fat')return x.p*n;const mx=x.k==='hp'?maxHp(h):maxMp(h);return Math.max(1,Math.round(mx*x.p*n*(x.k==='hp'?healMult(h):manaMult())))}
 function tickRegen(h,b){if(!h.regen||!h.regen.length||h.hp<=0)return;let hp=0,mp=0;
-  for(const x of h.regen){const v=regenAmt(h,x,1);if(x.k==='hp'){h.hp=Math.min(maxHp(h),h.hp+v);hp+=v}else{h.mp=Math.min(maxMp(h),h.mp+v);mp+=v}x.n--}
-  h.regen=h.regen.filter(x=>x.n>0);if(hp&&b)b.pops.push({s:'h',hid:h.id,t:'+'+hp});if(hp||mp)b&&blog(`${esc(h.name)} recovers${hp?` ${hp} HP`:''}${hp&&mp?' and':''}${mp?` ${mp} MP`:''}.`)}
-function flushRegen(lines){for(const h of partyAll()){if(!h.regen||!h.regen.length)continue;if(h.hp>0){let hp=0,mp=0;for(const x of h.regen){const v=regenAmt(h,x,x.n);if(x.k==='hp'){h.hp=Math.min(maxHp(h),h.hp+v);hp+=v}else{h.mp=Math.min(maxMp(h),h.mp+v);mp+=v}}
+  let ft=0;for(const x of h.regen){const v=regenAmt(h,x,1);if(x.k==='fat'){const w=h.fat||0;h.fat=Math.max(0,w-v);ft+=w-h.fat}else if(x.k==='hp'){h.hp=Math.min(maxHp(h),h.hp+v);hp+=v}else{h.mp=Math.min(maxMp(h),h.mp+v);mp+=v}x.n--}
+  h.regen=h.regen.filter(x=>x.n>0);if(hp&&b)b.pops.push({s:'h',hid:h.id,t:'+'+hp});const parts=[hp?`${hp} HP`:'',mp?`${mp} MP`:'',ft>=.5?`${Math.round(ft)}% fatigue`:''].filter(Boolean);
+  if(parts.length&&b)blog(`${esc(h.name)} recovers ${listNames(parts)}.`)}
+function flushRegen(lines){for(const h of partyAll()){if(!h.regen||!h.regen.length)continue;if(h.hp>0){let hp=0,mp=0;for(const x of h.regen){const v=regenAmt(h,x,x.n);if(x.k==='fat'){h.fat=Math.max(0,(h.fat||0)-v);continue}if(x.k==='hp'){h.hp=Math.min(maxHp(h),h.hp+v);hp+=v}else{h.mp=Math.min(maxMp(h),h.mp+v);mp+=v}}
   if(lines&&(hp||mp))lines.push(`<span class="muted">${esc(h.name)} finishes recovering: ${hp?`+${hp} HP`:''}${hp&&mp?', ':''}${mp?`+${mp} MP`:''}</span>`)}h.regen=[]}}
 /* Defensive stances: one per class, it costs the turn and lasts until this hero acts again. */
 const STANCE={
@@ -4181,6 +4182,7 @@ const stackHtml=n=>{const out=[];for(let k=n;k>0;k-=STACK)out.push(Math.min(STAC
 const FOODS=[['wheat','Wheat'],['fruit','Fruit'],['egg','Egg'],['chicken','Chicken'],['pork','Pork'],['beef','Beef']];
 // Food heals a percent of max health, and better food heals more.
 const FOOD_PCT=[.026,.065,.117,.182,.26,.364]; // total over 3 turns (30% more than the old instant heal, since it arrives late)
+const FOOD_FAT=.5; // farm food also eases fatigue: this share of its healing percent, as fatigue points over the same 3 turns
 const FOOD_HP=t=>FOOD_PCT[t];
 FOODS.forEach(([id,n],t)=>{CONSUMABLES[id]={n,cost:0,lvl:1,noShop:true,field:true,food:FOOD_PCT[t],quick:true,d:''}});
 // The Witch's free mana items. Like farm food they restore over 3 turns and don't use the turn.
@@ -4197,7 +4199,7 @@ const HEAL_UP=[0,.02,.05,.10];
 const potencyMult=()=>1+HEAL_UP[(state&&state.b&&state.b.potency)||0],feedMult=()=>1+HEAL_UP[(state&&state.b&&state.b.feed)||0];
 // Descriptions follow the upgrades.
 for(const [id,pct] of [['potion',.35],['mpotion',.55],['gpotion',.75]])Object.defineProperty(CONSUMABLES[id],'d',{get(){return `Restores ${Math.round(pct*potencyMult()*100)}% of one hero’s max health.`},configurable:true});
-FOODS.forEach(([id],t)=>Object.defineProperty(CONSUMABLES[id],'d',{get(){const p=FOOD_PCT[t]*feedMult()*100;return `Free farm food. Heals ${+p.toFixed(1)}% of one hero’s max health over 3 turns (${+(p/3).toFixed(1)}% each turn). Eating doesn’t use the turn. It can’t save someone from a killing blow, and anything left when the fight ends heals right away.`},configurable:true}));
+FOODS.forEach(([id],t)=>Object.defineProperty(CONSUMABLES[id],'d',{get(){const p=FOOD_PCT[t]*feedMult()*100;return `Free farm food. Heals ${+p.toFixed(1)}% of one hero’s max health and eases ${+(p*FOOD_FAT).toFixed(1)}% fatigue over 3 turns (${+(p/3).toFixed(1)}% health and ${+(p*FOOD_FAT/3).toFixed(1)}% fatigue each turn). Eating doesn’t use the turn. It can’t save someone from a killing blow, and anything left when the fight ends heals right away.`},configurable:true}));
 const consIco=(id,sc=3)=>{const C=CONSUMABLES[id];if(id==='moonveil')return sprite('flask','#c9d4e8',sc,'ico');if(id==='starsight')return sprite('flask','#f2d36b',sc,'ico');if(C&&C.mana)return sprite('flask',{spray:'#8fb0f0',pill:'#6b8fe8',patch:'#4f6fd8',injection:'#3a4fc0'}[id],sc,'ico');if(C&&C.food)return sprite(id,null,sc,'ico');if(id==='ration')return sprite('bread',null,sc,'ico');if(id==='meal')return sprite('bowl','#c98b5c',sc,'ico');if(id==='ebrew')return sprite('flask','#e3b341',sc,'ico');return sprite('flask',C.el?EL_COL[C.el]:id==='ether'?'#5a7ae0':id==='gpotion'?'#e0304a':id==='mpotion'?'#cc3448':'#b83a3a',sc,'ico')};
 function useConsumable(id,ally,user){
   const r=state.run,C=CONSUMABLES[id];if(!C||!(r.bag[id]>0)||!ally||ally.hp<=0)return false;
@@ -4210,8 +4212,10 @@ function useConsumable(id,ally,user){
   const who=esc(ally.name),cm=1+tr(ally,'consHeal')/100;let msg;
   if(C.heal){const v=Math.round(maxHp(ally)*C.heal*potencyMult()*healMult(ally)*cm);ally.hp=Math.min(maxHp(ally),ally.hp+v);msg=`${who} +${v} HP`;if(b)b.pops.push({s:'h',hid:ally.id,t:'+'+v});bloom(user||ally,ally,v)}
   else if(C.food||C.mana){const k=C.food?'hp':'mp',tot=(C.food?C.food*feedMult():C.mana)*cm;
-    if(b){(ally.regen=ally.regen||[]).push({k,p:tot/3,n:3});msg=`${who} will recover ${Math.round(tot*100)}% ${k==='hp'?'health':'mana'} over 3 turns`}
-    else{const mx=k==='hp'?maxHp(ally):maxMp(ally),v=Math.max(1,Math.round(mx*tot*(k==='hp'?healMult(ally):manaMult())));ally[k]=Math.min(mx,ally[k]+v);msg=`${who} +${v} ${k==='hp'?'HP':'MP'}`}}
+    const fat=C.food?tot*100*FOOD_FAT:0; // fatigue points eased by food
+    if(b){(ally.regen=ally.regen||[]).push({k,p:tot/3,n:3});if(fat)ally.regen.push({k:'fat',p:fat/3,n:3});msg=`${who} will recover ${Math.round(tot*100)}% ${k==='hp'?'health':'mana'}${fat?` and ${+fat.toFixed(1)}% fatigue`:''} over 3 turns`}
+    else{const mx=k==='hp'?maxHp(ally):maxMp(ally),v=Math.max(1,Math.round(mx*tot*(k==='hp'?healMult(ally):manaMult())));ally[k]=Math.min(mx,ally[k]+v);msg=`${who} +${v} ${k==='hp'?'HP':'MP'}`;
+      if(fat&&ally.fat>0){const was=fatOf(ally);ally.fat=Math.max(0,ally.fat-fat);msg+=`, fatigue ${was}% → ${fatOf(ally)}%`}}}
   else if(id==='ration'){const v=Math.round(maxHp(ally)*.2*healMult(ally)*cm);ally.hp=Math.min(maxHp(ally),ally.hp+v);msg=`${who} +${v} HP`;if(b)b.pops.push({s:'h',hid:ally.id,t:'+'+v})}
   else if(id==='meal'){if(b)return false;const parts=living().map(x=>{const v=Math.round(maxHp(x)*.3*healMult(x)*(1+tr(x,'consHeal')/100));x.hp=Math.min(maxHp(x),x.hp+v);return `${esc(x.name)} +${v}`});msg=parts.join(', ')+' HP'}
   else if(C.fat){if(!(ally.fat>0))return false;const was=fatOf(ally);ally.fat=Math.max(0,(ally.fat||0)-C.fat);msg=`${who}’s fatigue ${was}% → ${fatOf(ally)}%`;if(b)b.pops.push({s:'h',hid:ally.id,t:'-'+(was-fatOf(ally))+'%'})}
@@ -4913,7 +4917,7 @@ const COACH={
     ['pack',()=>`Every time a party sets out, the farm’s food goes straight into their bag. It’s free, it doesn’t take pack space, and it refills every week.`],
     ['level',()=>`Bring Bram scrap from the road and he grows the farm. Each level packs one more piece of food, and every few levels the food gets better.`],
     ['road',()=>`Wheat, fruit, eggs, chicken, pork, then beef. Better food heals more.`],
-    [null,()=>`In a fight, eating doesn’t use the turn. Food heals over 3 turns, so feed a hero before they’re in danger: it can’t save anyone from a killing blow. Whatever is left when the fight is won heals right away.`],
+    [null,()=>`In a fight, eating doesn’t use the turn. Food heals and eases fatigue over 3 turns, so feed a hero before they’re in danger: it can’t save anyone from a killing blow. Whatever is left when the fight is won heals right away.`],
     ['still',()=>`Bram’s Still works the same way for healing potions: free on every adventure. Potions heal instantly.`],
     [null,()=>`Unused food spoils on the way home, so there’s no reason to hold back.`],
   ],
@@ -5799,7 +5803,7 @@ function farmFields(tabs){
   s+=tabs;
   s+=`<div class="farmscene">${sprite('farmer','#6f8f4a',6)}<div class="stack" style="gap:4px">
     <p>“${L?(nx?`Keep the scrap coming and I’ll ${nx.newBld?`build you a ${nx.bld.toLowerCase()}`:'grow you more'}.`:'Finest farm this side of the moon. Nothing more I can build.'):'Bring me enough scrap – old blades, broken armor, lumber and good dirt – and I’ll start you a farm.'}”</p>
-    ${L?`<span class="${coachMark('farm','pack')}">Level ${L}/${FARM_MAX} · packed free on every adventure: ${foodChip(cur)} <span class="muted">(each heals ${+(CONSUMABLES[cur.food].food*feedMult()*100).toFixed(1)}% of max health over 3 turns)</span></span>`:''}
+    ${L?`<span class="${coachMark('farm','pack')}">Level ${L}/${FARM_MAX} · packed free on every adventure: ${foodChip(cur)} <span class="muted">(each heals ${+(CONSUMABLES[cur.food].food*feedMult()*100).toFixed(1)}% of max health and eases ${+(CONSUMABLES[cur.food].food*feedMult()*100*FOOD_FAT).toFixed(1)}% fatigue over 3 turns)</span></span>`:''}
     <span class="muted">Rations go straight into the party’s bag when they set out, without taking pack space. Whatever isn’t eaten spoils on the way home.</span></div></div>`;
   s+=`<div class="matbar"><span class="muted">Scrap</span>${SCRAPS_SEEN().map(k=>`<span class="matchip" data-tip="${MATS[k].n} (from ${MATS[k].from} enemies)">${matIco(k,3)}<small class="muted">${MATS[k].n}</small> ${(state.mats[k]||0).toFixed(1)}</span>`).join('')}</div>`;
   // the whole road, so progress is visible
@@ -6060,7 +6064,7 @@ function heroInfo(h){
   if(heroBuff(h,'undying'))tags.push('<span class="utag gold" data-tip="Undying Vow: cannot drop below 1 health, takes 50% less damage and taunts until it fades.">Undying</span>');
   const inc=b.over||!seeIntent()?0:aliveFoes().filter(e=>e.intent&&(aoeAct(e.intent.act)||intentTarget(e)===h)).length;
   if(inc&&h.hp>0)tags.push(`<span class="utag tgtd" data-tip="${inc} enem${inc>1?'ies are':'y is'} aiming at this hero next.">Targeted${inc>1?' ×'+inc:''}</span>`);
-  if(h.regen&&h.regen.length){const hp=h.regen.filter(x=>x.k==='hp'),mp=h.regen.filter(x=>x.k==='mp'),t=Math.max(...h.regen.map(x=>x.n));tags.push(`<span class="utag" style="color:#8fe08a" data-tip="${esc(`Recovering: ${hp.length?'+'+Math.round(hp.reduce((a,x)=>a+x.p,0)*100)+'% health':''}${hp.length&&mp.length?' and ':''}${mp.length?'+'+Math.round(mp.reduce((a,x)=>a+x.p,0)*100)+'% mana':''} at the start of each turn, ${t} turn${t>1?'s':''} left. Whatever is left when the fight is won lands right away.`)}">Regen ×${t}</span>`)}
+  if(h.regen&&h.regen.length){const hp=h.regen.filter(x=>x.k==='hp'),mp=h.regen.filter(x=>x.k==='mp'),fa=h.regen.filter(x=>x.k==='fat'),t=Math.max(...h.regen.map(x=>x.n));tags.push(`<span class="utag" style="color:#8fe08a" data-tip="${esc(`Recovering: ${listNames([hp.length?'+'+Math.round(hp.reduce((a,x)=>a+x.p,0)*100)+'% health':'',mp.length?'+'+Math.round(mp.reduce((a,x)=>a+x.p,0)*100)+'% mana':'',fa.length?'−'+(+fa.reduce((a,x)=>a+x.p,0).toFixed(1))+'% fatigue':''].filter(Boolean))} at the start of each turn, ${t} turn${t>1?'s':''} left. Whatever is left when the fight is won lands right away.`)}">Regen ×${t}</span>`)}
   if(b.dot&&b.dot[h.id])tags.push(`<span class="utag" style="color:#c4463f" data-tip="Bleeding: loses ${b.dot[h.id].dmg} health at the start of each of their next ${b.dot[h.id].n} turns.">Bleeding</span>`);
   if(b.curse&&b.curse[h.id])tags.push('<span class="utag" style="color:#b56fe3" data-tip="Withered: deals 25% less damage until the curse wears off.">Withered</span>');
   const ij=injOf(h);if(ij)tags.push(`<span class="utag warn" data-tip="${esc(INJURY[ij].n+': '+INJURY[ij].d+'. Heals after week '+h.injury.until+'.')}">${INJURY[ij].n}</span>`);
