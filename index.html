@@ -510,6 +510,7 @@ body.inbattle{overflow:hidden;overscroll-behavior:none}
 .side.heroes{flex-direction:row}
 .unit{--us:clamp(46px,7vw,84px);position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;width:clamp(96px,13vw,150px);color:var(--bone);text-align:center;min-width:0}
 .unit.big{--us:clamp(64px,10.5vw,126px)}
+.unit.foe.kingv .fo{transform:scale(var(--ks,1));transform-origin:50% 100%;transition:transform .8s ease}
 .unit.foe{cursor:pointer}
 .unit .fo{line-height:0}
 .unit .fo img.px{width:min(calc(var(--us) * 1.275),calc((100cqw - 80px) / 6),calc(100cqh - 22px));height:auto;max-width:none}
@@ -2216,6 +2217,17 @@ const SKELETONS={
 };
 
 /* Bosses, wardens, the Unlit King and the Mimic: one-off designs on a 40×40 grid. */
+// The Dark Side's void bosses, in order: one on every 15th stage. phys = the physical share of every hit;
+// the rest is a random element (fire, ice, thunder, grass, fighting or dark), rolled again before every attack.
+const VOID_BOSSES=[
+  {n:'The Hollow Maw',d:'vmaw',phys:.4,sp:['leech',25,'weak','Devour'],pal:{E:{c:'#ff4ab0',flat:true}}},
+  {n:'The Lantern Wraith',d:'vlantern',phys:.2,sp:['skin',25,'back','Borrowed Light'],pal:{C:{c:'#9fd6ff',flat:true},G:{c:'#e8faff',flat:true},E:{c:'#9fd6ff',flat:true}}},
+  {n:'The Thousand-Eyed',d:'veyes',phys:.35,sp:['keen',20,'weak','Seen Everything'],pal:{E:{c:'#ff7a3a',flat:true}}},
+  {n:'The Gatekeeper',d:'vgate',phys:.6,sp:['thick',30,'front','Iron Vigil'],pal:{C:{c:'#7fe9ff',flat:true},E:{c:'#7fe9ff',flat:true}}},
+  {n:'The Hollow Choir',d:'vchoir',phys:.25,sp:['regen',4,'back','Endless Hymn'],pal:{E:{c:'#ffe05a',flat:true}}},
+  {n:'The Crowned Shadow',d:'vherald',phys:.5,sp:['crusher',2.3,'fixate','Herald’s Verdict'],pal:{G:'#c8a040',E:{c:'#ff3a5a',flat:true}}},
+];
+const VOID_N=Object.fromEntries(VOID_BOSSES.map(v=>[v.n,v]));
 const BOSS_DRAW={
   // Frost giant king: horned crown, beard, fur mantle, a great ice axe.
   jarl:(g,fr)=>{const atk=fr===2,hurt=fr===3,by=fr===1?1:0,bx=atk?-2:hurt?2:0,cx=21+bx;
@@ -2306,17 +2318,82 @@ const BOSS_DRAW={
     const sx=atk?cx-14:cx-10,sy=12+by;
     g.line(cx+10,3,cx+10,34,'K',0,2);g.line(cx+10,3,cx+10,34,'S');g.poly([[cx+10,2],[cx+15,6],[cx+10,9]],'S');
     g.poly([[sx-4,sy],[sx+4,sy],[sx+4,sy+11],[sx,sy+15],[sx-4,sy+11]],'M');g.poly([[sx-2,sy+2],[sx+2,sy+2],[sx+2,sy+10],[sx,sy+12],[sx-2,sy+10]],'C');g.ell(sx,sy+6,1.4,1.4,'G')},
-  // The Unlit King: a crowned corpse-king in rags with a scepter of black fire.
-  king:(g,fr)=>{const atk=fr===2,hurt=fr===3,by=fr===1?1:0,bx=atk?-2:hurt?2:0,cx=21+bx;
-    g.poly([[cx-7,12+by],[cx+8,12+by],[cx+12,38],[cx-11,38]],'R');g.paint((x,y)=>y>34&&(x+y+fr)%3===0,'R','');
-    g.poly([[cx-6,13+by],[cx+6,13+by],[cx+5,34],[cx-5,34]],'A');g.paint((x,y)=>y%3===0&&y>15&&y<26,'A','a');
-    g.ell(cx-7,13+by,3.4,2.4,'M');g.ell(cx+7,13+by,3.4,2.4,'M');
-    const hx=cx-1,hy=7+by+(hurt?-1:0);g.ell(hx,hy,4,4.2,'w');g.rect(hx-3,hy+2,6,3,'w');g.rect(hx-3,hy-1,2,2,'D');g.rect(hx+1,hy-1,2,2,'D');if(!hurt){g.px(hx-3,hy-1,'E');g.px(hx+1,hy-1,'E')}g.line(hx-2,hy+3,hx+2,hy+3,'D');
-    g.rect(hx-5,hy-5,11,3,'G');for(let k=0;k<5;k++)g.poly([[hx-5+k*2.5,hy-5],[hx-4+k*2.5,hy-11-(k%2)*2],[hx-3+k*2.5,hy-5]],'G');g.px(hx,hy-4,'C');
-    const hd=atk?[cx-14,12+by]:[cx-10,22+by],top=atk?[hd[0]-6,hd[1]-3]:[hd[0],hd[1]-14];
-    g.line(cx-6,14+by,hd[0],hd[1],'A',0,3);g.line(hd[0],hd[1]+(atk?0:8),top[0],top[1],'K',0,3);g.line(hd[0],hd[1]+(atk?0:8),top[0],top[1],'S');
-    g.ell(top[0],top[1]-1,2.6,2.6,'D');g.ell(top[0],top[1]-1,1.4,1.4,'C');for(let k=0;k<3;k++)g.px(top[0]-2+((k*3+fr)%5),top[1]-4-k,'C');
-    g.ell(hd[0],hd[1]+1,1.8,1.8,'w')},
+  // The Unlit King: a towering mass of void with a crown of bone and many eyes. As it takes damage (phase 0-4)
+  // the void burns away and shrinks, and what stands inside it looks more and more like the governor's father.
+  kingv:(g,fr,ph)=>{ph=ph||0;const atk=fr===2,hurt=fr===3,by=fr===1?1:0,cx=20+(atk?-2:hurt?2:0);
+    const hs=(x,y)=>{const v=Math.sin(x*12.9898+y*78.233)*43758.5453;return v-Math.floor(v)};
+    // the father: an old man in a long mended coat, silver hair and beard
+    const fy=by;
+    g.rect(cx-4,36,3,2,'d');g.rect(cx+1,36,3,2,'d');g.rect(cx-4,29+fy,3,7-fy,'P');g.rect(cx+1,29+fy,3,7-fy,'P');
+    g.poly([[cx-6,19+fy],[cx+6,19+fy],[cx+7,33+fy],[cx-7,33+fy]],'C');g.line(cx,20+fy,cx,32+fy,'c');g.paint((x,y)=>(x===cx-5||x===cx+5)&&y>26&&y<30,'C','c');
+    g.rect(cx-6,25+fy,12,1,'c');
+    const arm=atk?[[cx-6,20+fy],[cx-12,15+fy]]:[[cx-6,20+fy],[cx-8,29+fy]];g.line(arm[0][0],arm[0][1],arm[1][0],arm[1][1],'C',0,2.4);g.ell(arm[1][0],arm[1][1]+(atk?-1:1),1.4,1.4,'F');
+    g.line(cx+6,20+fy,cx+8,29+fy,'C',0,2.4);g.ell(cx+8,30+fy,1.4,1.4,'F');
+    const hy=14+fy+(hurt?-1:0);g.ell(cx,hy,3.6,4,'F');g.ell(cx,hy-3.2,3.8,1.6,'H');g.rect(cx-4,hy-3,1,3,'H');g.rect(cx+3,hy-3,1,3,'H');
+    g.poly([[cx-3,hy+2],[cx+3,hy+2],[cx+2,hy+5],[cx,hy+6],[cx-2,hy+5]],'B');g.rect(cx-1,hy+3,2,1,'D');g.rect(cx-2,hy-2,1,1,'H');g.rect(cx+1,hy-2,1,1,'H');
+    const eye=ph>=3&&!hurt?'E':'k0';g.px(cx-2,hy-.5,eye);g.px(cx+1,hy-.5,eye);
+    // the void: big and solid at first, then thinner and smaller with each phase, and it lets the father show through
+    const R=[[18,17],[16,15.5],[13.5,13.5],[11,11.5],[8.5,9.5]][ph],cy=[21,22,22.5,23,24][ph]+by;
+    const cutOn=[0,.3,.55,.8,.94][ph],cutOff=[0,.05,.2,.45,.75][ph];
+    for(let y=0;y<40;y++)for(let x=0;x<40;x++){const a=Math.atan2(y-cy,x-cx),wob=1+.1*Math.sin(a*5+fr*1.4)+.06*Math.sin(a*9-fr);
+      const dx=(x+.5-cx)/(R[0]*wob),dy=(y+.5-cy)/(R[1]*wob),d=dx*dx+dy*dy;if(d>1)continue;
+      const on=!!g.get(x,y),n=hs(x,y)*.8+d*.35;if(n<(on?cutOn:cutOff))continue;
+      g.px(x,y,d>.82?'a':hs(x+3,y)<.08?'V':'A')}
+    // tendrils reaching out of the void (fewer as it shrinks)
+    for(let k=0;k<5-ph;k++){const a=-.4+k*.9+fr*.15,len=12-ph*2;let x=cx+Math.cos(a)*R[0]*.7,y=cy+Math.sin(a)*R[1]*.7+6;for(let t=0;t<len;t++){x+=Math.cos(a)*.9;y+=Math.sin(a+Math.sin(t*.6+fr))*.9;g.px(x,y,'a')}}
+    if(atk&&ph<4)g.line(cx-6,cy-2,cx-19,cy-8+ph*2,'a',0,2.4);
+    // eyes in the void: many at first, fewer later, until only his own eyes burn
+    const EY=[[-7,-6],[6,-7],[-1,-11],[-10,2],[9,1],[-4,6],[5,7]].slice(0,[7,5,3,1,0][ph]);
+    for(const [ex,ey] of EY){const x=cx+ex*(R[0]/18),y=cy+ey*(R[1]/17),r=ph?1.3:1.8;if(hurt)g.px(x,y,'k0');else{g.ell(x,y,r,r*.85,'E');g.px(x,y,'D')}}
+    // the crown of bone floats on the void, then settles onto his head as a ring of smoke
+    if(ph<3){const ky=cy-R[1]+6,kw=7-ph;g.rect(cx-kw,ky,kw*2+1,2,'G');for(let k=0;k<=kw;k+=2){g.poly([[cx-kw+k*2-1,ky],[cx-kw+k*2,ky-4-(k%4?0:2)],[cx-kw+k*2+1,ky]],'G')}}
+    else{g.rect(cx-4,hy-5,9,1,'K');for(const dx of [-4,-1,2,4])g.px(cx+dx,hy-6,'K');g.px(cx,hy-6,'E')}},
+  // ---- Void bosses of the Dark Side: one guards every 15th stage ----
+  // The Hollow Maw: a floating mouth ringed with eyes, trailing tendrils.
+  vmaw:(g,fr)=>{const atk=fr===2,hurt=fr===3,by=fr===1?1:0,cx=20+(atk?-3:hurt?2:0),cy=16+by;
+    for(let k=0;k<6;k++){let x=cx-8+k*3.2,y=cy+10;for(let t=0;t<12;t++){x+=Math.sin(t*.7+k*1.3+fr)*.8;g.px(x,y+t,'a');if(t<8)g.px(x+1,y+t,'a')}}
+    g.ell(cx,cy,13,12,'A');g.paint((x,y)=>(x*7+y*3)%11===0,'A','V');
+    const open=atk?7:hurt?2:4;g.ell(cx-1,cy+3,8.5,open,'D');
+    for(let k=0;k<5;k++){const x=cx-8.5+k*3.5;g.poly([[x,cy+3-open+.5],[x+1.4,cy+3-open+3],[x+2.8,cy+3-open+.5]],'w');g.poly([[x+.6,cy+3+open-.5],[x+2,cy+3+open-3],[x+3.4,cy+3+open-.5]],'w')}
+    for(const [dx,dy,r] of [[-6,-6,1.6],[0,-8,2.2],[6,-6,1.6],[-9,-1,1.1],[9,-1,1.1]]){if(hurt)g.px(cx+dx,cy+dy,'k0');else{g.ell(cx+dx,cy+dy,r,r,'E');g.px(cx+dx,cy+dy,'D')}}},
+  // The Lantern Wraith: a tall hooded shape holding up a lantern of cold void-fire.
+  vlantern:(g,fr)=>{const atk=fr===2,hurt=fr===3,by=fr===1?1:0,cx=23+(atk?-2:hurt?2:0);
+    g.poly([[cx-5,6+by],[cx+5,6+by],[cx+10,38],[cx+4,35],[cx,38],[cx-4,35],[cx-10,38]],'A');g.paint((x,y)=>x%3===0&&y>12,'A','a');
+    g.ell(cx,8+by,5,5.5,'A');g.ell(cx-1,9+by,3.4,3.6,'D');
+    if(!hurt){g.px(cx-2,9+by,'E');g.px(cx+1,9+by,'E')}else{g.px(cx-2,9+by,'k0');g.px(cx+1,9+by,'k0')}
+    const hand=atk?[cx-16,11+by]:[cx-11,20+by];g.line(cx-4,14+by,hand[0],hand[1],'A',0,2.5);
+    const lx=hand[0]+(atk?-1:0),ly=hand[1]+2+(atk?-1:0);g.line(hand[0],hand[1],lx,ly,'M');
+    g.rect(lx-3,ly,7,1,'M');g.rect(lx-3,ly+7,7,1,'M');g.rect(lx-2,ly+1,5,6,'C');g.rect(lx-1,ly+2,3,4,'G');g.line(lx-3,ly+1,lx-3,ly+6,'M');g.line(lx+3,ly+1,lx+3,ly+6,'M');
+    for(let k=0;k<3;k++)g.px(lx-1+((k*2+fr)%3),ly-2-k,'C')},
+  // The Thousand-Eyed: a crouching mass of eyes on long jointed legs.
+  veyes:(g,fr)=>{const atk=fr===2,hurt=fr===3,by=fr===1?1:0,cx=20+(atk?-2:hurt?2:0),cy=24+by;
+    for(const sd of [-1,1])for(let k=0;k<4;k++){const kx=cx+sd*(9+k*2.6),ky=cy-9+k*2-(atk&&sd<0&&k===0?6:0);g.line(cx+sd*(5+k*2),cy,kx,ky,'a',0,2);g.line(kx,ky,cx+sd*(11+k*2.4),38,'a',0,1.6)}
+    g.ell(cx,cy,12,9,'A');g.ell(cx,cy-6,8,6,'A');g.paint((x,y)=>(x*5+y*3)%13===0,'A','V');
+    for(const [dx,dy,r] of [[-7,-1,1.8],[-2,-3,2.6],[4,-2,2],[8,1,1.4],[-4,3,1.4],[1,3,1.8],[6,4,1.2],[-9,3,1],[-1,-9,1.6],[3,-8,1.2],[-4,-7,1.1]]){
+      g.ell(cx+dx,cy+dy,r+.6,r+.4,'w');if(hurt)g.line(cx+dx-r,cy+dy,cx+dx+r,cy+dy,'k0');else{g.ell(cx+dx+(atk?-.5:0),cy+dy,r*.6,r*.6,'E');g.px(cx+dx+(atk?-.5:0),cy+dy,'D')}}},
+  // The Gatekeeper: a horned giant in void-black plate, carrying a town gate as a shield.
+  vgate:(g,fr)=>{const atk=fr===2,hurt=fr===3,by=fr===1?1:0,cx=23+(atk?-2:hurt?2:0);
+    g.rect(cx+1,28+by,6,10-by,'a');g.rect(cx-6,28+by,6,10-by,'A');g.rect(cx-7,37,8,2,'d');g.rect(cx+1,37,7,2,'d');
+    g.poly([[cx-11,11+by],[cx+11,11+by],[cx+8,29+by],[cx-8,29+by]],'M');g.paint((x,y)=>(x+y)%5===0,'M','m');
+    g.ell(cx-11,12+by,5,4,'M');g.ell(cx+11,12+by,5,4,'M');
+    const hy=9+by;g.rect(cx-4,hy-3,9,8,'M');g.rect(cx-3,hy,7,1,'D');if(!hurt)g.rect(cx-2,hy,5,1,'E');
+    g.poly([[cx-4,hy-2],[cx-9,hy-8],[cx-5,hy-3]],'w');g.poly([[cx+5,hy-2],[cx+10,hy-8],[cx+6,hy-3]],'w');
+    g.ell(cx,20+by,3,3,'A');g.ell(cx,20+by,1.6,1.6,'C');
+    const sx=atk?cx-18:cx-14,sy=12+by;g.rect(sx-5,sy,11,20,'K');for(let x=sx-4;x<=sx+4;x+=2)g.rect(x,sy+2,1,17,'S');g.rect(sx-5,sy+6,11,1,'S');g.rect(sx-5,sy+14,11,1,'S');g.poly([[sx-5,sy],[sx,sy-4],[sx+5,sy]],'S');g.ell(sx,sy+10,1.4,1.4,'C')},
+  // The Hollow Choir: three pale masks singing from one cloak of void.
+  vchoir:(g,fr)=>{const atk=fr===2,hurt=fr===3,cx=20+(atk?-2:hurt?2:0),M=[[cx-10,14+(fr%2)],[cx,8+((fr+1)%2)],[cx+10,15+(fr%2)]];
+    g.poly([[M[0][0]-4,M[0][1]+3],[M[1][0],M[1][1]+4],[M[2][0]+4,M[2][1]+3],[cx+9,37],[cx+3,32],[cx,37],[cx-3,32],[cx-9,37]],'A');
+    g.paint((x,y)=>y>28&&(x+fr)%3===0,'A','a');g.paint((x,y)=>(x*5+y*7)%13===0,'A','V');
+    M.forEach(([x,y],i)=>{g.ell(x,y,4.4,5.2,'w');g.rect(x-3,y-1,2,2,'D');g.rect(x+1,y-1,2,2,'D');if(!hurt){g.px(x-2,y-1,'E');g.px(x+1,y-1,'E')}
+      g.ell(x-.5,y+3,1.6,atk||i===1?1.8:.8,'D');g.line(x+2,y-4,x+3,y+1,'V')})},
+  // The Crowned Shadow: the King's herald, a broken crown and a black blade taller than a man.
+  vherald:(g,fr)=>{const atk=fr===2,hurt=fr===3,by=fr===1?1:0,cx=22+(atk?-2:hurt?2:0);
+    g.poly([[cx-8,12+by],[cx+8,12+by],[cx+11,38],[cx-11,38]],'A');g.paint((x,y)=>y>33&&(x+y+fr)%3===0,'A','');g.paint((x,y)=>y%4===0&&y>14,'A','a');
+    g.ell(cx-8,13+by,4,3,'M');g.ell(cx+8,13+by,4,3,'M');
+    const hx=cx-1,hy=7+by+(hurt?-1:0);g.ell(hx,hy,4.4,4.8,'A');g.ell(hx,hy+1,3,3,'D');if(!hurt){g.px(hx-1,hy,'E');g.px(hx+1,hy,'E')}
+    g.rect(hx-5,hy-5,11,2,'G');g.poly([[hx-5,hy-5],[hx-4,hy-10],[hx-3,hy-5]],'G');g.poly([[hx+1,hy-5],[hx+2,hy-9],[hx+3,hy-5]],'G');g.poly([[hx+3,hy-5],[hx+5,hy-7],[hx+5,hy-5]],'G');
+    const hd=atk?[cx-13,10+by]:[cx-11,24+by],tip=atk?[hd[0]-5,hd[1]+24]:[hd[0]-1,hd[1]-22];g.line(cx-6,14+by,hd[0],hd[1],'A',0,3);
+    g.line(hd[0],hd[1],tip[0],tip[1],'K',0,4);g.line(hd[0],hd[1],tip[0],tip[1],'S',0,1.6);g.line(hd[0]-3,hd[1],hd[0]+3,hd[1],'G',0,1.5);g.ell(hd[0],hd[1],1.8,1.8,'A')},
   // The Mimic: a chest that bites.
   mimic:(g,fr)=>{const atk=fr===2,hurt=fr===3,open=atk?8:fr===1?4:hurt?1:3,cx=20+(atk?-2:hurt?2:0);
     for(const [x,d] of [[cx-9,-1],[cx-4,0],[cx+5,0],[cx+10,1]]){g.line(x,33,x+d*2-(atk?2:0),38,'a',0,2)}
@@ -2335,7 +2412,10 @@ const BOSSES={
   'Warlord Vask':{d:'vask',pal:{A:'#7a5a40',a:'#5a402c',F:'#c8946a',V:'#4a3a2e',b:'#5a3e24',S:'#c8c8d4',K:{c:'#120c08',flat:true},M:'#8a6a4a',m:'#6a4e34',w:'#e8e0cc',D:'#1e140c',H:'#3a2a1e',r:'#a82a24',d:'#2e2014',E:{c:'#ff5a3a',flat:true},k0:'#1e140c'}},
   'The Abyssal Tyrant':{d:'tyrant',pal:{A:'#2c2044',a:'#1c1430',h:'#c8b8e8',C:{c:'#a070ff',flat:true},G:{c:'#ffffff',flat:true},D:'#0a0612',E:{c:'#ff4ab0',flat:true},k0:'#ff4ab0'}},
   'Mimic':{d:'mimic',pal:{A:'#8a5a30',a:'#5a3a1e',M:'#c8a050',G:'#e3b341',D:{c:'#2a0a0a',flat:true},m:'#a82a3a',w:'#f4ecd8',t:'#d04a6a',E:{c:'#ffe05a',flat:true},k0:'#2a0a0a'}},
-  'The Unlit King':{d:'king',pal:{A:'#2a2238',a:'#1c1628',R:'#4a1a3a',M:'#3a3050',w:'#d8d0c0',D:'#0a0612',G:'#c8a040',S:'#5a5070',K:{c:'#0a0812',flat:true},C:{c:'#a070ff',flat:true},E:{c:'#d090ff',flat:true},k0:'#0a0612'}},
+  'The Unlit King':{d:'kingv',pal:{A:'#1c1430',a:'#110b1e',V:{c:'#5a3a8a',soft:true},E:{c:'#d090ff',flat:true},D:{c:'#06040c',flat:true},G:'#cfc4a8',K:{c:'#0a0812',flat:true},
+    C:'#6a5640',c:'#4a3c2c',F:'#d6a47e',H:'#c8c8d0',B:'#b4b4bc',P:'#3a3a4a',d:'#241a14',k0:'#2a1e18'}},
+  ...Object.fromEntries(VOID_BOSSES.map(v=>[v.n,{d:v.d,pal:{A:'#251c3a',a:'#170f26',V:{c:'#5a3a8a',soft:true},D:{c:'#06040c',flat:true},w:'#d8d0e8',k0:'#06040c',M:'#3a3450',m:'#2a2440',
+    K:{c:'#0a0812',flat:true},S:'#6a6080',d:'#1a1426',G:{c:'#f0d0ff',flat:true},C:{c:'#a070ff',flat:true},E:{c:'#e070ff',flat:true},...v.pal}}])),
 };
 const WARDEN_PAL={
   ice:{A:'#8aa4bc',a:'#6a84a0',C:{c:'#8fd8ff',soft:true},G:{c:'#e8faff',flat:true},E:{c:'#7fe9ff',flat:true}},
@@ -2425,10 +2505,10 @@ function unitStrip(key,make){if(!(key in artCache)){try{artCache[key]=make()}cat
 // Small pictures (turn order, rosters, ledger cards) use a close crop around the figure so it fills its box.
 function portraitOf(key,frames,pal){return unitStrip('P|'+key,()=>{const r=ART.strip(frames(),pal,{crop:1});return {url:r.url,w:r.side,h:r.side,crop:1}})}
 const frames4=draw=>[0,1,2,3].map(draw);
-function foeStripFor(base,kind,type,small){
+function foeStripFor(base,kind,type,small,ph){
   let key,fr,pal,sz=40;
   if(kind==='warden'){key='W|'+type;fr=()=>frames4(f=>{const g=new ART.Grid(40,40);BOSS_DRAW.warden(g,f,type);return g});pal=wardenPal(type)}
-  else if(BOSSES[base]){const S=BOSSES[base];key='B|'+base;fr=()=>frames4(f=>{const g=new ART.Grid(40,40);BOSS_DRAW[S.d](g,f);return g});pal=S.pal}
+  else if(BOSSES[base]){const S=BOSSES[base];key='B|'+base+(ph?'|'+ph:'');fr=()=>frames4(f=>{const g=new ART.Grid(40,40);BOSS_DRAW[S.d](g,f,ph);return g});pal=S.pal}
   else{const U=UNIT_ART[base];if(!U)return null;key='U|'+base;fr=()=>frames4(f=>DRAW[U.fam](U.S,f));pal=U.S.pal;sz=32}
   return small?portraitOf(key,fr,pal):unitStrip(key,()=>({url:ART.strip(fr(),pal),w:sz,h:sz}));
 }
@@ -2436,7 +2516,9 @@ function foeStripFor(base,kind,type,small){
 function artImg(s,scale,cls){const w=s.crop?12*scale:Math.round(s.w*.375*scale),h=s.crop?12*scale:Math.round(s.h*.375*scale);
   return `<img class="px anim ${s.crop&&w<s.w*2?'smooth':''} ${cls||''}" src="${s.url}" width="${w}" height="${h}" style="aspect-ratio:${s.w}/${s.h}" alt="">`}
 const SMALL=4; // at this scale and below, units are shown as close-cropped portraits
-function foeArt(e,scale,cls){const s=e&&foeStripFor(e.base||e.name,e.kind,e.type,scale<=SMALL);return s?artImg(s,scale,cls):sprite(e.spr,EL_COL[e.type]||null,scale,cls)}
+// The King's look follows his health: 0 at full, 4 near death.
+const kph=e=>e&&e.kind==='king'&&e.maxHp?(e.hp<=0?4:Math.min(4,Math.floor((1-e.hp/e.maxHp)*5))):0;
+function foeArt(e,scale,cls){const s=e&&foeStripFor(e.base||e.name,e.kind,e.type,scale<=SMALL,kph(e));return s?artImg(s,scale,cls):sprite(e.spr,EL_COL[e.type]||null,scale,cls)}
 const strHash=s=>{let n=0;for(const c of String(s))n=(n*31+c.charCodeAt(0))>>>0;return n};
 const H_SKIN=['#e8c09a','#d6a47e','#b9835a','#8a5a3a','#f0d0b0','#c89070'],H_HAIR=['#5a3a24','#2a1e18','#c8a050','#8a3a20','#d8d0c0','#3a2a40','#6a2a1a'];
 // Eight general outfit colors. Every hero arrives in one at random; the player can change it on the hero's page.
@@ -3476,7 +3558,7 @@ function genNodes(k){
   const r=state.run;
   if(r.final&&k>finStages(r)&&chance(Math.min(1,(k-finStages(r))*FINAL.kingStep)))return['king'];
   if(!r.final&&k===r.total)return['warden'];
-  if(r.bossAt?r.bossAt.includes(k):k%15===0)return['boss'];
+  if(r.final?k%15===0&&k<=finStages(r):r.bossAt?r.bossAt.includes(k):k%15===0)return['boss'];
   const n=+weighted({2:30,3:45,4:25}),out=[];
   const chestHere=isChestStage(k);
   let guard=0;
@@ -3729,6 +3811,7 @@ const SPECIES={
   'Warden of Frozen Tundra':['thick',25,'front','Glacier Plate'],'Warden of Ember Isles':['spikes',20,'front','Blazing Aegis'],'Warden of Storm Spires':['swift',20,'back','Storm Step'],
   'Warden of Rotwood':['regen',3,'weak','Heartwood'],'Warden of Bone Badlands':['keen',20,'fixate','Duelist’s Eye'],'Warden of Abyss':['skin',25,'back','Void Mantle'],
   'Mimic':['opener',60,'weak','Snap Shut'],'The Unlit King':['pack',10,'front','Lord of the Unlit'],
+  ...Object.fromEntries(VOID_BOSSES.map(v=>[v.n,v.sp])),
 };
 const ABIL={
   pack:v=>`Deals ${v}% more damage for every other monster still standing beside it.`,
@@ -3796,7 +3879,7 @@ function makeEnemy0(kind,add,forceSpr){
   const r=state.run,B=BIOMES[r.biome];
   let lvl=enemyLevel(),name,spr,type=r.final?'dark':B.el;
   if(kind==='king'){name='The Unlit King';spr='boss';type='dark';lvl+=5}
-  else if(kind==='boss'){name=B.boss;spr='boss'}
+  else if(kind==='boss'){name=r.final?VOID_BOSSES[clamp(Math.floor(r.stage/15)-1,0,VOID_BOSSES.length-1)].n:B.boss;spr='boss'}
   else if(kind==='warden'){name='Warden of '+B.name.replace(/^The /,'');spr='boss'}
   else if(kind==='mimic'){name='Mimic';spr='mimic';type='physical'}
   else [name,spr]=forceSpr?(B.mons.find(m=>m[1]===forceSpr)||pick(B.mons)):pick(B.mons);
@@ -3825,7 +3908,7 @@ function makeEnemy0(kind,add,forceSpr){
   // On the Dark Side every monster is void-touched, whatever land it came from.
   if(r.final&&(kind==='normal'||kind==='elite')&&r.biome!=='abyss')name='Void '+name;
   const bossType=kind==='warden'?pick(['charge','scale']):null;
-  return {name,base,tier,spr,kind,type,bossType,rage:0,mix:foeMixFor(spr,kind,type,r.final,rng),lvl:Math.round(lvl*10)/10,hp,maxHp:hp,atk,armor:Math.round(lvl*2*(F.arm||1)),res,baseRes,mutation,spd:10+lvl+(F.spd||0),spdBonus:F.spd||0,eva,skills:foeSkillsFor(spr,kind,tier,type).concat(kind!=='warden'&&kind!=='king'&&chance(1/3)?['weary']:[])};
+  return {name,base,tier,spr,kind,type,bossType,rage:0,voidPhys:VOID_N[name]?VOID_N[name].phys:undefined,mix:foeMixFor(spr,kind,type,r.final,rng),lvl:Math.round(lvl*10)/10,hp,maxHp:hp,atk,armor:Math.round(lvl*2*(F.arm||1)),res,baseRes,mutation,spd:10+lvl+(F.spd||0),spdBonus:F.spd||0,eva,skills:foeSkillsFor(spr,kind,tier,type).concat(kind!=='warden'&&kind!=='king'&&chance(1/3)?['weary']:[])};
 }
 /* Mixed damage: every monster hits with part physical force and part element.
    Armor fully blocks the physical part; the elemental part is cut by resistance and by half of the armor. */
@@ -3842,6 +3925,7 @@ function foeMixFor(spr,kind,type,final,rng){
 // Some moves lean harder on raw force, others on the element.
 const MOVE_PHYS={heavy:.2,rend:.15,sweep:0,attack:0,web:-.1,drain:-.25,curse:-.3};
 function foeMix(e,act){
+  if(e.voidPhys!=null){const p=clamp(e.voidPhys+(MOVE_PHYS[act]||0),0,1),el=e.voidEl||'dark';return {physical:p,[el]:1-p}}
   const base=e.mix||(e.type==='physical'?{physical:1}:{physical:.3,[e.type]:.7});
   const p0=base.physical||0,p=clamp(p0+(MOVE_PHYS[act]||0),p0>=1?1:0,p0<=0?0:1);
   const out={physical:p},el=1-p0;for(const k in base)if(k!=='physical')out[k]=el>0?base[k]/el*(1-p):0;
@@ -4146,7 +4230,11 @@ function luckySurge(h){
   blog(`<b class="gold">Lucky surge!</b> ${esc(h.name)} gains ${what} for this battle.`);
 }
 const bigFoe=e=>['boss','warden','king'].includes(e.kind);
+// Stunned monsters take +33% damage from every source. After a stun wears off, bosses (and wardens and the King)
+// can't be stunned again for their next 2 turns, elites and mimics for 1, so stuns can't be chained forever.
+const STUN_BONUS=1.33,stunImmTurns=e=>bigFoe(e)?2:e.kind==='elite'||e.kind==='mimic'?1:0,stunMult=e=>e&&e.stun>0?STUN_BONUS:1;
 function stunFoe(h,e,sk){
+  if(e.stunImm>0){blog(`${e.name} shakes off the stun. It can’t be stunned for ${e.stunImm} more turn${e.stunImm>1?'s':''}.`);state.run.battle.pops.push({s:'e',i:state.run.battle.enemies.indexOf(e),t:'IMMUNE'});return}
   let n;const lk=stat(h,'str')+stat(h,'lck');
   if(sk.stun==='roll'){n=1;if(chance(Math.min(.6,lk*.015))){n=2;if(chance(Math.min(.3,lk*.0075)))n=3}}
   else if(sk.stun==='chance'){if(!chance(Math.min(.9,.5+lk/100)*(bigFoe(e)?.5:1)))return;n=1}
@@ -4271,6 +4359,7 @@ function hitEnemy(h,e,o){
   let d=power(h)*o.mult*Math.max(.1,1+bonus/100)*rand(C.var[0],C.var[1])*HERO_DMG_SCALE*fatDmg(h);
   if(b.warcry)d*=1.25;
   if(e.hex)d*=1.25;
+  d*=stunMult(e);
   if(e.hardened)d*=.6;
   if(e.guardBy!=null){const gd=state.run.battle.enemies[e.guardBy];if(gd&&gd.hp>0)d*=.5;else e.guardBy=null}
   {const S=spOf(e);if(S&&S[0]==='thick'&&el==='physical')d*=1-S[1]/100;if(S&&S[0]==='skin'&&el!=='physical')d*=1-S[1]/100}
@@ -4404,6 +4493,7 @@ const SELF_SKILLS=['howl','harden','ooze','windup','mend','rally','guard'];
 const INTENT_MULT={flurry:1.3,unleash:1.5,attack:1,heavy:1.6,sweep:.6,web:.6,drain:.9,curse:.9,rend:1,whirl:.8,jolt:.8,hook:.8,blast:.8,charge:.8,grasp:.8};
 function planIntent(e){
   if(!e||e.hp<=0){if(e)e.intent=null;return}
+  if(e.voidPhys!=null)e.voidEl=pick(ALL_EL); // void bosses pick a new element for every attack
   if(e.bossType==='charge'){const act=['flurry','flurry','windup','unleash'][(e.tc||0)%4],t=act==='windup'||act==='unleash'?null:pickTarget(e);e.intent={act,tid:t?t.id:null};return}
   const heavy=((e.tc||0)+1)%3===0,act=foeSkillPick(e)||(heavy?'heavy':'attack');
   const L=living(),sh=SHIFT_SK[act];
@@ -4434,7 +4524,8 @@ function intentHtml(e){
   else if(!self){const h=intentTarget(e);who=living().length>1?(h?esc(h.name):'someone'):'';if(known&&h)dmg=' ~'+foeEst(e,h,it.act==='heavy'?heavyMult(e):INTENT_MULT[it.act]||1,it.act==='heavy',it.act)}
   if(TEAM_SK.includes(it.act)){const a=b.enemies[it.ally];if(a&&a.hp>0)who=esc(a.name)}
   const tip=`Next move: ${name}${who?' on '+(who==='all'?'every hero':who):''}.${!known&&!self?' Scout this enemy to see how hard it will hit.':''}${it.act!=='attack'&&it.act!=='heavy'?' '+FOE_SKILLS[it.act].d:it.act==='heavy'?` ${heavyMult(e)}× damage.`:''}`;
-  return `<span class="uintent ${self?'self':''}" data-tip="${esc(tip)}">${ico(ic,tint,2)}${name}${who?` → ${who}`:''}${!self?(known?dmg:' <small class="muted">dmg ?</small>'):''}</span>`;
+  const vel=e.voidPhys!=null&&e.voidEl&&!self?e.voidEl:null;
+  return `<span class="uintent ${self?'self':''}" data-tip="${esc(tip+(vel?` This attack: ${Math.round(e.voidPhys*100)}% physical, the rest ${cap(vel)}.`:''))}">${ico(ic,tint,2)}${name}${vel?' '+elIco(vel):''}${who?` → ${who}`:''}${!self?(known?dmg:' <small class="muted">dmg ?</small>'):''}</span>`;
 }
 // One enemy blow against one hero. Returns the damage dealt, or -1 if the hero dodged.
 function foeStrike(e,i,h,mult,o){
@@ -4451,7 +4542,7 @@ function foeStrike(e,i,h,mult,o){
   {const S=spOf(e);if(S&&S[0]==='leech'&&e.hp>0){const x=Math.round(d*S[1]/100);if(x>0){e.hp=Math.min(e.maxHp,e.hp+x);b.pops.push({s:'e',i,t:'+'+x})}}}
   blog(`${e.name} ${o.verb||'strikes'} ${esc(h.name)}${el!=='physical'?` (${elTag(el)})`:''} for <b>${d}</b>${crit?' <b class="gold">CRIT</b>':''}.`);
   const th=tr(h,'thorns');
-  if(th>0&&e.hp>0){const x=Math.max(1,Math.round(d*th/100));e.hp=Math.max(0,e.hp-x);blog(`Spikes return ${x} damage to ${e.name}.`);if(e.hp<=0){b.fx['die'+i]=1;blog(`${e.name} falls.`)}}
+  if(th>0&&e.hp>0){const x=Math.max(1,Math.round(d*th/100*stunMult(e)));e.hp=Math.max(0,e.hp-x);blog(`Spikes return ${x} damage to ${e.name}.`);if(e.hp<=0){b.fx['die'+i]=1;blog(`${e.name} falls.`)}}
   if(h.hp>0&&bigE)bossAfflict(e,h,d);
   if(h.hp<=0)heroDown(h);
   if(h.hp>0&&e.hp>0&&h.gear.weapon&&h.gear.weapon.fx==='riposte'&&chance(.3)){
@@ -4517,10 +4608,11 @@ function enemyAct(e,i){
   const r=state.run,b=r.battle;
   e.hardened=false;for(const x of b.enemies)if(x.guardBy===i)x.guardBy=null;
   {const S=spOf(e);if(S&&S[0]==='regen'&&e.hp>0&&e.hp<e.maxHp){const x=Math.max(1,Math.round(e.maxHp*S[1]/100));e.hp=Math.min(e.maxHp,e.hp+x);b.pops.push({s:'e',i,t:'+'+x});blog(`${e.name}’s ${S[3]} heals ${x}.`)}}
-  if(e.poison){const x=e.poison.dmg;e.hp=Math.max(0,e.hp-x);e.poison.n--;if(!e.poison.n)e.poison=null;b.pops.push({s:'e',i,t:x});b.fx['burst'+i]=EL_COL.grass;blog(`${e.name} takes ${x} poison damage.`);
+  if(e.poison){const x=Math.round(e.poison.dmg*stunMult(e));e.hp=Math.max(0,e.hp-x);e.poison.n--;if(!e.poison.n)e.poison=null;b.pops.push({s:'e',i,t:x});b.fx['burst'+i]=EL_COL.grass;blog(`${e.name} takes ${x} poison damage.`);
     if(e.hp<=0){b.fx['die'+i]=1;blog(`${e.name} falls.`);return}}
   if(!living().length)return;
-  if(e.stun>0){e.stun--;b.pops.push({s:'e',i,t:'STUNNED',skill:1});blog(`${e.name} is stunned and loses its turn.`);if(e.hex){e.hex--}if(e.weak)e.weak--;return}
+  if(e.stun>0){e.stun--;if(!e.stun)e.stunImm=stunImmTurns(e);b.pops.push({s:'e',i,t:'STUNNED',skill:1});blog(`${e.name} is stunned and loses its turn.`);if(e.hex){e.hex--}if(e.weak)e.weak--;return}
+  if(e.stunImm>0)e.stunImm--;
   if(!e.intent)planIntent(e);
   const it=e.intent,h=intentTarget(e)||pickTarget(e);
   if(!h)return;
@@ -5269,7 +5361,7 @@ const STORY=[
   {id:'rift',n:'The Dark Side Opens',when:()=>descentUnlocked(),
     t:()=>`Tonight the moon went fully dark. Beyond the gate a road that was not there yesterday runs down into shadow: the Dark Side. The Unlit King waits at its end. I’ll send my three best.`},
   {id:'dawn',n:'Dawn',when:()=>state.won,
-    t:()=>`The Unlit King is dead. For the first time in years the smoke lifts, and the moon slowly turns back toward the light. Someone rings the old bell in the square. My father stood at the gate so the town could live. I went to the Dark Side so it could have a future.`},
+    t:()=>`The Unlit King is dead. My heroes came home quiet. At the end, they say, the smoke burned away and there was only an old man in a mended coat, wearing my father’s face. Whatever the King was, it had worn him a long time. For the first time in years the smoke lifts, and the moon slowly turns back toward the light. Someone rings the old bell in the square. My father stood at the gate so the town could live. I went to the Dark Side so it could have a future.`},
 ];
 const storyCleared=k=>!!((state.cleared||{})[k]||(state.gov&&(state.gov.miles||[]).includes(k)));
 function storyNext(){
@@ -6161,6 +6253,7 @@ function foeInfo(e){
   if(e.carry&&e.carry.length)tags.push(`<span class="utag" style="color:#f2a83a" data-tip="${esc(`Carrying ${listNames(e.carry.map(c=>c.owner+'’s '+c.it.name))}. Kill it to get ${e.carry.length>1?'them':'it'} back.`)}">carrying loot</span>`);
   if(e.mutation)tags.push(`<span class="utag" style="color:#b56fe3" data-tip="${esc(MUT[e.mutation].n+': '+MUT[e.mutation].d+'.')}">${MUT[e.mutation].n.toLowerCase()}</span>`);
   if(e.bossType)tags.push(`<span class="utag" style="color:#e3b341" data-tip="${esc(BOSS_STYLE[e.bossType].d)}">${BOSS_STYLE[e.bossType].n.toLowerCase()}</span>`);
+  if(e.voidPhys!=null)tags.push(`<span class="utag" style="color:#c9a0ff" data-tip="${esc(`Void-born: every attack is ${Math.round(e.voidPhys*100)}% physical, and the rest is a random element that changes every attack. Read its next move to see which.`)}">shifting</span>`);
   if((e.kind==='boss'||e.kind==='warden')&&BOSS_AFFLICT[e.type])tags.push(`<span class="utag" style="color:${EL_COL[e.type]}" data-tip="${esc(BOSS_AFFLICT[e.type])}">${BOSS_AFFLICT[e.type].split(':')[0].toLowerCase()}</span>`);
   if(e.rage)cond.push(`<span class="utag" style="color:#ff8a5a" data-tip="Enraged: deals ${Math.round(e.rage*100)}% more damage, and it keeps growing.">+${Math.round(e.rage*100)}%</span>`);
   if(e.grief)cond.push(`<span class="utag" style="color:#ff5a3a" data-tip="Enraged by a fallen packmate: +${e.grief*25}% damage for the rest of the fight.">enraged ×${e.grief}</span>`);
@@ -6168,7 +6261,8 @@ function foeInfo(e){
   if(e.guardBy!=null&&(state.run.battle.enemies[e.guardBy]||{}).hp>0)cond.push(`<span class="utag" style="color:#8fa8c8" data-tip="${esc(`Shielded by ${state.run.battle.enemies[e.guardBy].name}: takes 50% less damage until that monster acts again. Kill the guardian to break it.`)}">shielded</span>`);
   if(TEAM_OF[e.base]&&isScouted(e))cond.push(`<span class="utag" style="color:#8fe08a" data-tip="${esc('Pack role: '+FOE_SKILLS[TEAM_OF[e.base]].n+'. '+FOE_SKILLS[TEAM_OF[e.base]].d)}">${({mend:'healer',rally:'leader',guard:'guardian'})[TEAM_OF[e.base]]}</span>`);
   if(e.hex)cond.push(`<span class="utag" style="color:#b56fe3" data-tip="Hexed: takes 25% more damage from everyone for ${e.hex} more turn${e.hex>1?'s':''}.">hexed</span>`);
-  if(e.stun>0)cond.push(`<span class="utag" style="color:#e3b341" data-tip="Stunned: loses its next ${e.stun>1?e.stun+' turns':'turn'}.">stunned${e.stun>1?' ×'+e.stun:''}</span>`);
+  if(e.stun>0)cond.push(`<span class="utag" style="color:#e3b341" data-tip="Stunned: loses its next ${e.stun>1?e.stun+' turns':'turn'} and takes 33% more damage from everything until then.${stunImmTurns(e)?` Afterward it can’t be stunned for ${stunImmTurns(e)} turn${stunImmTurns(e)>1?'s':''}.`:''}">stunned${e.stun>1?' ×'+e.stun:''}</span>`);
+  if(e.stunImm>0&&!(e.stun>0))cond.push(`<span class="utag" style="color:#a89a70" data-tip="Recovering from a stun: can’t be stunned for ${e.stunImm} more turn${e.stunImm>1?'s':''}.">stun-proof ×${e.stunImm}</span>`);
   if(e.weak)cond.push(`<span class="utag" style="color:#8fcf6f" data-tip="Crippled: deals 30% less damage for ${e.weak} more turn${e.weak>1?'s':''}.">crippled</span>`);
   if(e.poison)cond.push(`<span class="utag" style="color:#6fb35a" data-tip="Poisoned: takes ${e.poison.dmg} damage at the start of each of its next ${e.poison.n} turns.">poisoned</span>`);
   if(e.hardened)cond.push('<span class="utag" style="color:#8fa8c8" data-tip="Hardened: takes 40% less damage until its next turn.">hardened</span>');
@@ -6244,7 +6338,8 @@ function foeUnit(e,i,fx,pops){
   const noreach=!dead&&!b.over&&frontOnly()&&aliveFoes()[0]!==e?'noreach':'';
   const MUT_ICO={regen:['heart','#8fe08a'],thorns:['blade','#c8c8d4'],frenzy:['flame','#ff7a2a'],warded:['shield','#8fa8c8'],colossal:['fist','#e3b341']};
   const mutB=e.mutation&&!dead?`<span class="mutbadge" style="--mc:${(MUT_ICO[e.mutation]||[])[1]||'#b56fe3'}" data-tip="${esc('Elite · '+MUT[e.mutation].n+': '+MUT[e.mutation].d+'.')}">${ico(...(MUT_ICO[e.mutation]||['star',null]),2)}</span>`:'';
-  return `<div class="unit foe ${big?'big':''} ${dead?'down':''} ${tgt?'tgt':''} ${e.mutation?'mut mut-'+e.mutation:''} ${/^Void /.test(e.name)?'voidt':''} ${e.grief?'grief':''} ${e.carry&&e.carry.length&&!dead?'carrier':''} ${noreach} ${wuCls('e'+i)}" data-u="e${i}" ${foeTargetAttrs(e,i)} aria-label="${esc(e.name)}${tgt?' (targeted)':''}" data-tip="${esc(foeTip(e)+(noreach?' Out of reach: warriors can only strike the front enemy.':''))}">
+  const ks=e.kind==='king'?`style="--ks:${(1.25-kph(e)*.09).toFixed(2)}"`:'';
+  return `<div class="unit foe ${big?'big':''} ${e.kind==='king'?'kingv':''} ${dead?'down':''} ${tgt?'tgt':''} ${e.mutation?'mut mut-'+e.mutation:''} ${/^Void /.test(e.name)?'voidt':''} ${e.grief?'grief':''} ${e.carry&&e.carry.length&&!dead?'carrier':''} ${noreach} ${wuCls('e'+i)}" data-u="e${i}" ${foeTargetAttrs(e,i)} ${ks} aria-label="${esc(e.name)}${tgt?' (targeted)':''}" data-tip="${esc(foeTip(e)+(noreach?' Out of reach: warriors can only strike the front enemy.':''))}">
     ${mutB}<div class="fo ${dead?(fx['die'+i]?'dead dying':'dead'):''} ${fx.act==='e:'+i?'lunge-foe':''} ${fx['stop'+i]?'hitstop':''} ${e.poison?'poisoned':''}">${fx['die'+i]?shards(EL_COL[e.type]||'#d8cfc0'):''}${foeArt(e,5,fx['e'+i]&&!dead?'hit':!dead?'bob':'')}${fx['burst'+i]?`<span class="burst" style="--c:${fx['burst'+i]}"></span>`:''}${fx['frz'+i]?'<span class="burst frz" style="--c:#bfe9ff"></span>':''}${skFx(fx,'e:'+i)}${weaponFx(fx,'e:'+i)}${marksHtml('e'+i)}</div>${b.over==='win'&&e.drop&&e.drop.length?`<span class="dropfan ${b.lootFresh?'fresh':''}">${e.drop.map((x,j)=>`<span style="animation-delay:${j*.18}s">${lootTile(x,true)}</span>`).join('')}</span>`:''}
     <div class="uinfo">${foeInfo(e)}</div></div>`;
 }
@@ -6273,7 +6368,15 @@ function resultModal(){
     <div class="row"><button class="btn gold" data-a="cont">${r.pendingChest?'Open the chest':r.kingSlain?'Return to town':(!r.final&&r.stage>=r.total)?'Head home':'Continue'}</button></div>`,'hideResult','summary');
   return modalShell(`<span class="warn">${P.length>1?'The party has fallen':esc(P[0].name)+' has fallen'}</span>`,`<p class="muted">Their gear, ${r.gold} gold, and ${r.loot.length} looted item${r.loot.length===1?'':'s'} are lost.</p><div class="row"><button class="btn red" data-a="fallen">Bury them</button></div>`,'hideResult','summary dead');
 }
-function battleScreen(){
+// The King's void burns away as he weakens. Each step down tells a little more of who is inside.
+const KING_MORPH=[null,
+  ()=>'The smoke around the Unlit King thins. Something inside it stands upright, no bigger than a man.',
+  ()=>'With every blow the King grows smaller. Through the dark: a long brown coat, mended at the elbows the way they mend coats back home.',
+  ()=>'Silver hair. A grey beard. The heroes have seen this face before, in the portrait that hangs in the Town Hall.',
+  ()=>`It is the old governor${state.gov&&state.gov.name?`, ${esc(state.gov.name)}’s father`:''}: the man who stood at the gate. The smoke still wears him like a crown.`];
+function kingMorph(){const b=state.run&&state.run.battle;if(!b)return;
+  for(const e of b.enemies)if(e.kind==='king'){const p=kph(e);if(e.hp>0&&p>(e.kp||0)){for(let q=(e.kp||0)+1;q<=p;q++)blog(`<b class="warn">${KING_MORPH[q]()}</b>`);e.kp=p}}}
+function battleScreen(){kingMorph();
   collectMarks();
   const r=state.run,b=r.battle,B=BIOMES[r.biome],P=partyAll(),cur=!b.over?currentActor():null,fx=b.fx||{},pops=b.pops||[];
   const Ly=biomeLayers(r.biome);
@@ -6379,6 +6482,7 @@ function ledgerSections(){
     rows.push({base:B.boss,spr:'boss',type:B.el,kind:'boss'},{base:'Warden of '+B.name.replace(/^The /,''),spr:'boss',type:B.el,kind:'warden'});
     out.push({key:bk,name:B.name,el:B.el,rows});
   }
+  if(descentUnlocked())out.push({key:'void',name:'The Dark Side',el:'dark',rows:VOID_BOSSES.map(v=>({base:v.n,spr:'boss',type:'dark',kind:'boss',tiers:['hard']}))});
   out.push({key:'other',name:'Anywhere',rows:[{base:'Mimic',spr:'mimic',type:'physical',kind:'mimic'},...(moonKnown()?[{base:'The Unlit King',spr:'boss',type:'dark',kind:'king',tiers:['hard']}]:[])]});
   return out;
 }
@@ -6594,6 +6698,10 @@ const WITCH_BASE=120;
 const WITCH_RAR={common:1,rare:1.5,epic:2.5,godlike:4,perfect:6};
 const WITCH_HERO={trait:{n:'Reroll a trait',m:1,d:'Replace one trait with a new random one.'},respec:{n:'Rebalance hero',m:1.5,d:'Reset every attribute point this hero has spent: stats go back to their starting rolls and all the points return to be spent again however you like.'}};
 const WITCH_ITEM={full:{n:'Full blessing',m:1.5,d:'Reroll every bonus: new types and new values.'},line:{n:'Reroll one line',m:1,d:'Replace one chosen bonus with a new type and value.'},values:{n:'Rebless values',m:.8,d:'Keep the bonus types, reroll all their values.'},base:{n:'Reforge base',m:.8,d:'Reroll the base damage or armor.'}};
+// Resistance rerolls: priced by hero level and by how many times THAT element has been rerolled on this hero (×1.6 each time).
+// The roll uses the same odds as a new recruit: 75% a resistance of +5 to +30%, 25% a weakness of −5 to −15%.
+const resRerollCost=(h,el)=>Math.round(WITCH_BASE*.8*(1+.15*(h.level-1))*Math.pow(1.6,((h.resRolls||{})[el])||0));
+const rollHeroRes=()=>chance(.25)?-ri(5,15):ri(5,30);
 const heroWitchCost=(h,k)=>Math.round(WITCH_BASE*WITCH_HERO[k].m*(1+.15*(h.level-1))*Math.pow(1.6,h.witch||0));
 const itemWitchCost=(it,k)=>Math.round(WITCH_BASE*WITCH_ITEM[k].m*WITCH_RAR[it.rarity]*Math.pow(1.6,it.witch||0));
 function witchView(){
@@ -6614,6 +6722,10 @@ function witchView(){
     s+=`<div class="row" style="gap:10px"><span class="portrait">${heroArt(h,4)}</span><div class="stack" style="gap:2px"><span class="hname">${esc(h.name)} <small class="muted">Lv ${h.level} ${C_(h).name}</small></span><span class="muted">Visits to the witch: ${h.witch||0}. Next visit costs ${Math.round(Math.pow(1.6,h.witch||0)*100)}% of base, plus level.</span></div></div>
       <h3>${WITCH_HERO.trait.n} · <span class="gold">${fmt(tc)} gold</span></h3><p class="muted">${WITCH_HERO.trait.d}</p>
       <div class="stack" style="gap:6px">${(h.traits||[]).map(id=>TRAITS[id]).filter(Boolean).map(t=>`<div class="row" style="gap:8px;justify-content:space-between;flex-wrap:nowrap"><span><span class="tk-${t.kind}">${t.n}</span> <span class="muted" style="font-size:17px">${traitDesc(t,h)}</span></span><button class="btn small" data-a="witchTrait" data-x="${h.id}|${t.id}" ${state.gold<tc||state.run?'disabled':''}>Reroll</button></div>`).join('')}</div>
+      <h3>Reroll a resistance</h3><p class="muted">Pick exactly which one. The new value is a fresh roll: usually a resistance of +5% to +30%, but 1 time in 4 a weakness of −5% to −15%. Each element’s price rises 60% every time that same element is rerolled.</p>
+      ${(()=>{const els=ALL_EL.filter(el=>(h.res||{})[el]);if(!els.length)return '<p class="muted">This hero was born with no elemental resistances to reroll.</p>';
+        return `<div class="stack" style="gap:6px">${els.map(el=>{const v=h.res[el],c=resRerollCost(h,el),n=(h.resRolls||{})[el]||0;
+          return `<div class="row" style="gap:8px;justify-content:space-between;flex-wrap:nowrap"><span>${elTag(el)} <b style="color:${v<0?'#e0736c':'#8fcf6f'}">${v>0?'+':''}${v}%</b> <span class="muted" style="font-size:17px">${v<0?'weakness':'resistance'}${n?` · rerolled ${n}×`:''}</span></span><button class="btn small" data-a="witchRes" data-x="${h.id}|${el}" ${state.gold<c||onRun(h)?'disabled':''}>Reroll · ${fmt(c)}g</button></div>`}).join('')}</div>`})()}
       <h3>${WITCH_HERO.respec.n} · <span class="gold">${fmt(rc)} gold</span></h3><p class="muted">${WITCH_HERO.respec.d} ${h.spent?`${h.spent} point${h.spent>1?'s':''} would come back.`:'Nothing spent to undo yet.'}</p>
       <div class="row"><button class="btn" data-a="witchRespec" data-x="${h.id}" ${state.gold<rc||!h.spent?'disabled':''}>Rebalance ${esc(h.name)}</button></div>`;
     {const learned=h.skills.filter(id=>SKILLS[id]&&SKILLS[id].tier);
@@ -7220,6 +7332,9 @@ const ACT={
   wtab:x=>{state.sel.wtab=x;state.sel.witchMsg=null},
   whero:id=>{state.sel.whero=id;state.sel.witchMsg=null},
   witem:id=>{state.sel.witem=state.sel.witem===id?null:id;state.sel.witchMsg=null},
+  witchRes:x=>{const [hid,el]=x.split('|'),h=heroById(hid);if(!h||onRun(h)||!ALL_EL.includes(el)||!(h.res||{})[el])return;const c=resRerollCost(h,el);if(state.gold<c)return;
+    state.gold-=c;h.resRolls=h.resRolls||{};h.resRolls[el]=(h.resRolls[el]||0)+1;const old=h.res[el],nv=rollHeroRes();h.res[el]=nv;
+    const f=v=>(v>0?'+':v<0?'−':'')+Math.abs(v)+'%';state.sel.witchMsg=`${esc(h.name)}’s ${cap(el)} ${old<0?'weakness':'resistance'} ${f(old)} → ${nv<0?'weakness':'resistance'} ${f(nv)}.`},
   witchTrait:x=>{const [hid,tid]=x.split('|'),h=heroById(hid);if(!h||state.run)return;const i=(h.traits||[]).indexOf(tid),c=heroWitchCost(h,'trait');if(i<0||state.gold<c)return;
     state.gold-=c;h.witch=(h.witch||0)+1;const nid=rollTrait(h.traits,null,h.cls);h.traits[i]=nid;state.sel.witchMsg=`${TRAITS[tid].n} is gone. ${esc(h.name)} is now ${TRAITS[nid].n}: ${traitDesc(TRAITS[nid])}`},
   witchReroll:x=>{const [hid,id]=x.split('|'),h=heroById(hid),sk=SKILLS[id];if(!h||!sk||!sk.tier||!h.skills.includes(id)||onRun(h))return;
