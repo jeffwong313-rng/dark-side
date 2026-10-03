@@ -122,6 +122,7 @@ input[type=text]{font:inherit;font-size:24px;background:var(--stone);color:var(-
 .shoprow{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
 .shopitem{background:var(--stone);box-shadow:inset 0 0 0 2px var(--edge);padding:8px 10px;display:flex;flex-direction:column;gap:4px;font-size:20px}
 .setout{display:flex;flex-direction:column;gap:10px;padding:12px;background:#171320;box-shadow:inset 0 0 0 2px var(--gold)}
+@media (min-height:640px){.setout{position:sticky;bottom:8px;z-index:5;box-shadow:inset 0 0 0 2px var(--gold),0 -6px 16px #000c}}
 .btn.big{font-size:22px;padding:8px 18px 11px}
 .bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
 .bcard{font:inherit;color:var(--bone);background:var(--stone);border:0;box-shadow:inset 0 0 0 2px var(--edge);padding:10px 12px;display:flex;flex-direction:column;gap:3px;text-align:left;cursor:pointer}
@@ -826,6 +827,7 @@ span.dslot{cursor:default}
 .hrcard.inparty{box-shadow:inset 0 0 0 3px #8fd3ff,0 0 10px #8fd3ff66}
 .hrcard.inparty:hover,.hrcard.inparty:focus-visible{box-shadow:inset 0 0 0 3px #8fd3ff,0 0 12px #8fd3ffaa}
 .hrhint{font-size:15px;margin:0 4px 8px}
+.hrcard.viewing,.hrcard.viewing:hover{background:#2a2033;box-shadow:inset 0 0 0 3px var(--gold),0 0 10px #e3b34166}.hrcard.inparty.viewing{box-shadow:inset 0 0 0 3px var(--gold),inset 0 0 0 6px #8fd3ff}
 .hrport{position:relative;flex:none;width:72px;height:72px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 60%,color-mix(in srgb,var(--ct) 45%,transparent),#0b0910 70%);box-shadow:inset 0 0 0 2px #2a2234}
 .hrlv{position:absolute;right:-4px;bottom:-4px;min-width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#15101a;background:var(--gold);box-shadow:0 0 0 2px #060509}
 .hrbody{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
@@ -836,7 +838,7 @@ span.dslot{cursor:default}
 .hrxp{display:block;height:5px;background:#231c2b;box-shadow:0 0 0 1px #060509}.hrxp i{display:block;height:100%;background:#7fb3e0}
 @container (max-width:280px){.hrcard{gap:7px;padding:6px}.hrport{width:52px;height:52px}.hrport .sprite,.hrport canvas,.hrport img{max-width:48px;max-height:48px}.hrname{font-size:18px}.hrcls{font-size:15px}.hrtraits{font-size:14px}}
 @container (max-width:200px){.hrcard{flex-direction:column;align-items:stretch}.hrport{width:100%;height:56px}}
-.hrtraits{display:flex;flex-wrap:wrap;gap:4px;font-size:15px}.hrtraits>span{padding:0 5px;box-shadow:inset 0 0 0 1px #3a3245;background:#18131e}
+.hrtraits{display:flex;flex-wrap:wrap;gap:4px;font-size:16px}.hrtraits>span{padding:0 5px;box-shadow:inset 0 0 0 1px #3a3245;background:#18131e}
 .herosheet .sheetcols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .herosheet .sheetcols:has(>.ss-combat.shut){grid-template-columns:1fr}
 .modal.layer .panel.herosheet{max-width:820px}
@@ -1255,9 +1257,10 @@ body.dragging [data-drop]{outline:2px dashed #e3b34166;outline-offset:1px}
 .govface{padding:2px;background:radial-gradient(#2a2135,#140f1b);box-shadow:0 0 0 2px #060509,inset 0 0 0 2px var(--pc);cursor:pointer;display:block;line-height:0}
 .govface img{display:block;image-rendering:pixelated}
 .govface:hover{box-shadow:0 0 0 2px #060509,inset 0 0 0 2px var(--gold)}
-.govsay{position:absolute;left:0;top:calc(100% + 12px);z-index:45;width:min(380px,calc(100vw / var(--z,1) - 32px));padding:10px 12px;background:#f1e6cf;color:#241a14;box-shadow:0 0 0 2px #060509,4px 4px 0 #000a;font-size:20px;line-height:1.2;animation:govfade .4s ease both;text-align:left;white-space:normal}
-.govsay::before{content:'';position:absolute;left:18px;top:-10px;border:10px solid transparent;border-top:0;border-bottom-color:#f1e6cf}
-.govsay .who{font-weight:bold;color:#7a3b1c;font-size:17px}.govsay p{margin:4px 0 8px}
+.govsay{display:flex;align-items:center;gap:12px;margin:0 0 12px;padding:8px 12px;background:#f1e6cf;color:#241a14;box-shadow:0 0 0 2px #060509,4px 4px 0 #000a;font-size:20px;line-height:1.3;animation:govfade .4s ease both;text-align:left}
+.govsay p{margin:0;flex:1;min-width:0}.govsay .who{font-weight:bold;color:#7a3b1c;margin-right:8px}
+.govsayface{flex:none;line-height:0}.govsaybtns{display:flex;gap:8px;flex:none}
+@media (max-width:640px){.govsay{flex-wrap:wrap}.govsayface{display:none}.govsaybtns{margin-left:auto}}
 
 .govrank{position:absolute;right:-6px;bottom:-6px;min-width:20px;height:20px;line-height:20px;text-align:center;background:var(--pc);color:#140f1b;font-size:16px;box-shadow:0 0 0 2px #060509}
 .govrank.up{background:var(--gold);animation:govpulse 1s ease-in-out infinite alternate}
@@ -1388,6 +1391,8 @@ body.dev-phone .partycol{max-height:calc(100dvh / var(--z,1) - 90px)}
 body.dev-phone.onrun .top{display:none}
 body.dev-phone .runhdr{padding:4px 8px}body.dev-phone .runhdr h2{font-size:18px}
 body.dev-phone footer{display:none!important}
+body.dev-phone .govsay{font-size:16px;line-height:1.25;padding:3px 8px;margin:0 0 6px;flex-wrap:nowrap}body.dev-phone .govsayface{display:none}body.dev-phone .govsaybtns .btn.small{font-size:15px;min-height:30px}
+body.dev-phone .bld>span{white-space:nowrap}body.dev-phone .bld .thumb{width:44px;height:auto}body.dev-phone .bld .lvl{font-size:14px}
 /* ---------- skill animations (see SK_FX) ---------- */
 .skfx{position:absolute;inset:0;pointer-events:none;z-index:2;line-height:0}
 /* weapon moves */
@@ -1609,7 +1614,7 @@ body.nomotion .px.anim{object-position:0 0}
 .townev{margin-top:8px;padding:10px 12px;background:linear-gradient(#211a2a,#17131d);box-shadow:inset 0 0 0 2px #7a5a20,0 0 18px #e3b34122;display:flex;flex-direction:column;gap:8px}
 body.nomotion .npc{display:none}
 
-.upbadge{display:inline-block;align-self:flex-start;font-size:15px;line-height:1;padding:2px 5px 3px;color:#8fe08a;box-shadow:inset 0 0 0 1px #8fe08a66;background:#14261a}
+.upbadge{display:inline-block;align-self:flex-start;font-size:16px;line-height:1;padding:3px 6px 4px;color:#8fe08a;box-shadow:inset 0 0 0 1px #8fe08a66;background:#14261a}
 .upbadge.none{color:var(--dim);box-shadow:inset 0 0 0 1px #ffffff18;background:none}
 .loadouts{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:17px}
 .lset{display:inline-flex;gap:5px;align-items:center;padding:3px 6px;background:var(--stone);box-shadow:inset 0 0 0 2px var(--edge)}
@@ -3574,7 +3579,7 @@ const UNLOCK_CLS=['warrior','archer','mage'];
 const recruitCls=()=>state.unlock!=null&&state.unlock<3?UNLOCK_CLS[state.unlock]:null;
 function rollCandidates(){state.lastRecruits=(state.candidates||[]).map(c=>c.name);state.candidates=[];for(let i=0;i<recruitCount();i++)state.candidates.push(makeHero(recruitCls()))}
 function newGame(){
-  state={v:1,unlock:0,hideBld:true,reveal:{},guide:true,tutorial:true,week:1,gold:150,scrolls:1,b:{smith:1,alch:1,academy:1,barracks:1,bank:1,pack:1,bag:1,war:0},bossKills:0,won:null,items:{potion:2},mats:{},farm:{lvl:0},farm2:true,mat2:true,still:0,ration3:true,built:{},built2:true,heroes:[],candidates:[],bank:[],graveyard:[],
+  state={v:1,unlock:0,hideBld:true,reveal:{},guide:true,tutorial:true,week:1,gold:150,scrolls:1,b:{smith:1,alch:1,academy:1,barracks:1,bank:1,pack:1,bag:1,war:0,potency:0,feed:0},bossKills:0,won:null,items:{potion:2},mats:{},farm:{lvl:0},farm2:true,mat2:true,still:0,ration3:true,built:{},built2:true,heroes:[],candidates:[],bank:[],graveyard:[],
     screen:'town',tab:'town',sel:{len:'short',carry:true},run:null,summary:null,mastery:Math.min(set.mastery||0,set.masteryMax||0)};
   rollCandidates();
   state.govSetup={v2:true,step:'intro',scene:0,q:0,ans:[],d:govDefault()};
@@ -5849,7 +5854,13 @@ function govBadge(){
   if(!state.gov)return '';
   const P=GOV_QUAL[state.gov.past]||{},tip=state.screen==='run'?null:govTipNow();
   return `<div class="govbadge" style="--pc:${P.c||'#888'}"><button class="govface" data-a="govTalk" aria-label="Me, Governor ${esc(state.gov.name||'')}. Open my sheet" data-tip="${esc('Me · Governor '+(state.gov.name||'')+' · Rank '+govRank()+(P.p?' · once a '+P.p:'')+'\n'+govLines())}">${govPic(state.gov,2)}${govRank()>1||state.gov.pend?`<b class="govrank ${state.gov.pend?'up':''}">${state.gov.pend?'!':govRank()}</b>`:''}</button>
-    ${tip?`<div class="govsay" role="status"><span class="who">My thoughts</span><p>${tip.t}</p><div class="row">${tip.go?`<button class="btn small gold" data-a="${tip.go[0][0]==='@'?tip.go[0].slice(1):'govTipGo'}" data-x="${tip.go[0]}">${tip.go[1]}</button>`:''}<button class="btn small" data-a="govTipOk">Got it</button></div></div>`:''}</div>`;
+</div>`;
+}
+// The governor's current thought, as a slim bar under the top bar so it never covers the buildings.
+function govSayBar(){
+  if(!state.gov||state.screen==='run')return '';
+  const tip=govTipNow();if(!tip)return '';
+  return `<div class="govsay" role="status"><span class="govsayface">${govPic(state.gov,1)}</span><p><span class="who">My thoughts</span>${tip.t}</p><div class="govsaybtns">${tip.go?`<button class="btn small gold" data-a="${tip.go[0][0]==='@'?tip.go[0].slice(1):'govTipGo'}" data-x="${tip.go[0]}">${tip.go[1]}</button>`:''}<button class="btn small" data-a="govTipOk">Got it</button></div></div>`;
 }
 function topBar(){
   return `<header class="top">
@@ -5861,7 +5872,7 @@ function topBar(){
       <span class="chipgrp" style="display:inline-flex;gap:inherit"><span class="chip week" data-tip="Current week"><b class="num">Week ${state.week}</b></span>
       <span class="chip" data-tip="Heroes / room in the Barracks">${sprite('warrior',CLASSES.warrior.tint,2)}<b class="num">${state.heroes.length}/${slots()}</b><span class="lbl"> heroes</span></span></span>
       ${state.won?`<span class="chip won">${foeArt({base:'The Unlit King',kind:'king',type:'dark',spr:'boss'},2)}King slain, week ${state.won.week}</span>`:`<span class="chip" data-tip="Major bosses slain">${sprite('skull',null,2)}<b class="num">${state.bossKills||0}</b><span class="lbl"> bosses</span></span>`}
-    </div>${scrapStrip(state.mats,'Scrap in storage. Builders use it to raise buildings; the Farm and Still use it for upgrades.')}</header>`;
+    </div>${scrapStrip(state.mats,'Scrap in storage. Builders use it to raise buildings; the Farm and Still use it for upgrades.')}</header>${govSayBar()}`;
 }
 const TABS=[['town','Town','banner','#8a2e2e',null],['heroes','Barracks','tent','#6a4a3a',null],['smith','Weaponsmith','anvil',null,'smith'],['hall','Town Hall','house',null,null],['bank','Bank','chest',null,'bank'],['adventure','The Gate','gate',null,null],['witch','Witch','crescent','#b56fe3',null],['farm','Farm','farmer','#6f8f4a',null],['ledger','Ledger','moon',null,null]];
 // The trip at a glance, at the top of the return summary.
@@ -5909,10 +5920,17 @@ function readyBadges(h){const b=[],j=injOf(h);
 // Heroes are fully restored before every adventure, so in town they show as full unless they are out on one.
 const onRun=h=>!!(state.run&&(state.run.party||[]).includes(h.id));
 const shownHp=h=>onRun(h)?Math.round(h.hp):maxHp(h),shownMp=h=>onRun(h)?Math.round(h.mp):maxMp(h);
+// When a screen is about one hero (Barracks, Witch), tapping a hero in the side list picks them there instead of opening a sheet.
+function railPick(){
+  if(state.run||state.screen!=='town')return null;
+  if(state.tab==='heroes'&&(state.sel.btab||'roster')==='roster')return ['selHero','hero'];
+  if(state.tab==='witch'){const wt=state.sel.wtab||'heroes';if(wt==='heroes')return ['whero','whero'];if(wt==='brews')return ['alchHero','alch']}
+  return null;
+}
 function heroRail(){
-  const H=state.heroes,party=state.run?[]:selParty();
+  const H=state.heroes,party=state.run?[]:selParty(),RP=railPick(),viewId=RP?state.sel[RP[1]]:null;
   const card=h=>{const C=C_(h),mh=maxHp(h),mm=maxMp(h),need=xpNeed(h.level),ts=(h.traits||[]).map(id=>TRAITS[id]).filter(Boolean),busy=onRun(h),hp=shownHp(h),mp=shownMp(h);
-    return `<button class="hrcard ${party.includes(h.id)?'inparty':''}" data-a="heroSheet" ${state.run?'':'data-dbl="partyDbl"'} data-x="${h.id}" aria-label="${esc(h.name)}, level ${h.level} ${C.name}${party.includes(h.id)?', in this week’s party':''}. Open full sheet${state.run?'':'; double-click to add to or remove from this week’s party'}">
+    return `<button class="hrcard ${party.includes(h.id)?'inparty':''} ${h.id===viewId?'viewing':''}" ${h.id===viewId?'aria-current="true"':''} data-a="heroSheet" ${state.run?'':'data-dbl="partyDbl"'} data-x="${h.id}" aria-label="${esc(h.name)}, level ${h.level} ${C.name}${party.includes(h.id)?', in this week’s party':''}. Open full sheet${state.run?'':'; double-click to add to or remove from this week’s party'}">
       <span class="hrport" style="--ct:${C.tint}">${heroArt(h,4)}<b class="hrlv">${h.level}</b></span>
       <span class="hrbody"><span class="hrname">${esc(h.name)}</span>
         <span class="hrcls">Lv ${h.level} ${C.name}${busy?' · away':''} ${badgeIco(h.badge||0)}</span>
@@ -5920,7 +5938,7 @@ function heroRail(){
         <span class="bar mp"><i style="width:${clamp(mp/mm*100,0,100)}%"></i><span>${mp} / ${mm} MP</span></span>
         <span class="hrxp" data-tip="${fmt(h.xp)} / ${fmt(need)} XP"><i style="width:${clamp(h.xp/need*100,0,100)}%"></i></span>
         <span class="hrtraits">${ts.map(t=>`<span class="tk-${t.kind}">${t.n}</span>`).join('')}</span>${readyBadges(h)?`<span class="rbadges">${readyBadges(h)}</span>`:''}</span></button>`};
-  return `<aside class="hrail" aria-label="Your heroes"><div class="hrhead"><h2>Heroes</h2><span class="muted">${H.length}/${slots()}</span></div>${H.length&&!state.run?'<p class="muted hrhint">Double-click a hero to add or remove them from this week’s party.</p>':''}
+  return `<aside class="hrail" aria-label="Your heroes"><div class="hrhead"><h2>Heroes</h2><span class="muted">${H.length}/${slots()}</span></div>${H.length&&!state.run?'<p class="muted hrhint">Tap twice to add to / remove from the party</p>':''}
     <div class="hrlist">${H.length?H.map(card).join(''):`<button class="nextstep" data-a="tab" data-x="heroes">${sprite('book','#5a3f7a',3)}<span><small>No heroes yet</small><b>Recruit one</b></span></button>`}</div></aside>`;
 }
 // The hero sheet. Desktop: everything on one page, with traits under the XP bar and skills under resistances so there's
@@ -6042,7 +6060,7 @@ function heroesView(){
   let h=heroById(state.sel.hero);if(!h){h=state.heroes[0];state.sel.hero=h.id}
   const C=C_(h),[g,gc]=grade(h);
   const ht=state.sel.htab||'stats';if(ht==='skills'&&h.newSkill)h.newSkill=null;
-  let s=`${head}${state.sel.justRecruited===h.id?`<p class="gold">${esc(h.name)} has joined. Give them a name and spend their ${h.points} starting points.</p>`:''}${heroChips('selHero',h.id)}${state.heroes.length>1?`<div class="heronav"><button class="btn navarrow" data-a="heroStep" data-x="-1" aria-label="Previous hero">◀ Prev</button><span class="muted">${state.heroes.indexOf(h)+1} of ${state.heroes.length}</span><button class="btn navarrow" data-a="heroStep" data-x="1" aria-label="Next hero">Next ▶</button></div>`:''}<div class="hdetail"><div class="stack">
+  let s=`${head}${state.sel.justRecruited===h.id?`<p class="gold">${esc(h.name)} has joined. Give them a name and spend their ${h.points} starting points.</p>`:''}${state.heroes.length>1?`<div class="heronav"><button class="btn navarrow" data-a="heroStep" data-x="-1" aria-label="Previous hero">◀ Prev</button><span class="muted">${state.heroes.indexOf(h)+1} of ${state.heroes.length}</span><button class="btn navarrow" data-a="heroStep" data-x="1" aria-label="Next hero">Next ▶</button></div>`:''}<div class="hdetail"><div class="stack">
     <div class="hc-top"><div class="portrait">${heroArt(h,6)}</div><div class="stack" style="gap:4px;flex:1;min-width:140px">
       <input type="text" id="rename" value="${esc(h.name)}" maxlength="16" aria-label="Hero name (tap to rename)" data-tip="Tap to rename. Up to 16 characters.">
       ${lookPicker(h)}
@@ -6319,7 +6337,7 @@ function bankView(){
   if(state.bank.length)s+=`<div class="invbar bankbar"><div class="subtabs invf" role="tablist" aria-label="Item type">${BANK_F.map(([k,l])=>{const n=state.bank.filter(it=>bankCat(it,k)).length;return `<button class="subtab ${f===k?'cur':''} ${n?'':'empty'}" role="tab" aria-selected="${f===k}" data-a="bankF" data-x="${k}">${l} <small>${n}</small></button>`}).join('')}</div>
     <label class="invsort"><span class="muted">Sort</span><select title="Sort by tier or value" data-banksort aria-label="Sort the vault">${BANK_SORT.map(([k,l])=>`<option value="${k}" ${srt===k?'selected':''}>${l}</option>`).join('')}</select></label></div>`;
   s+=state.bank.length&&!shown.length?'<p class="muted">Nothing of this type in the vault.</p>':'';
-  s+=state.bank.length?`<div class="items">${shown.map(it=>itemCard(it,upBadge(it)+(it.rarity==='perfect'?'<span class="meta">Perfect weapons cannot be sold.</span>':`<div class="row"><button class="btn small" data-a="sell" data-x="${it.id}">Sell · ${sellVal(it)} gold</button></div>`))).join('')}</div>`:'<p class="muted">Empty.</p>';
+  s+=state.bank.length?`<div class="items">${shown.map(it=>itemCard(it,upBadge(it)+(it.rarity==='perfect'?'<span class="meta">Perfect weapons cannot be sold.</span>':`<div class="row">${bankUpFor(it).filter(h=>!onRun(h)).slice(0,3).map(h=>`<button class="btn small gold" data-a="bankEquipTo" data-x="${it.id}|${h.id}" data-tip="${esc('Put this on '+h.name+'. What they wore goes back into the vault.')}">Equip on ${esc(h.name)}</button>`).join('')}<button class="btn small" data-a="sell" data-x="${it.id}">Sell · ${sellVal(it)} gold</button></div>`))).join('')}</div>`:'<p class="muted">Empty.</p>';
   if(state.graveyard.length)s+=`<h3>Graveyard</h3><div class="grave">${state.graveyard.slice(0,20).map(g=>`<p>${esc(g.name)}, Lv ${g.level} ${CLASSES[g.cls].name}. Fell in ${g.biome} on stage ${g.stage}, week ${g.week}.</p>`).join('')}</div>`;
   return s;
 }
@@ -6330,8 +6348,9 @@ function selParty(){
   state.sel.party=p;return p;
 }
 function advView(){
-  const max=partySize(),p=state.heroes.length?selParty():[],un=descentUnlocked(),hg=bestHaggler();
-  const final=state.sel.len==='descent',bIds=p.length?p:state.heroes.map(h=>h.id),ok=p.length&&(!final||(un&&p.length===3))&&(final||LAND_PICK.includes(state.sel.biome))&&(final||lenOpen(state.sel.len,p));
+  const max=partySize(),p=state.heroes.length?selParty():[],un=descentUnlocked(),hg=bestHaggler(),bIds=p.length?p:state.heroes.map(h=>h.id);
+  if(!LENGTHS[state.sel.len]||(!un&&state.sel.len==='descent')||(!LENGTHS[state.sel.len].final&&!lenOpen(state.sel.len,bIds)))state.sel.len='short';
+  const final=state.sel.len==='descent',ok=p.length&&(!final||(un&&p.length===3))&&(final||LAND_PICK.includes(state.sel.biome))&&(final||lenOpen(state.sel.len,p));
   const bestLoot=k=>{const C=LOOT_CAP[k]||LOOT_CAP.short;return Object.values(C).reduce((a,x)=>RAR[x].i>RAR[a].i?x:a,'common')};
   const SHORTN={short:'Cave',medium:'Wilds',long:'Waste',expedition:'Summit',descent:'Dark'};
   const pctDark=Math.round(moonState().shown);
@@ -7622,6 +7641,8 @@ const ACT={
   selSlot:s=>{state.sel.slot=state.sel.slot===s?null:s},
   equip:id=>{const h=heroById(state.sel.hero),sl=state.sel.slot,it=state.bank.find(x=>x.id===id);if(!h||!sl||!it)return;if(it.slot==='ring')darkHit('greed');
     state.bank=state.bank.filter(x=>x.id!==id);if(h.gear[sl])state.bank.push(h.gear[sl]);h.gear[sl]=it},
+  bankEquipTo:x=>{const [iid,hid]=x.split('|'),h=heroById(hid),it=state.bank.find(y=>y.id===iid);if(!h||!it||onRun(h)||(it.cls&&it.cls!==h.cls))return;const sl=equipSlotFor(it,h);if(it.slot==='ring')darkHit('greed');
+    state.bank=state.bank.filter(y=>y.id!==iid);if(h.gear[sl])state.bank.push(h.gear[sl]);h.gear[sl]=it},
   unequip:sl=>{const h=heroById(state.sel.hero);if(!h||!h.gear[sl])return;state.bank.push(h.gear[sl]);h.gear[sl]=null},
   retire:()=>{state.sel.retire=state.sel.hero},
   retireNo:()=>{state.sel.retire=null},
@@ -7705,7 +7726,7 @@ const ACT={
     if(n<0||n>(state.items[id]||0)||(+d>0&&(plan[id]||0)%STACK===0&&used>=packCap()))return;plan[id]=n;state.sel.pack=plan},
   packAll:x=>{if(x==='0'){state.sel.pack={};return}state.sel.pack=null},
   gear3ok:()=>{state.gear3Msg=null},
-  heroSheet:id=>{ui.sheet=id;const h=heroById(id);if(h)h.newSkill=null},
+  heroSheet:id=>{const RP=railPick();if(RP){ACT[RP[0]](id);return}ui.sheet=id;const h=heroById(id);if(h)h.newSkill=null},
   sheetX:()=>{ui.sheet=null},
   endNext:()=>{const E=state.ending;if(!E)return;const SET=endingSet();E.step++;if(E.step>=SET.length){state.ending=null;if(SET===ENDING){state.glory=true;state.fatherHome=true}}},
   setMastery:x=>{const m=clamp(+x||0,0,set.masteryMax||0);set.mastery=m;saveSet()},
@@ -7878,7 +7899,7 @@ function musicFor(inBattle){
 }
 function render(){
   const app=document.getElementById('app');
-  const foot=`<footer class="row" style="justify-content:space-between;color:var(--dim);font-size:19px"><span>Your town saves automatically in this browser.</span><button class="btn small" data-a="settings" data-x="1">Settings</button></footer>`;
+  const foot=`<footer class="row" style="justify-content:space-between;color:var(--dim);font-size:19px"><span>Your town saves automatically in this browser.</span></footer>`;
   hideTip&&tipEl&&hideTip();
   if(ui.menu){SND.music('menu');document.body.classList.remove('inbattle');app.innerHTML=menuView();save();clearTimeout(autoTimer);return}
   // Governors from the old profession test retake the new ten questions (once home, never mid-adventure).
@@ -7950,6 +7971,8 @@ document.addEventListener('click',ev=>{
   // Buttons with data-dbl do something else on a double-click, so their single click waits a moment first.
   if(t.dataset.dbl&&ACT[t.dataset.dbl]){clearTimeout(ui.dblT);const x=t.dataset.x;
     if(ev.detail>=2){ACT[t.dataset.dbl](x);render();return}
+    // Picking which hero to look at is harmless, so it happens at once; a second click still toggles the party.
+    if(t.dataset.a==='selHero'||(t.dataset.a==='heroSheet'&&railPick())){f(x);render();return}
     ui.dblT=setTimeout(()=>{ui.anchor=anchorOf(t);f(x);render()},300);return}
   f(t.dataset.x);render();
 });
