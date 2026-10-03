@@ -3846,13 +3846,18 @@ function foeMix(e,act){
   return out;
 }
 // Damage left after armor and resistance for a raw hit split by mix.
+// Armor's constant grows with enemy level so gear keeps blocking about the same share all game,
+// instead of armor creeping toward invulnerability late. Below level 10 it stays at the old flat 100.
+const ARMOR_K0=40,ARMOR_K_PER=6,MIN_TAKEN=.2; // MIN_TAKEN: armor + resistance together never block more than 80%
+const armorK=h=>Math.max(100,ARMOR_K0+ARMOR_K_PER*(state&&state.run?enemyLevel():(h?h.level:1)));
+const armorTaken=(arm,K)=>K/(K+arm);
 function mitigate(h,raw,mix){
-  const r=state.run,arm=armor(h),st=stanceOf(h);let d=0;
+  const r=state.run,arm=armor(h),st=stanceOf(h),K=armorK(h);let d=0;
   for(const k in mix){const w=mix[k];if(!w)continue;
-    if(k==='physical'){d+=raw*w*100/(100+arm)*(st==='mage'?.75:1);continue}
+    if(k==='physical'){d+=raw*w*Math.max(MIN_TAKEN,armorTaken(arm,K))*(st==='mage'?.75:1);continue}
     if(st==='mage')continue; // Mana Wall blocks every element
     let res=resist(h,k);if(r.biome==='abyss')res*=.75;
-    d+=raw*w*elTaken(h,k)*(1-res/100)*100/(100+arm*ARMOR_EL)}
+    d+=raw*w*elTaken(h,k)*Math.max(MIN_TAKEN,(1-res/100)*armorTaken(arm*ARMOR_EL,K))}
   return d*MIX_BAL*FOE_DMG_SCALE*fatTaken(h)*(1+(C_(h).taken||0)/100)*(st==='warrior'?1-stoneDef(h)/100:1);
 }
 const mixText=m=>Object.entries(m).filter(([,v])=>v>0.001).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${Math.round(v*100)}% ${k==='physical'?'physical':cap(k)}`).join(' / ');
@@ -5550,7 +5555,7 @@ function statTable(h){
   const C=C_(h),row=(k,v,tip)=>`<dt data-tip="${esc(tip)}" tabindex="0">${k}</dt><dd>${v}</dd>`;
   return `<dl class="dl">
     ${row('Power',Math.round(power(h)),`Base damage before skills, elements and crits: weapon damage + ${STATN[C.primary]} + a quarter of the other combat stats.`)}
-    ${row('Armor',armor(h),`Enemies hit with a mix of physical and elemental damage. Armor cuts the physical part to ${Math.round(100*100/(100+armor(h)))}% and the elemental part to ${Math.round(100*100/(100+armor(h)*ARMOR_EL))}% (resistance cuts that further).`)}
+    ${row('Armor',armor(h),`Enemies hit with a mix of physical and elemental damage. Against enemies around this hero’s level, armor cuts the physical part to ${Math.round(100*Math.max(MIN_TAKEN,armorTaken(armor(h),armorK(h))))}% and the elemental part to ${Math.round(100*armorTaken(armor(h)*ARMOR_EL,armorK(h)))}% (resistance cuts that further). Armor matters less against higher-level enemies, and armor plus resistance never block more than 80%.`)}
     ${row('Crit chance',critChance(h).toFixed(1)+'%','Chance for a hit to crit. Comes from class, AGI, LCK, gear and traits. Capped at 75% before skill bonuses.')}
     ${row('Crit damage',Math.round(critDmg(h))+'%','Damage dealt by a crit, as a percent of a normal hit.')}
     ${row('On crit',CRIT_BUFF[h.cls].n,CRIT_BUFF[h.cls].n+': '+CRIT_BUFF[h.cls].d+'. Stacks up to 5 times per battle.')}
