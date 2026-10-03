@@ -179,6 +179,7 @@ input[type=text]{font:inherit;font-size:24px;background:var(--stone);color:var(-
 .voidswirl{position:absolute;left:50%;top:55%;width:340px;height:340px;margin:-170px;border-radius:50%;background:conic-gradient(from 0deg,#0000,#5a3a8a88,#0000,#2a1a3aaa,#0000,#9b70dc66,#0000);animation:swirl 3s linear infinite;opacity:.8}
 @keyframes swirl{to{transform:rotate(360deg)}}
 .endfig.reach{animation:pullback 5.5s ease-in forwards}
+.endfig.reach.n2,.endfig.reach.n3{animation-duration:6.5s}.endfig.reach.n4,.endfig.reach.n5{animation-duration:7.5s}.endfig.reach.n6,.endfig.reach.n7{animation-duration:9s}
 @keyframes pullback{0%{opacity:0;transform:translateX(-50%) scale(.7)}25%{opacity:1;transform:translateX(-50%) scale(1)}55%{opacity:1;transform:translateX(-50%) scale(1) rotate(0)}100%{opacity:0;transform:translateX(-50%) scale(0) rotate(420deg);filter:blur(5px)}}
 .voidclose{position:absolute;inset:0;background:radial-gradient(circle at 50% 55%,transparent 0,#030206 0);animation:closein 5.5s ease-in forwards}
 @keyframes closein{0%,60%{background:radial-gradient(circle at 50% 55%,transparent 60%,#030206 61%)}100%{background:radial-gradient(circle at 50% 55%,transparent 0%,#030206 1%)}}
@@ -3245,19 +3246,20 @@ function rollTrait(except,force,cls){
 }
 /* Blessings: when a major boss falls, the party picks one of three. It lasts for the rest of the adventure and works
    like a trait on every hero in the party. Some carry a cost. */
+const BLESS_MAX=4; // at most 4 blessings per adventure; bosses after that just drop loot
 const BLESSINGS={
-  edge:{n:'Moon’s Edge',m:{power:15},d:'+15% damage.'},
-  vow:{n:'Iron Vow',m:{hpPct:20},d:'+20% max health.'},
-  eye:{n:'Hunter’s Eye',m:{crit:8,critdmg:20},d:'+8% crit chance, +20% crit damage.'},
-  stone:{n:'Stoneskin',m:{taken:-12},d:'Take 12% less damage.'},
-  thirst:{n:'Bloodthirst',m:{lifesteal:6},d:'+6% lifesteal.'},
-  wind:{n:'Second Wind',m:{rest:8},d:'Recover 8% max health after every battle.'},
-  weave:{n:'Spellweaver',m:{skillDmg:20,skillCost:-15},d:'Skills deal 20% more damage and cost 15% less mana.'},
-  ward:{n:'Warding Light',m:{resAll:12},d:'+12% resistance to every element.'},
-  swift:{n:'Swift Feet',m:{eva:6,spd:2},d:'+6% evasion and +2 speed.'},
-  fortune:{n:'Fortune’s Favor',m:{goldfind:30,xp:15},d:'+30% gold and +15% XP from this adventure.'},
-  glass:{n:'Glass Cannon',m:{power:30,taken:15},d:'+30% damage, but take 15% more damage.',cost:1},
-  bastion:{n:'Bastion Oath',m:{armorPct:35,power:-8},d:'+35% armor, but deal 8% less damage.',cost:1},
+  edge:{n:'Moon’s Edge',m:{power:8},d:'+8% damage.'},
+  vow:{n:'Iron Vow',m:{hpPct:12},d:'+12% max health.'},
+  eye:{n:'Hunter’s Eye',m:{crit:5,critdmg:12},d:'+5% crit chance, +12% crit damage.'},
+  stone:{n:'Stoneskin',m:{taken:-7},d:'Take 7% less damage.'},
+  thirst:{n:'Bloodthirst',m:{lifesteal:3},d:'+3% lifesteal.'},
+  wind:{n:'Second Wind',m:{rest:5},d:'Recover 5% max health after every battle.'},
+  weave:{n:'Spellweaver',m:{skillDmg:10,skillCost:-10},d:'Skills deal 10% more damage and cost 10% less mana.'},
+  ward:{n:'Warding Light',m:{resAll:8},d:'+8% resistance to every element.'},
+  swift:{n:'Swift Feet',m:{eva:4,spd:1},d:'+4% evasion and +1 speed.'},
+  fortune:{n:'Fortune’s Favor',m:{goldfind:20,xp:10},d:'+20% gold and +10% XP from this adventure.'},
+  glass:{n:'Glass Cannon',m:{power:18,taken:12},d:'+18% damage, but take 12% more damage.',cost:1},
+  bastion:{n:'Bastion Oath',m:{armorPct:25,power:-6},d:'+25% armor, but deal 6% less damage.',cost:1},
 };
 const blessMod=(h,k)=>{const r=state&&state.run;if(!r||!r.bless||!r.bless.length||!(r.party||[]).includes(h.id))return 0;let v=0;for(const id of r.bless){const B=BLESSINGS[id];if(B&&B.m[k])v+=B.m[k]}return v};
 const blessTag=id=>{const B=BLESSINGS[id];return B?`<span class="lmod bless" data-tip="${esc('Blessing · '+B.n+': '+B.d+' Lasts the rest of this adventure.')}" tabindex="0">✦ ${B.n}</span>`:''};
@@ -4196,8 +4198,9 @@ const mixText=m=>Object.entries(m).filter(([,v])=>v>0.001).sort((a,b)=>b[1]-a[1]
 function startBattle(kind){
   const r=state.run,es=[makeEnemy(kind)],n=packSize(kind);
   {const H=huntHere(r);
-   if((kind==='normal'||kind==='elite')){const c=H.filter(x=>x.kind==='normal'||x.kind==='elite');if(c.length&&chance(HUNT_ODDS)){const x=pick(c),e=makeEnemy(kind,false,x.spr);e.carry=c.filter(y=>y.base===x.base).map(y=>({it:y.it,owner:y.owner}));es[0]=e}}
-   else for(const e of es){const m=H.filter(x=>x.base===e.base);if(m.length)e.carry=m.map(x=>({it:x.it,owner:x.owner}))}}
+   if((kind==='normal'||kind==='elite')&&r.final){const c=H.filter(x=>x.final);if(c.length){const e=makeEnemy(kind,false,c[0].spr);e.carry=c.map(y=>({it:y.it,owner:y.owner}));es[0]=e}}
+   else if((kind==='normal'||kind==='elite')){const c=H.filter(x=>x.kind==='normal'||x.kind==='elite');if(c.length&&chance(HUNT_ODDS)){const x=pick(c),e=makeEnemy(kind,false,x.spr);e.carry=c.filter(y=>y.base===x.base).map(y=>({it:y.it,owner:y.owner}));es[0]=e}}
+   else if(!r.final)for(const e of es){const m=H.filter(x=>x.base===e.base);if(m.length)e.carry=m.map(x=>({it:x.it,owner:x.owner}))}}
   while(es.length<n)es.push(makeEnemy('normal',true,kind==='king'?'brute':null));
   const lead0=es[0];es.sort(()=>Math.random()-.5); // formation is shuffled every fight
   const tally={},seen={};for(const e of es)tally[e.name]=(tally[e.name]||0)+1;
@@ -4736,7 +4739,7 @@ function seizeGear(h){
 }
 const huntLand=k=>(state.hunted||[]).filter(x=>x.biome===k);
 // The carrier can only be met again on the same land and adventure length, at or past the stage where the gear was lost.
-const huntHere=r=>huntLand(r.biome).filter(x=>(!x.len||x.len===r.length)&&r.stage>=(x.stage||0));
+const huntHere=r=>r.final?(state.hunted||[]).filter(x=>x.final&&r.stage>=x.at):huntLand(r.biome).filter(x=>!x.final&&(!x.len||x.len===r.length)&&r.stage>=(x.stage||0));
 const huntWhere=x=>`${LENGTHS[x.len]?LENGTHS[x.len].name+' adventures':'adventures'} in ${BIOMES[x.biome].name}, stage ${x.stage||1} or deeper`;
 const aAn=w=>(/^[aeiou]/i.test(w)?'an ':'a ')+w;
 // Enemies mostly go for whoever stands in front: 65/35 with two heroes, 50/30/20 with three.
@@ -4959,8 +4962,8 @@ function win(){
     // Every major boss and every final boss leaves a chest to open after the fight.
     if(e.kind==='boss'){chestTier='boss';e.drop.push({k:'chest',tier:'boss'});state.bossKills=(state.bossKills||0)+1}
     if(e.kind==='warden'){chestTier='final';e.drop.push({k:'chest',tier:'final'})}
-    if(e.kind==='king'){drops.push(['king',e],['boss',e],['boss',e]);r.kingSlain=true;set.masteryMax=Math.max(set.masteryMax||0,(state.mastery||0)+1);saveSet()}
-    if(e.kind==='boss'&&!r.blessOffer){const have=r.bless||[],pool=Object.keys(BLESSINGS).filter(k=>!have.includes(k));r.blessOffer=pool.sort(()=>Math.random()-.5).slice(0,3)}
+    if(e.kind==='king'){drops.push(['king',e],['boss',e],['boss',e]);r.kingSlain=true;set.masteryMax=Math.min(MASTERY_MAX,Math.max(set.masteryMax||0,(state.mastery||0)+1));saveSet()}
+    if(e.kind==='boss'&&!r.blessOffer&&(r.bless||[]).length<BLESS_MAX){const have=r.bless||[],pool=Object.keys(BLESSINGS).filter(k=>!have.includes(k));r.blessOffer=pool.sort(()=>Math.random()-.5).slice(0,3)}
     if(e.kind==='warden'&&e.base===GATEKEEPER&&!state.gateBeaten){state.gateBeaten=true;b.gateFell=true}
     sc=Math.max(sc,SCROLL_DROP[e.kind]||0);
   }
@@ -5149,9 +5152,15 @@ function endRun(outcome){
   if(outcome==='dead'){for(const h of everyone)h.hp=0;for(const it of [...r.loot,...(r.ground||[])])if(rescuePerfect(it,lines)){r.loot=r.loot.filter(x=>x!==it);if(r.ground)r.ground=r.ground.filter(x=>x!==it)}}
   {const B0=r.battle,took=[];
    if(B0)for(const e of B0.enemies)if(e.hp>0&&e.carry)for(const c of e.carry){state.hunted=state.hunted||[];
-     if(!state.hunted.some(x=>x.it.id===c.it.id)){delete c.it.found;state.hunted.push({it:c.it,owner:c.owner,base:e.base,spr:e.spr,kind:e.kind==='elite'?'normal':e.kind,biome:r.biome,len:r.length,stage:r.stage,week:state.week})}
+     if(!state.hunted.some(x=>x.it.id===c.it.id)){delete c.it.found;
+       if(r.final){const F=FINAL.finMin,lo=r.stage<F-3?r.stage+1:Math.max(1,F-20),cands=[];for(let k=lo;k<=F;k++)if(k%15)cands.push(k);
+         state.hunted.push({it:c.it,owner:c.owner,final:true,at:pick(cands.length?cands:[F-1]),spr:pick(['beast','brute','wraith','skeleton']),kind:'normal',len:'descent',week:state.week})}
+       else state.hunted.push({it:c.it,owner:c.owner,base:e.base,spr:e.spr,kind:e.kind==='elite'?'normal':e.kind,biome:r.biome,len:r.length,stage:r.stage,week:state.week})}
      took.push({c,e})}
-   if(took.length){const L=BIOMES[r.biome].name,beasts=[...new Set(took.map(x=>x.e.base))];
+   if(took.length&&r.final){const H=(state.hunted||[]).filter(x=>x.final&&took.some(t=>t.c.it===x.it)),at=Math.min(...H.map(x=>x.at));
+     for(const x of took)lines.push(`<span class="warn">The void swallowed ${esc(x.c.owner)}’s ${itemName(x.c.it)}.</span>`);
+     state.lostNote=`${listNames(took.map(x=>`${esc(x.c.owner)}’s ${itemName(x.c.it)}`))} ${took.length>1?'were':'was'} dragged into the void. It won’t stay there: something on the Dark Side will be carrying ${took.length>1?'them':'it'}, glowing with a white outline, by stage ${at}. If my next party reaches that far, they can win ${took.length>1?'it all':'it'} back before the King.`}
+   else if(took.length){const L=BIOMES[r.biome].name,beasts=[...new Set(took.map(x=>x.e.base))];
      for(const x of took)lines.push(`<span class="warn">The ${esc(x.e.base)} in ${L} kept ${esc(x.c.owner)}’s ${itemName(x.c.it)}.</span>`);
      const what=listNames(took.map(x=>`${esc(x.c.owner)}’s ${itemName(x.c.it)}`)),one=beasts.length===1;
      state.lostNote=`${what.charAt(0).toUpperCase()+what.slice(1)} ${took.length>1?'were':'was'} taken by ${one?aAn(esc(beasts[0])):'the '+listNames(beasts.map(esc))} in ${L}. Beasts out there keep what they take from the fallen. ${one?'It':'They'} won’t leave ${L}: if my heroes go back on a ${LENGTHS[r.length].name} adventure and reach stage ${r.stage} or deeper, they may find ${one?'it':'them'}, glowing with a white outline. If they kill ${one?'it':'them'}, ${one?'it':'they'} will drop ${took.length>1?'it all':'it'} back. I should go back and hunt ${one?'this beast':'these beasts'} so I can get my equipment back.`}}
@@ -5193,8 +5202,8 @@ function endRun(outcome){
   const names=esc(listNames(survivors.map(h=>h.name)));
   const where=r.final?'the Dark Side':B.name;
   let title,sub;
-  if(outcome==='victory'){title='The Unlit King is gone';sub=`${names} broke him on stage ${r.stage} of the Dark Side, in week ${state.week}, and someone is coming home with them. You can keep playing.`;
-    state.won={week:state.week,names:survivors.map(h=>h.name),stage:r.stage};state.ending={step:0}}
+  if(outcome==='victory'){title='The Unlit King is gone';sub=`${names} broke him on stage ${r.stage} of the Dark Side, in week ${state.week}.${(state.mastery||0)>=MASTERY_MAX?' And someone is coming home with them.':' Something in the void held on to what it had.'} You can keep playing.`;
+    state.won={week:state.week,names:survivors.map(h=>h.name),stage:r.stage,m:state.mastery||0};state.ending={step:0,m:state.mastery||0}}
   else if(outcome==='dead'){title=everyone.length>1?`The party died in ${where}`:`${esc(lead.name)} died in ${where}`;sub=`Fell on stage ${r.stage}.`}
   else if(outcome==='flee'){title=`${names} ran back home`;sub=`Fled ${where} on stage ${r.stage}.`}
   else if(outcome==='scroll'){title=`${names} read a Return Scroll`;sub=`Escaped ${where} on stage ${r.stage}.`}
@@ -5659,7 +5668,7 @@ const STORY=[
   {id:'rift',n:'The Dark Side Opens',when:()=>descentUnlocked(),
     t:()=>`The Gatekeeper is gone, and tonight the moon went fully dark. Beyond the old arch at the Summit a road that was not there yesterday runs down into shadow: the Dark Side. The Unlit King waits at its end. I’ll send my three best.`},
   {id:'dawn',n:'Dawn',when:()=>state.won,
-    t:()=>`My father sleeps in his old room tonight. Some mornings I find him in the square before dawn, just looking at the roofs. For the first time in years the smoke lifts, and the moon slowly turns back toward the light. Someone rings the old bell in the square. My father stood at the gate so the town could live. I went to the Dark Side so it could have a future.`},
+    t:()=>!state.fatherHome?`The Unlit King is gone, and for the first time in years the smoke lifts. At the end, my heroes say, there was someone inside the dark, and it would not let him go. I keep thinking about that. Whatever waits past the arch on the Summit, I have not finished with it.`:`My father sleeps in his old room tonight. Some mornings I find him in the square before dawn, just looking at the roofs. For the first time in years the smoke lifts, and the moon slowly turns back toward the light. Someone rings the old bell in the square. My father stood at the gate so the town could live. I went to the Dark Side so it could have a future.`},
 ];
 const storyCleared=k=>!!((state.cleared||{})[k]||(state.gov&&(state.gov.miles||[]).includes(k)));
 function storyNext(){
@@ -6695,9 +6704,9 @@ function dropActions(items){
 const battleDrops=()=>{const b=state.run&&state.run.battle;if(!b)return [];return [...b.enemies.flatMap(e=>e.drop||[]),...(b.extraDrops||[])].filter(x=>x.k==='item').map(x=>x.it)};
 function resultModal(){
   const r=state.run,b=r.battle,P=partyAll();
-  if(b.over==='win')return modalShell(`<span class="gold">${r.kingSlain?'The King is dead':'Victory'}</span>`,`${r.blessOffer?`<div class="blessbox"><h3 class="gold">✦ Choose a blessing</h3><p class="muted" style="font-size:17px">The boss’s power settles on the party. Pick one; it lasts the rest of this adventure.</p><div class="blessopts">${r.blessOffer.map(id=>{const B=BLESSINGS[id];return `<button class="btn blessopt ${B.cost?'cost':''}" data-a="bless" data-x="${id}"><b>${B.n}</b><span>${B.d}</span></button>`}).join('')}</div></div>`:''}${r.invNote?`<p class="gold" style="font-size:18px">${r.invNote}</p>`:''}<h3>Loot</h3>${lootStrip()}${(()=>{const d=dropActions(battleDrops());return d?`<h3>Gear</h3>${d}`:''})()}<details class="rewards"><summary class="muted">Full report (XP, levels, materials)</summary><div class="stack" style="gap:3px">${b.rewards.map(l=>`<p>${l}</p>`).join('')}</div></details>
+  if(b.over==='win')return modalShell(`<span class="gold">${r.kingSlain?'The King is dead':'Victory'}</span>`,`${r.blessOffer?`<div class="blessbox"><h3 class="gold">✦ Choose a blessing</h3><p class="muted" style="font-size:17px">The boss’s power settles on the party. Pick one; it lasts the rest of this adventure. Blessings stack, up to ${BLESS_MAX} per adventure (${(r.bless||[]).length} so far).</p><div class="blessopts">${r.blessOffer.map(id=>{const B=BLESSINGS[id];return `<button class="btn blessopt ${B.cost?'cost':''}" data-a="bless" data-x="${id}"><b>${B.n}</b><span>${B.d}</span></button>`}).join('')}</div></div>`:''}${r.invNote?`<p class="gold" style="font-size:18px">${r.invNote}</p>`:''}<h3>Loot</h3>${lootStrip()}${(()=>{const d=dropActions(battleDrops());return d?`<h3>Gear</h3>${d}`:''})()}<details class="rewards"><summary class="muted">Full report (XP, levels, materials)</summary><div class="stack" style="gap:3px">${b.rewards.map(l=>`<p>${l}</p>`).join('')}</div></details>
     <div class="row"><button class="btn small" data-a="inv">Open inventory</button><button class="btn gold" data-a="cont" ${r.blessOffer?'disabled data-tip="Choose a blessing first."':''}>${r.pendingChest?'Open the chest':r.kingSlain?'Return to town':(!r.final&&r.stage>=r.total)?'Head home':'Continue'}</button></div>`,'hideResult','summary');
-  return modalShell(`<span class="warn">${P.length>1?'The party has fallen':esc(P[0].name)+' has fallen'}</span>`,`${r.kingLoss?voidLossHtml():''}<p class="muted">Their gear, ${r.gold} gold, and ${r.loot.length} looted item${r.loot.length===1?'':'s'} are lost.</p>${r.lostRule?`<div class="ruletip"><b class="gold">Learn from it · ${esc(r.lostRule.who)}: ${r.lostRule.n}</b><p>${r.lostRule.d}</p></div>`:''}<div class="row"><button class="btn red" data-a="fallen">Bury them</button></div>`,'hideResult','summary dead');
+  return modalShell(`<span class="warn">${P.length>1?'The party has fallen':esc(P[0].name)+' has fallen'}</span>`,`<p class="muted">Their gear, ${r.gold} gold, and ${r.loot.length} looted item${r.loot.length===1?'':'s'} are lost.</p>${r.lostRule?`<div class="ruletip"><b class="gold">Learn from it · ${esc(r.lostRule.who)}: ${r.lostRule.n}</b><p>${r.lostRule.d}</p></div>`:''}<div class="row"><button class="btn red" data-a="fallen">Bury them</button></div>`,'hideResult','summary dead');
 }
 /* ---------- the end ----------
    Lose to the King: for a moment a figure in a mended coat reaches out, then the void takes him back (kept vague).
@@ -6707,6 +6716,22 @@ function voidLossHtml(){
   return `<div class="endscene loss" aria-hidden="true"><div class="voidswirl"></div><div class="endfig reach">${fatherImg(4,7,'')}</div><div class="voidclose"></div></div>
     <p class="govtext" style="text-align:center"><i>Through the smoke, for a moment, a figure in a mended coat reaches toward them, as if he knows them. Then the dark folds shut, and he is gone with it.</i></p>`;
 }
+const MASTERY_MAX=8; // full ascension: the true ending
+// Wins below full ascension: the void gives the father back a little more each Mastery level, but never all the way.
+const nearText=m=>[
+  'Inside the last of the dark, something moves: the shape of a person, or the memory of one. Before anyone can be sure, the void folds around it and pulls it down and away.',
+  'Inside the last of the dark stands the outline of a man in a long coat. He is there for a heartbeat. Then the void drags him back down into itself.',
+  'Inside the last of the dark stands a man in a long coat, mended at the elbows. He turns toward the heroes, and the void takes him before they can see his face.',
+  'For a moment the heroes see his face: silver hair, a grey beard, tired eyes that know them somehow. Then the dark closes over him like water.',
+  'He looks right at them. His lips move, but the void swallows the words, and then it swallows him.',
+  'He takes a step toward them, out of the dark. One step. The void pulls him back, but slower this time, as if it is tiring.',
+  'He reaches out. The heroes reach back. Their fingertips are a hand’s width apart when the void tears him away.',
+  `He says a name: ${state.gov&&state.gov.name?esc(state.gov.name):'the governor’s name'}, clear as a bell. Then the void claws him back, but it is thin and ragged now. One more time, it seems to say. One more time and it will not hold him.`][Math.min(7,Math.max(0,m))];
+const ENDING_NEAR=[
+  {n:'The Last Light',scene:'near',t:()=>`The King’s crown of smoke cracks down the middle, and the void pours out of him all at once. ${nearText(state.ending&&state.ending.m!=null?state.ending.m:state.mastery||0)}`},
+  {n:'Dawn',scene:'dawn',t:()=>`The heroes come home to a sky with no smoke in it, and the moon turns slowly back toward the light. The town cheers until it is hoarse. But at the top of the Summit the old arch still stands, and on still nights the heroes swear they can feel something on the other side of it, waiting.<br><br><b class="gold">Mastery ${Math.min(MASTERY_MAX,(state.mastery||0)+1)} unlocked.</b> <span class="muted">Start a new town at a higher Mastery Level in Settings to go further.</span>`},
+];
+const endingSet=()=>(state.ending&&state.ending.m!=null?state.ending.m:state.mastery||0)>=MASTERY_MAX?ENDING:ENDING_NEAR;
 const ENDING=[
   {n:'The Last Light',scene:'free',t:()=>`The King’s crown of smoke cracks down the middle. The void pours out of him the way water leaves a broken jar, all at once and then in a trickle, and the dark draws back from the walls of the Abyss. When it is gone there is no king. There is a man, kneeling, in a long brown coat mended at the elbows.`},
   {n:'He Is Alive',scene:'kneel',t:()=>`He lifts his head. Silver hair, a grey beard, eyes that have not seen daylight in years. He looks at ${listNames((state.won&&state.won.names)||['the heroes'])} for a long time.<br><br><i>“You came all this way,”</i> he says, and his voice cracks. <i>“I heard you. Every fight, every step. Take me home.”</i>`},
@@ -6715,17 +6740,19 @@ const ENDING=[
   {n:'A New Dawn',scene:'glory',t:()=>`The lanterns go up by the hundred. Music runs until morning, and the moon hangs full and bright over the square for the first time anyone can remember. People will tell this story for generations: the night the town got its light back, and its old governor too.<br><br><b class="gold">The town has reached a new glory.</b> Its banners fly gold, and the old governor walks the square.`},
 ];
 function endingView(){
-  const E=state.ending;if(!E||state.summary||state.run)return '';const S=ENDING[E.step];if(!S){state.ending=null;return ''}
+  const E=state.ending;if(!E||state.summary||state.run)return '';const SET=endingSet(),S=SET[E.step];if(!S){state.ending=null;return ''}
   const g=state.gov,H=((state.won&&state.won.names)||[]).map(n=>state.heroes.find(h=>h.name===n)).filter(Boolean).slice(0,3);
   const fig=S.scene==='free'?`<div class="voidburst"></div><div class="endfig fadeout">${fatherImg(4,8,'')}</div><div class="endfig fadein">${fatherImg(5,8,'')}</div>`
     :S.scene==='kneel'?`<div class="endrow">${H.map(h=>`<span class="endhero">${heroArt(h,5,'')}</span>`).join('')}<span class="endfig still">${fatherImg(5,7,'')}</span></div>`
     :S.scene==='home'?`<div class="endtown" style="background-image:url(${sceneImg('town')})"></div><div class="endrow walkin">${g?govPic(g,3,'endgov'):''}<span class="endfig still">${fatherImg(5,6,'')}</span>${H.map(h=>`<span class="endhero">${heroArt(h,4,'')}</span>`).join('')}</div>`
     :S.scene==='speech'?`<div class="endtown dim" style="background-image:url(${sceneImg('crowd')})"></div><div class="endrow"><span class="endfig still speaker">${fatherImg(5,7,'')}</span>${g?govPic(g,3,'endgov'):''}</div>`
+    :S.scene==='near'?`<div class="voidswirl"></div><div class="endfig reach near n${Math.min(7,E.m||0)}">${fatherImg(Math.min(4,1+Math.floor((E.m||0)/2)),8,'')}</div><div class="voidclose"></div>`
+    :S.scene==='dawn'?`<div class="endtown" style="background-image:url(${sceneImg('town')})"></div><div class="endrow">${g?govPic(g,3,'endgov'):''}${H.map(h=>`<span class="endhero">${heroArt(h,4,'')}</span>`).join('')}</div>`
     :`<div class="endtown" style="background-image:url(${sceneImg('town')})"></div>${Array.from({length:14},(_,k)=>`<i class="endlantern" style="left:${4+k*6.8}%;animation-delay:${(k*.21).toFixed(2)}s"></i>`).join('')}<div class="endrow">${g?govPic(g,3,'endgov'):''}<span class="endfig still">${fatherImg(5,6,'')}</span></div>`;
   return `<div class="modal layer story" role="dialog" aria-modal="true" aria-label="${esc(S.n)}"><section class="panel storycard endcard">
     <div class="endscene s-${S.scene}" aria-hidden="true">${fig}</div>
-    <span class="muted">The End · ${E.step+1} of ${ENDING.length}</span><h2 class="disp">${S.n}</h2><p class="govtext">${S.t()}</p>
-    <div class="row" style="justify-content:center"><button class="btn gold" data-a="endNext">${E.step<ENDING.length-1?'Continue':'Celebrate'}</button></div></section></div>`;
+    <span class="muted">${SET===ENDING?'The End':'An Ending'} · ${E.step+1} of ${SET.length}</span><h2 class="disp">${S.n}</h2><p class="govtext">${S.t()}</p>
+    <div class="row" style="justify-content:center"><button class="btn gold" data-a="endNext">${E.step<SET.length-1?'Continue':SET===ENDING?'Celebrate':'Close'}</button></div></section></div>`;
 }
 // The King's void burns away as he weakens. Each step down tells a little more of who is inside.
 const KING_MORPH=[null,
@@ -7069,7 +7096,7 @@ function settingsModal(){
     <h3>Screen</h3><div class="optgrid">${Object.entries(PROFILES).map(([k,P])=>`<button class="opt ${set.profile===k?'cur':''}" data-a="setProfile" data-x="${k}" aria-pressed="${set.profile===k}"><b>${P.n}</b><span>${P.d}</span></button>`).join('')}</div>
     <p class="muted" style="font-size:18px">Now using the ${LAY_N[layMode()]} layout. The game is played in landscape.</p>
     ${set.masteryMax?`<h3>Mastery Level</h3><div class="row" style="gap:6px;flex-wrap:wrap">${Array.from({length:set.masteryMax+1},(_,m)=>`<button class="btn small ${(set.mastery||0)===m?'on':''}" data-a="setMastery" data-x="${m}" aria-pressed="${(set.mastery||0)===m}">${m?'Mastery '+m:'Off'}</button>`).join('')}</div>
-    <p class="muted" style="font-size:18px">Applies to new towns you start. Each level: the governor carries one more dark side (the 5th question takes ${1+(set.mastery||0)} answer${(set.mastery||0)?'s':''}), and monsters deal 3% more damage with 3% more health (now +${3*(set.mastery||0)}%). Beat the Unlit King at your highest level to unlock the next.${state&&state.mastery?` This town: Mastery ${state.mastery}.`:''}</p>`:''}
+    <p class="muted" style="font-size:18px">Applies to new towns you start. Each level: the governor carries one more dark side (the 5th question takes ${1+(set.mastery||0)} answer${(set.mastery||0)?'s':''}), and monsters deal 3% more damage with 3% more health (now +${3*(set.mastery||0)}%). Beat the Unlit King at your highest level to unlock the next, up to Mastery 8, full ascension.${state&&state.mastery?` This town: Mastery ${state.mastery}.`:''}</p>`:''}
     <h3>Zoom</h3><div class="row">${zoomCtl()}<button class="btn small" data-a="zoomReset">Reset to ${Math.round(((PROFILES[set.profile]||{}).zoom||1)*100)}%</button></div>
     <p class="muted" style="font-size:18px">Pinch-to-zoom works too.</p>
     <h3>Battle</h3>
@@ -7680,7 +7707,7 @@ const ACT={
   gear3ok:()=>{state.gear3Msg=null},
   heroSheet:id=>{ui.sheet=id;const h=heroById(id);if(h)h.newSkill=null},
   sheetX:()=>{ui.sheet=null},
-  endNext:()=>{const E=state.ending;if(!E)return;E.step++;if(E.step>=ENDING.length){state.ending=null;state.glory=true}},
+  endNext:()=>{const E=state.ending;if(!E)return;const SET=endingSet();E.step++;if(E.step>=SET.length){state.ending=null;if(SET===ENDING){state.glory=true;state.fatherHome=true}}},
   setMastery:x=>{const m=clamp(+x||0,0,set.masteryMax||0);set.mastery=m;saveSet()},
   campAdd:k=>{const ev=state.run&&state.run.event;if(!ev||!ev.camp||!CAMP_ACT[k])return;const used=Object.values(ev.camp.use).reduce((a,b)=>a+b,0);if(used<ev.camp.pts)ev.camp.use[k]=(ev.camp.use[k]||0)+1},
   campSub:k=>{const ev=state.run&&state.run.event;if(!ev||!ev.camp||!ev.camp.use[k])return;ev.camp.use[k]--;if(!ev.camp.use[k])delete ev.camp.use[k]},
