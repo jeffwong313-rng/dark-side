@@ -839,6 +839,7 @@ span.dslot{cursor:default}
 .hrcard.inparty{box-shadow:inset 0 0 0 3px #8fd3ff,0 0 10px #8fd3ff66}
 .hrcard.inparty:hover,.hrcard.inparty:focus-visible{box-shadow:inset 0 0 0 3px #8fd3ff,0 0 12px #8fd3ffaa}
 .hrhint{font-size:15px;margin:0 4px 8px}
+.lvbanner{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:8px 12px;margin-bottom:8px;background:#2a2214;color:var(--bone);box-shadow:inset 0 0 0 2px var(--gold),0 0 14px #e3b34155;animation:govfade .4s ease both}.lvbanner b{color:var(--gold)}.lvbanner .btn{margin-left:auto}
 .hrcard.viewing,.hrcard.viewing:hover{background:#2a2033;box-shadow:inset 0 0 0 3px var(--gold),0 0 10px #e3b34166}.hrcard.inparty.viewing{box-shadow:inset 0 0 0 3px var(--gold),inset 0 0 0 6px #8fd3ff}
 .hrport{position:relative;flex:none;width:72px;height:72px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 60%,color-mix(in srgb,var(--ct) 45%,transparent),#0b0910 70%);box-shadow:inset 0 0 0 2px #2a2234}
 .hrlv{position:absolute;right:-4px;bottom:-4px;min-width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#15101a;background:var(--gold);box-shadow:0 0 0 2px #060509}
@@ -2708,13 +2709,78 @@ const randomLook=()=>({cw:ri(0,COLORWAYS.length-1),skin:ri(0,H_SKIN.length-1),ha
 // The eight color swatches on the hero's page.
 function lookPicker(h){const L=heroLook(h),i=L.i,sw=(k,cols,cur,names)=>cols.map((c,j)=>`<button class="swatch ${j===cur?'cur':''}" style="--sw:${c}" data-a="setLook" data-x="${h.id}|${k}|${j}" aria-label="${esc(names?names[j]:k+' '+(j+1))}" aria-pressed="${j===cur}" data-tip="${esc(names?names[j]:'')}"></button>`).join('');
   return `<div class="lookpick"><span class="row"><small class="muted">Color</small>${sw('cw',COLORWAYS.map(c=>c.A),i.cw,COLORWAYS.map(c=>c.n))}</span></div>`}
+/* Heroes: chunky chibi sprites. Only the weapon shows (in its rarity color); armor and accessories don't. */
+const CHIBI={"warrior": ["...k.k.k......", "..kHkHkHk.....", ".kHHHHHHHk....", ".kAAAAAAAk....", ".kHFFFFEFk....", ".kFFFFFEFk....", ".kFFFFFFFk....", "..kFFfFFk.....", "...kAAAk......", "..kAAAAAhk....", "..kkAAAk.k....", "...kBkBk......", "...kdkdk......", "...kk.kk......"], "archer": ["..........kk..", "....kkkkkkRk..", "...kAAAAAAk...", "..kAAAAAAAAk..", "..kAFFFFEFAk..", "..kFFFFFEFFk..", "..kFFFFFFFFk..", "...kFFffFFk...", "....kAAAk.....", "...kAAAAAhk...", "...kkAbAk.k...", "....kBkBk.....", "....kdkdk.....", "....kk.kk....."], "mage": [".......kk.....", "......kAAk....", ".....kAAAk....", "....kAAGAAk...", "...kAAAAAAAk..", ".kkkkkkkkkkkk.", "..kFFFFFEFk...", "..kFFFFFEFk...", "..kFFFFFFFk...", "...kWWWWWk....", "....kAAAAhk...", "...kAAAAAk....", "...kAAAAAk....", "...kkkkkkk...."]};
+// Chunky hero sprites: body rows + a weapon drawn at the hand (only when one is equipped).
+const HB={k:'#0a0810',S:'#a3a7b3',D:'#241d2c',Y:'#ffe066',W:'#efe6d2',G:'#e3b341',R:'#b83a3a',E:'#1a1018',d:'#2a1e18',w:'#8c6a3c',s:'#e8e0d0',g:'#3a2618'};
+function chunkGrid(rows,cls,fr,wpn){
+  const W=16,H=16,G=Array.from({length:H},()=>Array(W).fill('.'));
+  const rh=rows.length,oy=H-rh,ox=0,dx=fr===2?1:fr===3?-1:0,legs=Math.min(5,Math.floor(rh/3));
+  let hx=0,hy=0;
+  const put=(x,y,c)=>{if(x>=0&&y>=0&&x<W&&y<H)G[y][x]=c};
+  const drawRows=(from,to,yo)=>{for(let y=from;y<to;y++)for(let x=0;x<rows[y].length;x++){const c=rows[y][x];if(c==='.')continue;
+    const X=ox+x+dx,Y=oy+y+yo;if(c==='h'){hx=X;hy=Y;put(X,Y,'F')}else put(X,Y,c)}};
+  drawRows(rh-legs,rh,0);drawRows(0,rh-legs,fr===1?1:0);
+  if(wpn){const P=[];const p=(x,y,c)=>P.push([x,y,c]);
+    if(cls==='warrior'){
+      if(fr===2){p(hx,hy,'g');for(let k=-1;k<=1;k++)p(hx+1,hy+k,'G');for(let k=2;k<=6;k++)p(hx+k,hy,'X')}
+      else if(fr===3){p(hx,hy,'g');for(let k=-1;k<=1;k++)p(hx+k,hy-1,'G');for(let k=2;k<=7;k++)p(hx+Math.floor(k/3),hy-k,'X')}
+      else{p(hx,hy,'g');for(let k=-1;k<=1;k++)p(hx+k,hy-1,'G');for(let k=2;k<=8;k++)p(hx,hy-k,'X')}}
+    else if(cls==='archer'){
+      for(let dy=-5;dy<=5;dy++){const bx=hx+Math.round(2*Math.cos(dy/5.6*Math.PI/2));p(bx,hy+dy,Math.abs(dy)>=4||dy===0?'X':'V')}
+      const sx=fr===2?hx-3:hx-1;
+      for(let dy=-5;dy<=5;dy++){const t=Math.abs(dy)/5;p(Math.round(sx+(hx-sx)*t),hy+dy,'s')}
+      if(fr===2){for(let x=sx;x<=hx+4;x++)p(x,hy,'w');p(hx+5,hy,'S');p(sx-1,hy-1,'R');p(sx-1,hy+1,'R')}}
+    else{
+      if(fr===2){for(let k=-3;k<=6;k++)p(hx+Math.round(k*.6),hy-k,'w');const tx=hx+3,ty=hy-7;p(tx,ty,'O');p(tx+1,ty,'O');p(tx,ty-1,'O');p(tx+1,ty-1,'O');p(tx+3,ty-2,'Y');p(tx+2,ty-4,'Y');p(tx+4,ty+1,'Y')}
+      else{for(let k=-4;k<=6;k++)p(hx,hy-k,'w');p(hx,hy-8,'O');p(hx+1,hy-8,'O');p(hx,hy-7,'O');p(hx+1,hy-7,'O');p(hx-1,hy-7,'O');if(fr===1)p(hx+2,hy-9,'Y')}}
+    p(hx,hy,'F');
+    for(const [x,y,c] of P)put(x,y,c);
+    for(const [x,y,c] of P)for(const [a,b] of [[1,0],[-1,0],[0,1],[0,-1]])if(G[y+b]&&G[y+b][x+a]==='.')put(x+a,y+b,'k')}
+  return G;
+}
+function chunkPal(cw,skin,hair,wr,cls){
+  const met={common:'#c4c8d4',rare:'#5f97e3',epic:'#b56fe3',godlike:'#f2a83a',perfect:'#ff5c7a'};
+  const T=hexRgb(cw.A),dk=c=>'#'+c.map(v=>Math.round(v*.62).toString(16).padStart(2,'0')).join(''),lt=c=>'#'+c.map(v=>Math.round(v+(255-v)*.3).toString(16).padStart(2,'0')).join('');
+  const sk=hexRgb(skin);
+  return {...HB,A:cw.A,a:dk(T),L:lt(T),F:skin,f:dk(sk),H:hair,B:cw.p,b:cw.b,X:met[wr]||'#c4c8d4',V:wr&&wr!=='common'?met[wr]:'#8c6a3c',O:cls==='mage'?(wr&&wr!=='common'?met[wr]:'#9fd6ff'):'#9fd6ff'};
+}
+// Same lighting as the old sprites: drawn at 2x, light from above, shade below, cool rim on the right.
+function chunkRaster(G,pal){
+  const h=G.length,w=G[0].length,Rs=new Raster(w*2,h*2),at=(x,y)=>y<0||y>=h||x<0||x>=w?'.':G[y][x],edge=c=>c==='.'||c==='k';
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){const ch=at(x,y);if(ch==='.')continue;
+    if(ch==='k'){for(const [a,b] of [[0,0],[1,0],[0,1],[1,1]])Rs.set(2*x+a,2*y+b,[10,8,16]);continue}
+    const base=hexRgb(pal[ch]||'#ff00ff');let tl=base,tr=base,bl=base,br=base;
+    if(ch==='Y'||ch==='O'){}else{
+    if(edge(at(x,y-1))){tl=lit(tl,.24);tr=lit(tr,.2)}
+    if(edge(at(x-1,y))){tl=lit(tl,.12);bl=lit(bl,.06)}
+    if(edge(at(x,y+1))){bl=lit(bl,-.3);br=lit(br,-.32)}
+    if(edge(at(x+1,y))){tr=mixc(tr,[170,190,255],.3);br=mixc(br,[150,170,240],.24)}
+    if(!edge(at(x,y-1))&&!edge(at(x,y+1))&&(x+y)%2===0)br=lit(br,-.07)}
+    Rs.set(2*x,2*y,tl);Rs.set(2*x+1,2*y,tr);Rs.set(2*x,2*y+1,bl);Rs.set(2*x+1,2*y+1,br)}
+  return Rs;
+}
+// Four frames side by side (idle, breath, attack, hurt). Portraits crop a square around the figure.
+function chunkStrip(Gs,pal,crop){
+  const Rs=Gs.map(G=>chunkRaster(G,pal)),W=Rs[0].w,Hh=Rs[0].h,n=Rs.length,cv=document.createElement('canvas');cv.width=W*n;cv.height=Hh;const x=cv.getContext('2d');
+  Rs.forEach((R,k)=>x.putImageData(new ImageData(R.d,W,Hh),k*W,0));
+  if(!crop)return cv.toDataURL();
+  const G=Gs[0];let x0=99,y0=99,x1=0,y1=0;G.forEach((r,y)=>r.forEach((c,xx)=>{if(c!=='.'){x0=Math.min(x0,xx);x1=Math.max(x1,xx);y0=Math.min(y0,y);y1=Math.max(y1,y)}}));
+  x0*=2;y0*=2;x1=x1*2+1;y1=y1*2+1;
+  const side=Math.min(Math.max(x1-x0,Math.min(y1-y0,Math.round((x1-x0)*1.1)))+3,W),cx=(x0+x1)/2,sx=Math.round(Math.min(Math.max(cx-side/2,0),W-side)),sy=Math.max(0,Math.min(y0-1,Hh-side));
+  const c2=document.createElement('canvas');c2.width=side*n;c2.height=side;const x2=c2.getContext('2d');
+  for(let k=0;k<n;k++)x2.drawImage(cv,k*W+sx,sy,side,side,k*side,0,side,side);
+  return {url:c2.toDataURL(),side};
+}
 function heroArt(h,scale,cls){
-  const gear={};for(const sl of ['weapon','helmet','chest','pants']){const it=h.gear&&h.gear[sl];if(it)gear[sl]=it.rarity}
-  const LK=h.look||h.id?heroLook(h):{cw:COLORWAYS[CW_DEFAULT[h.cls]||0],skin:H_SKIN[strHash(h.name)%H_SKIN.length],hair:H_HAIR[0]},skin=LK.skin,hair=LK.hair,tint=LK.cw.A;
-  const key=['H',h.cls,gear.weapon,gear.helmet,gear.chest,gear.pants,skin,hair,tint].join('|');
-  const fr=()=>frames4(f=>DRAW.hero(h.cls,gear,f)),pal=()=>({...heroPal(h.cls,tint,gear,skin,hair),p:LK.cw.p,b:LK.cw.b});
-  const s=!CLASSES[h.cls]?null:scale<=SMALL?portraitOf(key,fr,pal()):unitStrip(key,()=>({url:ART.strip(fr(),pal()),w:32,h:32}));
-  return s?artImg(s,scale,cls):sprite(h.cls,tint,scale,cls);
+  const w=h.gear&&h.gear.weapon,wr=w?w.rarity:null;
+  const LK=h.look||h.id?heroLook(h):{cw:COLORWAYS[CW_DEFAULT[h.cls]||0],skin:H_SKIN[strHash(h.name)%H_SKIN.length],hair:H_HAIR[0]};
+  const rows=CHIBI[h.cls];if(!rows)return sprite(h.cls,LK.cw.A,scale,cls);
+  const key=['C',h.cls,w?wr:'-',LK.skin,LK.hair,LK.cw.A].join('|'),small=scale<=SMALL;
+  const make=()=>{const Gs=[0,1,2,3].map(f=>chunkGrid(rows,h.cls,f,!!w)),pal=chunkPal(LK.cw,LK.skin,LK.hair,wr,h.cls);
+    if(small){const r=chunkStrip(Gs,pal,true);return {url:r.url,w:r.side,h:r.side,crop:1}}return {url:chunkStrip(Gs,pal,false),w:32,h:32}};
+  const s=unitStrip((small?'P|':'')+key,make);
+  return s?artImg(s,scale,cls):sprite(h.cls,LK.cw.A,scale,cls);
 }
 
 
@@ -3592,7 +3658,8 @@ const UNLOCK_CLS=['warrior','archer','mage'];
 const recruitCls=()=>state.unlock!=null&&state.unlock<3?UNLOCK_CLS[state.unlock]:null;
 function rollCandidates(){state.lastRecruits=(state.candidates||[]).map(c=>c.name);state.candidates=[];for(let i=0;i<recruitCount();i++)state.candidates.push(makeHero(recruitCls()))}
 function newGame(){
-  state={v:1,unlock:0,hideBld:true,reveal:{},guide:true,tutorial:true,week:1,gold:150,scrolls:1,b:{smith:1,alch:1,academy:1,barracks:1,bank:1,pack:1,bag:1,war:0,potency:0,feed:0},bossKills:0,won:null,items:{potion:2},mats:{},farm:{lvl:0},farm2:true,mat2:true,still:0,ration3:true,built:{},built2:true,heroes:[],candidates:[],bank:[],graveyard:[],
+  // firstLv: 0 = no hero has leveled yet in this save (the governor explains the first one).
+  state={v:1,unlock:0,hideBld:true,reveal:{},guide:true,tutorial:true,week:1,gold:150,scrolls:1,b:{smith:1,alch:1,academy:1,barracks:1,bank:1,pack:1,bag:1,war:0,potency:0,feed:0},bossKills:0,won:null,firstLv:0,items:{potion:2},mats:{},farm:{lvl:0},farm2:true,mat2:true,still:0,ration3:true,built:{},built2:true,heroes:[],candidates:[],bank:[],graveyard:[],
     screen:'town',tab:'town',sel:{len:'short',carry:true},run:null,summary:null,mastery:Math.min(set.mastery||0,set.masteryMax||0)};
   rollCandidates();
   state.govSetup={v2:true,step:'intro',scene:0,q:0,ans:[],d:govDefault()};
@@ -3630,7 +3697,8 @@ function gainXp(h,x,lines){
     queueLevelPicks(h);
     if(h.pickSkill)lines.push(`<b class="gold">${esc(h.name)} can learn a new skill.</b> Choose it when the fight is over.`);
     if(h.pickTrait)lines.push(`<b class="gold">${esc(h.name)} can take a new trait.</b> Choose it when the fight is over.`);
-    if(state.run&&state.run.battle)state.run.battle.pops.push({s:'h',hid:h.id,t:'LEVEL UP'});
+    if(state.run&&state.run.battle){const b=state.run.battle;b.pops.push({s:'h',hid:h.id,t:'LEVEL UP'});(b.leveled=b.leveled||[]).push({id:h.id,lv:h.level,pts:gained})}
+    if(state.firstLv===0)state.firstLv=1;
     if(state.run&&h.hp>0){h.hp=maxHp(h);h.mp=maxMp(h)}}
 }
 
@@ -5014,6 +5082,8 @@ function win(){
    if(fx){const out=[];for(const h of living())addFat(h,fx,out);lines.push(`<span class="muted">The fight takes its toll: +${fx}% fatigue (${living().map(h=>`${esc(h.name)} ${fatOf(h)}%`).join(', ')})</span>`,...out)}}
   buryFallen(lines);
   b.rewards=lines;b.lootFresh=true;
+  // Someone leveled up: open the party with their details showing, so the points don't go unnoticed.
+  if(b.leveled&&b.leveled.length){ui.drawer='party';ui.pdet=b.leveled[0].id;ui.hideResult=true;ui.lvlOpen=true}
   // Let the last blow, the falling monsters and the loot flying into the backpack play out before the results pop up.
   if(!window.__instant&&set.motion){b.revealAt=Date.now()+1700;setTimeout(()=>{if(state.run&&state.run.battle===b)render()},1750)}
   if(b.gateFell)blog('<b class="gold">The Gatekeeper comes apart into smoke. It pours away down the far side of the mountain, toward the moon’s shadow, and the last sliver of moonlight goes out.</b>');
@@ -5350,6 +5420,12 @@ const PLACE_TUT={
   witch:['The Witch','The Witch trades in the strange. On the Free Mana tab she packs free mana items for every adventure. She also sells Ether, brews and supplies, crafting, reworking a hero’s traits, rebalancing their points, even rerolling a learned skill. Never cheap, often worth it.'],
   ledger:['The Moon Ledger','Every monster my heroes scout is written here: what it resists, what it’s weak to and how hard it hits. Worth a look before choosing a land.'],
 };
+function govLvView(){
+  if(state.firstLv!==1||!state.gov||set.govTips===false)return '';
+  const b=state.run&&state.run.battle;if(b&&(!b.over||(b.revealAt&&Date.now()<b.revealAt)))return '';
+  const L=b&&b.leveled&&b.leveled[0],h=L?heroById(L.id):state.heroes.find(x=>x.points),nm=h?esc(h.name):'one of our heroes';
+  return modalShell('A hero leveled up!',`<div class="row" style="gap:12px;align-items:flex-start;flex-wrap:nowrap">${govPic(state.gov,4)}<p class="govtext" style="text-align:left;font-size:20px;min-height:0">One of our heroes has leveled up! ${nm} has new attribute points. Let’s upgrade their stats so they can continue deeper into the journey. ${b?'Their details are open in the Party panel: tap a stat to raise it, or use Auto-assign.':'Open the Party panel to spend them.'}</p></div><div class="row" style="justify-content:flex-end"><button class="btn gold" data-a="govLvOk">Let’s do it</button></div>`,'govLvOk','placetut');
+}
 function placeTutView(){
   const k=state.tab;if(set.govTips===false||!state.tutorial||!state.gov||state.run||state.summary||!PLACE_TUT[k]||(state.placeSeen||[]).includes(k))return '';
   if(OPEN_WEEK[k]&&!bldOpen(k))return '';
@@ -6466,7 +6542,8 @@ const fleeBtn=cls=>{const r=state.run;if(r&&r.length==='short'&&!r.final&&noEsca
 // Hero cards, bag and loot. Shown beside the path between fights, and in the Party drawer during a battle.
 function partyPanel(){
   const r=state.run,b=r.battle,P=partyAll(),cur=b&&!b.over?currentActor():null,many=P.length>1;
-  return `${P.map(h=>{const open=ui.pdet===h.id,sel=(ui.pslot||'').split('|');
+  const LV=b&&b.over&&b.leveled&&b.leveled.length?b.leveled.filter((x,i,a)=>!a.slice(i+1).some(y=>y.id===x.id)):[];
+  return `${LV.length?`<div class="lvbanner" role="status"><b>⬆ Level up!</b> ${LV.map(x=>{const h=heroById(x.id);return h?`${esc(h.name)} reached level ${x.lv}`:''}).filter(Boolean).join(' · ')}. Spend the new points below, or come back to it later.${ui.lvlOpen?`<button class="btn small gold" data-a="drawer" data-x="">Back to results</button>`:''}</div>`:''}${P.map(h=>{const open=ui.pdet===h.id,sel=(ui.pslot||'').split('|');
     return `<div class="stack pcard ${h.hp<=0?'down':''} ${many&&cur===h?'cur':''}" style="gap:5px">
       <div class="pc-head"><div class="portrait">${heroArt(h,3)}</div><div class="stack" style="gap:3px;flex:1;min-width:0"><span class="hname">${posBadge(h)}${esc(h.name)} <small class="muted">Lv ${h.level} ${C_(h).name}</small>${h.hp<=0?' <span class="warn">fallen</span>':''}</span>
         ${bars(h)}${fatLine(h)}<button class="linkbtn ${h.points&&h.hp>0&&!open?'guide':''}" data-a="pdet" data-x="${h.id}" aria-expanded="${open}">${open?'Hide details ▴':'Details ▾'}${h.points?` <span class="gold">· ${h.points} pts</span>`:''}</button></div>
@@ -6821,7 +6898,7 @@ function battleScreen(){kingMorph();
     ${roster(P,cur)}
     <div class="blogline blogpanel ${czShut('bat.log')?'czlog':''}" aria-label="Battle log" role="log"><span class="blogtitle">${czBtn('bat.log')}Battle log</span>${b.log.slice(0,40).map(l=>`<p class="${logCls(l)}">${l}</p>`).join('')}</div>
     <div class="actbar">${actBar()}</div>
-    ${ui.drawer==='party'?`<div class="drawer"><div class="drawer-top"><h2>Party</h2><button class="xbtn" data-a="drawer" data-x="" aria-label="Close">×</button></div><div class="drawgrid">${partyPanel()}</div></div>`:''}
+    ${ui.drawer==='party'&&!(ui.lvlOpen&&b.revealAt&&Date.now()<b.revealAt)?`<div class="drawer"><div class="drawer-top"><h2>Party</h2><button class="xbtn" data-a="drawer" data-x="" aria-label="Close">×</button></div><div class="drawgrid">${partyPanel()}</div></div>`:''}
     ${ui.drawer==='log'?`<div class="drawer"><div class="drawer-top"><h2>Battle log</h2><button class="xbtn" data-a="drawer" data-x="" aria-label="Close">×</button></div><div class="log">${b.log.map(l=>`<p class="${logCls(l)}">${l}</p>`).join('')}</div></div>`:''}
     ${b.over&&!ui.hideResult&&!(b.revealAt&&Date.now()<b.revealAt)?resultModal():''}
     ${fleeModal()}
@@ -7761,6 +7838,7 @@ const ACT={
   sheetTab:k=>{if(SHEET_TABS.some(([x])=>x===k))ui.sheetTab=k},
   sheetGear:x=>{const [hid,sl]=x.split('|'),h=heroById(hid);ui.sheet=null;if(!h)return;state.sel.hero=h.id;state.sel.slot=sl;state.tab='heroes';state.sel.btab='roster'},
   hideResult:()=>{ui.hideResult=true},
+  govLvOk:()=>{state.firstLv=2},
   showResult:()=>{ui.hideResult=false},
   node:i=>chooseNode(i),
   target:i=>{const b=state.run&&state.run.battle;if(b&&b.enemies[+i]&&b.enemies[+i].hp>0)b.target=+i},
@@ -7799,7 +7877,7 @@ const ACT={
   zoomReset:()=>applyZoom((PROFILES[set.profile]||{}).zoom||1),
   fleeNo:()=>{ui.flee=false},
   fleeYes:()=>{ui.flee=false;ui.drawer=null;if(!canFlee())return;clearTimeout(advTimer);state.run.fleeTerms=fleeTerms();endRun('flee')},
-  drawer:x=>{ui.drawer=x||null;const b=state.run&&state.run.battle;if(x==='party'&&b&&b.over)ui.hideResult=true},
+  drawer:x=>{if(!x&&ui.lvlOpen){ui.lvlOpen=false;ui.hideResult=false}ui.drawer=x||null;const b=state.run&&state.run.battle;if(x==='party'&&b&&b.over)ui.hideResult=true},
   zoomIn:()=>applyZoom(ui.zoom+.1),
   zoomOut:()=>applyZoom(ui.zoom-.1),
   scroll:()=>{const r=state.run;if(!r.scrolls)return;r.scrolls--;ui.drawer=null;clearTimeout(advTimer);endRun('scroll')},
@@ -7939,7 +8017,7 @@ function render(){
   SND.music(musicFor(inBattle));
   const flyNow=!!(inBattle&&state.run.battle.over==='win'&&state.run.battle.lootFresh);
   document.body.classList.toggle('inspect',!!ui.inspect);
-  app.innerHTML=(ui.inspect?'<div class="inspbar" role="status"><b>?</b> Tap anything to learn about it <span class="muted">· tap ? again to cancel</span></div>':'')+rotateNote()+(inBattle?runView():topBar()+(state.screen==='run'&&state.run?runView():townView())+foot)+(!state.run&&ui.summaryHtml?ui.summaryHtml:'')+(!state.run&&ui.prep?prepView():'')+(!inBattle&&ui.sheet?heroSheet():'')+(!state.run&&ui.greenWarn?greenModal():'')+(state.run&&state.run.reveal&&state.run.reveal.length?revealView():'')+(!state.run?(endingView()||govRevealView()||storyView()||placeTutView()||govPromoView()||govSheetView()):'')+(state.run&&ui.inv?invModal():'')+levelPickModal()+installModal()+settingsModal()+darkView();
+  app.innerHTML=(ui.inspect?'<div class="inspbar" role="status"><b>?</b> Tap anything to learn about it <span class="muted">· tap ? again to cancel</span></div>':'')+rotateNote()+(inBattle?runView():topBar()+(state.screen==='run'&&state.run?runView():townView())+foot)+(!state.run&&ui.summaryHtml?ui.summaryHtml:'')+(!state.run&&ui.prep?prepView():'')+(!inBattle&&ui.sheet?heroSheet():'')+(!state.run&&ui.greenWarn?greenModal():'')+(state.run&&state.run.reveal&&state.run.reveal.length?revealView():'')+(!state.run?(endingView()||govRevealView()||storyView()||placeTutView()||govPromoView()||govSheetView()):'')+(state.run&&ui.inv?invModal():'')+levelPickModal()+govLvView()+installModal()+settingsModal()+darkView();
   if(key===lastView){window.scrollTo(0,y);keepScroll(kept);if(!inBattle)holdAnchor()}else if(!inBattle)window.scrollTo(0,0);ui.anchor=null;
   if(inBattle){requestAnimationFrame(drawIntentArrows);if(flyNow)requestAnimationFrame(flyLoot)}
   lastView=key;
