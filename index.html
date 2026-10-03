@@ -2876,10 +2876,10 @@ const BIOMES={
 };
 const LENGTHS={
   // The exact length is rolled at the start and kept hidden; the party only knows it has reached the end when it meets the final boss.
-  short:{name:'Short',min:5,max:15,mult:1,diff:0,base:1,per:.6,tail:.35,rec:1,cap:10,feel:'a quick trip'},
-  medium:{name:'Medium',min:10,max:25,mult:1.25,diff:.5,base:5,per:.4,tail:.3,rec:6,cap:16,feel:'a few days out'},
-  long:{name:'Long',min:30,max:40,mult:1.6,diff:1,base:8,per:.35,tail:.2,rec:10,cap:22,feel:'a long haul'},
-  expedition:{name:'Expedition',min:50,max:100,mult:2.2,diff:1.5,base:17,per:.35,tail:.2,rec:25,cap:42,feel:'deep into the wilds'},
+  short:{name:'Short',min:8,max:12,mult:1,diff:0,base:1,per:.6,tail:.35,rec:1,cap:10,feel:'a quick trip'},
+  medium:{name:'Medium',min:15,max:25,mult:1.25,diff:.5,base:5,per:.4,tail:.3,rec:6,cap:16,feel:'a few days out'},
+  long:{name:'Long',min:32,max:48,mult:1.6,diff:1,base:8,per:.35,tail:.2,rec:10,cap:22,feel:'a long haul'},
+  expedition:{name:'Expedition',min:60,max:72,mult:2.2,diff:1.5,base:17,per:.35,tail:.2,rec:25,cap:42,feel:'deep into the wilds'},
   descent:{name:'The Dark Side',min:100,max:100,mult:2.5,diff:0,final:true},
 };
 const NODE_W={battle:74,gold:5,gamble:4,mystery:17,merchant:5};
@@ -3181,7 +3181,7 @@ const effRes=(h,e)=>Math.round(100-(100-resist(h,e))*elTaken(h,e));
 function resist(h,e){const w=state&&state.run&&state.run.battle&&state.run.battle.wards&&state.run.battle.wards[h.id],bu=e==='fire'&&state&&state.run&&state.run.battle&&state.run.battle.burn?(state.run.battle.burn[h.id]||0):0;return -bu+Math.min(80,(C_(h).elRes||0)+(h.res[e]||0)+stat(h,'end')*.5+aff(h,'res_'+e)+(h.draught&&h.draught.el===e?h.draught.v:0)+((w&&w[e])||0)+((w&&w.all)||0))}
 // Steep curve on purpose: level 10 takes many adventures, level 20 takes a veteran's career.
 // No level cap, but past ~38 each level costs 35% more than the curve, so ~50 is the practical ceiling.
-const xpNeed=L=>Math.round(60*Math.pow(L,1.6)*Math.exp(Math.max(0,L-38)*.3));
+const xpNeed=L=>Math.round(20*Math.pow(L,1.8)*Math.exp(Math.max(0,L-38)*.3));
 function xpBar(h){
   const need=xpNeed(h.level),left=need-h.xp;
   let total=h.xp;for(let i=1;i<h.level;i++)total+=xpNeed(i);
@@ -3367,7 +3367,7 @@ const lenOpen=(k,ids)=>BADGE_NEED[k]==null||partyBadge(ids)>=BADGE_NEED[k];
 const badgeIco=(n,sc)=>n?`<span class="badge" style="--c:${BADGE_COL[n]}" data-tip="${esc(BADGE_N[n]+' badge: beat a '+BADGE_N[n]+' adventure and came home alive.')}">${ico('star',BADGE_COL[n],sc||2)}</span>`:'';
 // The Dark Side (final map): 100 stages through every biome, then the Abyss, where the King can appear at any stage.
 const MOON_LVL=40;
-const FINAL={stages:100,base:6,perStage:.32,kingStep:.12,kingHp:30,kingAtk:2.2,bossesNeeded:5};
+const FINAL={finMin:77,finMax:93,stages:100,base:6,perStage:.32,kingStep:.12,kingHp:30,kingAtk:2.2,bossesNeeded:5};
 // The moon turns toward its dark side as the town progresses. Fully dark opens the final map.
 function moonState(){
   const b=state.b,maxL=state.heroes.reduce((m,h)=>Math.max(m,h.level),0),bk=state.bossKills||0,town=(b.smith+b.alch+b.academy+(b.barracks||1)+b.bank+(b.pack||1))-6;
@@ -3411,7 +3411,9 @@ const living=()=>partyAll().filter(h=>h.hp>0);
 const runHero=()=>state.run&&(living()[0]||partyAll()[0]);
 const partyTr=k=>living().reduce((s,h)=>s+tr(h,k),0);
 const listNames=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
-const enemyLevel=()=>{const r=state.run;return r.final?FINAL.base+(r.stage-1)*FINAL.perStage+townPower()*.3:(()=>{const L=LENGTHS[r.length]||LENGTHS.short;return Math.min(L.cap||99,lenLevel(L,r.stage)+townPower()*.3)})()};
+// The Dark Side's lands span a rolled number of stages (older saves: 100). Enemy growth is stretched to match, so the Abyss is as tough as before.
+const finStages=r=>(r&&r.fin)||FINAL.stages;
+const enemyLevel=()=>{const r=state.run;return r.final?FINAL.base+(r.stage-1)*FINAL.perStage*FINAL.stages/finStages(r)+townPower()*.3:(()=>{const L=LENGTHS[r.length]||LENGTHS.short;return Math.min(L.cap||99,lenLevel(L,r.stage)+townPower()*.3)})()};
 // Enemies never look at your heroes' levels: they grow with the stage and your town, and each map has a ceiling, so a strong enough party walks through the easy maps.
 // Each length starts at its own enemy level, so longer adventures are meant for more seasoned heroes (rec is the intended hero level, never shown).
 const lenLevel=(L,st)=>L.base+Math.min(st-1,20)*L.per+Math.max(0,st-21)*L.tail;
@@ -3472,7 +3474,7 @@ const ELITE_STEP=.15,eliteOdds=r=>Math.min(1,ELITE_STEP*(r.elitePity||0));
 const CAMP_STEP=.1,campOdds=r=>Math.min(1,CAMP_STEP*((r.campPity||0)+1));
 function genNodes(k){
   const r=state.run;
-  if(r.final&&k>FINAL.stages&&chance(Math.min(1,(k-FINAL.stages)*FINAL.kingStep)))return['king'];
+  if(r.final&&k>finStages(r)&&chance(Math.min(1,(k-finStages(r))*FINAL.kingStep)))return['king'];
   if(!r.final&&k===r.total)return['warden'];
   if(r.bossAt?r.bossAt.includes(k):k%15===0)return['boss'];
   const n=+weighted({2:30,3:45,4:25}),out=[];
@@ -3596,9 +3598,9 @@ function startRun(){
   let scrolls=0;if(state.sel.carry&&state.scrolls>0){state.scrolls--;scrolls=1}
   let biome='tundra';
   if(!final)biome=LAND_PICK.includes(state.sel.biome)?state.sel.biome:pick(LAND_PICK);
-  const total=final?null:ri(L.min,L.max),bossAt=[];
+  const total=final?null:ri(L.min,L.max),fin=final?ri(FINAL.finMin,FINAL.finMax):null,bossAt=[];
   if(!final){let k=ri(12,17);while(k<total-2){bossAt.push(k);k+=ri(12,18)}}
-  state.run={stats:{},id:uid(),mod:final?null:(landMods()[biome]||null),pacts:[],startLv:Object.fromEntries(ids.map(id=>[id,heroById(id).level])),chestAt:[],party:ids,length:len,final,total,bossAt,stage:1,biome,gold:0,loot:[],scrolls,battle:null,nodes:[],event:null,
+  state.run={stats:{},id:uid(),mod:final?null:(landMods()[biome]||null),pacts:[],startLv:Object.fromEntries(ids.map(id=>[id,heroById(id).level])),chestAt:[],party:ids,length:len,final,fin,total,bossAt,stage:1,biome,gold:0,loot:[],scrolls,battle:null,nodes:[],event:null,
     lastStand:{},fallen:[],autoPref:false,kingChance:0,bag:{},mats:{}};
   // The Supply Pack limits how many consumables go along. The rest stay in town.
   // The player picks how many of each supply to bring on the prepare screen (a mix by default).
@@ -3608,7 +3610,7 @@ function startRun(){
   {const r=state.run;r.free={};
     for(const [id,q0] of freeSupplies()){const q=q0||0;if(!id||!q)continue;r.bag[id]=(r.bag[id]||0)+q;r.free[id]=(r.free[id]||0)+q}}
   state.run.event=biomeIntro();
-  if(final)state.run.event.text=`<b class="gold">You step onto the Dark Side.</b> Every 20 stages the path sinks into a new land. Past stage ${FINAL.stages} lies the Abyss, where the Unlit King waits.<br><br>`+state.run.event.text;
+  if(final)state.run.event.text=`<b class="gold">You step onto the Dark Side.</b> Every few dozen stages the path sinks into a new land. Past stage ${finStages(state.run)} lies the Abyss, where the Unlit King waits.<br><br>`+state.run.event.text;
   arrive();
   state.screen='run';
 }
@@ -4624,7 +4626,7 @@ function nextStage(){
   if(!r.final&&r.stage>r.total){endRun('complete');return}
   if(!r.final&&r.stage===r.total){arrive();finalApproach();return}
   if(r.final){
-    const nb=r.stage>FINAL.stages?'abyss':DESCENT_ORDER[Math.floor((r.stage-1)/20)];
+    const nb=r.stage>finStages(r)?'abyss':DESCENT_ORDER[Math.min(DESCENT_ORDER.length-1,Math.floor((r.stage-1)*DESCENT_ORDER.length/finStages(r)))];
     if(nb!==r.biome){r.biome=nb;r.event=biomeIntro();r.event.title='Deeper: '+r.event.title;
       if(nb==='abyss')r.event.text+=`<br><br><span class="warn">The Unlit King is near. From now on he can appear at any stage, and the odds rise with every step.</span>`}
   }
@@ -6031,12 +6033,12 @@ function partyPanel(){
     ${Object.keys(r.mats||{}).length?`<h3>Materials</h3><div class="row" style="gap:4px">${matsLine(r.mats)}</div>`:''}
     ${backpackBlock()}`;
 }
-const stageText=r=>r.final?(r.stage>FINAL.stages?`Stage <b class="num">${r.stage}</b> · <span class="bossmark">the King stirs</span>`:`Stage <b class="num">${r.stage}/${FINAL.stages}+</b>`):`Stage <b class="num">${r.stage}</b>`;
+const stageText=r=>r.final?(r.stage>finStages(r)?`Stage <b class="num">${r.stage}</b> · <span class="bossmark">the King stirs</span>`:`Stage <b class="num">${r.stage}/${finStages(r)}+</b>`):`Stage <b class="num">${r.stage}</b>`;
 function runView(){
   const r=state.run,B=BIOMES[r.biome];
   if(r.battle)return battleScreen();
   const P=partyAll();
-  const cells=r.final?FINAL.stages:r.total;
+  const cells=r.final?finStages(r):r.total;
   let prog='';if(r.final)for(let i=1;i<=cells;i++){const boss=i%15===0;prog+=`<i class="${i<r.stage?'done':i===r.stage?'now':''} ${boss?'boss':''}"></i>`}
   let s=`<section class="panel runhdr" style="--s1:${B.s[0]};--s2:${B.s[1]}"><div class="rh-row"><div class="rh-party">${lineup(P).map(({h})=>`<span class="fo ${h.hp<=0?'dead':''}">${heroArt(h,3,h.hp>0?'bob':'')}</span>`).join('')}</div>
     <div class="stack" style="gap:0;min-width:0;flex:1"><h2>${r.final?'The Dark Side · ':''}${B.name}</h2><span class="muted" style="font-size:18px">${stageText(r)}</span>${runModTags(r)?`<span class="lmodrow">${runModTags(r)}</span>`:''}</div>
