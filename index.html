@@ -648,20 +648,20 @@ body.lay-side .skgrid{grid-template-columns:1fr}
 /* run map */
 .map{position:relative;margin:6px 10px 20px 22px}
 .mlines{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none}
-.mlines line{stroke:#574b67;stroke-width:2;stroke-dasharray:4 5}
-.mlines line.hot{stroke:var(--gold);stroke-dasharray:none;stroke-width:3}
+.mlines line{stroke:#574b67;stroke-width:3;stroke-dasharray:6 6;stroke-linecap:round}
+.mlines line.hot{stroke:var(--gold);stroke-dasharray:none;stroke-width:4}
 .mlines line.past{stroke:#2e2838}
 .mrow{position:absolute;left:-22px;transform:translateY(-50%);font-size:17px;color:var(--dim);font-variant-numeric:tabular-nums}
 .mrow.now{color:var(--gold)}
-.mnode{position:absolute;transform:translate(-50%,-50%);width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:#15121a;box-shadow:0 0 0 2px #060509,inset 0 0 0 2px var(--edge);border:0;padding:0;font:inherit;color:var(--bone);z-index:1}
-.mnode.big{width:50px;height:50px;box-shadow:0 0 0 2px #060509,inset 0 0 0 2px #8a2e2e}
+.mnode{position:absolute;transform:translate(-50%,-50%);width:54px;height:54px;display:flex;align-items:center;justify-content:center;background:#15121a;box-shadow:0 0 0 2px #060509,inset 0 0 0 2px var(--edge);border:0;padding:0;font:inherit;color:var(--bone);z-index:1}
+.mnode.big{width:66px;height:66px;box-shadow:0 0 0 2px #060509,inset 0 0 0 2px #8a2e2e}
 .mnode.can{cursor:pointer;background:#2a2214;box-shadow:0 0 0 2px #060509,inset 0 0 0 2px var(--gold),0 0 14px #e3b34199;animation:glow 1.4s steps(2) infinite}
 .mnode.can:hover{background:#3a2e14}
 @keyframes glow{50%{box-shadow:0 0 0 2px #060509,inset 0 0 0 2px var(--gold),0 0 4px #e3b34144}}
 .mnode.off,.mnode.past{opacity:.4}
 .mnode.here{opacity:1;box-shadow:0 0 0 2px #060509,inset 0 0 0 2px var(--moss)}
 .mnode.trap{box-shadow:0 0 0 2px #060509,inset 0 0 0 2px var(--blood)}
-.mlab{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:2px;font-size:15px;max-width:50px;overflow:hidden;text-overflow:ellipsis;line-height:1;white-space:nowrap;color:var(--ash);text-shadow:1px 1px 0 #000}
+.mlab{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:3px;font-size:16px;max-width:76px;overflow:hidden;text-overflow:ellipsis;line-height:1;white-space:nowrap;color:var(--ash);text-shadow:1px 1px 0 #000}
 .mnode.can .mlab{color:var(--gold)}
 .mq{font-family:'DsHead',monospace;font-size:22px;color:var(--dim)}
 .mnode .alert{top:-9px;left:auto;right:-9px}
@@ -2219,6 +2219,18 @@ const SKELETONS={
 /* Bosses, wardens, the Unlit King and the Mimic: one-off designs on a 40×40 grid. */
 // The Dark Side's void bosses, in order: one on every 15th stage. phys = the physical share of every hit;
 // the rest is a random element (fire, ice, thunder, grass, fighting or dark), rolled again before every attack.
+// The Cave's final boss is one of three beasts, picked when the party sets out. hp/atk scale a normal warden; spd adds speed.
+const CAVE_BEASTS={
+  'The Cave Bear':{d:'cbear',hp:1.4,atk:1,spd:-2,style:null,skills:['relentless','rend'],sp:['thick',15,'front','Thick Hide'],
+    pal:{A:'#6a4a30',a:'#4a3220',M:'#a07a58',D:{c:'#120c08',flat:true},E:{c:'#ffcf5a',flat:true},w:'#f0e6d4',k0:'#1e140c'},
+    blurb:'Slow and enormous, with the most health of the three. It works itself into a Relentless fury as the fight drags on.'},
+  'The Giant Boar':{d:'cboar',hp:1.1,atk:1.05,spd:0,style:'charge',unleash:1.35,skills:[],sp:['opener',40,'front','Head Down'],chargeN:{windup:'Pawing the Ground',unleash:'Tusk Charge'},
+    pal:{A:'#5a4436',a:'#3a2a20',M:'#c08a7a',D:{c:'#120c08',flat:true},E:{c:'#ff4a3a',flat:true},w:'#f4ecd8',k0:'#1e140c'},
+    blurb:'Paws the ground, then charges the whole party with its tusks for massive damage. Brace when it lowers its head.'},
+  'The Night Panther':{d:'cpanther',hp:.85,atk:1,spd:8,style:null,skills:['rend'],sp:['keen',15,'weak','Pounce'],
+    pal:{A:'#2a2632',a:'#17141d',M:'#3e3848',D:{c:'#06040a',flat:true},E:{c:'#9cff5a',flat:true},w:'#e8e4dc',k0:'#06040a'},
+    blurb:'The fastest thing in the caves. It acts far more often than your heroes and goes for the weakest.'},
+};
 const VOID_BOSSES=[
   {n:'The Hollow Maw',d:'vmaw',phys:.4,sp:['leech',25,'weak','Devour'],pal:{E:{c:'#ff4ab0',flat:true}}},
   {n:'The Lantern Wraith',d:'vlantern',phys:.2,sp:['skin',25,'back','Borrowed Light'],pal:{C:{c:'#9fd6ff',flat:true},G:{c:'#e8faff',flat:true},E:{c:'#9fd6ff',flat:true}}},
@@ -2348,6 +2360,34 @@ const BOSS_DRAW={
     // the crown of bone floats on the void, then settles onto his head as a ring of smoke
     if(ph<3){const ky=cy-R[1]+6,kw=7-ph;g.rect(cx-kw,ky,kw*2+1,2,'G');for(let k=0;k<=kw;k+=2){g.poly([[cx-kw+k*2-1,ky],[cx-kw+k*2,ky-4-(k%4?0:2)],[cx-kw+k*2+1,ky]],'G')}}
     else{g.rect(cx-4,hy-5,9,1,'K');for(const dx of [-4,-1,2,4])g.px(cx+dx,hy-6,'K');g.px(cx,hy-6,'E')}},
+  // ---- The Cave's three beasts (they face left, toward the heroes) ----
+  cbear:(g,fr)=>{const atk=fr===2,hurt=fr===3,by=fr===1?1:0,cx=22+(atk?-3:hurt?2:0),hd=atk?2:0;
+    for(const [x,m] of [[cx+10,'a'],[cx-6,'a'],[cx+5,'A'],[cx-11,'A']])g.rect(x,29,5,9,m);
+    g.ell(cx+2,25+by,14,8.5,'A');g.ell(cx+5,18+by,9,5.5,'A');g.ell(cx+15,23+by,2.4,2,'A');
+    const hx=cx-12,hy=20+by+hd;g.ell(hx,hy,6.4,5.8,'A');g.ell(hx-3,hy-5.4,2,2,'A');g.ell(hx+3,hy-5.4,2,2,'A');g.ell(hx-3,hy-5.4,1,1,'M');g.ell(hx+3,hy-5.4,1,1,'M');
+    g.ell(hx-5,hy+2.4,3.6,2.6,'M');g.px(hx-8,hy+1,'D');g.px(hx-8,hy+2,'D');if(hurt){g.px(hx-1,hy-1,'k0');g.px(hx-2,hy-1,'k0')}else{g.px(hx-1,hy-1,'E');g.px(hx-2,hy-1,'E')}
+    if(atk){g.rect(hx-7,hy+4,5,2,'D');for(let k=0;k<3;k++)g.px(hx-6+k*2,hy+4,'w');g.line(cx-11,26,cx-17,18,'A',0,4);for(let k=0;k<3;k++)g.line(cx-18+k,16,cx-20+k,13,'w')}
+    g.paint((x,y)=>(x*3+y*7)%11===0,'A','a')},
+  cboar:(g,fr)=>{const atk=fr===2,hurt=fr===3,by=fr===1?1:0,cx=25+(atk?-3:hurt?2:0),hd=atk?3:0;
+    for(const [x,m] of [[cx+11,'a'],[cx-3,'a'],[cx+7,'A'],[cx-7,'A']])g.rect(x,31,3,7,m);
+    g.ell(cx+3,26+by,13,7.5,'A');for(let k=0;k<9;k++){const x=cx-6+k*2.4;g.poly([[x-1.2,20+by],[x,15.5+by+(k%2)],[x+1.2,20+by]],'a')}
+    g.line(cx+15,24+by,cx+18,21+by,'a',0,1.4);g.px(cx+18,20+by,'a');
+    const hx=cx-10,hy=26+by+hd;g.ell(hx,hy,6,5,'A');g.poly([[hx+1,hy-4],[hx+3,hy-9],[hx+5,hy-4]],'a');
+    g.rect(hx-9,hy-1,5,5,'M');g.px(hx-8,hy+1,'D');g.px(hx-6,hy+1,'D');
+    if(hurt)g.px(hx-2,hy-2,'k0');else g.ell(hx-2,hy-2,1,1,'E');
+    // the tusks, big and curved
+    g.line(hx-5,hy+3,hx-10,hy-2,'w',0,2.2);g.line(hx-10,hy-2,hx-11,hy-5,'w',0,1.6);g.line(hx-3,hy+3,hx-7,hy-1,'w',0,1.6);
+    g.paint((x,y)=>(x*5+y*3)%9===0,'A','a')},
+  cpanther:(g,fr)=>{const atk=fr===2,hurt=fr===3,by=fr===1?1:0,cx=22+(atk?-4:hurt?2:0),lift=atk?-3:0;
+    if(atk){g.line(cx-6,27,cx-16,31,'A',0,3);g.line(cx-3,28,cx-13,33,'a',0,3);g.line(cx+9,28,cx+15,37,'a',0,3);g.line(cx+5,28,cx+9,37,'A',0,3)}
+    else for(const [x,m] of [[cx+10,'a'],[cx-6,'a'],[cx+6,'A'],[cx-10,'A']])g.rect(x,29+by,3,9-by,m);
+    g.ell(cx+2,25+by+lift*.5,13,5,'A');g.ell(cx-7,24+by+lift,5,5.4,'A');
+    let tx=cx+14,ty=25+by;for(let k=0;k<12;k++){tx+=.7;ty-=Math.cos(k*.35+fr*.4)*.95;g.ell(tx,ty,1.3,1.3,'A')}
+    const hx=cx-13,hy=19+by+lift;g.ell(hx,hy,4.8,4.2,'A');g.poly([[hx-3,hy-3],[hx-2,hy-7],[hx,hy-3]],'A');g.poly([[hx+1,hy-3],[hx+3,hy-7],[hx+4,hy-3]],'A');
+    g.ell(hx-4,hy+1.6,2.2,1.6,'M');g.px(hx-6,hy+1,'D');
+    if(hurt){g.line(hx-3,hy-1,hx-1,hy-1,'k0')}else{g.px(hx-2,hy-1,'E');g.px(hx-1,hy-1,'E')}
+    if(atk){g.rect(hx-6,hy+2,3,2,'D');g.px(hx-5,hy+2,'w')}
+    g.paint((x,y)=>(x*7+y*5)%13===0,'A','M')},
   // ---- Void bosses of the Dark Side: one guards every 15th stage ----
   // The Hollow Maw: a floating mouth ringed with eyes, trailing tendrils.
   vmaw:(g,fr)=>{const atk=fr===2,hurt=fr===3,by=fr===1?1:0,cx=20+(atk?-3:hurt?2:0),cy=16+by;
@@ -2414,6 +2454,7 @@ const BOSSES={
   'Mimic':{d:'mimic',pal:{A:'#8a5a30',a:'#5a3a1e',M:'#c8a050',G:'#e3b341',D:{c:'#2a0a0a',flat:true},m:'#a82a3a',w:'#f4ecd8',t:'#d04a6a',E:{c:'#ffe05a',flat:true},k0:'#2a0a0a'}},
   'The Unlit King':{d:'kingv',pal:{A:'#1c1430',a:'#110b1e',V:{c:'#5a3a8a',soft:true},E:{c:'#d090ff',flat:true},D:{c:'#06040c',flat:true},G:'#cfc4a8',K:{c:'#0a0812',flat:true},
     C:'#6a5640',c:'#4a3c2c',F:'#d6a47e',H:'#c8c8d0',B:'#b4b4bc',P:'#3a3a4a',d:'#241a14',k0:'#2a1e18'}},
+  ...Object.fromEntries(Object.entries(CAVE_BEASTS).map(([n,v])=>[n,{d:v.d,pal:v.pal}])),
   ...Object.fromEntries(VOID_BOSSES.map(v=>[v.n,{d:v.d,pal:{A:'#251c3a',a:'#170f26',V:{c:'#5a3a8a',soft:true},D:{c:'#06040c',flat:true},w:'#d8d0e8',k0:'#06040c',M:'#3a3450',m:'#2a2440',
     K:{c:'#0a0812',flat:true},S:'#6a6080',d:'#1a1426',G:{c:'#f0d0ff',flat:true},C:{c:'#a070ff',flat:true},E:{c:'#e070ff',flat:true},...v.pal}}])),
 };
@@ -2507,7 +2548,7 @@ function portraitOf(key,frames,pal){return unitStrip('P|'+key,()=>{const r=ART.s
 const frames4=draw=>[0,1,2,3].map(draw);
 function foeStripFor(base,kind,type,small,ph){
   let key,fr,pal,sz=40;
-  if(kind==='warden'){key='W|'+type;fr=()=>frames4(f=>{const g=new ART.Grid(40,40);BOSS_DRAW.warden(g,f,type);return g});pal=wardenPal(type)}
+  if(kind==='warden'&&!CAVE_BEASTS[base]){key='W|'+type;fr=()=>frames4(f=>{const g=new ART.Grid(40,40);BOSS_DRAW.warden(g,f,type);return g});pal=wardenPal(type)}
   else if(BOSSES[base]){const S=BOSSES[base];key='B|'+base+(ph?'|'+ph:'');fr=()=>frames4(f=>{const g=new ART.Grid(40,40);BOSS_DRAW[S.d](g,f,ph);return g});pal=S.pal}
   else{const U=UNIT_ART[base];if(!U)return null;key='U|'+base;fr=()=>frames4(f=>DRAW[U.fam](U.S,f));pal=U.S.pal;sz=32}
   return small?portraitOf(key,fr,pal):unitStrip(key,()=>({url:ART.strip(fr(),pal),w:sz,h:sz}));
@@ -2958,10 +2999,10 @@ const BIOMES={
 };
 const LENGTHS={
   // The exact length is rolled at the start and kept hidden; the party only knows it has reached the end when it meets the final boss.
-  short:{name:'Short',min:8,max:12,mult:1,diff:0,base:1,per:.6,tail:.35,rec:1,cap:10,feel:'a quick trip'},
-  medium:{name:'Medium',min:15,max:25,mult:1.25,diff:.5,base:5,per:.4,tail:.3,rec:6,cap:16,feel:'a few days out'},
-  long:{name:'Long',min:32,max:48,mult:1.6,diff:1,base:8,per:.35,tail:.2,rec:10,cap:22,feel:'a long haul'},
-  expedition:{name:'Expedition',min:60,max:72,mult:2.2,diff:1.5,base:17,per:.35,tail:.2,rec:25,cap:42,feel:'deep into the wilds'},
+  short:{name:'Cave',min:8,max:12,mult:1,diff:0,base:1,per:.6,tail:.35,rec:1,cap:10,feel:'a short journey through the caves near town, where something big has made its den'},
+  medium:{name:'Wilds',min:15,max:25,mult:1.25,diff:.5,base:5,per:.4,tail:.3,rec:6,cap:16,feel:'days out in the untamed wilds, past the last farms and the last roads'},
+  long:{name:'Wasteland',min:32,max:48,mult:1.6,diff:1,base:8,per:.35,tail:.2,rec:10,cap:22,feel:'a long haul across the wastes the smoke has burned dead'},
+  expedition:{name:'Summit',min:60,max:72,mult:2.2,diff:1.5,base:17,per:.35,tail:.2,rec:25,cap:42,feel:'the climb to the highest point in the land, where everyone can sense a dark force waiting'},
   descent:{name:'The Dark Side',min:100,max:100,mult:2.5,diff:0,final:true},
 };
 const NODE_W={battle:74,gold:5,gamble:4,mystery:17,merchant:5};
@@ -3077,14 +3118,14 @@ const LOOT_CAP={
   descent:{battle:'godlike',chest:'godlike',elite:'perfect',boss:'perfect',final:'perfect'}};
 // Nine unique weapons, one per weapon type. Each can be found once per game.
 const PERFECTS=[
-  {id:'oathkeeper',cls:'warrior',base:'Longsword',n:'Oathkeeper',el:null,fx:'riposte',fxn:'Riposte',fxd:'30% chance to strike back at any enemy that hits the wielder.',aff:[['str',5],['end',4],['critdmg',30],['hp',25],['res_dark',12]]},
+  {id:'oathkeeper',cls:'warrior',base:'Longsword',n:'Oathkeeper',el:null,fx:'riposte',fxn:'Riposte',fxd:'30% chance to strike back at any enemy that hits the wielder.',aff:[['str',5],['end',4],['critdmg',30],['hp',25],['lck',3]]},
   {id:'gravemaul',cls:'warrior',base:'Warhammer',n:'Gravemaul',el:null,fx:'splash',fxn:'Shockwave',fxd:'Single-target hits splash 40% of their damage onto the enemy next to the target.',aff:[['str',6],['end',4],['hp',30],['critdmg',20],['lifesteal',3]]},
   {id:'widowsedge',cls:'warrior',base:'Falchion',n:'Widow’s Edge',el:null,fx:'execute',fxn:'Reaper',fxd:'Any hit that leaves a non-boss enemy under 15% health kills it outright.',aff:[['str',4],['agi',3],['crit',8],['critdmg',35],['lck',3]]},
   {id:'hawkeye',cls:'archer',base:'Longbow',n:'Hawkeye',el:null,fx:'twin',fxn:'Twin Fletch',fxd:'Every single-target shot fires a second arrow at a random enemy for 50% damage.',aff:[['agi',6],['per',4],['crit',8],['critdmg',25],['lck',3]]},
   {id:'stormstring',cls:'archer',base:'Recurve',n:'Stormstring',el:'thunder',fx:'quicken',fxn:'Quickdraw',fxd:'A crit lets the wielder act again immediately, once in a row.',aff:[['agi',5],['lck',4],['crit',10],['dmg_thunder',20],['per',3]]},
   {id:'whisperthorn',cls:'archer',base:'Shortbow',n:'Whisperthorn',el:'grass',fx:'poison',fxn:'Venom',fxd:'Hits poison the target for 25% of the hit’s damage on each of its next 3 turns.',aff:[['agi',5],['per',4],['crit',6],['dmg_grass',25],['lck',3]]},
   {id:'tempest',cls:'mage',base:'Staff',n:'Tempest',el:'thunder',fx:'chain',fxn:'Chain Lightning',fxd:'Single-target hits arc to up to 2 other enemies for 50% damage.',aff:[['int',6],['mp',20],['dmg_thunder',25],['lck',4],['crit',5]]},
-  {id:'frostheart',cls:'mage',base:'Rod',n:'Frostheart',el:'ice',fx:'freeze',fxn:'Deep Freeze',fxd:'Hits have a 25% chance to freeze the target and cost it a turn (10% against bosses).',aff:[['int',5],['end',3],['dmg_ice',25],['res_fire',15],['mp',15]]},
+  {id:'frostheart',cls:'mage',base:'Rod',n:'Frostheart',el:'ice',fx:'freeze',fxn:'Deep Freeze',fxd:'Hits have a 25% chance to freeze the target and cost it a turn (10% against bosses).',aff:[['int',5],['end',3],['dmg_ice',25],['crit',6],['mp',15]]},
   {id:'lifebinder',cls:'mage',base:'Crook',n:'Lifebinder',el:'grass',fx:'bloom',fxn:'Bloom',fxd:'Heals the wielder casts or uses also heal every other ally for half as much.',aff:[['int',5],['cha',4],['mp',25],['lifesteal',6],['end',3]]},
 ];
 const PERF=Object.fromEntries(PERFECTS.map(p=>[p.id,p]));
@@ -3121,6 +3162,9 @@ const AFFIXES=[
   ...ALL_EL.map(e=>({k:'res_'+e,l:cap(e)+' Resistance',a:4,b:10,p:1,e})),
 ];
 const AFX=Object.fromEntries(AFFIXES.map(a=>[a.k,a]));
+// Which bonuses a piece of gear may roll. Weapons never resist elements; helmets, chests and pants never add elemental
+// damage; warriors never get elemental damage (they only hit physical). Rings and amulets can roll anything.
+const afxOk=(it,a)=>!(a.k.startsWith('res_')&&it.slot==='weapon')&&!(a.k.startsWith('dmg_')&&(it.cls==='warrior'||ARMOR_BASE[it.slot]));
 const rollAffix=(a,m,ilvl)=>({k:a.k,v:Math.max(1,Math.round(rand(a.a,a.b)*m*(1+ilvl*.04)))});
 
 function rarityTable(table){
@@ -3164,7 +3208,7 @@ function makeItem(table,ilvl,favor){
     base=BASEN[slot][w];
   }else base=pick(ACCN[slot]);
   // Warrior gear never rolls elemental damage: warriors only deal physical damage.
-  const pool=AFFIXES.filter(a=>!(it.cls==='warrior'&&a.k.startsWith('dmg_')));
+  const pool=AFFIXES.filter(a=>afxOk(it,a));
   for(let i=0;i<R.n;i++)it.affixes.push(rollAffix(pool.splice(ri(0,pool.length-1),1)[0],R.m,ilvl));
   it.name=`${pick(PREFIX[rarity])} ${it.el?ELPRE[it.el]+' ':''}${base}`;
   return it;
@@ -3442,7 +3486,7 @@ const runModTags=r=>r?[r.mod&&modTag(LAND_MOD[r.mod]),...(r.pacts||[]).map(p=>mo
 const landModNote=k=>{const M=k&&LAND_MOD[k];return M?`<p class="lmodnote ${M.bad?'bad':'good'}"><b>This week: ${M.n}.</b> ${M.d}</p>`:''};
 // Badges: beat a length's final boss and come home alive to earn its badge. Each badge opens the next length
 // for any party that includes the badge holder.
-const BADGE_RANK={short:1,medium:2,long:3,expedition:4},BADGE_N=['','Short','Medium','Long','Expedition'],BADGE_COL=['','#b08a5a','#c8c8d0','#e3b341','#b56fe3'];
+const BADGE_RANK={short:1,medium:2,long:3,expedition:4},BADGE_N=['','Cave','Wilds','Wasteland','Summit'],BADGE_COL=['','#b08a5a','#c8c8d0','#e3b341','#b56fe3'];
 const BADGE_NEED={short:0,medium:1,long:2,expedition:3};
 const partyBadge=ids=>Math.max(0,...(ids||[]).map(heroById).filter(Boolean).map(h=>h.badge||0));
 const lenOpen=(k,ids)=>BADGE_NEED[k]==null||partyBadge(ids)>=BADGE_NEED[k];
@@ -3517,13 +3561,15 @@ function biomeIntro(){
   return {intro:true,title:B.name,text:`${landModNote(state.run.mod)}${B.flavor}<br><br>Most creatures here are ${elTag(B.el)} type and resist it heavily. ${B.el==='dark'?'Abyssal foes also ignore a quarter of your resistances.':`They are weak to ${elTag(Object.keys(BEATS).find(k=>BEATS[k]===B.el))}.`}`};
 }
 /* ---------- the run map ----------
-   Each stage is a row of 1-4 nodes on a 7-column grid. Paths connect each node to 1-2 nearby nodes in the next row.
-   The party walks one row at a time and may only step to nodes connected to where it stands. */
-const MAP_COLS=7,MAP_AHEAD=7,MAP_SHOW=5;
+   Three trails wind up a 5-column grid. Each stage, every trail steps at most one column left or right, and trails
+   never cross, so the paths read like walking rather than teleporting: picking the left trail commits you to the
+   left side for a while. Where two trails share a spot they form one node, and where they part you get a fork.
+   Boss and final-boss stages pull every trail into one node in the middle. */
+const MAP_COLS=5,MAP_TRAILS=3,MAP_AHEAD=4,MAP_SHOW=3;
 // How many rows ahead the party can see node types. Perception widens it; rows seen once stay revealed.
 // Perception adds up across the whole party.
 //  1-2: every choice in front of you is fogged.   3-8: some choices may be fogged.   9+: every choice is clear.
-//  Lookahead: 9 shows 1 stage past your choices, then +1 stage per 6 more, up to 6.
+//  Lookahead: 9 shows 1 stage past your choices, 21 shows 2 (the most).
 //  6+: enemy health numbers and damage numbers.   10+: enemy intents.
 const PER_NUMBERS=6,PER_INTENT=6;
 // Harder lands expect a sharper, more persuasive party: the baseline rises with adventure length.
@@ -3541,7 +3587,7 @@ const partyLckEvent=()=>partyMembers().length?clamp(Math.round((partyLck()-lenBa
 // What events actually use: Charisma (how people treat you) plus Luck (how fortune treats you).
 const eventBonus=()=>clamp(partyChaEvent()+partyLckEvent(),-45,70)+govMod('eventUp');
 const partyPer=()=>{const L=state.run?living():(state.sel.party||[]).map(heroById).filter(Boolean);return Math.round(L.reduce((a,h)=>a+stat(h,'per'),0))};
-const sightRange=pp=>pp<9?0:Math.min(6,1+Math.floor((pp-9)/6));
+const sightRange=pp=>pp<9?0:pp<21?1:2;
 const fogChance=pp=>pp<=2?1:pp>=9?0:(9-pp)*.1;
 const perNeed=v=>v*(1-govMod('perThr')/100),seeFoeNumbers=()=>effPer()>=perNeed(PER_NUMBERS),seeIntent=()=>effPer()>=perNeed(PER_INTENT);
 // Chests come roughly every 5 stages (3 to 7 apart), so two chest stages are never back to back.
@@ -3554,12 +3600,12 @@ function isChestStage(k){
 const ELITE_STEP=.15,eliteOdds=r=>Math.min(1,ELITE_STEP*(r.elitePity||0));
 // Campsites: 10% on the stage after one, then +10% for every stage without one (10%, 20%, 30%...). Offering one resets it.
 const CAMP_STEP=.1,campOdds=r=>Math.min(1,CAMP_STEP*((r.campPity||0)+1));
-function genNodes(k){
+function genNodes(k,want){
   const r=state.run;
   if(r.final&&k>finStages(r)&&chance(Math.min(1,(k-finStages(r))*FINAL.kingStep)))return['king'];
   if(!r.final&&k===r.total)return['warden'];
   if(r.final?k%15===0&&k<=finStages(r):r.bossAt?r.bossAt.includes(k):k%15===0)return['boss'];
-  const n=+weighted({2:30,3:45,4:25}),out=[];
+  const n=want||+weighted({2:30,3:45,4:25}),cap=want||4,out=[];
   const chestHere=isChestStage(k);
   let guard=0;
   while(out.length<n&&guard++<60){const t=weighted(NODE_W);if(t==='battle'||out.filter(x=>x===t).length<(t==='merchant'?1:2))out.push(t)}
@@ -3567,35 +3613,60 @@ function genNodes(k){
   const cnt=t=>out.filter(x=>x===t).length;
   if(!cnt('battle'))out[ri(0,out.length-1)]='battle';
   for(let g=0;g<6;g++){const top=Math.max(0,...out.filter(x=>x!=='battle').map(cnt));if(cnt('battle')>=top)break;const i=out.findIndex(x=>x!=='battle'&&cnt(x)===top);out[i]='battle'}
-  if(chestHere){if(out.length<4)out.splice(ri(0,out.length),0,'chest');else{const i=out.findIndex(t=>t!=='battle');out[i<0?0:i]='chest'}}
+  if(chestHere){if(out.length<cap)out.splice(ri(0,out.length),0,'chest');else{const i=out.findIndex(t=>t!=='battle');out[i<0?0:i]='chest'}}
   // Elites never appear on stage 1. After that, each stage without an elite adds 15% to the chance that the next
   // stage has one (0% right after an elite stage, then 15%, 30%, ...). Placing an elite resets the count.
   // Elites found through ? stops don't touch the count.
   if(k>1&&chance(eliteOdds(r))){
     const b=out.map((t,i)=>t==='battle'?i:-1).filter(i=>i>=0),o=out.map((t,i)=>t!=='battle'&&t!=='chest'?i:-1).filter(i=>i>=0);
-    if(b.length>1)out[pick(b)]='elite';else if(out.length<4)out.splice(ri(0,out.length),0,'elite');else if(o.length)out[pick(o)]='elite';else out[pick(b)]='elite';
+    if(b.length>1)out[pick(b)]='elite';else if(out.length<cap)out.splice(ri(0,out.length),0,'elite');else if(o.length)out[pick(o)]='elite';else out[pick(b)]='elite';
     r.elitePity=0;
   }else r.elitePity=(r.elitePity||0)+1;
   if(k>1&&chance(campOdds(r))){
     const o=out.map((t,i)=>!['battle','chest','elite'].includes(t)?i:-1).filter(i=>i>=0),b=out.map((t,i)=>t==='battle'?i:-1).filter(i=>i>=0);
-    if(out.length<4)out.splice(ri(0,out.length),0,'heal');else if(o.length)out[pick(o)]='heal';else if(b.length>1)out[pick(b)]='heal';
+    if(out.length<cap)out.splice(ri(0,out.length),0,'heal');else if(o.length)out[pick(o)]='heal';else if(b.length>1)out[pick(b)]='heal';
     r.campPity=0;
   }else r.campPity=(r.campPity||0)+1;
   if(k===1)return out.map(t=>t==='battle'||t==='mystery'?t:t==='gold'&&chance(.5)?'gold':chance(.5)?'mystery':'battle');
   return out;
 }
-function planStage(k){
-  const nodes=genNodes(k),pool=[...Array(MAP_COLS).keys()],cols=[];
-  if(nodes.length===1)cols.push(3);else while(cols.length<nodes.length)cols.push(pool.splice(ri(0,pool.length-1),1)[0]);
-  cols.sort((a,b)=>a-b);
-  return {nodes,cols,next:nodes.map(()=>[]),traps:nodes.map(t=>t==='chest'&&chance(.08*Math.max(0,1+partyTr('chestTrap')/100)))};
-}
-function linkLayers(A,B){
-  A.next=A.cols.map(()=>[]);const inc=B.cols.map(()=>0);
-  const near=(c,cols)=>cols.map((x,j)=>[Math.abs(x-c)+Math.random()*.1,j]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
-  A.cols.forEach((c,i)=>{const o=near(c,B.cols),m=o.length>1&&chance(.5)?2:1;for(let q=0;q<m;q++){A.next[i].push(o[q]);inc[o[q]]++}});
-  B.cols.forEach((c,j)=>{if(!inc[j])A.next[near(c,A.cols)[0]].push(j)});
-  for(const n of A.next)n.sort((a,b)=>a-b);
+// Next stage of the map. The trails (r.walk, one column each, left to right) take one step, then the stage's
+// nodes sit wherever the trails landed and each trail draws its own path from where it was.
+const ncOf=P=>P.nc||7; // rows from older saves used a 7-column grid
+function planRow(k){
+  const r=state.run,A=r.plan[k-1],C=MAP_COLS-1,mid=Math.floor(C/2);
+  let w=r.walk&&r.walk.length&&A?r.walk.slice():null;
+  if(!w)w=A?A.cols.map(c=>Math.round(c*C/(ncOf(A)-1))):[0,mid,C]; // a fresh run, or a save made before the trails
+  while(w.length<MAP_TRAILS)w.push(w[w.length-1]);w.sort((a,b)=>a-b);
+  const single=genNodes(k,MAP_TRAILS),one=single.length===1;let nw;
+  if(one)nw=w.map(()=>mid);
+  else if(!A)nw=pick([[0,2,4],[0,1,3],[1,2,4],[1,2,3],[0,2,3],[1,3,4]]).map(c=>Math.min(c,C));
+  else{
+    nw=[];w.forEach((c,i)=>{
+      const sameL=i>0&&w[i-1]===c,sameR=i<w.length-1&&w[i+1]===c;
+      // trails sharing a spot like to part again; otherwise they mostly keep going straight
+      const d=+weighted(sameL&&!sameR?{1:70,0:30}:sameR&&!sameL?{'-1':70,0:30}:{'-1':32,0:36,1:32});
+      let x=clamp(c+d,0,C);if(i>0)x=Math.max(x,nw[i-1]);nw.push(x)});
+    // never let every trail collapse into one spot except on a boss stage
+    if(new Set(nw).size<2){const i=nw.length-1;if(nw[i]<C&&nw[i]<=w[i])nw[i]++;else if(nw[0]>0&&nw[0]>=w[0])nw[0]--}
+  }
+  const cols=[...new Set(nw)].sort((a,b)=>a-b);
+  // Fit the stage's stops to the number of spots: drop spare battles first, then other plain stops; pad with battles.
+  const nodes=single.slice();
+  if(!one){const keep=['chest','elite','heal'];
+    while(nodes.length>cols.length){let i=nodes.lastIndexOf('battle');if(i<0||nodes.filter(t=>t==='battle').length<2)i=nodes.findIndex(t=>!keep.includes(t)&&t!=='battle');if(i<0)i=nodes.length-1;nodes.splice(i,1)}
+    while(nodes.length<cols.length)nodes.splice(ri(0,nodes.length),0,'battle');
+    if(!nodes.includes('battle')&&nodes.length>1){const i=nodes.findIndex(t=>!keep.includes(t));nodes[i<0?0:i]='battle'}}
+  const B={nodes,cols,nc:MAP_COLS,next:nodes.map(()=>[]),traps:nodes.map(t=>t==='chest'&&chance(.08*Math.max(0,1+partyTr('chestTrap')/100)))};
+  if(A){
+    A.next=A.cols.map(()=>[]);
+    const from=c=>{let best=0,bd=1e9;A.cols.forEach((x,i)=>{const d=Math.abs(x*C/(ncOf(A)-1)-c);if(d<bd){bd=d;best=i}});return best};
+    w.forEach((c,i)=>{const a=from(c),b=cols.indexOf(nw[i]);if(!A.next[a].includes(b))A.next[a].push(b)});
+    A.next.forEach((n,i)=>{if(!n.length){let best=0,bd=1e9;cols.forEach((x,j)=>{const d=Math.abs(x-A.cols[i]*C/(ncOf(A)-1));if(d<bd){bd=d;best=j}});n.push(best)}});
+    for(const n of A.next)n.sort((a,b)=>a-b);
+  }
+  r.walk=nw;
+  return B;
 }
 // No two of the same non-battle stop in a row along any path (a ? can follow a ?, but never a third).
 // A stop that would break the rule becomes a battle.
@@ -3611,7 +3682,7 @@ function noRepeats(plan,k){
 function arrive(){
   const r=state.run;
   if(!r.plan||Object.values(r.plan).some(P=>!P.cols)){r.plan={};r.pos=null}
-  for(let k=r.stage;k<=r.stage+MAP_AHEAD;k++){if(!r.final&&k>r.total)break;if(!r.plan[k]){r.plan[k]=planStage(k);if(r.plan[k-1]){linkLayers(r.plan[k-1],r.plan[k]);noRepeats(r.plan,k)}}}
+  for(let k=r.stage;k<=r.stage+MAP_AHEAD;k++){if(!r.final&&k>r.total)break;if(!r.plan[k]){r.plan[k]=planRow(k);noRepeats(r.plan,k)}}
   const P=r.plan[r.stage],per=bestStat(living(),'per'),prev=r.plan[r.stage-1];
   r.nodes=P.nodes;
   r.reach=prev&&r.pos!=null&&prev.next[r.pos]&&prev.next[r.pos].length?prev.next[r.pos].slice():P.nodes.map((_,i)=>i);
@@ -3621,7 +3692,7 @@ function arrive(){
   if(!P.fog){const fc=fogChance(pp);P.fog=P.nodes.map(t=>!['boss','warden','king'].includes(t)&&chance(fc))}
   for(const k of Object.keys(r.plan))if(+k<r.stage-1)delete r.plan[k];
 }
-const nodeIco=(t,sc=3)=>t==='mystery'?'<span class="qm">?</span>':t==='merchant'?sprite('flask','#e3b341',sc):t==='king'?foeArt({base:'The Unlit King',kind:'king',type:'dark',spr:'boss'},sc):NODE[t].icon==='boss'?foeArt({base:BIOMES[state.run.biome].boss,kind:'boss',type:BIOMES[state.run.biome].el,spr:'boss'},sc):sprite(NODE[t].icon,null,sc);
+const nodeIco=(t,sc=3)=>t==='warden'&&state.run&&state.run.cave&&CAVE_BEASTS[state.run.cave]?foeArt({base:state.run.cave,kind:'warden',type:'physical',spr:'boss'},sc):t==='mystery'?'<span class="qm">?</span>':t==='merchant'?sprite('flask','#e3b341',sc):t==='king'?foeArt({base:'The Unlit King',kind:'king',type:'dark',spr:'boss'},sc):NODE[t].icon==='boss'?foeArt({base:BIOMES[state.run.biome].boss,kind:'boss',type:BIOMES[state.run.biome].el,spr:'boss'},sc):sprite(NODE[t].icon,null,sc);
 // What the party's current Perception does right now (nothing about higher tiers).
 function perNow(pp){
   const sight=sightRange(pp),base=lenBase().per,parts=[`Party Perception ${partyPer()} (everyone's Perception added together)${base?`. This land is harder to read: the first ${base} points only get you started, leaving ${pp} to work with`:''}.`];
@@ -3640,28 +3711,28 @@ function lckNow(){const v=partyLckEvent(),b=lenBase().lck,L=partyMembers();
 function chaNow(){const v=partyChaEvent(),c=partyCha(),b=lenBase().cha;
   return `Party Charisma ${c} (everyone's Charisma added together). This land expects ${b}. Events, chests, gold caches, shrines and strangers are ${v>0?`${v}% better`:v<0?`${-v}% worse`:'neither better nor worse'} than normal right now.`}
 function mapView(){
-  const r=state.run,per=bestStat(living(),'per'),pp=effPer(),sight=sightRange(pp),RH=58;
+  const r=state.run,per=bestStat(living(),'per'),pp=effPer(),sight=sightRange(pp),RH=84;
   const top=r.stage+MAP_SHOW;
-  const bot=r.plan[r.stage-1]?r.stage-1:r.stage,H=(top-bot+1)*RH,y=k=>(top-k)*RH+RH/2,x=c=>(c+.5)/MAP_COLS*100;
+  const bot=r.plan[r.stage-1]?r.stage-1:r.stage,H=(top-bot+1)*RH,y=k=>(top-k)*RH+RH/2,xr=(P,c)=>(c+.5)/ncOf(P)*100;
   // Rows the party can't see (and rows past the end, which look the same) are fog, so the map never gives away the length.
   const vis=k=>{const P=r.plan[k];return !!P&&(k<=r.stage+sight||k<=r.stage)};
   let lines='',nodes='',labels='';
   for(let k=bot;k<=top;k++){const P=r.plan[k];
     labels+=`<span class="mrow ${k===r.stage?'now':''}" style="top:${y(k)}px">${k}</span>`;
-    if(!vis(k)){nodes+=`<span class="mfog" style="top:${y(k)}px" data-tip="${esc(`Stage ${k}: beyond your sight. The party’s combined Perception (${pp}) ${sight?`sees ${sight} stage${sight>1?'s':''} past your choices`:'only covers the choices right in front of you'}. It reaches further at 9, 15, 21 and so on.`)}">? · ? · ?</span>`;continue}
+    if(!vis(k)){nodes+=`<span class="mfog" style="top:${y(k)}px" data-tip="${esc(`Stage ${k}: beyond your sight. The party’s combined Perception (${pp}) ${sight?`sees ${sight} stage${sight>1?'s':''} past your choices`:'only covers the choices right in front of you'}. It reaches 1 stage further at 9 and 2 at 21.`)}">? · ? · ?</span>`;continue}
     const Q=r.plan[k+1];
     if(Q&&vis(k+1))P.next.forEach((ns,i)=>ns.forEach(j=>{
       const hot=k===r.stage-1&&i===r.pos,past=k<r.stage-1;
-      lines+=`<line x1="${x(P.cols[i])*7}" y1="${y(k)}" x2="${x(Q.cols[j])*7}" y2="${y(k+1)}" class="${hot?'hot':past?'past':''}" vector-effect="non-scaling-stroke"/>`}));
-    else if(k>=r.stage)P.cols.forEach(c=>{lines+=`<line x1="${x(c)*7}" y1="${y(k)}" x2="${x(c)*7}" y2="${y(k)-RH*.55}" class="fade" vector-effect="non-scaling-stroke"/>`});
+      lines+=`<line x1="${xr(P,P.cols[i])*7}" y1="${y(k)}" x2="${xr(Q,Q.cols[j])*7}" y2="${y(k+1)}" class="${hot?'hot':past?'past':''}" vector-effect="non-scaling-stroke"/>`}));
+    else if(k>=r.stage)P.cols.forEach(c=>{lines+=`<line x1="${xr(P,c)*7}" y1="${y(k)}" x2="${xr(P,c)*7}" y2="${y(k)-RH*.55}" class="fade" vector-effect="non-scaling-stroke"/>`});
     P.nodes.forEach((t,i)=>{
       const cur=k===r.stage,can=cur&&r.reach.includes(i),here=k===r.stage-1&&i===r.pos;
       const trap=cur&&P.spotted&&P.spotted[i],big=['boss','warden','king'].includes(t),fog=cur&&P.fog&&P.fog[i];
       const tip=fog?'Unknown. Your party’s Perception is too low to make this out. Could be anything: a fight, an elite, a chest, a rest…':`${NODE[t].n}: ${NODE[t].d}${trap?' Your Perception spotted a trap: it is a Mimic.':''}`;
-      const inner=fog?'<span class="qfog">≋</span>':nodeIco(t,big?3:2);
+      const inner=fog?'<span class="qfog">≋</span>':nodeIco(t,big?4:3);
       const cls=`mnode ${can?'can':''} ${here?'here':''} ${cur&&!can?'off':''} ${k<r.stage?'past':''} ${big?'big':''} ${trap?'trap':''}`;
-      nodes+=can?`<button class="${cls}" style="left:${x(P.cols[i])}%;top:${y(k)}px" data-a="node" data-x="${i}" data-tip="${esc(tip)}" aria-label="${esc(fog?'Unknown':NODE[t].n)}">${inner}<span class="mlab">${fog?'Unknown':NODE[t].s}</span>${trap&&!fog?'<span class="alert">!</span>':''}</button>`
-        :`<span class="${cls}" style="left:${x(P.cols[i])}%;top:${y(k)}px" data-tip="${esc(tip)}">${inner}${cur||big?`<span class="mlab">${fog?'Unknown':NODE[t].s}</span>`:''}</span>`;
+      nodes+=can?`<button class="${cls}" style="left:${xr(P,P.cols[i])}%;top:${y(k)}px" data-a="node" data-x="${i}" data-tip="${esc(tip)}" aria-label="${esc(fog?'Unknown':NODE[t].n)}">${inner}<span class="mlab">${fog?'Unknown':NODE[t].s}</span>${trap&&!fog?'<span class="alert">!</span>':''}</button>`
+        :`<span class="${cls}" style="left:${xr(P,P.cols[i])}%;top:${y(k)}px" data-tip="${esc(tip)}">${inner}${cur||big?`<span class="mlab">${fog?'Unknown':NODE[t].s}</span>`:''}</span>`;
     });
   }
   return `<div class="row" style="justify-content:space-between"><h3>${r.nodes[0]==='king'?'There is no other path':'Choose your path'}</h3><span class="row" style="gap:6px"><span class="chip mstat" data-tip="${esc(perNow(pp))}">${ico('eye','#9fd6ff',2)}Perception <b>${partyPer()}</b>${lenBase().per?` <span class="muted">/ ${lenBase().per}</span>`:''}</span><span class="chip mstat" data-tip="${esc(chaNow())}">${ico('crown','#e3b341',2)}Charisma <b>${partyCha()}</b> <span class="${partyChaEvent()>0?'ok':partyChaEvent()<0?'warn':'muted'}">${partyChaEvent()>0?'+':''}${partyChaEvent()}%</span></span><span class="chip mstat" data-tip="${esc(lckNow())}">${ico('clover','#78ab60',2)}Luck <b>${partyLck()}</b> <span class="${partyLckEvent()>0?'ok':partyLckEvent()<0?'warn':'muted'}">${partyLckEvent()>0?'+':''}${partyLckEvent()}%</span></span></span></div>
@@ -3680,9 +3751,9 @@ function startRun(){
   let scrolls=0;if(state.sel.carry&&state.scrolls>0){state.scrolls--;scrolls=1}
   let biome='tundra';
   if(!final)biome=LAND_PICK.includes(state.sel.biome)?state.sel.biome:pick(LAND_PICK);
-  const total=final?null:ri(L.min,L.max),fin=final?ri(FINAL.finMin,FINAL.finMax):null,bossAt=[];
+  const total=final?null:ri(L.min,L.max),fin=final?ri(FINAL.finMin,FINAL.finMax):null,cave=len==='short'?pick(Object.keys(CAVE_BEASTS)):null,bossAt=[];
   if(!final){let k=ri(12,17);while(k<total-2){bossAt.push(k);k+=ri(12,18)}}
-  state.run={stats:{},id:uid(),mod:final?null:(landMods()[biome]||null),pacts:[],startLv:Object.fromEntries(ids.map(id=>[id,heroById(id).level])),chestAt:[],party:ids,length:len,final,fin,total,bossAt,stage:1,biome,gold:0,loot:[],scrolls,battle:null,nodes:[],event:null,
+  state.run={stats:{},id:uid(),mod:final?null:(landMods()[biome]||null),pacts:[],startLv:Object.fromEntries(ids.map(id=>[id,heroById(id).level])),chestAt:[],party:ids,length:len,final,fin,cave,total,bossAt,stage:1,biome,gold:0,loot:[],scrolls,battle:null,nodes:[],event:null,
     lastStand:{},fallen:[],autoPref:false,kingChance:0,bag:{},mats:{}};
   // The Supply Pack limits how many consumables go along. The rest stay in town.
   // The player picks how many of each supply to bring on the prepare screen (a mix by default).
@@ -3692,6 +3763,7 @@ function startRun(){
   {const r=state.run;r.free={};
     for(const [id,q0] of freeSupplies()){const q=q0||0;if(!id||!q)continue;r.bag[id]=(r.bag[id]||0)+q;r.free[id]=(r.free[id]||0)+q}}
   state.run.event=biomeIntro();
+  if(cave)state.run.event.text+=`<br><br><span class="warn">${({'The Cave Bear':'Huge claw marks score the cave walls. A bear has made its den at the far end.','The Giant Boar':'The floor is churned up and the walls are gouged at tusk height. A giant boar has made its den at the far end.','The Night Panther':'Nothing moves, but the heroes feel watched. Something fast and silent has made its den at the far end.'})[cave]}</span>`;
   if(final)state.run.event.text=`<b class="gold">You step onto the Dark Side.</b> Every few dozen stages the path sinks into a new land. Past stage ${finStages(state.run)} lies the Abyss, where the Unlit King waits.<br><br>`+state.run.event.text;
   arrive();
   state.screen='run';
@@ -3756,6 +3828,8 @@ const SHIFT_BY_EL=Object.fromEntries(Object.entries(SHIFT_SK).map(([k,v])=>[v.el
 // Final-boss styles. Charger: flurries, then spends a whole turn charging, then unleashes a huge blow (a skill fight).
 // Relentless: a plain hit every turn, but it grows 8% stronger each time it acts (a race against the clock).
 FOE_SKILLS.weary={n:'Wearying Blow',d:'A grinding hit that adds 8–12% fatigue.'};
+// The Cave Bear's version of Relentless: a move it spends a turn on, not a free passive. +10% damage per use, up to +40%.
+FOE_SKILLS.relentless={n:'Relentless',d:'Spends its turn working itself into a fury: +10% damage for the rest of the fight, up to +40%.'};
 /* Teamwork: some monsters look after the pack instead of hitting you. */
 FOE_SKILLS.mend={n:'Mend Kin',d:'Heals its most wounded ally for 18% of that ally’s health.'};
 FOE_SKILLS.rally={n:'Rally',d:'An ally’s next attack deals 35% more damage.'};
@@ -3812,6 +3886,7 @@ const SPECIES={
   'Warden of Rotwood':['regen',3,'weak','Heartwood'],'Warden of Bone Badlands':['keen',20,'fixate','Duelist’s Eye'],'Warden of Abyss':['skin',25,'back','Void Mantle'],
   'Mimic':['opener',60,'weak','Snap Shut'],'The Unlit King':['pack',10,'front','Lord of the Unlit'],
   ...Object.fromEntries(VOID_BOSSES.map(v=>[v.n,v.sp])),
+  ...Object.fromEntries(Object.entries(CAVE_BEASTS).map(([n,v])=>[n,v.sp])),
 };
 const ABIL={
   pack:v=>`Deals ${v}% more damage for every other monster still standing beside it.`,
@@ -3880,7 +3955,7 @@ function makeEnemy0(kind,add,forceSpr){
   let lvl=enemyLevel(),name,spr,type=r.final?'dark':B.el;
   if(kind==='king'){name='The Unlit King';spr='boss';type='dark';lvl+=5}
   else if(kind==='boss'){name=r.final?VOID_BOSSES[clamp(Math.floor(r.stage/15)-1,0,VOID_BOSSES.length-1)].n:B.boss;spr='boss'}
-  else if(kind==='warden'){name='Warden of '+B.name.replace(/^The /,'');spr='boss'}
+  else if(kind==='warden'){if(r.length==='short'&&!r.final){r.cave=r.cave&&CAVE_BEASTS[r.cave]?r.cave:pick(Object.keys(CAVE_BEASTS));name=r.cave}else name='Warden of '+B.name.replace(/^The /,'');spr='boss'}
   else if(kind==='mimic'){name='Mimic';spr='mimic';type='physical'}
   else [name,spr]=forceSpr?(B.mons.find(m=>m[1]===forceSpr)||pick(B.mons)):pick(B.mons);
   const M={normal:[1,1],elite:[1.8,1.35],warden:[2.6,1.4],boss:[4,1.7],mimic:[1.5,1.3],king:[FINAL.kingHp,FINAL.kingAtk]}[kind];
@@ -3907,8 +3982,10 @@ function makeEnemy0(kind,add,forceSpr){
   hp=Math.max(1,Math.floor(hp*(F.hp||1)*HP_CUT));atk*=F.atk||1;
   // On the Dark Side every monster is void-touched, whatever land it came from.
   if(r.final&&(kind==='normal'||kind==='elite')&&r.biome!=='abyss')name='Void '+name;
-  const bossType=kind==='warden'?pick(['charge','scale']):null;
-  return {name,base,tier,spr,kind,type,bossType,rage:0,voidPhys:VOID_N[name]?VOID_N[name].phys:undefined,mix:foeMixFor(spr,kind,type,r.final,rng),lvl:Math.round(lvl*10)/10,hp,maxHp:hp,atk,armor:Math.round(lvl*2*(F.arm||1)),res,baseRes,mutation,spd:10+lvl+(F.spd||0),spdBonus:F.spd||0,eva,skills:foeSkillsFor(spr,kind,tier,type).concat(kind!=='warden'&&kind!=='king'&&chance(1/3)?['weary']:[])};
+  const CB=CAVE_BEASTS[name];
+  if(CB){hp=Math.max(1,Math.round(hp*CB.hp));atk*=CB.atk}
+  const bossType=CB?CB.style:kind==='warden'?pick(['charge','scale']):null;
+  return {name,base,tier,spr,kind,type,bossType,rage:0,voidPhys:VOID_N[name]?VOID_N[name].phys:undefined,mix:foeMixFor(spr,kind,type,r.final,rng),lvl:Math.round(lvl*10)/10,hp,maxHp:hp,atk,armor:Math.round(lvl*2*(F.arm||1)),res,baseRes,mutation,spd:10+lvl+(F.spd||0)+(CB?CB.spd:0),spdBonus:(F.spd||0)+(CB?CB.spd:0),unleashX:CB&&CB.unleash||undefined,chargeN:CB&&CB.chargeN||undefined,eva,skills:CB?CB.skills.slice():foeSkillsFor(spr,kind,tier,type).concat(kind!=='warden'&&kind!=='king'&&chance(1/3)?['weary']:[])};
 }
 /* Mixed damage: every monster hits with part physical force and part element.
    Armor fully blocks the physical part; the elemental part is cut by resistance and by half of the armor. */
@@ -4489,7 +4566,7 @@ function enemyTurn(){
   b.enemies.forEach((e,i)=>{if(e.hp>0&&living().length)enemyAct(e,i)});
 }
 /* enemy intents: every enemy decides its next move in advance, and the battle screen shows it */
-const SELF_SKILLS=['howl','harden','ooze','windup','mend','rally','guard'];
+const SELF_SKILLS=['howl','harden','ooze','windup','mend','rally','guard','relentless'];
 const INTENT_MULT={flurry:1.3,unleash:1.5,attack:1,heavy:1.6,sweep:.6,web:.6,drain:.9,curse:.9,rend:1,whirl:.8,jolt:.8,hook:.8,blast:.8,charge:.8,grasp:.8};
 function planIntent(e){
   if(!e||e.hp<=0){if(e)e.intent=null;return}
@@ -4518,9 +4595,9 @@ const INTENT_ICO={weary:['crescent','#b9a0d0'],flurry:['sword','#e3b341'],windup
 function intentHtml(e){
   const b=state.run.battle,it=e.intent;if(!it||e.hp<=0||b.over)return '';
   if(!seeIntent())return `<span class="uintent unk" data-tip="${esc(`Your party’s combined Perception (${partyPer()}) is too low to read what this enemy will do next. It takes ${PER_INTENT}.`)}">${ico('eye','#6d6377',2)}Intent ?</span>`;
-  const known=isScouted(e),name=it.act==='attack'?'Strike':it.act==='heavy'?'Crushing blow':FOE_SKILLS[it.act].n,[ic,tint]=INTENT_ICO[it.act]||['sword',null];
+  const known=isScouted(e),name=it.act==='attack'?'Strike':it.act==='heavy'?'Crushing blow':(e.chargeN&&e.chargeN[it.act])||FOE_SKILLS[it.act].n,[ic,tint]=INTENT_ICO[it.act]||['sword',null];
   const self=SELF_SKILLS.includes(it.act);let who='',dmg='';
-  if(aoeAct(it.act)){who='all';if(known)dmg=' ~'+Math.round(living().reduce((a,h)=>a+foeEst(e,h,INTENT_MULT[it.act],it.act==='unleash',it.act==='sweep'?'sweep':'heavy'),0)/Math.max(1,living().length))+' each'}
+  if(aoeAct(it.act)){who='all';if(known)dmg=' ~'+Math.round(living().reduce((a,h)=>a+foeEst(e,h,INTENT_MULT[it.act]*(it.act==='unleash'?e.unleashX||1:1),it.act==='unleash',it.act==='sweep'?'sweep':'heavy'),0)/Math.max(1,living().length))+' each'}
   else if(!self){const h=intentTarget(e);who=living().length>1?(h?esc(h.name):'someone'):'';if(known&&h)dmg=' ~'+foeEst(e,h,it.act==='heavy'?heavyMult(e):INTENT_MULT[it.act]||1,it.act==='heavy',it.act)}
   if(TEAM_SK.includes(it.act)){const a=b.enemies[it.ally];if(a&&a.hp>0)who=esc(a.name)}
   const tip=`Next move: ${name}${who?' on '+(who==='all'?'every hero':who):''}.${!known&&!self?' Scout this enemy to see how hard it will hit.':''}${it.act!=='attack'&&it.act!=='heavy'?' '+FOE_SKILLS[it.act].d:it.act==='heavy'?` ${heavyMult(e)}× damage.`:''}`;
@@ -4562,7 +4639,8 @@ function foeSkillPick(e){
    if(e.skills.includes('mend')&&W&&W.hp<W.maxHp*.6&&chance(.6))return 'mend';
    if(e.skills.includes('guard')&&W&&W.hp<W.maxHp*.5&&!W.guardBy&&chance(.4))return 'guard';
    if(e.skills.includes('rally')&&strongAlly(e)&&!strongAlly(e).rallied&&chance(.3))return 'rally'}
-  const ok=(e.skills||[]).filter(id=>!TEAM_SK.includes(id)&&(SHIFT_SK[id]?living().length>1:id==='ooze'?e.hp<e.maxHp*.7:id==='howl'?!(b.howl&&b.howl.n>0):id==='harden'?!e.hardened:true));
+  if(e.skills.includes('relentless')&&(e.rage||0)<.4&&chance(.3))return 'relentless';
+  const ok=(e.skills||[]).filter(id=>id!=='relentless'&&!TEAM_SK.includes(id)&&(SHIFT_SK[id]?living().length>1:id==='ooze'?e.hp<e.maxHp*.7:id==='howl'?!(b.howl&&b.howl.n>0):id==='harden'?!e.hardened:true));
   // Damaging skills follow the length's skill rate; self-buffs (Harden, War Howl, Reform) keep a small flat chance.
   const hit=ok.filter(id=>!SELF_SKILLS.includes(id)),self=ok.filter(id=>SELF_SKILLS.includes(id));
   if(hit.length&&chance(skillRate()))return pick(hit);
@@ -4588,6 +4666,7 @@ function foeSkill(e,i,id,h){
     swapHeroes(h,other);blog(`<span class="warn">${esc(h.name)} is ${sh.how==='pull'?'dragged to the front':'knocked to the back'}${sh.how==='pull'?`, and ${esc(other.name)} falls back`:`, and ${esc(other.name)} is left in front`}.</span>`);return}
   if(id==='sweep'){blog(`<span class="warn">${e.name} uses ${S.n}!</span>`);for(const x of living())if(e.hp>0)foeStrike(e,i,x,.6,{name:S.n,verb:'sweeps',act:'sweep'});return}
   if(id==='howl'){b.howl={n:3*aliveFoes().length};blog(`<span class="warn">${e.name} lets out a ${S.n}. Every enemy deals 20% more damage for a while.</span>`);return}
+  if(id==='relentless'){e.rage=Math.min(.4,+((e.rage||0)+.1).toFixed(2));blog(`<span class="warn">${e.name} roars and digs in. Relentless: +${Math.round(e.rage*100)}% damage.</span>`);return}
   if(id==='harden'){e.hardened=true;blog(`${e.name} uses ${S.n} and takes 40% less damage until its next turn.`);return}
   if(TEAM_SK.includes(id)){const it=e.intent||{},b2=state.run.battle;let a=b2.enemies[it.ally];if(!a||a.hp<=0||a===e)a=id==='rally'?strongAlly(e):woundedAlly(e);
     if(!a){blog(`${e.name} looks for a packmate, but stands alone.`);return}const j=b2.enemies.indexOf(a);
@@ -4621,8 +4700,8 @@ function enemyAct(e,i){
   if(e.mutation==='regen'&&e.hp>0){const x=Math.round(e.maxHp*.05);e.hp=Math.min(e.maxHp,e.hp+x);blog(`${e.name} regenerates ${x}.`)}
   const heavy=it.act==='heavy'||it.act==='unleash',sk=heavy||it.act==='attack'?null:it.act;
   if(it.act==='flurry'){for(let k=0;k<2&&h.hp>0&&e.hp>0;k++)foeStrike(e,i,h,.65,{name:'Flurry',verb:'lashes',act:'attack'});}
-  else if(it.act==='windup'){b.pops.push({s:'e',i,t:'CHARGING',skill:1});blog(`<span class="warn">${e.name} is charging a devastating blow!</span>`)}
-  else if(it.act==='unleash'){blog(`<span class="warn">${e.name} unleashes its charged blow on the whole party!</span>`);for(const x of living())if(e.hp>0)foeStrike(e,i,x,UNLEASH_MULT,{heavy:true,name:'Unleash',verb:'crushes'})}
+  else if(it.act==='windup'){b.pops.push({s:'e',i,t:e.chargeN?'PAWING':'CHARGING',skill:1});blog(`<span class="warn">${e.chargeN?`${e.name} paws the ground and lowers its tusks. It is about to charge!`:`${e.name} is charging a devastating blow!`}</span>`)}
+  else if(it.act==='unleash'){blog(`<span class="warn">${e.chargeN?`${e.name} charges straight through the party, tusks first!`:`${e.name} unleashes its charged blow on the whole party!`}</span>`);for(const x of living())if(e.hp>0)foeStrike(e,i,x,UNLEASH_MULT*(e.unleashX||1),{heavy:true,name:e.chargeN?e.chargeN.unleash:'Unleash',verb:e.chargeN?'gores':'crushes'})}
   else if(sk)foeSkill(e,i,sk,h);
   else foeStrike(e,i,h,heavy?heavyMult(e):1,{heavy,name:heavy?'crushing blow':'attack',verb:heavy?'unleashes a crushing blow on':'strikes'});
   if(b.howl&&b.howl.n>0){b.howl.n--;if(!b.howl.n){b.howl=null;blog('The howl dies away.')}}
@@ -4983,10 +5062,10 @@ function statTip(h,k){
   if(k==='str')return `Strength. ${own?'Warriors add 1 damage per point':'Adds 0.25 damage per point (Warriors get 1)'}. Each point also adds 4 max health.`;
   if(k==='per')return `Perception. Accuracy +0.3% per point. Perception adds up across the whole party on the map and in battle: with 1–2 total every choice on the map is unknown; with 3–8 some choices are fogged; from 9 every choice is clear and you see 1 stage ahead, +1 more per 6 points (up to 6). At 6+ you see enemy health and damage numbers; at 10+ you see what each enemy will do next. The party’s best single Perception also fully reads unknown enemies at the start of a fight (${Math.round(fullScoutChance(stat(h,'per')))}%, adding them to the Moon Ledger), spots trapped chests (${Math.round(spotChance(stat(h,'per')))}%), and finds bonus gold or items after fights (${Math.round(findChance(stat(h,'per')))}%).`;
   if(k==='end')return `Endurance. Each point adds 5 max health, +0.5% resistance to every element (${(stat(h,'end')*.5).toFixed(1)}% now), and faster recovery between fights: 2% + 0.8% per point, up to 30% (${Math.round(restPct(h))}% now).`;
-  if(k==='cha')return `Charisma. The whole party’s Charisma adds up for every non-battle event (chests, gold caches, shrines, strangers). Each point above the land’s baseline makes results 3% better, each point below 3% worse (Short 8, Medium 14, Long 20, Expedition 28). Also lowers the Witch’s brew and supply prices by 1.5% per point, up to 40% (${Math.round(chaDiscount(h))}% now). Treatments use this hero’s Charisma; supplies use your most charming hero.`;
+  if(k==='cha')return `Charisma. The whole party’s Charisma adds up for every non-battle event (chests, gold caches, shrines, strangers). Each point above the land’s baseline makes results 3% better, each point below 3% worse (Cave 8, Wilds 14, Wasteland 20, Summit 28). Also lowers the Witch’s brew and supply prices by 1.5% per point, up to 40% (${Math.round(chaDiscount(h))}% now). Treatments use this hero’s Charisma; supplies use your most charming hero.`;
   if(k==='agi')return `Agility. ${own?'Archers add 1 damage per point':'Adds 0.25 damage per point (Archers get 1)'}. Raises speed, so more turns, plus crit chance, evasion and accuracy.`;
   if(k==='int')return `Intelligence. ${own?'Mages add 1 damage per point':'Adds 0.25 damage per point (Mages get 1)'}. Each point adds 3 max mana and ${h.cls==='mage'?'0.3':'0.2'} mana regained each turn (${focusRegen(h)} now), and strengthens Mend.`;
-  return `Luck. For this hero right now: +${luckRate(h,'crit').toFixed(1)}% crit chance, +${luckRate(h,'gold').toFixed(1)}% gold found, ${luckRate(h,'surge').toFixed(1)}% chance of a lucky surge on each ${h.cls==='mage'?'spell or attack':'skill'} (a random boon for the battle). ${C.name}s get 2.5× the ${{warrior:'gold',archer:'crit',mage:'surge'}[h.cls]} bonus. The whole party's Luck also adds up to make chance-based events kinder: each point above the land's baseline is 2% (Short 6, Medium 12, Long 18, Expedition 26).`;
+  return `Luck. For this hero right now: +${luckRate(h,'crit').toFixed(1)}% crit chance, +${luckRate(h,'gold').toFixed(1)}% gold found, ${luckRate(h,'surge').toFixed(1)}% chance of a lucky surge on each ${h.cls==='mage'?'spell or attack':'skill'} (a random boon for the battle). ${C.name}s get 2.5× the ${{warrior:'gold',archer:'crit',mage:'surge'}[h.cls]} bonus. The whole party's Luck also adds up to make chance-based events kinder: each point above the land's baseline is 2% (Cave 6, Wilds 12, Wasteland 18, Summit 26).`;
 }
 function statPips(h,raw){
   const p=C_(h).primary;
@@ -5096,7 +5175,7 @@ function constructionView(k){
     <p>The builders need Stone for the foundation${Object.keys(need).length>1?' and these for the rest':''}:</p>
     <div class="matbar" style="justify-content:center">${needChips(need)}</div>
     <p class="muted" style="font-size:18px">${Object.keys(need).map(m=>`${MATS[m].n} comes from ${LAND_OF[MATS[m].from]||"every land"}`).join(" · ")}.</p>
-    ${ok?`<button class="btn gold big" data-a="construct" data-x="${k}">Finish the ${n}</button>`:`<p class="muted" style="font-size:18px">Every enemy you defeat drops a little scrap. Bring it home by returning from an adventure: finish it, read a Return Scroll, or run home from a Short adventure. If the whole party falls, the scrap is lost with them.</p><button class="btn gold" data-a="tab" data-x="adventure">Go to the Gate</button>`}</div>`;
+    ${ok?`<button class="btn gold big" data-a="construct" data-x="${k}">Finish the ${n}</button>`:`<p class="muted" style="font-size:18px">Every enemy you defeat drops a little scrap. Bring it home by returning from an adventure: finish it, read a Return Scroll, or run home from the Cave. If the whole party falls, the scrap is lost with them.</p><button class="btn gold" data-a="tab" data-x="adventure">Go to the Gate</button>`}</div>`;
 }
 /* ---------- the Governor: intro, personality test, character creation ----------
    The governor leads from town and never fights. Ten questions shape who they are:
@@ -5478,7 +5557,7 @@ const GOV_TIPS=[
   {id:'witch',when:()=>(state.built||{}).witch,t:()=>`The Witch has set up shop. I could buy Ether for our casters, or pay her to rebalance a hero’s points.`,go:()=>['witch','To the Witch']},
   {id:'levelups',when:()=>state.heroes.length>=2,t:()=>`Two heroes now. I shouldn’t forget to check them for level-ups and spend their attribute points at the Barracks.`,go:()=>['heroes','To the Barracks']},
   {id:'medium',when:()=>state.heroes.some(h=>h.level>=6),t:()=>{const h=state.heroes.find(h=>h.level>=6);return `${esc(h.name)} has grown seasoned. I think they’re ready for a Medium road.`}},
-  {id:'long',when:()=>state.heroes.some(h=>h.level>=10),t:()=>`Some of our heroes could brave a Long road now. I should see what’s out there.`},
+  {id:'long',when:()=>state.heroes.some(h=>h.level>=10),t:()=>`Some of our heroes could brave the Wasteland now. I should see what’s out there.`},
 ];
 const GOV_GENERAL=[
   `I should only pack what the heroes need. Supplies left behind stay safe in town.`,
@@ -6012,7 +6091,7 @@ function advView(){
   const max=partySize(),p=state.heroes.length?selParty():[],un=descentUnlocked(),hg=bestHaggler();
   const final=state.sel.len==='descent',bIds=p.length?p:state.heroes.map(h=>h.id),ok=p.length&&(!final||(un&&p.length===3))&&(final||LAND_PICK.includes(state.sel.biome))&&(final||lenOpen(state.sel.len,p));
   const bestLoot=k=>{const C=LOOT_CAP[k]||LOOT_CAP.short;return Object.values(C).reduce((a,x)=>RAR[x].i>RAR[a].i?x:a,'common')};
-  const SHORTN={short:'Short',medium:'Med',long:'Long',expedition:'Exped',descent:'Dark'};
+  const SHORTN={short:'Cave',medium:'Wilds',long:'Waste',expedition:'Summit',descent:'Dark'};
   const pctDark=Math.round(moonState().shown);
   // One thin segmented bar for the adventure length.
   if(!un&&state.sel.len==='descent')state.sel.len='short';
@@ -6024,8 +6103,8 @@ function advView(){
   if(L.final)sum=un?'<b>The Dark Side</b> · 100+ stages, then the Abyss and the Unlit King · needs exactly 3 heroes':`The Dark Side opens when the moon is fully dark (${pctDark}% now).`;
   else{const bosses=Math.floor(L.max/15),bl=bestLoot(state.sel.len);
     sum=`<b>${L.name}</b> · ${L.feel}, length unknown · ${L.max>15?'major bosses along the way, ':''}a final boss at the end · ×${L.mult} gold · best loot ${state.sel.len==='expedition'?'<span class="muted">?</span>':`<span class="r-${bl}">${RAR[bl].l}</span>`}`+
-      (state.sel.len==='short'?` · <span class="ok" data-tip="${esc(`On Short adventures the party can run back home at any time, even mid-battle. Running costs ${FLEE.min}–${FLEE.max}% of carried gold, and each item found during this adventure (even if equipped) has a 33% chance to be lost. Running mid-battle multiplies both (×2 regular fights, ×2.5 elites, ×3 major bosses), and there is no running from the final boss. Supplies and materials come home.`)}">can run home</span>`:'')}
-  let s=`<div class="stack" style="gap:4px"><h2>The Gate</h2><p class="muted">Pick a land, a length and your heroes, then set out. ${help('Pick the land: every monster there deals and resists its element, so bring heroes who can handle it. Heroes who die are gone for good, with their gear. Monsters sometimes hunt in pairs or packs of three. On Short adventures pairs only appear after stage 10 and packs of three never do; the longer the adventure, the more common packs become, and deep into an Expedition nearly every fight is a pack. The final boss of each adventure always fights alone.')}</p></div>
+      (state.sel.len==='short'?` · <span class="ok" data-tip="${esc(`In the Cave the party can run back home at any time, even mid-battle. Running costs ${FLEE.min}–${FLEE.max}% of carried gold, and each item found during this adventure (even if equipped) has a 33% chance to be lost. Running mid-battle multiplies both (×2 regular fights, ×2.5 elites, ×3 major bosses), and there is no running from the final boss. Supplies and materials come home.`)}">can run home</span>`:'')}
+  let s=`<div class="stack" style="gap:4px"><h2>The Gate</h2><p class="muted">Pick a land, a length and your heroes, then set out. ${help('Pick the land: every monster there deals and resists its element, so bring heroes who can handle it. Heroes who die are gone for good, with their gear. Monsters sometimes hunt in pairs or packs of three. In the Cave pairs only appear after stage 10 and packs of three never do; the longer the adventure, the more common packs become, and high on the Summit nearly every fight is a pack. The final boss of each adventure always fights alone.')}</p></div>
   <div class="gategrid"><div class="stack"><div class="stack" style="gap:6px"><h3>Length</h3>${bar}<p class="lensum">${sum}</p></div>${final?'':(()=>{const cur=LAND_PICK.includes(state.sel.biome)?state.sel.biome:null;
     return `<div class="stack" style="gap:6px"><h3>Land</h3>${state.guide&&!cur?'<p class="guidehint">① Pick a land to explore</p>':''}<div class="lands ${state.guide&&!cur?'guide':''}" role="radiogroup" aria-label="Land">${LAND_PICK.map(k=>{const B=BIOMES[k],lm=LAND_MOD[landMods()[k]];return `<button class="land ${cur===k?'cur':''}" style="--c:${EL_COL[B.el]}" data-a="land" data-x="${k}" role="radio" aria-checked="${cur===k}">${elIco(B.el)}<span><b>${B.name}</b><small>${cap(B.el)}</small>${lm?`<small class="lmod ${lm.bad?'bad':'good'}">${lm.n}</small>`:''}${huntLand(k).length?`<small class="lmod lost">Lost gear ×${huntLand(k).length}</small>`:''}</span></button>`}).join('')}</div>${cur&&huntLand(cur).length?`<p class="lmodnote lost"><b>Lost gear here:</b> ${huntLand(cur).map(x=>`${aAn(esc(x.base))} carries ${esc(x.owner)}’s ${itemName(x.it)} <span class="muted">(${LENGTHS[x.len]?LENGTHS[x.len].name:'any length'}, stage ${x.stage||1}+)</span>`).join('; ')}. On that length, from that stage on, ${Math.round(HUNT_ODDS*100)}% of fights bring you face to face with it${huntLand(cur).some(x=>x.kind!=='normal')?' (bosses carry theirs every time you meet them there)':''}. Look for the white outline: the same kind of monster without the loot has none.</p>`:''}${cur?landModNote(landMods()[cur]):'<p class="muted" style="font-size:17px">Conditions change every week. Some lands carry a twist this week.</p>'}${cur?`<p class="muted" style="font-size:18px">${BIOMES[cur].flavor} Monsters here deal and resist ${elTag(BIOMES[cur].el)}.</p>`:'<p class="warn" style="font-size:18px">Choose where to go.</p>'}</div>`})()}`;
   if(!state.heroes.length)return s+'<p class="muted">Recruit a hero at the Barracks first.</p></div></div>';
@@ -6094,7 +6173,7 @@ function homeView(){
 function greenModal(){
   const g=greenFor(state.sel.len,selParty());if(!g.length){ui.greenWarn=false;return ''}
   const L=LENGTHS[state.sel.len];
-  return modalShell('A word of caution',`<p>${esc(listNames(g.map(h=>h.name)))} ${g.length>1?'have':'has'} not seen much of the world yet. The road on a ${L.name.toLowerCase()} adventure is long and the things waiting out there are old and patient.</p>
+  return modalShell('A word of caution',`<p>${esc(listNames(g.map(h=>h.name)))} ${g.length>1?'have':'has'} not seen much of the world yet. The road through the ${L.name} is long and the things waiting out there are old and patient.</p>
     <p class="muted">Perhaps ${g.length>1?'they need':'this hero needs'} more training and experience before adventuring here.</p>
     <div class="row"><button class="btn" data-a="greenNo">Reconsider</button><button class="btn red" data-a="setOut" data-x="anyway">Set out anyway</button></div>`,'greenNo');
 }
@@ -6107,7 +6186,7 @@ function fleeModal(){
     <p class="muted">Gear you brought from town, supplies and materials come home safely. A week passes.</p>
     <div class="row"><button class="btn red" data-a="fleeYes">Run home</button><button class="btn" data-a="fleeNo">Keep going</button></div></section></div>`;
 }
-const fleeBtn=cls=>{const r=state.run;if(r&&r.length==='short'&&!r.final&&noEscape())return `<button class="btn ${cls||''}" disabled data-tip="There is no running from the final boss.">No escape</button>`;if(!canFlee())return '';const T=fleeTerms();return `<button class="btn ${cls||''}" data-a="flee" data-tip="${esc(`Short adventures only. Lose ${T.min}–${T.max}% of carried gold; each item found during this adventure (even if equipped) has a ${Math.round(T.item*100)}% chance to be lost.${T.mid?` ×${T.k} because you are mid-battle${T.foe==='boss'?' with a major boss':T.foe==='elite'?' with an elite':''}.`:''}`)}">Run home</button>`};
+const fleeBtn=cls=>{const r=state.run;if(r&&r.length==='short'&&!r.final&&noEscape())return `<button class="btn ${cls||''}" disabled data-tip="There is no running from the final boss.">No escape</button>`;if(!canFlee())return '';const T=fleeTerms();return `<button class="btn ${cls||''}" data-a="flee" data-tip="${esc(`Cave only. Lose ${T.min}–${T.max}% of carried gold; each item found during this adventure (even if equipped) has a ${Math.round(T.item*100)}% chance to be lost.${T.mid?` ×${T.k} because you are mid-battle${T.foe==='boss'?' with a major boss':T.foe==='elite'?' with an elite':''}.`:''}`)}">Run home</button>`};
 // Hero cards, bag and loot. Shown beside the path between fights, and in the Party drawer during a battle.
 function partyPanel(){
   const r=state.run,b=r.battle,P=partyAll(),cur=b&&!b.over?currentActor():null,many=P.length>1;
@@ -6482,6 +6561,7 @@ function ledgerSections(){
     rows.push({base:B.boss,spr:'boss',type:B.el,kind:'boss'},{base:'Warden of '+B.name.replace(/^The /,''),spr:'boss',type:B.el,kind:'warden'});
     out.push({key:bk,name:B.name,el:B.el,rows});
   }
+  out.push({key:'cave',name:'The Cave',rows:Object.keys(CAVE_BEASTS).map(n=>({base:n,spr:'boss',type:'physical',kind:'warden',tiers:['easy']}))});
   if(descentUnlocked())out.push({key:'void',name:'The Dark Side',el:'dark',rows:VOID_BOSSES.map(v=>({base:v.n,spr:'boss',type:'dark',kind:'boss',tiers:['hard']}))});
   out.push({key:'other',name:'Anywhere',rows:[{base:'Mimic',spr:'mimic',type:'physical',kind:'mimic'},...(descentUnlocked()?[{base:'The Unlit King',spr:'boss',type:'dark',kind:'king',tiers:['hard']}]:[])]});
   return out;
@@ -6747,7 +6827,7 @@ function witchView(){
   return s;
 }
 function witchReroll(it,k,line){
-  const R=RAR[it.rarity],ok=a=>!(it.cls==='warrior'&&a.k.startsWith('dmg_')),pool=()=>AFFIXES.filter(a=>ok(a)&&!it.affixes.some(x=>x.k===a.k));
+  const R=RAR[it.rarity],ok=a=>afxOk(it,a),pool=()=>AFFIXES.filter(a=>ok(a)&&!it.affixes.some(x=>x.k===a.k));
   if(k==='full'){const n=it.affixes.length;it.affixes=[];for(let i=0;i<n;i++)it.affixes.push(rollAffix(pick(pool()),R.m,it.ilvl));return 'Every bonus has been rewritten.'}
   if(k==='values'){it.affixes=it.affixes.map(a=>rollAffix(AFX[a.k],R.m,it.ilvl));return 'The same bonuses, new strengths.'}
   if(k==='line'){const i=+line;if(!it.affixes[i])return null;const old=AFX[it.affixes[i].k].l,cand=AFFIXES.filter(a=>ok(a)&&!it.affixes.some((x,j)=>j!==i&&x.k===a.k)&&a.k!==it.affixes[i].k);it.affixes[i]=rollAffix(pick(cand),R.m,it.ilvl);return `${old} became ${AFX[it.affixes[i].k].l}.`}
@@ -7205,7 +7285,7 @@ const ACT={
   upgrade:()=>{const e=allItems().find(x=>x.it.id===state.sel.item);if(!e)return;const it=e.it,c=upCost(it);if(state.gold<c||!hasMats(whetNeed(it))||it.plus>=forgeMax(state.b.smith))return;
     state.gold-=c;payMats(whetNeed(it));if(chance(upChance(it))){it.plus++;sfx('rare');state.sel.smithMsg=`Success. ${it.name} is now +${it.plus}.`}else{sfx('resist');state.sel.smithMsg=`The metal cracks. Upgrade failed: ${c} gold and the whetstones are lost.`}},
   reroll:()=>{const e=allItems().find(x=>x.it.id===state.sel.item);if(!e)return;const it=e.it,c=rerollCost(it);if(state.gold<c||!it.affixes.length)return;
-    state.gold-=c;const i=ri(0,it.affixes.length-1),have=it.affixes.map(a=>a.k);const pool=AFFIXES.filter(a=>(!have.includes(a.k)||a.k===it.affixes[i].k)&&!(it.cls==='warrior'&&a.k.startsWith('dmg_')));
+    state.gold-=c;const i=ri(0,it.affixes.length-1),have=it.affixes.map(a=>a.k);const pool=AFFIXES.filter(a=>(!have.includes(a.k)||a.k===it.affixes[i].k)&&afxOk(it,a));
     it.affixes[i]=rollAffix(pick(pool),RAR[it.rarity].m,it.ilvl);state.sel.smithMsg=`Rerolled into ${AFX[it.affixes[i].k].l}.`},
   alchHero:id=>{state.sel.alch=id},
   elixir:k=>{const h=heroById(state.sel.alch),c=priced(30+state.b.alch*15,h);if(!h||state.gold<c)return;state.gold-=c;h.elixir={stat:k,v:ELIXIR_V[state.b.alch-1]}},
@@ -7684,8 +7764,13 @@ function start(d){
   if(!booted){booted=true;if(!hot){ui.menu=true;if(!had)ui.erased=ui.slot||1}}
   for(const h of [...state.heroes,...state.candidates]){h.traits=h.traits||[];while(h.traits.length<traitSlots(h.level||1))h.traits.push(rollTrait(h.traits,null,h.cls))}
   {const all=[...state.bank,...state.heroes.flatMap(h=>Object.values(h.gear||{})),...(state.hunted||[]).map(x=>x.it),...((state.run&&state.run.loot)||[])].filter(Boolean);
-   for(const it of all){if(it.cls!=='warrior')continue;if(it.slot==='weapon')it.el=null;
-     it.affixes=(it.affixes||[]).map(a=>{if(!a.k.startsWith('dmg_'))return a;const c=AFFIXES.filter(x=>!x.k.startsWith('dmg_')&&!it.affixes.some(y=>y.k===x.k));return rollAffix(it.pid==='oathkeeper'?AFX.hp:pick(c),RAR[it.rarity]?RAR[it.rarity].m:1,it.ilvl||1)})}}
+   for(const x of [...((state.market&&state.market.items)||[]),...((state.town&&state.town.stock)||[])])if(x&&x.slot)all.push(x);
+   for(const it of all){if(it.cls==='warrior'&&it.slot==='weapon')it.el=null;
+     // Lines the slot can't have any more (old warrior elemental damage, weapon resistances, armor elemental damage) become a fresh legal roll.
+     // Perfect weapons take the line from their current design instead.
+     it.affixes=(it.affixes||[]).map(a=>{if(!AFX[a.k]||afxOk(it,a))return a;
+       if(it.pid&&PERF[it.pid]){const d=PERF[it.pid].aff.find(([k])=>!it.affixes.some(y=>y.k===k));if(d)return {k:d[0],v:Math.max(1,Math.round(d[1]*(1+(it.ilvl||1)*.04)))}}
+       const c=AFFIXES.filter(x=>afxOk(it,x)&&!it.affixes.some(y=>y.k===x.k));return rollAffix(pick(c),RAR[it.rarity]?RAR[it.rarity].m:1,it.ilvl||1)})}}
   for(const h of state.heroes)if(h.hp>maxHp(h))h.hp=maxHp(h);
   for(const c of state.candidates){const mx=10+(state.b.academy-1);if(c.pool>mx){c.pool=c.points=ri(7,10)+(state.b.academy-1)}}
   if(state.b.war==null)state.b.war=0;
