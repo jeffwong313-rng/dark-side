@@ -2845,12 +2845,9 @@ const TOWN_EVENTS={
   pilgrims:{n:'Pilgrims at the Gate',ico:['flask','#b83a3a'],d:'Pilgrims on their way to the moon shrine leave gifts at the gate: healing potions and a Return Scroll.'},
 };
 const townEv=()=>state&&state.town&&state.town.week===state.week?state.town:null;
-function rollTownEvent(){
-  state.town=null;if(state.week<2||!chance(.6))return;
-  const ev=weighted({merchant:35,festival:25,bard:20,pilgrims:20});state.town={ev,week:state.week};
-  if(ev==='festival')for(const h of state.heroes)h.fat=0;
-  if(ev==='merchant'){const lv=Math.max(1,...state.heroes.map(h=>h.level),1),out=[];for(let i=0;i<3;i++){const it=makeItem(i===2?'boss':'elite',lv+ri(0,2));if(it.rarity==='common')it.rarity='rare';out.push(it)}state.town.stock=out}
-}
+// Random weekly events (merchant, festival, bard, pilgrims) are switched off: they made the game too dependent on luck.
+// The only weekly event left is Rebuilding Fever, which is earned (see rebuildRush) rather than rolled.
+function rollTownEvent(){state.town=null}
 const merchPrice=it=>Math.round(sellVal(it)*3.2);
 function townEventBlock(){
   const E=townEv();if(!E)return '';const D=TOWN_EVENTS[E.ev];
