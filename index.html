@@ -2937,7 +2937,7 @@ const LUCK={gold:{base:1,cls:'warrior'},crit:{base:.25,cls:'archer'},surge:{base
 const EL_ABBR={fire:'FIR',ice:'ICE',thunder:'THU',grass:'GRA',fighting:'FIG',dark:'DRK'};
 function elTip(e){
   if(!e||e==='physical')return 'Physical: no element. Ignores elemental resistance and weaknesses.';
-  if(e==='dark')return 'Dark sits outside the wheel. It is never strong or weak against anything, and Abyss foes ignore 25% of your resistances.';
+  if(e==='dark')return 'Dark sits outside the wheel. It is never strong or weak against anything'+((()=>{try{return !!state&&descentUnlocked()}catch(x){return false}})()?', and Abyss foes ignore 25% of your resistances.':'.');
   const loses=Object.keys(BEATS).find(k=>BEATS[k]===e);
   return `${cap(e)} beats ${cap(BEATS[e])} (1.5× damage) and is weak against ${cap(loses)} (0.5×). Wheel: Thunder → Ice → Fire → Grass → Fighting → Thunder.`;
 }
@@ -3486,7 +3486,7 @@ function moonImg(p,scale,cls){
   }
   return `<img class="px ${cls||''}" src="${moonCache[key]}" width="${24*scale}" height="${24*scale}" alt="Moon, ${q}% dark">`;
 }
-function moonTip(){const m=moonState();if(!moonKnown())return 'The moon hangs over the town. Open the Moon Ledger to see every monster your heroes have read.';return `The moon is ${Math.round(m.shown)}% dark. When it is fully dark, the Dark Side opens. `+m.parts.map(x=>`${x.n}: ${x.d}`).join('. ')+'.'}
+function moonTip(){const m=moonState();if(!moonKnown())return 'The moon hangs over the town. Open the Moon Ledger to see every monster your heroes have read.';return `The moon is ${Math.round(m.shown)}% dark. ${descentUnlocked()?'The Dark Side is open at the Gate.':'When it is fully dark, something will change.'} `+m.parts.map(x=>`${x.n}: ${x.d}`).join('. ')+'.'}
 const PARTY_HP=[1,1.6,2.2],PARTY_ATK=[1,1.1,1.2];
 const partyAll=()=>state.run.party.map(heroById).filter(Boolean);
 const living=()=>partyAll().filter(h=>h.hp>0);
@@ -5353,7 +5353,7 @@ const STORY=[
   {id:'ring',n:'Father’s Ring',when:()=>storyCleared('medium'),
     t:()=>`Among the bones in the master’s lair lay a silver signet ring. My father’s ring. He didn’t fall at the gate that night. He was taken, and he made it this far before he lost it. What was he doing so far from home?`},
   {id:'moon',n:'The Darkening Moon',when:()=>state.reachedLong,
-    t:()=>`The elders bring me a book from the Town Hall vault. It tells of a night when the moon turned its back on the world, and a Dark Side opened beneath it. I look up tonight, and a sliver of the moon has gone dark, veined with red. Every monster we study and every master we slay pushes it closer to full dark. I’ve started tracking it in the Ledger.`},
+    t:()=>`The elders bring me a book from the Town Hall vault. It tells of a night when the moon turned its back on the world, and something opened beneath it. I look up tonight, and a sliver of the moon has gone dark, veined with red. Every monster we study and every master we slay pushes it closer to full dark. I’ve started tracking it in the Ledger.`},
   {id:'journal',n:'Father’s Journal',when:()=>storyCleared('long'),
     t:()=>`In the lair at the end of the long road: my father’s journal. The last pages are written in a shaking hand. <i>“The smoke pours from the moon’s shadow. At its heart sits a king with no light in him. I will go to him and ask what he wants of us.”</i> The next page is blank.`},
   {id:'lantern',n:'The Lantern',when:()=>storyCleared('expedition'),
@@ -5979,7 +5979,7 @@ function perfectLedger(){
   return `<details class="codex"><summary>Perfect weapons · ${found.length}/${PERFECTS.length} found</summary><div class="codexlist">${PERFECTS.map(P=>{
     if(!found.includes(P.id))return `<p><span class="muted">??? · ${CLASSES[P.cls].name} ${P.base}</span></p>`;
     const w=where(P.id);return `<p><span class="r-perfect">${P.n}</span> <span class="muted">· ${P.base} · ${w||'<span class="warn">Lost forever</span>'}</span></p>`}).join('')}</div>
-    <p class="muted" style="font-size:19px">Perfect weapons only come from bosses and final bosses on the longest adventures${moonKnown()?", and from the Dark Side":""}.</p></details>`;
+    <p class="muted" style="font-size:19px">Perfect weapons only come from bosses and final bosses on the longest adventures${descentUnlocked()?", and from the Dark Side":""}.</p></details>`;
 }
 // Bank filters: item type tabs plus a sort by tier (rarity, then item level and upgrades) or by sell value.
 const BANK_F=[['all','All'],['weapon','Weapons'],['armor','Armor'],['ring','Rings'],['amulet','Amulets']];
@@ -6015,8 +6015,8 @@ function advView(){
   const SHORTN={short:'Short',medium:'Med',long:'Long',expedition:'Exped',descent:'Dark'};
   const pctDark=Math.round(moonState().shown);
   // One thin segmented bar for the adventure length.
-  if(!moonKnown()&&state.sel.len==='descent')state.sel.len='short';
-  const bar=`<div class="lenbar" role="radiogroup" aria-label="Adventure length">${Object.entries(LENGTHS).filter(([k,L])=>!L.final||moonKnown()).map(([k,L])=>{const lock=(L.final&&!un)||!lenOpen(k,bIds);
+  if(!un&&state.sel.len==='descent')state.sel.len='short';
+  const bar=`<div class="lenbar" role="radiogroup" aria-label="Adventure length">${Object.entries(LENGTHS).filter(([k,L])=>!L.final||un).map(([k,L])=>{const lock=(L.final&&!un)||!lenOpen(k,bIds);
     const label=L.final?(un?'Dark Side':`Dark ${pctDark}%`):L.name,sl=L.final&&!un?`${pctDark}%`:SHORTN[k];
     return `<button class="lenopt ${L.final?'dark':''} ${state.sel.len===k?'cur':''} ${lock?'locked':''}" data-a="len" data-x="${k}" role="radio" aria-checked="${state.sel.len===k}" ${lock?'disabled':''} ${!L.final&&!lenOpen(k,bIds)?`data-tip="${esc(`Locked. Needs a hero with the ${BADGE_N[BADGE_NEED[k]]} badge in the party. Beat a ${BADGE_N[BADGE_NEED[k]]} adventure’s final boss and come home alive to earn it.`)}"`:''}><span class="lf">${label}</span><span class="ls">${sl}</span></button>`}).join('')}</div>`;
   if(!LENGTHS[state.sel.len].final&&!lenOpen(state.sel.len,bIds))state.sel.len='short';
@@ -6483,7 +6483,7 @@ function ledgerSections(){
     out.push({key:bk,name:B.name,el:B.el,rows});
   }
   if(descentUnlocked())out.push({key:'void',name:'The Dark Side',el:'dark',rows:VOID_BOSSES.map(v=>({base:v.n,spr:'boss',type:'dark',kind:'boss',tiers:['hard']}))});
-  out.push({key:'other',name:'Anywhere',rows:[{base:'Mimic',spr:'mimic',type:'physical',kind:'mimic'},...(moonKnown()?[{base:'The Unlit King',spr:'boss',type:'dark',kind:'king',tiers:['hard']}]:[])]});
+  out.push({key:'other',name:'Anywhere',rows:[{base:'Mimic',spr:'mimic',type:'physical',kind:'mimic'},...(descentUnlocked()?[{base:'The Unlit King',spr:'boss',type:'dark',kind:'king',tiers:['hard']}]:[])]});
   return out;
 }
 const TIERS=['easy','medium','hard'],TIER_LV={easy:'Lv 1–6',medium:'Lv 7–14',hard:'Lv 15+'};
@@ -6513,7 +6513,7 @@ function ledgerView(){
   const S=secs.find(x=>x.key===state.sel.lbiome)||secs[0];
   let s=`<div class="bhead">${moonImg(moonState().shown,3)}<div class="stack" style="gap:2px"><h2>Moon Ledger</h2><span class="muted">${got} of ${total} monsters found · ${full} fully scouted ${ledgerNewCount()?`· <span class="alert-inline">${ledgerNewCount()} new</span>`:''} ${help('Every monster has four stages of knowledge: basics, stats and resistances, skills, and its signature ability and fighting habit. At the start of each fight your party’s best Perception has a chance to learn the next stage about each enemy (10% + 3% per PER point, up to 90%), and every win gives a second, half-sized chance. Kills count as study too: every 3 kills of a monster guarantee its next stage. Easy, Medium and Hard versions are scouted separately. Monsters with new information are marked until you open them.')}</span></div></div>`;
   if(moonKnown()){const m=moonState();
-    s+=`<div class="moonbox"><h3>The dark side of the moon · ${Math.round(m.shown)}% dark</h3><p class="muted" style="font-size:19px">As the town grows stronger the moon turns its dark face toward you. When it is fully dark, the Dark Side opens at the Gate. The moon never turns back.</p>
+    s+=`<div class="moonbox"><h3>The dark side of the moon · ${Math.round(m.shown)}% dark</h3><p class="muted" style="font-size:19px">As the town grows stronger the moon turns its dark face toward you. ${descentUnlocked()?'It is fully dark: the Dark Side is open at the Gate.':'Nobody knows what happens when it is fully dark.'} The moon never turns back.</p>
       <div class="moonchecks">${m.parts.map(x=>`<div class="mcheck ${x.v>=1?'ok':''}"><div class="row" style="justify-content:space-between;gap:6px;font-size:18px"><span>${x.n}</span><span class="muted">${x.d}</span></div><div class="bar xp"><i style="width:${Math.round(x.v*100)}%"></i></div></div>`).join('')}</div></div>`}
   s+=`<div class="subtabs">${secs.map(x=>`<button class="subtab ${x===S?'cur':''}" data-a="lbiome" data-x="${x.key}">${x.el?elIco(x.el):''}${x.name} <span class="muted">${count(x)}/${size(x)}</span>${newIn(x)?` <span class="alert-inline">${newIn(x)}</span>`:''}</button>`).join('')}</div>`;
   const sel=state.sel.lent;if(sel&&L[sel])s+=ledgerDetail(sel);
