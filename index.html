@@ -819,6 +819,9 @@ span.dslot{cursor:default}
 .packrow .pn{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bringrow{display:flex;align-items:center;gap:6px;grid-column:1/-1;grid-row:3;margin-top:4px}
 .stkfull{color:#ff5a5a}.stkplus{color:var(--ash);font-size:.8em;margin:0 2px}.stks{display:inline-flex;gap:3px;vertical-align:middle;margin-left:4px}.stk{font-style:normal;font-size:16px;line-height:1;padding:2px 5px;border:1px solid var(--edge2);border-radius:4px;color:var(--bone)}.stk.full{color:#ff5a5a;border-color:#b83a3a;font-weight:bold}
+.shopitem.scrollitem{grid-column:1/-1;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;column-gap:10px;row-gap:0;align-items:center}
+.shopitem.scrollitem>:nth-child(1){grid-row:1/3}.shopitem.scrollitem>:nth-child(2){grid-column:2}.shopitem.scrollitem>:nth-child(3){grid-column:2;grid-row:2}
+.shopitem.scrollitem>.bringrow{grid-column:3;grid-row:1/3;margin:0}.shopitem.scrollitem>.btn{grid-column:4;grid-row:1/3}
 .bringrow .pm{min-width:34px;font-size:22px;padding:0 8px 3px}.bringrow .pc{min-width:22px;text-align:center;font-size:22px}
 .packrow .pm{min-width:36px;font-size:22px;padding:0 8px 3px}
 .packrow .pc{min-width:24px;text-align:center;font-size:22px}
@@ -3669,7 +3672,7 @@ function rollCandidates(){state.lastRecruits=(state.candidates||[]).map(c=>c.nam
 function newGame(){
   // firstLv: 0 = no hero has leveled yet in this save (the governor explains the first one).
   state={v:1,unlock:0,hideBld:true,reveal:{},guide:true,tutorial:true,week:1,gold:150,scrolls:1,b:{smith:1,alch:1,academy:1,barracks:1,bank:1,pack:1,bag:1,war:0,potency:0,feed:0},bossKills:0,won:null,firstLv:0,items:{potion:2},mats:{},farm:{lvl:0},farm2:true,mat2:true,still:0,ration3:true,built:{},built2:true,heroes:[],candidates:[],bank:[],graveyard:[],
-    screen:'town',tab:'town',sel:{len:'short',carry:true},run:null,summary:null,mastery:Math.min(set.mastery||0,set.masteryMax||0)};
+    screen:'town',tab:'town',sel:{len:'short',carry:false},run:null,summary:null,mastery:Math.min(set.mastery||0,set.masteryMax||0)};
   rollCandidates();
   state.govSetup={v2:true,step:'intro',scene:0,q:0,ans:[],d:govDefault()};
   return state;
@@ -4011,7 +4014,7 @@ function startRun(){
   if(['long','expedition','descent'].includes(len))state.reachedLong=true;
   const L=LENGTHS[len];
   for(const id of ids){const h=heroById(id);h.hp=maxHp(h);h.mp=maxMp(h)}
-  let scrolls=0;if(state.sel.carry&&state.scrolls>0){state.scrolls--;scrolls=1}
+  let scrolls=0;if(state.sel.carry&&state.scrolls>0){state.scrolls--;scrolls=1}state.sel.carry=false;
   let biome='tundra';
   if(!final)biome=LAND_PICK.includes(state.sel.biome)?state.sel.biome:pick(LAND_PICK);
   const total=final?null:ri(L.min,L.max),fin=final?ri(FINAL.finMin,FINAL.finMax):null,cave=len==='short'?pick(Object.keys(CAVE_BEASTS)):null,bossAt=[];
@@ -6470,21 +6473,20 @@ function advView(){
   <div class="gategrid"><div class="stack"><div class="stack" style="gap:6px"><h3>Length</h3>${bar}<p class="lensum">${sum}</p></div>${final?'':(()=>{const cur=LAND_PICK.includes(state.sel.biome)?state.sel.biome:null;
     return `<div class="stack" style="gap:6px"><h3>Land</h3>${state.guide&&!cur?'<p class="guidehint">① Pick a land to explore</p>':''}<div class="lands ${state.guide&&!cur?'guide':''}" role="radiogroup" aria-label="Land">${LAND_PICK.map(k=>{const B=BIOMES[k],lm=LAND_MOD[landMods()[k]];return `<button class="land ${cur===k?'cur':''}" style="--c:${EL_COL[B.el]}" data-a="land" data-x="${k}" role="radio" aria-checked="${cur===k}">${elIco(B.el)}<span><b>${B.name}</b><small>${cap(B.el)}</small>${lm?`<small class="lmod ${lm.bad?'bad':'good'}">${lm.n}</small>`:''}${huntLand(k).length?`<small class="lmod lost">Lost gear ×${huntLand(k).length}</small>`:''}</span></button>`}).join('')}</div>${cur&&huntLand(cur).length?`<p class="lmodnote lost"><b>Lost gear here:</b> ${huntLand(cur).map(x=>`${aAn(esc(x.base))} carries ${esc(x.owner)}’s ${itemName(x.it)} <span class="muted">(${LENGTHS[x.len]?LENGTHS[x.len].name:'any length'}, stage ${x.stage||1}+)</span>`).join('; ')}. On that length, from that stage on, ${Math.round(HUNT_ODDS*100)}% of fights bring you face to face with it${huntLand(cur).some(x=>x.kind!=='normal')?' (bosses carry theirs every time you meet them there)':''}. Look for the white outline: the same kind of monster without the loot has none.</p>`:''}${cur?landModNote(landMods()[cur]):'<p class="muted" style="font-size:18px">Conditions change every week. Some lands carry a twist this week.</p>'}${cur?`<p class="muted" style="font-size:18px">${BIOMES[cur].flavor} Monsters here deal and resist ${elTag(BIOMES[cur].el)}.</p>`:'<p class="warn" style="font-size:18px">Choose where to go.</p>'}</div>`})()}`;
   if(!state.heroes.length)return s+'<p class="muted">Recruit a hero at the Barracks first.</p></div></div>';
-  s+=`<div class="setout"><label class="row" style="gap:6px"><input type="checkbox" id="carry" ${state.sel.carry&&state.scrolls?'checked':''} ${state.scrolls?'':'disabled'}> Carry a Return Scroll (${state.scrolls} owned)</label>
-    ${final&&p.length!==3?'<p class="warn">The Dark Side needs exactly 3 heroes.</p>':''}
+  s+=`<div class="setout">    ${final&&p.length!==3?'<p class="warn">The Dark Side needs exactly 3 heroes.</p>':''}
     ${(()=>{const g=greenFor(state.sel.len,p);return g.length?`<p class="warn">${esc(listNames(g.map(h=>h.name)))} ${g.length>1?'look':'looks'} green for a trip like this. Perhaps ${g.length>1?'they need':(g[0].name?'this hero needs':'they need')} more training and experience before adventuring here.</p>`:''})()}
     ${state.guide&&ok?'<p class="guidehint">③ Set out!</p>':''}<button class="btn gold big ${state.guide&&ok?'guide':''}" data-a="setOut" ${ok?'':'disabled'}>Equip &amp; set out: ${L.final?'The Dark Side':L.name} with ${esc(listNames(p.map(id=>heroById(id).name)))}</button></div>`;
   s+='</div><div class="stack">';
   // outfitter: supplies
   const stock=Object.values(state.items||{}).reduce((a,x)=>a+x,0),plan=packPlan(),bringN=Object.values(plan).reduce((a,x)=>a+x,0),bring=planSlots(plan);
   s+=`<h3>Outfitter · supplies</h3><div class="bar xp" data-tip="Your Supply Pack (upgrade it at the Bank). Use − and + to choose what goes along; the rest stays stored in town."><i style="width:${clamp(bring/packCap()*100,0,100)}%"></i><span>Slots ${bring} / ${packCap()} · ${bringN} supplies${stock>bringN?` · ${stock-bringN} stay stored`:''}</span></div><p class="muted" style="font-size:20px">Choose how many of each to bring with − and +. Each slot holds a stack of up to 6 of one supply. The rest stays stored in town, and unused supplies come home if the party survives.${hg&&chaDiscount(hg)?` ${esc(hg.name)} haggles ${Math.round(chaDiscount(hg))}% off.`:''}</p>
-  <div class="shoprow">${Object.entries(CONSUMABLES).filter(([id,C])=>!C.noShop&&state.b.alch>=C.lvl&&(consOpen(id)||state.items[id]>0)).map(([id,C])=>{const pc=priced(C.cost,hg),n=state.items[id]||0,open=consOpen(id);
+  <div class="shoprow">${(()=>{const c=state.sel.carry&&state.scrolls?1:0,pc=priced(SCROLL_PRICE,hg);return `<div class="shopitem scrollitem" data-tip="Brings the whole party home safely with everything they carry. Takes no supply slot; one can go along per adventure.">${ico('scroll',null,3)}<span>Return Scroll</span><span class="muted">${pc}g · have ${state.scrolls}</span><span class="bringrow"><span class="muted">Bring</span><button class="btn small pm" data-a="carryAdj" data-x="0" ${c?'':'disabled'} aria-label="Leave the Return Scroll at home">−</button><b class="num pc">${c}</b><button class="btn small pm" data-a="carryAdj" data-x="1" ${c||!state.scrolls?'disabled':''} aria-label="Bring a Return Scroll">+</button></span><button class="btn small gold" data-a="buyScroll" ${state.gold<pc?'disabled':''}>Buy</button></div>`})()}${Object.entries(CONSUMABLES).filter(([id,C])=>!C.noShop&&state.b.alch>=C.lvl&&(consOpen(id)||state.items[id]>0)).map(([id,C])=>{const pc=priced(C.cost,hg),n=state.items[id]||0,open=consOpen(id);
     const k=plan[id]||0;
     return `<div class="shopitem" data-tip="${esc(C.d)}">${consIco(id)}<span>${C.n}</span><span class="muted">${open?pc+'g · ':''}have ${n}</span>${open?`<button class="btn small" data-a="buy" data-x="${id}|1" ${state.gold<pc?'disabled':''}>Buy</button>`:'<span></span>'}
       ${n?`<span class="bringrow"><span class="muted">Bring</span><button class="btn small pm" data-a="packAdj" data-x="${id}|-1" ${k<=0?'disabled':''} aria-label="Bring one fewer ${esc(C.n)}">−</button><b class="num pc">${qtyHtml(k)}</b><button class="btn small pm" data-a="packAdj" data-x="${id}|1" ${k>=n||(k%STACK===0&&bring>=packCap())?'disabled':''} aria-label="Bring one more ${esc(C.n)}">+</button></span>`:''}</div>`}).join('')}
     ${(()=>{return freeSupplies().map(([id,q,src])=>`<div class="shopitem" data-tip="${esc(CONSUMABLES[id].d+' Packed free on every adventure; unused ones spoil.')}">${consIco(id)}<span>${q} ${CONSUMABLES[id].n}</span><span class="muted">free ${src}</span></div>`).join('')})()}
     ${(()=>{const nx=Object.entries(CONSUMABLES).filter(([id,C])=>!C.noShop&&!consOpen(id)&&!(state.items[id]>0));if(!nx.length)return '';const t=CONS_OPEN[nx[0][0]];const same=nx.filter(([id])=>CONS_OPEN[id]===t);return `<p class="muted" style="font-size:18px;grid-column:1/-1">More supplies arrive when ${LENGTHS[t].name} adventures open: ${same.map(([,C])=>C.n).join(', ')}.</p>`})()}
-    <div class="shopitem" data-tip="Brings the whole party home safely with everything they carry.">${ico('scroll',null,3)}<span>Return Scroll</span><span class="muted">${priced(SCROLL_PRICE,hg)}g · have ${state.scrolls}</span><button class="btn small gold" data-a="buyScroll" ${state.gold<priced(SCROLL_PRICE,hg)?'disabled':''}>Buy</button></div></div>`;
+</div>`;
   s+='</div></div>';
   return s;
 }
@@ -7343,8 +7345,8 @@ function prepView(){
 function packPlan(){
   const cap=packCap(),own=Object.fromEntries(Object.entries(state.items||{}).filter(([id,n])=>n>0&&CONSUMABLES[id]));
   if(state.sel.pack){const out={};let room=cap;for(const id of Object.keys(own)){const n=Math.max(0,Math.min(own[id],state.sel.pack[id]||0,room*STACK));if(n){out[id]=n;room-=slotsOf(n)}}return out}
-  // Default: one of each kind in turn; a new slot opens only while there is room for it.
-  const out={};let room=cap,moved=true;while(moved){moved=false;for(const id of Object.keys(own)){const n=out[id]||0;if(n>=own[id])continue;const newSlot=n%STACK===0;if(newSlot&&room<=0)continue;out[id]=n+1;if(newSlot)room--;moved=true}}return out;
+  // Default: nothing packed. The player chooses what goes along each trip.
+  return {};
 }
 function packBlock(){
   const plan=packPlan(),cap=packCap(),used=planSlots(plan),ids=Object.keys(state.items||{}).filter(id=>state.items[id]>0&&CONSUMABLES[id]);
@@ -7827,7 +7829,11 @@ const ACT={
   revealOk:()=>{const r=state.run;if(r&&r.reveal)r.reveal.shift()},
   packAdj:x=>{const [id,d]=x.split('|'),plan=packPlan(),used=planSlots(plan),n=(plan[id]||0)+(+d);
     if(n<0||n>(state.items[id]||0)||(+d>0&&(plan[id]||0)%STACK===0&&used>=packCap()))return;plan[id]=n;state.sel.pack=plan},
-  packAll:x=>{if(x==='0'){state.sel.pack={};return}state.sel.pack=null},
+  carryAdj:x=>{state.sel.carry=x==='1'&&state.scrolls>0},
+  packAll:x=>{if(x==='0'){state.sel.pack={};return}
+    // Fill the pack: one of each kind in turn; a new slot opens only while there is room for it.
+    const cap=packCap(),own=Object.fromEntries(Object.entries(state.items||{}).filter(([id,n])=>n>0&&CONSUMABLES[id])),out={};let room=cap,moved=true;
+    while(moved){moved=false;for(const id of Object.keys(own)){const n=out[id]||0;if(n>=own[id])continue;const newSlot=n%STACK===0;if(newSlot&&room<=0)continue;out[id]=n+1;if(newSlot)room--;moved=true}}state.sel.pack=out},
   gear3ok:()=>{state.gear3Msg=null},
   heroSheet:id=>{const RP=railPick();if(RP){ACT[RP[0]](id);return}ui.sheet=id;const h=heroById(id);if(h)h.newSkill=null},
   sheetX:()=>{ui.sheet=null},
