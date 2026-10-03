@@ -771,7 +771,32 @@ span.dslot{cursor:default}
 .hrtraits{display:flex;flex-wrap:wrap;gap:4px;font-size:15px}.hrtraits>span{padding:0 5px;box-shadow:inset 0 0 0 1px #3a3245;background:#18131e}
 .herosheet .sheetcols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .modal.layer .panel.herosheet{max-width:820px}
-.herosheet h3{margin:12px 0 4px;color:var(--gold)}
+.herosheet h3{margin:10px 0 4px;color:var(--gold)}
+/* traits right under the XP bar: name, then a short description */
+.herosheet .straits{display:flex;flex-direction:column;gap:2px;margin-top:2px}
+.herosheet .strait{font-size:17px;line-height:1.25}.herosheet .strait .sdesc{margin-left:6px;font-size:16px}
+/* a tighter Combat list */
+.herosheet .ss-combat .dl{row-gap:0}.herosheet .ss-combat .dl dt,.herosheet .ss-combat .dl dd{padding-top:1px;padding-bottom:1px;line-height:1.2;font-size:17px}
+.herosheet .ss-skills .stack{gap:4px!important}
+.herosheet .ss-skills .item{padding:5px 8px;gap:1px}
+.herosheet .ss-skills .item .iname{font-size:18px}.herosheet .ss-skills .item .afx{font-size:15px;line-height:1.25}.herosheet .ss-skills .item .meta{font-size:15px;line-height:1.25}
+.herosheet .ss-skills>p.muted{font-size:15px!important;line-height:1.3;margin:0 0 4px}
+/* desktop: every section shows; the phone-only pieces stay hidden */
+.herosheet .sheettabs,.herosheet .ss-traits{display:none}
+/* phone: compact top, big section buttons, one section at a time */
+:is(body.dev-phone,body.lay-stack,body.lay-side) .herosheet .sheettabs{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:8px 0 2px;position:sticky;top:0;z-index:2;background:var(--panel)}
+:is(body.dev-phone,body.lay-stack,body.lay-side) .herosheet .stab{font:inherit;font-size:16px;padding:10px 2px;min-height:44px;background:#18131e;color:var(--ash);border:0;box-shadow:inset 0 0 0 2px var(--edge);cursor:pointer}
+:is(body.dev-phone,body.lay-stack,body.lay-side) .herosheet .stab.cur{color:var(--gold);background:#2a2214;box-shadow:inset 0 0 0 2px var(--gold)}
+:is(body.dev-phone,body.lay-stack,body.lay-side) .herosheet .ss{display:none}
+:is(body.dev-phone,body.lay-stack,body.lay-side) .herosheet .hc-top{zoom:.78}
+:is(body.dev-phone,body.lay-stack,body.lay-side) .herosheet .sheetcols{display:block}
+:is(body.dev-phone,body.lay-stack,body.lay-side) .herosheet .ss h3{display:none}
+:is(body.dev-phone,body.lay-stack,body.lay-side) .herosheet .straits{flex-direction:row;flex-wrap:wrap;gap:4px}
+:is(body.dev-phone,body.lay-stack,body.lay-side) .herosheet .strait{padding:0 5px;box-shadow:inset 0 0 0 1px #3a3245;background:#18131e;font-size:15px}
+:is(body.dev-phone,body.lay-stack,body.lay-side) .herosheet .strait .sdesc{display:none}
+.herosheet .st-attr .ss-attr,.herosheet .st-combat .ss-combat,.herosheet .st-res .ss-res,.herosheet .st-skills .ss-skills,.herosheet .st-traits .ss-traits{display:block!important}
+body:not(.dev-phone):not(.lay-stack):not(.lay-side) .herosheet .ss{display:block!important}
+body:not(.dev-phone):not(.lay-stack):not(.lay-side) .herosheet .ss-traits{display:none!important}
 body.lay-stack .townwrap{grid-template-columns:1fr}
 body.lay-stack .hrail{position:static;max-height:42dvh;order:-1}
 body.lay-stack .herosheet .sheetcols{grid-template-columns:1fr}
@@ -5717,20 +5742,31 @@ function heroRail(){
   return `<aside class="hrail" aria-label="Your heroes"><div class="hrhead"><h2>Heroes</h2><span class="muted">${H.length}/${slots()}</span></div>${H.length&&!state.run?'<p class="muted hrhint">Double-click a hero to add or remove them from this week’s party.</p>':''}
     <div class="hrlist">${H.length?H.map(card).join(''):`<button class="nextstep" data-a="tab" data-x="heroes">${sprite('book','#5a3f7a',3)}<span><small>No heroes yet</small><b>Recruit one</b></span></button>`}</div></aside>`;
 }
+// The hero sheet. Desktop: everything on one page, with traits under the XP bar and skills under resistances so there's
+// less scrolling. Phone: a compact top, then big buttons that show one section at a time (ui.sheetTab).
+const SHEET_TABS=[['attr','Attributes'],['combat','Combat'],['res','Resistances'],['skills','Skills'],['traits','Traits']];
 function heroSheet(){
   const h=heroById(ui.sheet);if(!h){ui.sheet=null;return ''}
-  const C=C_(h),[g,gc]=grade(h),ts=(h.traits||[]).map(id=>TRAITS[id]).filter(Boolean),mh=maxHp(h),mm=maxMp(h);
-  const body=`<div class="sheet">
+  const C=C_(h),[g,gc]=grade(h),ts=(h.traits||[]).map(id=>TRAITS[id]).filter(Boolean),mh=maxHp(h),mm=maxMp(h),tab=ui.sheetTab||'attr';
+  const traitRows=ts.map(t=>`<span class="strait" data-tip="${esc(t.n+': '+traitDesc(t,h))}"><span class="tk-${t.kind} ${deadNote(t,h)?'tdead':''}">${t.n}</span><span class="muted sdesc">${traitDesc(t,h)}</span></span>`).join('')||'<span class="muted">No traits yet.</span>';
+  const body=`<div class="sheet st-${tab}">
     <div class="hc-top"><div class="portrait">${heroArt(h,6)}</div><div class="stack" style="gap:4px;flex:1;min-width:150px">
       <span class="muted">Lv ${h.level} ${C.name} ${badgeIco(h.badge||0)} <span class="grade" style="color:${gc}">${g}</span> · ${h.runs} run${h.runs===1?'':'s'} · ${h.kills} kills</span>
       <div class="bar hp"><i style="width:${clamp(shownHp(h)/mh*100,0,100)}%"></i><span>${shownHp(h)} / ${mh} HP</span></div>
       <div class="bar mp"><i style="width:${clamp(shownMp(h)/mm*100,0,100)}%"></i><span>${shownMp(h)} / ${mm} MP · +${focusRegen(h)}/turn</span></div>
-      ${xpBar(h)}</div>${gearDoll(h,'sheetGear',null)}</div>
+      ${xpBar(h)}
+      <div class="straits" aria-label="Traits">${traitRows}</div></div>${gearDoll(h,'sheetGear',null)}</div>
     ${h.points?`<p class="gold">${h.points} attribute point${h.points>1?'s':''} to spend. <button class="btn small gold" data-a="openHero" data-x="${h.id}">Spend in Barracks</button></p>`:''}
-    <h3>Attributes</h3>${statPips(h)}
-    <div class="sheetcols"><div><h3>Combat</h3>${statTable(h)}</div><div><h3>Resistances</h3>${heroElTable(h)}</div></div>
-    <h3>Skills</h3><p class="muted" style="font-size:18px">${C.style}${h.cls==='mage'?` Natural affinity: ${elTag(h.affinity)}.`:''}</p>${skillList(h)}
-    <h3>Traits</h3><div class="stack" style="gap:4px">${ts.map(t=>`<p style="font-size:19px"><span class="tk-${t.kind} ${deadNote(t,h)?'tdead':''}">${t.n}</span> <span class="muted">${traitDesc(t,h)}</span></p>`).join('')||'<p class="muted">None yet.</p>'}</div>
+    <div class="sheettabs" role="tablist">${SHEET_TABS.map(([k,l])=>`<button class="stab ${tab===k?'cur':''}" role="tab" aria-selected="${tab===k}" data-a="sheetTab" data-x="${k}">${l}</button>`).join('')}</div>
+    <section class="ss ss-attr"><h3>Attributes</h3>${statPips(h)}</section>
+    <div class="sheetcols">
+      <section class="ss ss-combat"><h3>Combat</h3>${statTable(h)}</section>
+      <div class="stack" style="gap:0">
+        <section class="ss ss-res"><h3>Resistances</h3>${heroElTable(h)}</section>
+        <section class="ss ss-skills"><h3>Skills</h3><p class="muted" style="font-size:17px">${C.style}${h.cls==='mage'?` Natural affinity: ${elTag(h.affinity)}.`:''}</p>${skillList(h)}</section>
+      </div>
+    </div>
+    <section class="ss ss-traits"><h3>Traits</h3><div class="stack" style="gap:6px">${ts.map(t=>`<p style="font-size:19px"><span class="tk-${t.kind} ${deadNote(t,h)?'tdead':''}">${t.n}</span> <span class="muted">${traitDesc(t,h)}</span></p>`).join('')||'<p class="muted">None yet.</p>'}</div></section>
     <div class="row" style="margin-top:8px"><button class="btn gold" data-a="openHero" data-x="${h.id}">Manage in Barracks</button></div></div>`;
   return modalShell(`${esc(h.name)}`,body,'sheetX','herosheet');
 }
@@ -7386,6 +7422,7 @@ const ACT={
   gear3ok:()=>{state.gear3Msg=null},
   heroSheet:id=>{ui.sheet=id;const h=heroById(id);if(h)h.newSkill=null},
   sheetX:()=>{ui.sheet=null},
+  sheetTab:k=>{if(SHEET_TABS.some(([x])=>x===k))ui.sheetTab=k},
   sheetGear:x=>{const [hid,sl]=x.split('|'),h=heroById(hid);ui.sheet=null;if(!h)return;state.sel.hero=h.id;state.sel.slot=sl;state.tab='heroes';state.sel.btab='roster'},
   hideResult:()=>{ui.hideResult=true},
   showResult:()=>{ui.hideResult=false},
