@@ -2892,7 +2892,8 @@ function biomeLayers(biome){
 
 
 /* ---------- rules ---------- */
-const ELEMENTS=['fire','ice','thunder','grass','fighting'];
+// Wheel order (each beats the next): Thunder → Ice → Fire → Grass → Fighting → Thunder. Every list shows elements in this order.
+const ELEMENTS=['thunder','ice','fire','grass','fighting'];
 const ALL_EL=[...ELEMENTS,'dark'];
 const BEATS={thunder:'ice',ice:'fire',fire:'grass',grass:'fighting',fighting:'thunder'};
 const EL_COL={fire:'#e0643a',ice:'#8fd0ea',thunder:'#e6d55a',grass:'#6fb35a',fighting:'#c98b5c',dark:'#9b70dc',physical:'#b9b1a3'};
@@ -2992,7 +2993,7 @@ const LUCK={gold:{base:1,cls:'warrior'},crit:{base:.25,cls:'archer'},surge:{base
 const EL_ABBR={fire:'FIR',ice:'ICE',thunder:'THU',grass:'GRA',fighting:'FIG',dark:'DRK'};
 function elTip(e){
   if(!e||e==='physical')return 'Physical: no element. Ignores elemental resistance and weaknesses.';
-  if(e==='dark')return 'Dark sits outside the wheel. It is never strong or weak against anything'+((()=>{try{return !!state&&descentUnlocked()}catch(x){return false}})()?', and Abyss foes ignore 25% of your resistances.':'.');
+  if(e==='dark')return 'Dark sits outside the wheel. It is never strong or weak against anything, and heroes can’t resist it'+((()=>{try{return !!state&&descentUnlocked()}catch(x){return false}})()?', and Abyss foes ignore 25% of your resistances.':'.');
   const loses=Object.keys(BEATS).find(k=>BEATS[k]===e);
   return `${cap(e)} beats ${cap(BEATS[e])} (1.5× damage) and is weak against ${cap(loses)} (0.5×). Wheel: Thunder → Ice → Fire → Grass → Fighting → Thunder.`;
 }
@@ -3106,10 +3107,12 @@ function traitDesc(t,h){if(h)return traitDesc(t)+deadNote(t,h);
 const traitSlots=L=>2+Math.floor(L/10);
 // Warriors only deal physical damage, so they never roll traits that boost an element's damage.
 const warDead=t=>Object.keys(t.m).some(k=>k.startsWith('dmg_'));
+// Traits that only changed Dark damage taken are retired with Dark resistance (ids stay, so saves still load).
+const RETIRED_TRAITS=new Set(Object.values(TRAITS).filter(t=>Object.keys(t.m).some(k=>k==='tk_dark')).map(t=>t.id));
 function rollTrait(except,force,cls){
   // Grim Outlook (a governor's dark side): positive traits turn rare.
   const kind=force||weighted(darkIs('grim')?{good:15,neutral:40,bad:45}:{good:60,neutral:25,bad:15});
-  const pool=Object.values(TRAITS).filter(t=>t.kind===kind&&!(except||[]).includes(t.id)&&!(cls==='warrior'&&warDead(t)));
+  const pool=Object.values(TRAITS).filter(t=>t.kind===kind&&!RETIRED_TRAITS.has(t.id)&&!(except||[]).includes(t.id)&&!(cls==='warrior'&&warDead(t)));
   return pick(pool).id;
 }
 function tr(h,k){let s=0;for(const id of h.traits||[]){const t=TRAITS[id];if(t&&t.m[k])s+=t.m[k]}if(typeof GOV_QUAL!=='undefined'&&state&&state.gov)s+=govMod(k);return s}
@@ -3173,12 +3176,12 @@ const AFFIXES=[
   {k:'crit',l:'Crit Chance',a:2,b:5,p:1},{k:'critdmg',l:'Crit Damage',a:10,b:25,p:1},
   {k:'lifesteal',l:'Lifesteal',a:1,b:3,p:1},{k:'goldfind',l:'Gold Find',a:5,b:15,p:1},{k:'xp',l:'XP Gain',a:5,b:12,p:1},
   ...ELEMENTS.map(e=>({k:'dmg_'+e,l:cap(e)+' Damage',a:6,b:15,p:1,e})),
-  ...ALL_EL.map(e=>({k:'res_'+e,l:cap(e)+' Resistance',a:4,b:10,p:1,e})),
+  ...ELEMENTS.map(e=>({k:'res_'+e,l:cap(e)+' Resistance',a:4,b:10,p:1,e})), // no Dark Resistance: heroes can't resist Dark
 ];
 const AFX=Object.fromEntries(AFFIXES.map(a=>[a.k,a]));
 // Which bonuses a piece of gear may roll. Weapons never resist elements; helmets, chests and pants never add elemental
 // damage; warriors never get elemental damage (they only hit physical). Rings and amulets can roll anything.
-const afxOk=(it,a)=>!(a.k.startsWith('res_')&&it.slot==='weapon')&&!(a.k.startsWith('dmg_')&&(it.cls==='warrior'||ARMOR_BASE[it.slot]));
+const afxOk=(it,a)=>a.k!=='res_dark'&&!(a.k.startsWith('res_')&&it.slot==='weapon')&&!(a.k.startsWith('dmg_')&&(it.cls==='warrior'||ARMOR_BASE[it.slot]));
 const rollAffix=(a,m,ilvl)=>({k:a.k,v:Math.max(1,Math.round(rand(a.a,a.b)*m*(1+ilvl*.04)))});
 
 function rarityTable(table){
@@ -3318,7 +3321,8 @@ const skillMp=(h,id)=>Math.max(1,Math.round(SKILLS[id].mp*(1+tr(h,'skillCost')/1
 const elTaken=(h,e)=>e==='physical'?1:Math.max(.1,1+(tr(h,'tk_'+e)+tr(h,'tkAll'))/100);
 // Resistance as shown on the hero sheet: flat resistance and the percent traits combined.
 const effRes=(h,e)=>Math.round(100-(100-resist(h,e))*elTaken(h,e));
-function resist(h,e){const w=state&&state.run&&state.run.battle&&state.run.battle.wards&&state.run.battle.wards[h.id],bu=e==='fire'&&state&&state.run&&state.run.battle&&state.run.battle.burn?(state.run.battle.burn[h.id]||0):0;return -bu+Math.min(80,(C_(h).elRes||0)+(h.res[e]||0)+stat(h,'end')*.5+aff(h,'res_'+e)+(h.draught&&h.draught.el===e?h.draught.v:0)+((w&&w[e])||0)+((w&&w.all)||0))}
+function resist(h,e){if(e==='dark')return 0; // Dark can't be resisted by heroes (armor still blocks half as much of it as usual)
+  const w=state&&state.run&&state.run.battle&&state.run.battle.wards&&state.run.battle.wards[h.id],bu=e==='fire'&&state&&state.run&&state.run.battle&&state.run.battle.burn?(state.run.battle.burn[h.id]||0):0;return -bu+Math.min(80,(C_(h).elRes||0)+(h.res[e]||0)+stat(h,'end')*.5+aff(h,'res_'+e)+(h.draught&&h.draught.el===e?h.draught.v:0)+((w&&w[e])||0)+((w&&w.all)||0))}
 // Steep curve on purpose: level 10 takes many adventures, level 20 takes a veteran's career.
 // No level cap, but past ~38 each level costs 35% more than the curve, so ~50 is the practical ceiling.
 const xpNeed=L=>Math.round(20*Math.pow(L,1.8)*Math.exp(Math.max(0,L-38)*.3));
@@ -3405,7 +3409,7 @@ function makeHero(force){
     skills:classSkills(cls).sort(()=>Math.random()-.5).slice(0,2),affinity:pick(ELEMENTS),innate:{},look:randomLook()};
   // Everyone is born a little different: 2-3 elements they shrug off (or suffer from), and archers and mages
   // may have a knack for dealing one or two elements. Warriors never do, since they only deal physical damage.
-  for(const e of [...ALL_EL].sort(()=>Math.random()-.5).slice(0,ri(2,4)))h.res[e]=chance(.25)?-ri(5,15):ri(5,30);
+  for(const e of [...ELEMENTS].sort(()=>Math.random()-.5).slice(0,ri(2,4)))h.res[e]=chance(.25)?-ri(5,15):ri(5,30);
   if(cls!=='warrior')for(const e of [...ELEMENTS].sort(()=>Math.random()-.5).slice(0,ri(1,2)))h.innate['dmg_'+e]=ri(5,15);
   // Each SPECIAL stat is a 1d6 roll; the class stat gets +2 on top.
   for(const k of STATS)h[k]=ri(1,6);
@@ -3983,7 +3987,7 @@ function makeEnemy0(kind,add,forceSpr){
   let hp=(26+lvl*10)*K.hp*PARTY_HP[n-1],atk=(4+lvl*1.9)*K.atk*PARTY_ATK[n-1];
   if(add){hp*=PACK_SCALE;atk*=PACK_SCALE}
   const base=name,tier=kind==='king'?'hard':(runTier()||tierOf(lvl)),rng=srng(base+'|'+tier),rr=(a,b)=>a+Math.floor(rng()*(b-a+1));
-  const res={};for(const e of ALL_EL)res[e]=kind==='king'?rr(20,50):rng()<.5?rr(0,30):0;
+  const res={};for(const e of ['fire','ice','thunder','grass','fighting','dark'])res[e]=kind==='king'?rr(20,50):rng()<.5?rr(0,30):0;
   if(type!=='physical'){res[type]=kind==='king'?80:rr(40,80);for(const e of ELEMENTS)if(BEATS[e]===type)res[e]=0}
   const baseRes={...res};
   let mutation=null;
@@ -4323,7 +4327,7 @@ function luckySurge(h){
   const b=state.run.battle,x=b.surge[h.id]=b.surge[h.id]||{},roll=Math.random();let what;
   if(roll<.4||(h.cls==='warrior'&&roll<.55)){const k=pick(STATS);x[k]=(x[k]||0)+2;what=`+2 ${STATN[k]}`}
   else if(roll<.7&&h.cls!=='warrior'){const e=pick(ELEMENTS);x['dmg_'+e]=(x['dmg_'+e]||0)+10;what=`+10% ${cap(e)} damage`}
-  else{const e=pick(ALL_EL);x['res_'+e]=(x['res_'+e]||0)+10;what=`+10% ${cap(e)} resistance`}
+  else{const e=pick(ELEMENTS);x['res_'+e]=(x['res_'+e]||0)+10;what=`+10% ${cap(e)} resistance`}
   blog(`<b class="gold">Lucky surge!</b> ${esc(h.name)} gains ${what} for this battle.`);
 }
 const bigFoe=e=>['boss','warden','king'].includes(e.kind);
@@ -5092,15 +5096,15 @@ function statPips(h,raw){
   const p=C_(h).primary;
   return `<div class="stiles">${STATS.map(k=>{const v=raw?(h[k]||0):Math.round(stat(h,k));return `<div class="stile ${k===p?'pri':''}" data-tip="${esc(statTip(h,k))}" tabindex="0">${statIco(k)}<b class="num">${v}</b><small>${STATN[k]}</small></div>`}).join('')}</div>`;
 }
-function elTable(dmgFn,resFn){
-  return `<div class="eltab-wrap"><table class="eltab"><thead><tr><th></th>${ALL_EL.map(e=>`<th style="color:${EL_COL[e]}" data-tip="${esc(elTip(e))}" tabindex="0">${elIco(e)}</th>`).join('')}</tr></thead><tbody>
-    ${dmgFn?`<tr><th data-tip="Bonus damage when attacking with each element, from class, gear, traits and surges." tabindex="0">${ico('blade','#ddd')}</th>${ALL_EL.map(e=>{const v=Math.round(dmgFn(e));return `<td class="${v>0?'pos':v<0?'neg':''}" data-tip="${esc(`${cap(e)} damage bonus: ${v>0?'+':''}${v}%. Stacks with the 1.5× wheel advantage.`)}">${v>0?'+':''}${v}%</td>`}).join('')}</tr>`:''}
-    <tr><th data-tip="Damage reduction against each element. Capped at 80%." tabindex="0">${ico('shield','#8fa8c8')}</th>${ALL_EL.map(e=>{const v=Math.round(resFn(e));return `<td class="${v>=40?'pos':v<0?'neg':''}" data-tip="${esc(`${cap(e)} resistance: ${v}%. Takes ${100-v}% of normal ${cap(e)} damage.`)}">${v}%</td>`}).join('')}</tr>
+function elTable(dmgFn,resFn,hero){const EL=hero?ELEMENTS:ALL_EL;
+  return `<div class="eltab-wrap"><table class="eltab"><thead><tr><th></th>${EL.map(e=>`<th style="color:${EL_COL[e]}" data-tip="${esc(elTip(e))}" tabindex="0">${elIco(e)}</th>`).join('')}</tr></thead><tbody>
+    ${dmgFn?`<tr><th data-tip="Bonus damage when attacking with each element, from class, gear, traits and surges." tabindex="0">${ico('blade','#ddd')}</th>${EL.map(e=>{const v=Math.round(dmgFn(e));return `<td class="${v>0?'pos':v<0?'neg':''}" data-tip="${esc(`${cap(e)} damage bonus: ${v>0?'+':''}${v}%. Stacks with the 1.5× wheel advantage.`)}">${v>0?'+':''}${v}%</td>`}).join('')}</tr>`:''}
+    <tr><th data-tip="Damage reduction against each element. Capped at 80%." tabindex="0">${ico('shield','#8fa8c8')}</th>${EL.map(e=>{const v=Math.round(resFn(e));return `<td class="${v>=40?'pos':v<0?'neg':''}" data-tip="${esc(`${cap(e)} resistance: ${v}%. Takes ${100-v}% of normal ${cap(e)} damage.`)}">${v}%</td>`}).join('')}</tr>
   </tbody></table></div>`;
 }
-const heroElTable=h=>elTable(e=>aff(h,'dmg_'+e)+(e!=='physical'&&C_(h).elem?C_(h).elem:0),e=>effRes(h,e));
+const heroElTable=h=>elTable(e=>aff(h,'dmg_'+e)+(e!=='physical'&&C_(h).elem?C_(h).elem:0),e=>effRes(h,e),true);
 function resLine(h){
-  const r=ALL_EL.map(e=>[e,effRes(h,e)]).filter(x=>x[1]>0);
+  const r=ELEMENTS.map(e=>[e,effRes(h,e)]).filter(x=>x[1]>0);
   return r.length?`<div class="resl">${r.map(([e,v])=>`<span class="el" style="--c:${EL_COL[e]}">${cap(e)} ${Math.round(v)}%</span>`).join('')}</div>`:'<div class="resl muted">No resistances</div>';
 }
 function innateLine(h){
@@ -5874,7 +5878,7 @@ function alchView(){
   <div class="cards">
    <div class="card"><h3>Elixir · ${ec} gold</h3><p class="muted">+${ev} to one stat for the next adventure. Replaces any active elixir.</p><div class="alloc">${STATS.map(k=>`<button class="btn small" data-a="elixir" data-x="${k}" ${state.gold<ec?'disabled':''}>+${ev} ${STATN[k]}</button>`).join('')}</div></div>
    <div class="card"><h3>Tonic · ${tc} gold</h3>${L<2?'<p class="muted">Unlocks at Cauldron level 2.</p>':`<p class="muted">+1 permanent stat. ${h.tonics}/${L} taken by this hero.</p><div class="alloc">${STATS.map(k=>`<button class="btn small" data-a="tonic" data-x="${k}" ${state.gold<tc||h.tonics>=L?'disabled':''}>+1 ${STATN[k]}</button>`).join('')}</div>`}</div>
-   <div class="card"><h3>Warding draught · ${dc} gold</h3>${L<3?'<p class="muted">Unlocks at Cauldron level 3.</p>':`<p class="muted">+20% resistance to one element for the next adventure.</p><div class="alloc">${ALL_EL.map(e=>`<button class="btn small" data-a="draught" data-x="${e}" ${state.gold<dc?'disabled':''}><span class="el" style="--c:${EL_COL[e]}">${cap(e)}</span></button>`).join('')}</div>`}</div>
+   <div class="card"><h3>Warding draught · ${dc} gold</h3>${L<3?'<p class="muted">Unlocks at Cauldron level 3.</p>':`<p class="muted">+20% resistance to one element for the next adventure.</p><div class="alloc">${ELEMENTS.map(e=>`<button class="btn small" data-a="draught" data-x="${e}" ${state.gold<dc?'disabled':''}><span class="el" style="--c:${EL_COL[e]}">${cap(e)}</span></button>`).join('')}</div>`}</div>
   </div>`;
   return s;
 }
@@ -6825,7 +6829,7 @@ function witchView(){
       <h3>${WITCH_HERO.trait.n} · <span class="gold">${fmt(tc)} gold</span></h3><p class="muted">${WITCH_HERO.trait.d}</p>
       <div class="stack" style="gap:6px">${(h.traits||[]).map(id=>TRAITS[id]).filter(Boolean).map(t=>`<div class="row" style="gap:8px;justify-content:space-between;flex-wrap:nowrap"><span><span class="tk-${t.kind}">${t.n}</span> <span class="muted" style="font-size:17px">${traitDesc(t,h)}</span></span><button class="btn small" data-a="witchTrait" data-x="${h.id}|${t.id}" ${state.gold<tc||state.run?'disabled':''}>Reroll</button></div>`).join('')}</div>
       <h3>Reroll a resistance</h3><p class="muted">Pick exactly which one. The new value is a fresh roll: usually a resistance of +5% to +30%, but 1 time in 4 a weakness of −5% to −15%. Each element’s price rises 60% every time that same element is rerolled.</p>
-      ${(()=>{const els=ALL_EL.filter(el=>(h.res||{})[el]);if(!els.length)return '<p class="muted">This hero was born with no elemental resistances to reroll.</p>';
+      ${(()=>{const els=ELEMENTS.filter(el=>(h.res||{})[el]);if(!els.length)return '<p class="muted">This hero was born with no elemental resistances to reroll.</p>';
         return `<div class="stack" style="gap:6px">${els.map(el=>{const v=h.res[el],c=resRerollCost(h,el),n=(h.resRolls||{})[el]||0;
           return `<div class="row" style="gap:8px;justify-content:space-between;flex-wrap:nowrap"><span>${elTag(el)} <b style="color:${v<0?'#e0736c':'#8fcf6f'}">${v>0?'+':''}${v}%</b> <span class="muted" style="font-size:17px">${v<0?'weakness':'resistance'}${n?` · rerolled ${n}×`:''}</span></span><button class="btn small" data-a="witchRes" data-x="${h.id}|${el}" ${state.gold<c||onRun(h)?'disabled':''}>Reroll · ${fmt(c)}g</button></div>`}).join('')}</div>`})()}
       <h3>${WITCH_HERO.respec.n} · <span class="gold">${fmt(rc)} gold</span></h3><p class="muted">${WITCH_HERO.respec.d} ${h.spent?`${h.spent} point${h.spent>1?'s':''} would come back.`:'Nothing spent to undo yet.'}</p>
@@ -7434,7 +7438,7 @@ const ACT={
   wtab:x=>{state.sel.wtab=x;state.sel.witchMsg=null},
   whero:id=>{state.sel.whero=id;state.sel.witchMsg=null},
   witem:id=>{state.sel.witem=state.sel.witem===id?null:id;state.sel.witchMsg=null},
-  witchRes:x=>{const [hid,el]=x.split('|'),h=heroById(hid);if(!h||onRun(h)||!ALL_EL.includes(el)||!(h.res||{})[el])return;const c=resRerollCost(h,el);if(state.gold<c)return;
+  witchRes:x=>{const [hid,el]=x.split('|'),h=heroById(hid);if(!h||onRun(h)||!ELEMENTS.includes(el)||!(h.res||{})[el])return;const c=resRerollCost(h,el);if(state.gold<c)return;
     state.gold-=c;h.resRolls=h.resRolls||{};h.resRolls[el]=(h.resRolls[el]||0)+1;const old=h.res[el],nv=rollHeroRes();h.res[el]=nv;
     const f=v=>(v>0?'+':v<0?'−':'')+Math.abs(v)+'%';state.sel.witchMsg=`${esc(h.name)}’s ${cap(el)} ${old<0?'weakness':'resistance'} ${f(old)} → ${nv<0?'weakness':'resistance'} ${f(nv)}.`},
   witchTrait:x=>{const [hid,tid]=x.split('|'),h=heroById(hid);if(!h||state.run)return;const i=(h.traits||[]).indexOf(tid),c=heroWitchCost(h,'trait');if(i<0||state.gold<c)return;
@@ -7785,13 +7789,13 @@ function start(d){
   // With no save yet, nothing is written until the player starts a new town.
   if(!booted){booted=true;if(!hot){ui.menu=true;if(!had)ui.erased=ui.slot||1}}
   if(!state.gateBeaten&&(state.moonMax||0)>=99.99)state.gateBeaten=true;
-  for(const h of [...state.heroes,...state.candidates]){h.traits=h.traits||[];while(h.traits.length<traitSlots(h.level||1))h.traits.push(rollTrait(h.traits,null,h.cls))}
+  for(const h of [...state.heroes,...state.candidates]){if(h.res)delete h.res.dark;if(h.resRolls)delete h.resRolls.dark;h.traits=(h.traits||[]).map(id=>RETIRED_TRAITS.has(id)?rollTrait(h.traits,TRAITS[id].kind,h.cls):id);while(h.traits.length<traitSlots(h.level||1))h.traits.push(rollTrait(h.traits,null,h.cls))}
   {const all=[...state.bank,...state.heroes.flatMap(h=>Object.values(h.gear||{})),...(state.hunted||[]).map(x=>x.it),...((state.run&&state.run.loot)||[])].filter(Boolean);
    for(const x of [...((state.market&&state.market.items)||[]),...((state.town&&state.town.stock)||[])])if(x&&x.slot)all.push(x);
    for(const it of all){if(it.cls==='warrior'&&it.slot==='weapon')it.el=null;
      // Lines the slot can't have any more (old warrior elemental damage, weapon resistances, armor elemental damage) become a fresh legal roll.
      // Perfect weapons take the line from their current design instead.
-     it.affixes=(it.affixes||[]).map(a=>{if(!AFX[a.k]||afxOk(it,a))return a;
+     it.affixes=(it.affixes||[]).map(a=>{if(a.k!=='res_dark'&&(!AFX[a.k]||afxOk(it,a)))return a;
        if(it.pid&&PERF[it.pid]){const d=PERF[it.pid].aff.find(([k])=>!it.affixes.some(y=>y.k===k));if(d)return {k:d[0],v:Math.max(1,Math.round(d[1]*(1+(it.ilvl||1)*.04)))}}
        const c=AFFIXES.filter(x=>afxOk(it,x)&&!it.affixes.some(y=>y.k===x.k));return rollAffix(pick(c),RAR[it.rarity]?RAR[it.rarity].m:1,it.ilvl||1)})}}
   for(const h of state.heroes)if(h.hp>maxHp(h))h.hp=maxHp(h);
