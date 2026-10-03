@@ -86,6 +86,16 @@ input[type=text]{font:inherit;font-size:24px;background:var(--stone);color:var(-
 .bld.cur::after{content:"";position:absolute;bottom:0;left:20%;right:20%;height:4px;background:var(--gold)}
 .bld .lvl{font-size:18px;color:var(--dim)}
 .bld .bns,.scrapbtn{display:none}
+.brand{flex-wrap:wrap;row-gap:4px}
+.brand .scrapline{flex-basis:auto;position:static;justify-content:flex-start;gap:2px 8px;font-size:17px;margin-left:6px}.brand .scrapline small{display:none}
+/* building tabs: icon and name only, in a slim strip */
+.bld .lvl{display:none}
+.bld{gap:2px;padding:2px 0 7px;font-size:17px}
+.bld>span{white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.bld img{height:30px!important;width:auto!important}
+.street{padding:4px 8px 0!important}.street .moon{display:none}
+.street .ground{height:5px}
+.bld.cur::after{height:3px}
 /* phones: icon tabs with short names; scrap folds into one chip */
 :is(body.dev-phone,body.lay-stack) .bld .bnl,:is(body.dev-phone,body.lay-stack) .bld .lvl{display:none}
 :is(body.dev-phone,body.lay-stack) .bld .bns{display:inline}
@@ -96,7 +106,7 @@ input[type=text]{font:inherit;font-size:24px;background:var(--stone);color:var(-
 :is(body.dev-phone,body.lay-stack) .scrapbtn{display:inline-flex;align-items:center;gap:3px;font-family:inherit;cursor:pointer;border:0}
 :is(body.dev-phone,body.lay-stack) .scrapline{display:none}
 :is(body.dev-phone,body.lay-stack) header.top{position:relative}
-:is(body.dev-phone,body.lay-stack) .scrapline.open{display:flex;position:absolute;right:0;top:calc(100% + 4px);z-index:46;flex-basis:auto;max-width:min(520px,100%);padding:8px 10px;background:#1d1726;box-shadow:0 0 0 2px #060509,inset 0 0 0 2px var(--gold),4px 4px 0 #000a;justify-content:flex-start}
+:is(body.dev-phone,body.lay-stack) .scrapline.open{display:flex;position:absolute;left:0;right:auto;top:calc(100% + 4px);z-index:46;flex-basis:auto;max-width:min(520px,100%);padding:8px 10px;background:#1d1726;box-shadow:0 0 0 2px #060509,inset 0 0 0 2px var(--gold),4px 4px 0 #000a;justify-content:flex-start}
 .ground{height:14px;background:#171219;background-image:repeating-linear-gradient(90deg,#231a26 0 6px,#171219 6px 12px);box-shadow:inset 0 2px 0 #3a2a36;margin-inline:-10px}
 @media (max-width:720px){.buildings{grid-template-columns:repeat(4,1fr)}.bld{font-size:20px}.street .moon{display:none}}
 @media (max-width:480px){.bld{font-size:17px;min-width:0}.bld>span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
@@ -1334,7 +1344,9 @@ body.dragging [data-drop]{outline:2px dashed #e3b34166;outline-offset:1px}
 .utags .upos{font-size:15px;margin-right:0;vertical-align:0;padding:1px 4px 2px;background:none}
 .upos.p-front{color:#ef8a7a}.upos.p-middle{color:#e3b341}.upos.p-back{color:#8fb8e0}
 
-.lands{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}.land{font:inherit;color:var(--bone);display:flex;gap:8px;align-items:center;padding:6px 10px;border:0;cursor:pointer;background:var(--stone);box-shadow:inset 0 0 0 2px var(--edge);text-align:left}.land span{display:flex;flex-direction:column;line-height:1.05}.land small{color:var(--c)}.land.cur{box-shadow:inset 0 0 0 2px var(--c);background:#241c2c}
+.lands{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}.land{font:inherit;color:var(--bone);display:flex;gap:8px;align-items:center;padding:6px 10px;border:0;cursor:pointer;background:var(--stone);box-shadow:inset 0 0 0 2px var(--edge);text-align:left}.land span{display:flex;flex-direction:column;line-height:1.05}
+/* one slim row per land: icon, name, element, then this week's effect on the right */
+.lands{grid-template-columns:1fr;gap:4px}.land{padding:4px 10px}.land>span{display:flex;flex-direction:row;align-items:center;gap:8px;width:100%;min-width:0;flex-wrap:nowrap}.land>span>b{white-space:nowrap}.land>span>small{white-space:nowrap}.land>span>.lmod{margin:0}.land>span>small:not(.lmod){margin-right:auto}.land small{color:var(--c)}.land.cur{box-shadow:inset 0 0 0 2px var(--c);background:#241c2c}
 .stranger p{margin:6px 0 2px}.stranger ul{margin:0 0 4px 20px;padding:0}.stranger li{font-size:20px;color:var(--ash)}
 .spot.mystery{cursor:default}.spot.mystery .plaque{color:var(--ash)}
 .scrapline{flex-basis:100%;display:flex;gap:4px 10px;flex-wrap:wrap;justify-content:flex-end;font-size:18px;color:var(--ash);cursor:help}
@@ -1347,7 +1359,7 @@ body.dragging [data-drop]{outline:2px dashed #e3b34166;outline-offset:1px}
 @media (prefers-reduced-motion:reduce){.guide{animation:none;box-shadow:0 0 0 3px var(--gold)}}
 .top:has(> .scrapline){padding-bottom:24px}.top>.scrapline{position:absolute;right:0;bottom:0;left:0}
 @media (max-width:700px){.top:has(> .scrapline){padding-bottom:0;flex-wrap:wrap}.top>.scrapline{position:static;flex:1 0 100%}}
-:is(body.dev-phone,body.lay-stack) .top:has(> .scrapline){padding-bottom:0}:is(body.dev-phone,body.lay-stack) .top>.scrapline.open{position:absolute;top:calc(100% + 4px);bottom:auto;left:auto;right:0;flex:none}
+:is(body.dev-phone,body.lay-stack) .top:has(> .scrapline){padding-bottom:0}:is(body.dev-phone,body.lay-stack) .scrapline.open{top:calc(100% + 4px);bottom:auto;flex:none;margin:0}
 .coach{padding:10px 12px;margin:6px 0 10px;background:#f1e6cf;color:#241a14;box-shadow:0 0 0 2px #060509,4px 4px 0 #000a}
 .coach .who{font-weight:bold;color:#7a3b1c;font-size:18px}.coach p{margin:0;font-size:20px;line-height:1.2}.coach .btn{color:var(--bone)}
 .coach .tk-good{color:#2f7a1e}.coach .tk-neutral{color:#8a6a10}.coach .tk-bad{color:#a8322a}.coach .hpc{color:#a8322a}.coach .mpc{color:#2a4ea8}
@@ -5964,17 +5976,18 @@ function govSayBar(){
   return `<div class="govsay" role="status"><span class="govsayface">${govPic(state.gov,1)}</span><p><span class="who">My thoughts</span>${tip.t}</p><div class="govsaybtns">${tip.go?`<button class="btn small gold" data-a="${tip.go[0][0]==='@'?tip.go[0].slice(1):'govTipGo'}" data-x="${tip.go[0]}">${tip.go[1]}</button>`:''}<button class="btn small" data-a="govTipOk">Got it</button></div></div>`;
 }
 function topBar(){
+  const scrap=scrapStrip(state.mats,'Scrap in storage. Builders use it to raise buildings; the Farm and Still use it for upgrades.').replace('class="scrapline"','class="scrapline '+(ui.scrapOpen?'open':'')+'"');
+  const st=Object.values(state.mats||{}).reduce((a,v)=>a+(v>0.05?v:0),0);
   return `<header class="top">
-    <div class="brand">${govBadge()}<span class="disp logo">DARK SIDE <small>of the</small> MOON</span>${state.glory?'<span class="glorychip" data-tip="The Unlit King is gone and the old governor is home. The town has reached a new glory.">✦ Glory</span>':''}${state.mastery?`<span class="glorychip m" data-tip="${esc(`Mastery ${state.mastery}: the governor carries ${1+state.mastery} dark sides, and monsters deal ${3*state.mastery}% more damage with ${3*state.mastery}% more health.`)}">M${state.mastery}</span>`:''}${moonImg(moonState().shown,2,"toplogo")}</div>
+    <div class="brand">${govBadge()}<span class="disp logo">DARK SIDE <small>of the</small> MOON</span>${state.glory?'<span class="glorychip" data-tip="The Unlit King is gone and the old governor is home. The town has reached a new glory.">✦ Glory</span>':''}${state.mastery?`<span class="glorychip m" data-tip="${esc(`Mastery ${state.mastery}: the governor carries ${1+state.mastery} dark sides, and monsters deal ${3*state.mastery}% more damage with ${3*state.mastery}% more health.`)}">M${state.mastery}</span>`:''}${moonImg(moonState().shown,2,"toplogo")}
+      ${st>0.05?`<button class="chip scrapbtn ${ui.scrapOpen?'on':''}" data-a="scrapToggle" aria-expanded="${!!ui.scrapOpen}" aria-label="Scrap in storage: ${st.toFixed(1)}. Show the breakdown">${matIco('stone')}<b class="num">${st.toFixed(1)}</b> ▾</button>`:''}${scrap}</div>
     <div class="res">
-      ${helpBtn()}${canOfferInstall()?`<button class="btn small gold" data-a="install" data-tip="Install as an app: full screen, works offline">Install app</button>`:''}<button class="btn small" data-a="settings" data-x="1">Settings</button>
       <span class="chip" data-tip="Gold">${sprite('coin',null,2)}<b class="num">${fmt(state.gold)}</b><span class="lbl"> gold</span></span>
-      ${(()=>{const t=Object.values(state.mats||{}).reduce((a,v)=>a+(v>0.05?v:0),0);return t>0.05?`<button class="chip scrapbtn ${ui.scrapOpen?'on':''}" data-a="scrapToggle" aria-expanded="${!!ui.scrapOpen}" aria-label="Scrap in storage: ${t.toFixed(1)}. Show the breakdown">${matIco('stone')}<b class="num">${t.toFixed(1)}</b><span class="lbl"> scrap</span> ▾</button>`:''})()}
-      <span class="chip" data-tip="Return Scrolls">${sprite('scroll',null,2)}<b class="num">${state.scrolls}</b><span class="lbl"> scroll${state.scrolls===1?'':'s'}</span></span>
       <span class="chipgrp" style="display:inline-flex;gap:inherit"><span class="chip week" data-tip="Current week"><b class="num">Week ${state.week}</b></span>
       <span class="chip" data-tip="Heroes / room in the Barracks">${sprite('warrior',CLASSES.warrior.tint,2)}<b class="num">${state.heroes.length}/${slots()}</b><span class="lbl"> heroes</span></span></span>
-      ${state.won?`<span class="chip won">${foeArt({base:'The Unlit King',kind:'king',type:'dark',spr:'boss'},2)}King slain, week ${state.won.week}</span>`:`<span class="chip" data-tip="Major bosses slain">${sprite('skull',null,2)}<b class="num">${state.bossKills||0}</b><span class="lbl"> bosses</span></span>`}
-    </div>${scrapStrip(state.mats,'Scrap in storage. Builders use it to raise buildings; the Farm and Still use it for upgrades.').replace('class="scrapline"','class="scrapline '+(ui.scrapOpen?'open':'')+'"')}</header>${govSayBar()}`;
+      ${state.won?`<span class="chip won">${foeArt({base:'The Unlit King',kind:'king',type:'dark',spr:'boss'},2)}King slain, week ${state.won.week}</span>`:''}
+      ${canOfferInstall()?`<button class="btn small gold" data-a="install" data-tip="Install as an app: full screen, works offline">Install app</button>`:''}${helpBtn()}<button class="btn small" data-a="settings" data-x="1">Settings</button>
+    </div></header>${govSayBar()}`;
 }
 const BLD_SHORT={heroes:'Barracks',smith:'Smith',hall:'Hall',adventure:'Gate'};
 const TABS=[['town','Town','banner','#8a2e2e',null],['heroes','Barracks','tent','#6a4a3a',null],['smith','Weaponsmith','anvil',null,'smith'],['hall','Town Hall','house',null,null],['bank','Bank','chest',null,'bank'],['adventure','The Gate','gate',null,null],['witch','Witch','crescent','#b56fe3',null],['farm','Farm','farmer','#6f8f4a',null],['ledger','Ledger','moon',null,null]];
