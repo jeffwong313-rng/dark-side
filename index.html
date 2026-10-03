@@ -6495,7 +6495,6 @@ function advView(){
     return `<div class="shopitem" data-tip="${esc(C.d)}">${consIco(id)}<span>${C.n}</span><span class="muted">${open?pc+'g · ':''}have ${n}</span>${open?`<button class="btn small" data-a="buy" data-x="${id}|1" ${state.gold<pc?'disabled':''}>Buy</button>`:'<span></span>'}
       ${n?`<span class="bringrow"><span class="muted">Bring</span><button class="btn small pm" data-a="packAdj" data-x="${id}|-1" ${k<=0?'disabled':''} aria-label="Bring one fewer ${esc(C.n)}">−</button><b class="num pc">${qtyHtml(k)}</b><button class="btn small pm" data-a="packAdj" data-x="${id}|1" ${k>=n||(k%STACK===0&&bring>=packCap())?'disabled':''} aria-label="Bring one more ${esc(C.n)}">+</button></span>`:''}</div>`}).join('')}
     ${(()=>{return freeSupplies().map(([id,q,src])=>`<div class="shopitem" data-tip="${esc(CONSUMABLES[id].d+' Packed free on every adventure; unused ones spoil.')}">${consIco(id)}<span>${q} ${CONSUMABLES[id].n}</span><span class="muted">free ${src}</span></div>`).join('')})()}
-    ${(()=>{const nx=Object.entries(CONSUMABLES).filter(([id,C])=>!C.noShop&&!consOpen(id)&&!(state.items[id]>0));if(!nx.length)return '';const t=CONS_OPEN[nx[0][0]];const same=nx.filter(([id])=>CONS_OPEN[id]===t);return `<p class="muted" style="font-size:18px;grid-column:1/-1">More supplies arrive when ${LENGTHS[t].name} adventures open: ${same.map(([,C])=>C.n).join(', ')}.</p>`})()}
 </div>`;
   s+='</div></div>';
   return s;
