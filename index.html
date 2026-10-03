@@ -3826,10 +3826,11 @@ const SHIFT_SK={
 for(const [k,v] of Object.entries(SHIFT_SK))FOE_SKILLS[k]={n:v.n,d:v.d+' Stonewall Stance holds a hero in place.'};
 const SHIFT_BY_EL=Object.fromEntries(Object.entries(SHIFT_SK).map(([k,v])=>[v.el,k]));
 // Final-boss styles. Charger: flurries, then spends a whole turn charging, then unleashes a huge blow (a skill fight).
-// Relentless: a plain hit every turn, but it grows 8% stronger each time it acts (a race against the clock).
 FOE_SKILLS.weary={n:'Wearying Blow',d:'A grinding hit that adds 8–12% fatigue.'};
-// The Cave Bear's version of Relentless: a move it spends a turn on, not a free passive. +10% damage per use, up to +40%.
-FOE_SKILLS.relentless={n:'Relentless',d:'Spends its turn working itself into a fury: +10% damage for the rest of the fight, up to +40%.'};
+// Relentless (Relentless final bosses and the Cave Bear): a move that costs the monster its turn, never a free passive.
+// Each use: +12% damage for the rest of the fight, up to +60%. Used about a third of the time until it hits the cap.
+const REL_STEP=.12,REL_CAP=.6,REL_RATE=.35;
+FOE_SKILLS.relentless={n:'Relentless',d:'Spends its turn working itself into a fury: +12% damage for the rest of the fight, up to +60%.'};
 /* Teamwork: some monsters look after the pack instead of hitting you. */
 FOE_SKILLS.mend={n:'Mend Kin',d:'Heals its most wounded ally for 18% of that ally’s health.'};
 FOE_SKILLS.rally={n:'Rally',d:'An ally’s next attack deals 35% more damage.'};
@@ -3849,7 +3850,7 @@ FOE_SKILLS.windup={n:'Charging',d:'Spends this turn gathering power. Its next mo
 const UNLEASH_MULT=1.5;
 FOE_SKILLS.unleash={n:'Unleash',d:'The blow it was charging: 1.5× damage on every hero.'};
 const aoeAct=a=>a==='sweep'||a==='unleash';
-const BOSS_STYLE={charge:{n:'Charger',d:'Charger: two flurries, then a full turn charging, then a devastating Unleash that hits the whole party. Watch its intent and brace for it.'},scale:{n:'Relentless',d:'Relentless: attacks every turn and grows 8% stronger each time it acts. Kill it fast.'}};
+const BOSS_STYLE={charge:{n:'Charger',d:'Charger: two flurries, then a full turn charging, then a devastating Unleash that hits the whole party. Watch its intent and brace for it.'},scale:{n:'Relentless',d:'Relentless: now and then it spends a turn working itself into a fury, +12% damage each time (up to +60%). Kill it before it stacks up.'}};
 // Bosses and final bosses of each land leave a mark with every hit.
 const BOSS_AFFLICT={grass:'Poison: each hit has a 50% chance to poison the hero for 3 turns (20% of the hit each turn).',fighting:'Brutal: 25% chance to crit.',ice:'Chill: each hit delays the hero’s next turn.',fire:'Burn: each hit strips 10% Fire resistance for the rest of the fight (up to 40%).',thunder:'Jam: each hit locks one random action (an attack, the stance or a skill) for the hero’s next turn.'};
 const SHAPE_SKILLS={beast:['rend','howl'],slime:['ooze','harden'],wraith:['drain','curse'],brute:['sweep','harden'],bat:['drain','rend'],spider:['web','rend'],serpent:['rend','sweep'],skeleton:['harden','sweep'],boss:['sweep','howl'],mimic:['drain','harden']};
@@ -3984,8 +3985,8 @@ function makeEnemy0(kind,add,forceSpr){
   if(r.final&&(kind==='normal'||kind==='elite')&&r.biome!=='abyss')name='Void '+name;
   const CB=CAVE_BEASTS[name];
   if(CB){hp=Math.max(1,Math.round(hp*CB.hp));atk*=CB.atk}
-  const bossType=CB?CB.style:kind==='warden'?pick(['charge','scale']):null;
-  return {name,base,tier,spr,kind,type,bossType,rage:0,voidPhys:VOID_N[name]?VOID_N[name].phys:undefined,mix:foeMixFor(spr,kind,type,r.final,rng),lvl:Math.round(lvl*10)/10,hp,maxHp:hp,atk,armor:Math.round(lvl*2*(F.arm||1)),res,baseRes,mutation,spd:10+lvl+(F.spd||0)+(CB?CB.spd:0),spdBonus:(F.spd||0)+(CB?CB.spd:0),unleashX:CB&&CB.unleash||undefined,chargeN:CB&&CB.chargeN||undefined,eva,skills:CB?CB.skills.slice():foeSkillsFor(spr,kind,tier,type).concat(kind!=='warden'&&kind!=='king'&&chance(1/3)?['weary']:[])};
+  const bossType=CB?CB.style:kind==='warden'?pick(['charge','scale']):null,relSk=bossType==='scale'?['relentless']:[];
+  return {name,base,tier,spr,kind,type,bossType,rage:0,voidPhys:VOID_N[name]?VOID_N[name].phys:undefined,mix:foeMixFor(spr,kind,type,r.final,rng),lvl:Math.round(lvl*10)/10,hp,maxHp:hp,atk,armor:Math.round(lvl*2*(F.arm||1)),res,baseRes,mutation,spd:10+lvl+(F.spd||0)+(CB?CB.spd:0),spdBonus:(F.spd||0)+(CB?CB.spd:0),unleashX:CB&&CB.unleash||undefined,chargeN:CB&&CB.chargeN||undefined,eva,skills:CB?CB.skills.slice():foeSkillsFor(spr,kind,tier,type).concat(relSk,kind!=='warden'&&kind!=='king'&&chance(1/3)?['weary']:[])};
 }
 /* Mixed damage: every monster hits with part physical force and part element.
    Armor fully blocks the physical part; the elemental part is cut by resistance and by half of the armor. */
@@ -4591,7 +4592,7 @@ function foeEst(e,h,mult,heavy,act){
   d*=Math.max(.1,1+tr(h,'taken')/100)*(heavy?Math.max(.1,1+tr(h,'heavyTaken')/100):1)*(1-heroDef(h)/100);
   return Math.max(1,Math.round(d));
 }
-const INTENT_ICO={weary:['crescent','#b9a0d0'],flurry:['sword','#e3b341'],windup:['star','#e3b341'],unleash:['skull','#ff5a4a'],whirl:['sword','#78ab60'],jolt:['bolt','#e6d55a'],hook:['flake','#8fd0ea'],blast:['flame','#e0643a'],charge:['fist','#c98b5c'],grasp:['crescent','#9b70dc'],attack:['sword',null],heavy:['skull',null],sweep:['sword','#e0736c'],rend:['drop','#c4463f'],drain:['heart',null],curse:['crescent','#b56fe3'],web:['eye','#cfc6b0'],howl:['fist','#e3b341'],harden:['shield','#8fa8c8'],ooze:['heart','#8fe08a']};
+const INTENT_ICO={relentless:['flame','#ff8a5a'],weary:['crescent','#b9a0d0'],flurry:['sword','#e3b341'],windup:['star','#e3b341'],unleash:['skull','#ff5a4a'],whirl:['sword','#78ab60'],jolt:['bolt','#e6d55a'],hook:['flake','#8fd0ea'],blast:['flame','#e0643a'],charge:['fist','#c98b5c'],grasp:['crescent','#9b70dc'],attack:['sword',null],heavy:['skull',null],sweep:['sword','#e0736c'],rend:['drop','#c4463f'],drain:['heart',null],curse:['crescent','#b56fe3'],web:['eye','#cfc6b0'],howl:['fist','#e3b341'],harden:['shield','#8fa8c8'],ooze:['heart','#8fe08a']};
 function intentHtml(e){
   const b=state.run.battle,it=e.intent;if(!it||e.hp<=0||b.over)return '';
   if(!seeIntent())return `<span class="uintent unk" data-tip="${esc(`Your party’s combined Perception (${partyPer()}) is too low to read what this enemy will do next. It takes ${PER_INTENT}.`)}">${ico('eye','#6d6377',2)}Intent ?</span>`;
@@ -4639,7 +4640,7 @@ function foeSkillPick(e){
    if(e.skills.includes('mend')&&W&&W.hp<W.maxHp*.6&&chance(.6))return 'mend';
    if(e.skills.includes('guard')&&W&&W.hp<W.maxHp*.5&&!W.guardBy&&chance(.4))return 'guard';
    if(e.skills.includes('rally')&&strongAlly(e)&&!strongAlly(e).rallied&&chance(.3))return 'rally'}
-  if(e.skills.includes('relentless')&&(e.rage||0)<.4&&chance(.3))return 'relentless';
+  if((e.skills.includes('relentless')||e.bossType==='scale')&&(e.rage||0)<REL_CAP-.001&&chance(REL_RATE))return 'relentless';
   const ok=(e.skills||[]).filter(id=>id!=='relentless'&&!TEAM_SK.includes(id)&&(SHIFT_SK[id]?living().length>1:id==='ooze'?e.hp<e.maxHp*.7:id==='howl'?!(b.howl&&b.howl.n>0):id==='harden'?!e.hardened:true));
   // Damaging skills follow the length's skill rate; self-buffs (Harden, War Howl, Reform) keep a small flat chance.
   const hit=ok.filter(id=>!SELF_SKILLS.includes(id)),self=ok.filter(id=>SELF_SKILLS.includes(id));
@@ -4666,7 +4667,7 @@ function foeSkill(e,i,id,h){
     swapHeroes(h,other);blog(`<span class="warn">${esc(h.name)} is ${sh.how==='pull'?'dragged to the front':'knocked to the back'}${sh.how==='pull'?`, and ${esc(other.name)} falls back`:`, and ${esc(other.name)} is left in front`}.</span>`);return}
   if(id==='sweep'){blog(`<span class="warn">${e.name} uses ${S.n}!</span>`);for(const x of living())if(e.hp>0)foeStrike(e,i,x,.6,{name:S.n,verb:'sweeps',act:'sweep'});return}
   if(id==='howl'){b.howl={n:3*aliveFoes().length};blog(`<span class="warn">${e.name} lets out a ${S.n}. Every enemy deals 20% more damage for a while.</span>`);return}
-  if(id==='relentless'){e.rage=Math.min(.4,+((e.rage||0)+.1).toFixed(2));blog(`<span class="warn">${e.name} roars and digs in. Relentless: +${Math.round(e.rage*100)}% damage.</span>`);return}
+  if(id==='relentless'){e.rage=Math.min(REL_CAP,+((e.rage||0)+REL_STEP).toFixed(2));blog(`<span class="warn">${e.name} roars and digs in. Relentless: +${Math.round(e.rage*100)}% damage.</span>`);return}
   if(id==='harden'){e.hardened=true;blog(`${e.name} uses ${S.n} and takes 40% less damage until its next turn.`);return}
   if(TEAM_SK.includes(id)){const it=e.intent||{},b2=state.run.battle;let a=b2.enemies[it.ally];if(!a||a.hp<=0||a===e)a=id==='rally'?strongAlly(e):woundedAlly(e);
     if(!a){blog(`${e.name} looks for a packmate, but stands alone.`);return}const j=b2.enemies.indexOf(a);
@@ -4705,7 +4706,6 @@ function enemyAct(e,i){
   else if(sk)foeSkill(e,i,sk,h);
   else foeStrike(e,i,h,heavy?heavyMult(e):1,{heavy,name:heavy?'crushing blow':'attack',verb:heavy?'unleashes a crushing blow on':'strikes'});
   if(b.howl&&b.howl.n>0){b.howl.n--;if(!b.howl.n){b.howl=null;blog('The howl dies away.')}}
-  if(e.bossType==='scale'&&e.hp>0){e.rage=+(e.rage+.08).toFixed(2);if(Math.round(e.rage*100)%24===0)blog(`<span class="warn">${e.name} grows stronger (+${Math.round(e.rage*100)}% damage).</span>`)}
   if(e.hex){e.hex--;if(!e.hex)blog(`The hex on ${e.name} fades.`)}
   if(e.weak)e.weak--;
   planIntent(e);
@@ -6334,7 +6334,7 @@ function foeInfo(e){
   if(e.bossType)tags.push(`<span class="utag" style="color:#e3b341" data-tip="${esc(BOSS_STYLE[e.bossType].d)}">${BOSS_STYLE[e.bossType].n.toLowerCase()}</span>`);
   if(e.voidPhys!=null)tags.push(`<span class="utag" style="color:#c9a0ff" data-tip="${esc(`Void-born: every attack is ${Math.round(e.voidPhys*100)}% physical, and the rest is a random element that changes every attack. Read its next move to see which.`)}">shifting</span>`);
   if((e.kind==='boss'||e.kind==='warden')&&BOSS_AFFLICT[e.type])tags.push(`<span class="utag" style="color:${EL_COL[e.type]}" data-tip="${esc(BOSS_AFFLICT[e.type])}">${BOSS_AFFLICT[e.type].split(':')[0].toLowerCase()}</span>`);
-  if(e.rage)cond.push(`<span class="utag" style="color:#ff8a5a" data-tip="Enraged: deals ${Math.round(e.rage*100)}% more damage, and it keeps growing.">+${Math.round(e.rage*100)}%</span>`);
+  if(e.rage)cond.push(`<span class="utag" style="color:#ff8a5a" data-tip="Relentless: deals ${Math.round(e.rage*100)}% more damage for the rest of the fight${e.rage<REL_CAP-.001?`, and can push it as high as +${Math.round(REL_CAP*100)}%`:' (its limit)'}.">+${Math.round(e.rage*100)}%</span>`);
   if(e.grief)cond.push(`<span class="utag" style="color:#ff5a3a" data-tip="Enraged by a fallen packmate: +${e.grief*25}% damage for the rest of the fight.">enraged ×${e.grief}</span>`);
   if(e.rallied)cond.push('<span class="utag" style="color:#ffb02e" data-tip="Rallied: its next attack deals 35% more damage.">rallied</span>');
   if(e.guardBy!=null&&(state.run.battle.enemies[e.guardBy]||{}).hp>0)cond.push(`<span class="utag" style="color:#8fa8c8" data-tip="${esc(`Shielded by ${state.run.battle.enemies[e.guardBy].name}: takes 50% less damage until that monster acts again. Kill the guardian to break it.`)}">shielded</span>`);
