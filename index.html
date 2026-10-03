@@ -33,7 +33,7 @@ body{
 *{box-sizing:border-box}
 .px{image-rendering:pixelated;image-rendering:crisp-edges;display:block;-webkit-user-drag:none;user-select:none}
 h1,h2,h3,.disp{font-family:'DsHead','DsBody',monospace;font-weight:700;letter-spacing:.02em;margin:0;text-wrap:balance}
-h2{font-size:26px}h3{font-size:21px;color:var(--ash);text-transform:uppercase;letter-spacing:.08em;font-weight:500}
+h2{font-size:26px}h3{font-size:22px;color:var(--ash);text-transform:uppercase;letter-spacing:.08em;font-weight:500}
 p{margin:0}
 b{font-weight:600;color:#fff3dc}
 .num{font-variant-numeric:tabular-nums}
@@ -85,8 +85,20 @@ input[type=text]{font:inherit;font-size:24px;background:var(--stone);color:var(-
 .bld.cur{color:var(--bone)}
 .bld.cur::after{content:"";position:absolute;bottom:0;left:20%;right:20%;height:4px;background:var(--gold)}
 .bld .lvl{font-size:18px;color:var(--dim)}
+.bld .bns,.scrapbtn{display:none}
+/* phones: icon tabs with short names; scrap folds into one chip */
+:is(body.dev-phone,body.lay-stack) .bld .bnl,:is(body.dev-phone,body.lay-stack) .bld .lvl{display:none}
+:is(body.dev-phone,body.lay-stack) .bld .bns{display:inline}
+:is(body.dev-phone,body.lay-stack) .bld{font-size:15px;gap:2px;padding:2px 0 6px}
+:is(body.dev-phone,body.lay-stack) .bld>span{white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+:is(body.dev-phone,body.lay-stack) .bld .thumb{width:34px;height:auto}
+:is(body.dev-phone,body.lay-stack) .street{padding-top:4px}:is(body.dev-phone,body.lay-stack) .street .moon{display:none}
+:is(body.dev-phone,body.lay-stack) .scrapbtn{display:inline-flex;align-items:center;gap:3px;font-family:inherit;cursor:pointer;border:0}
+:is(body.dev-phone,body.lay-stack) .scrapline{display:none}
+:is(body.dev-phone,body.lay-stack) header.top{position:relative}
+:is(body.dev-phone,body.lay-stack) .scrapline.open{display:flex;position:absolute;right:0;top:calc(100% + 4px);z-index:46;flex-basis:auto;max-width:min(520px,100%);padding:8px 10px;background:#1d1726;box-shadow:0 0 0 2px #060509,inset 0 0 0 2px var(--gold),4px 4px 0 #000a;justify-content:flex-start}
 .ground{height:14px;background:#171219;background-image:repeating-linear-gradient(90deg,#231a26 0 6px,#171219 6px 12px);box-shadow:inset 0 2px 0 #3a2a36;margin-inline:-10px}
-@media (max-width:720px){.buildings{grid-template-columns:repeat(4,1fr)}.bld{font-size:19px}.street .moon{display:none}}
+@media (max-width:720px){.buildings{grid-template-columns:repeat(4,1fr)}.bld{font-size:20px}.street .moon{display:none}}
 @media (max-width:480px){.bld{font-size:17px;min-width:0}.bld>span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
 
 /* hero + item cards */
@@ -97,7 +109,7 @@ input[type=text]{font:inherit;font-size:24px;background:var(--stone);color:var(-
 .hc-top{display:flex;gap:12px;align-items:center}
 .portrait{background:#0f0c13;box-shadow:inset 0 0 0 2px var(--edge);padding:6px;flex:none}
 .hname{font-family:'DsHead',monospace;font-size:22px}
-.grade{font-family:'DsHead',monospace;font-size:17px;padding:0 6px;margin-left:6px;box-shadow:inset 0 0 0 2px currentColor;vertical-align:2px}
+.grade{font-family:'DsHead',monospace;font-size:18px;padding:0 6px;margin-left:6px;box-shadow:inset 0 0 0 2px currentColor;vertical-align:2px}
 .stats{display:grid;grid-template-columns:auto 1fr auto;gap:3px 8px;align-items:center}
 .stats .k{color:var(--ash);font-size:20px}
 .stats .k.pri{color:var(--gold)}
@@ -113,7 +125,7 @@ input[type=text]{font:inherit;font-size:24px;background:var(--stone);color:var(-
 .bar.xp i{background:linear-gradient(#e3c75a,#a8862a)}
 .scout{background:#120f16;box-shadow:inset 0 0 0 2px var(--edge);padding:8px 10px;display:flex;flex-direction:column;gap:4px;margin-top:10px}
 .scoutrow{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline}
-.scoutnode{color:var(--bone);box-shadow:inset 0 0 0 2px var(--edge2);padding:0 6px;font-size:19px}
+.scoutnode{color:var(--bone);box-shadow:inset 0 0 0 2px var(--edge2);padding:0 6px;font-size:20px}
 .gate{display:grid;grid-template-columns:260px minmax(0,1fr);gap:16px;align-items:start}
 @media (max-width:760px){.gate{grid-template-columns:1fr}}
 .gate-maps{display:flex;flex-direction:column;gap:8px;position:sticky;top:env(safe-area-inset-top,0px)}
@@ -197,7 +209,7 @@ body.inspect [data-tip]:hover{outline:2px dashed var(--gold);outline-offset:2px}
 #inspcard{position:fixed;inset:0;z-index:95;display:flex;align-items:center;justify-content:center;background:#05030899;padding:16px}
 #inspcard .inspin{max-width:min(520px,94vw);background:var(--panel);box-shadow:0 0 0 2px #060509,inset 0 0 0 2px var(--gold),0 10px 30px #000c;padding:12px 16px 14px;font-size:20px;line-height:1.4}
 #inspcard p{margin:8px 0 0}
-.help{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;font-size:17px;color:var(--bone);background:var(--edge);box-shadow:inset 0 0 0 1px var(--edge2);cursor:help;vertical-align:1px}
+.help{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;font-size:18px;color:var(--bone);background:var(--edge);box-shadow:inset 0 0 0 1px var(--edge2);cursor:help;vertical-align:1px}
 .ihead{display:flex;gap:10px;align-items:center}
 .ibox{flex:none;display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;background:#0f0c13;box-shadow:inset 0 0 0 2px var(--edge)}
 .r-rare-bg{box-shadow:inset 0 0 0 2px #2c4466}.r-epic-bg{box-shadow:inset 0 0 0 2px #4d3266}.r-godlike-bg{box-shadow:inset 0 0 0 2px #7a5420;background:#1c150c}.r-perfect-bg{box-shadow:inset 0 0 0 2px #8a2438;background:#1e0c12}
@@ -220,14 +232,14 @@ body.inspect [data-tip]:hover{outline:2px dashed var(--gold);outline-offset:2px}
 .pb,.pgate,.ph{font:inherit;background:none;border:0;color:var(--bone);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;padding:4px}
 .pb:hover img,.pgate:hover img,.ph:hover img{filter:brightness(1.25) drop-shadow(0 0 6px #e3b34188)}
 .plaque{font-size:18px;background:#0f0c13cc;box-shadow:inset 0 0 0 1px var(--edge2);padding:0 6px}
-.lvbadge{position:absolute;top:0;right:14%;font-family:'DsHead',monospace;font-size:17px;background:var(--gold);color:#1a1206;padding:0 5px}
-.alert{position:absolute;top:0;left:18%;font-family:'DsHead',monospace;font-size:17px;background:var(--blood);color:#fff;padding:0 5px;animation:pulse 1s steps(2) infinite}
+.lvbadge{position:absolute;top:0;right:14%;font-family:'DsHead',monospace;font-size:18px;background:var(--gold);color:#1a1206;padding:0 5px}
+.alert{position:absolute;top:0;left:18%;font-family:'DsHead',monospace;font-size:18px;background:var(--blood);color:#fff;padding:0 5px;animation:pulse 1s steps(2) infinite}
 .plaza-ground{position:relative;display:flex;flex-wrap:wrap;align-items:flex-end;gap:6px 14px;padding:10px 14px 14px;background:#171219;background-image:repeating-linear-gradient(90deg,#231a26 0 6px,#171219 6px 12px);box-shadow:inset 0 3px 0 #3a2a36;min-height:96px}
-.ptag{font-size:17px;color:var(--ash)}
+.ptag{font-size:18px;color:var(--ash)}
 .pgate{margin-left:auto}
 .nextstep{font:inherit;color:var(--bone);display:flex;align-items:center;gap:12px;width:100%;background:linear-gradient(90deg,#3a2a10,#1f1a12);border:0;box-shadow:inset 0 0 0 2px var(--gold),inset 0 -4px 0 #0006;padding:10px 16px;cursor:pointer;text-align:left}
 .nextstep:hover{filter:brightness(1.15)}
-.nextstep small{display:block;color:var(--gold);font-size:17px;text-transform:uppercase;letter-spacing:.1em}
+.nextstep small{display:block;color:var(--gold);font-size:18px;text-transform:uppercase;letter-spacing:.1em}
 .nextstep b{font-family:'DsHead',monospace;font-size:22px}
 .nextstep .arrow{margin-left:auto;font-size:28px;color:var(--gold)}
 .moonbox{display:flex;flex-direction:column;gap:6px;padding:10px;background:#120f16;box-shadow:inset 0 0 0 2px #6a4a9a}
@@ -246,9 +258,9 @@ body.inspect [data-tip]:hover{outline:2px dashed var(--gold);outline-offset:2px}
 .shopitem{align-items:flex-start}
 .bhead{display:flex;gap:14px;align-items:center}
 .subtabs{display:flex;gap:6px;flex-wrap:wrap}
-.subtab{font:inherit;font-size:21px;color:var(--ash);background:var(--stone);border:0;box-shadow:inset 0 0 0 2px var(--edge);padding:6px 14px 8px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.subtab{font:inherit;font-size:22px;color:var(--ash);background:var(--stone);border:0;box-shadow:inset 0 0 0 2px var(--edge);padding:6px 14px 8px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
 .subtab.cur{color:var(--bone);box-shadow:inset 0 0 0 2px var(--gold);background:#221c2b}
-.alert-inline{font-family:'DsHead',monospace;font-size:17px;background:var(--blood);color:#fff;padding:0 5px}
+.alert-inline{font-family:'DsHead',monospace;font-size:18px;background:var(--blood);color:#fff;padding:0 5px}
 .moon,.iso-moon{position:relative}
 .lcard.newinfo{box-shadow:inset 0 0 0 2px #8fd3ff,0 0 10px #8fd3ff55}
 .tchip{position:relative}.tchip small{font-size:.75em;opacity:.8}
@@ -262,12 +274,12 @@ body.inspect [data-tip]:hover{outline:2px dashed var(--gold);outline-offset:2px}
 .upg{display:flex;gap:12px;align-items:center;background:#171320;box-shadow:inset 0 0 0 2px var(--edge2);padding:10px 12px}
 .upg.major{box-shadow:inset 0 0 0 2px #7a5a20;background:linear-gradient(#1f1a12,#171320)}
 .upg-ico{flex:none;display:flex;align-items:center;justify-content:center;width:64px;height:64px;background:#0f0c13;box-shadow:inset 0 0 0 2px var(--edge)}
-.lvpill{font-size:17px;color:#1a1206;background:var(--gold);padding:0 6px;vertical-align:2px}
-.nextlv{color:var(--moss);font-size:19px}
+.lvpill{font-size:18px;color:#1a1206;background:var(--gold);padding:0 6px;vertical-align:2px}
+.nextlv{color:var(--moss);font-size:20px}
 .upbtn{display:flex;flex-direction:column;align-items:center;gap:0;flex:none}
-.upbtn small{font-size:17px;color:#ffe7ae}
+.upbtn small{font-size:18px;color:#ffe7ae}
 .matbar{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;background:#120f16;box-shadow:inset 0 0 0 2px var(--edge);padding:8px 10px}
-.matchip{display:inline-flex;align-items:center;gap:2px;font-size:19px;font-variant-numeric:tabular-nums}
+.matchip{display:inline-flex;align-items:center;gap:2px;font-size:20px;font-variant-numeric:tabular-nums}
 .matchip.ok{color:var(--moss)}.matchip.no{color:#e0736c}
 .recipes{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
 .recipe{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;background:var(--stone);box-shadow:inset 0 0 0 2px var(--edge);padding:10px}
@@ -275,8 +287,8 @@ body.inspect [data-tip]:hover{outline:2px dashed var(--gold);outline-offset:2px}
 .recipe.wide{flex-direction:row;flex-wrap:wrap;justify-content:space-between;text-align:left}
 .needs{display:flex;flex-wrap:wrap;gap:4px 8px;justify-content:center}
 .farmscene{display:flex;gap:16px;align-items:center;flex-wrap:wrap;background:linear-gradient(#1a2418,#0f140e);box-shadow:inset 0 0 0 2px var(--edge);padding:12px}
-.xplabel{display:flex;justify-content:space-between;gap:8px;font-size:19px}
-.bar span{position:absolute;inset:0;font-size:17px;line-height:14px;text-align:center;color:#fff;text-shadow:1px 1px 0 #000}
+.xplabel{display:flex;justify-content:space-between;gap:8px;font-size:20px}
+.bar span{position:absolute;inset:0;font-size:18px;line-height:14px;text-align:center;color:#fff;text-shadow:1px 1px 0 #000}
 .item{background:var(--stone);box-shadow:inset 0 0 0 2px var(--edge);padding:9px 11px;display:flex;flex-direction:column;gap:3px;font-size:20px;text-align:left;font-family:inherit;color:var(--bone);border:0}
 button.item{cursor:pointer}button.item:hover{background:#1f1a27}
 .item.sel{box-shadow:inset 0 0 0 2px var(--gold)}
@@ -289,19 +301,19 @@ button.item{cursor:pointer}button.item:hover{background:#1f1a27}
 .item.r-epic-b{box-shadow:inset 0 0 0 2px #4d3266}
 .item.r-rare-b{box-shadow:inset 0 0 0 2px #2c4466}
 .afx{color:#cfe3b8}
-.meta{color:var(--dim);font-size:19px}
+.meta{color:var(--dim);font-size:20px}
 .items{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
 
 /* hero detail */
 .hdetail{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:16px}
 @media (max-width:800px){.hdetail{grid-template-columns:1fr}}
-.dl{display:grid;grid-template-columns:1fr auto;gap:2px 12px;font-size:21px}
+.dl{display:grid;grid-template-columns:1fr auto;gap:2px 12px;font-size:22px}
 .dl dt{color:var(--ash)}.dl dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
 .gear{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.slot{font:inherit;font-size:19px;background:var(--stone);color:var(--dim);border:0;box-shadow:inset 0 0 0 2px var(--edge);padding:6px 7px;text-align:left;cursor:pointer;min-height:54px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.slot{font:inherit;font-size:20px;background:var(--stone);color:var(--dim);border:0;box-shadow:inset 0 0 0 2px var(--edge);padding:6px 7px;text-align:left;cursor:pointer;min-height:54px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .slot:hover{background:#1f1a27}
 .slot.cur{box-shadow:inset 0 0 0 2px var(--gold)}
-.slot .sl{font-size:17px;text-transform:uppercase;letter-spacing:.1em;color:var(--dim)}
+.slot .sl{font-size:18px;text-transform:uppercase;letter-spacing:.1em;color:var(--dim)}
 .slot .sn{overflow-wrap:anywhere}
 .alloc{display:flex;flex-wrap:wrap;gap:6px}
 .tabs{display:flex;flex-wrap:wrap;gap:6px}
@@ -311,8 +323,8 @@ button.item{cursor:pointer}button.item:hover{background:#1f1a27}
 .choice{font:inherit;color:var(--bone);background:var(--stone);border:0;box-shadow:inset 0 0 0 2px var(--edge2),inset 0 -5px 0 rgba(0,0,0,.4);padding:14px 12px 16px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
 .choice:hover{background:#221c2b;box-shadow:inset 0 0 0 2px var(--gold),inset 0 -5px 0 rgba(0,0,0,.4)}
 .choice.cur{box-shadow:inset 0 0 0 2px var(--gold)}
-.choice .t{font-family:'DsHead',monospace;font-size:21px}
-.choice .d{color:var(--ash);font-size:19px}
+.choice .t{font-family:'DsHead',monospace;font-size:22px}
+.choice .d{color:var(--ash);font-size:20px}
 
 /* run */
 .runlay{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px;align-items:start}
@@ -388,7 +400,7 @@ button.item{cursor:pointer}button.item:hover{background:#1f1a27}
 .choice.final:hover:not(:disabled){box-shadow:inset 0 0 0 2px var(--dark),inset 0 -5px 0 rgba(0,0,0,.4)}
 .choice.final.cur{box-shadow:inset 0 0 0 2px var(--gold)}
 .choice.locked{opacity:.6;cursor:not-allowed}
-.req{font-size:19px}.req .ok{color:var(--moss)}.req .no{color:#e0736c}
+.req{font-size:20px}.req .ok{color:var(--moss)}.req .no{color:#e0736c}
 .pcard{padding-bottom:10px;border-bottom:2px solid var(--edge)}
 .pcard.cur .hname{color:var(--gold)}
 .pcard.down{opacity:.5}
@@ -405,12 +417,12 @@ details summary{cursor:pointer}
 .foecard.dead{opacity:.4}
 .foecard .bar{display:block}
 .traits{display:flex;flex-wrap:wrap;gap:6px}
-.trait{font:inherit;font-size:19px;background:#120f16;border:0;padding:1px 8px 3px;cursor:help;position:relative;box-shadow:inset 0 0 0 2px currentColor}
+.trait{font:inherit;font-size:20px;background:#120f16;border:0;padding:1px 8px 3px;cursor:help;position:relative;box-shadow:inset 0 0 0 2px currentColor}
 .trait.locked{color:var(--dim);box-shadow:inset 0 0 0 2px var(--edge);border-style:dashed}
 .tk-skill{color:#9fc4ee;cursor:help}
 .turnbar{display:flex;gap:4px;overflow-x:auto;padding:6px;background:#0f0c13;box-shadow:0 0 0 2px #060509,inset 0 0 0 2px var(--edge);align-items:stretch}
-.turnbar .lbl{font-size:17px;color:var(--ash);writing-mode:vertical-rl;transform:rotate(180deg);text-transform:uppercase;letter-spacing:.1em;flex:none}
-.tb{flex:none;display:flex;flex-direction:column;align-items:center;gap:2px;width:58px;padding:4px 2px;font-size:17px;line-height:1;text-align:center;background:var(--stone);box-shadow:inset 0 0 0 2px var(--edge);overflow:hidden}
+.turnbar .lbl{font-size:18px;color:var(--ash);writing-mode:vertical-rl;transform:rotate(180deg);text-transform:uppercase;letter-spacing:.1em;flex:none}
+.tb{flex:none;display:flex;flex-direction:column;align-items:center;gap:2px;width:58px;padding:4px 2px;font-size:18px;line-height:1;text-align:center;background:var(--stone);box-shadow:inset 0 0 0 2px var(--edge);overflow:hidden}
 .tb span{max-width:54px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tb.foe{box-shadow:inset 0 0 0 2px #5a2424;color:#e0a09a}
 .tb.now{box-shadow:inset 0 0 0 2px var(--gold);background:#2a2214;color:var(--gold)}
@@ -475,7 +487,7 @@ body.nomotion .unit.foe.carrier .fo img.px{animation:none}
 .recap{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:6px 0}
 .rtile{display:flex;flex-direction:column;align-items:center;padding:6px 2px;background:var(--panel2);box-shadow:inset 0 0 0 1px var(--edge)}
 .rtile b{font-size:22px}.rtile small{font-size:13px;color:var(--ash);text-align:center}
-.recapln{font-size:17px;margin:2px 0}
+.recapln{font-size:18px;margin:2px 0}
 .grave{display:flex;flex-direction:column;gap:4px;font-size:20px;color:var(--ash)}
 .bossmark{color:#e0736c}
 /* Battle animations follow only the in-game Animations switch (Settings → Display), never the device's reduce-motion setting. */
@@ -550,7 +562,7 @@ button,[data-a]{touch-action:manipulation;-webkit-tap-highlight-color:transparen
 .lenopt:disabled{opacity:.45;cursor:not-allowed}
 .lenopt .ls{display:none}
 @media (max-width:520px){.lenopt{font-size:18px;padding-inline:2px;text-overflow:clip}.lenopt .lf{display:none}.lenopt .ls{display:inline}}
-.lensum{font-size:19px;color:var(--ash)}
+.lensum{font-size:20px;color:var(--ash)}
 .lensum .ok{color:var(--moss)}
 
 /* ---------- battle screen: one fixed stage, no page scroll ---------- */
@@ -560,12 +572,12 @@ body.inbattle{overflow:hidden;overscroll-behavior:none}
   padding:max(6px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}
 .bhdr{grid-area:hdr;display:flex;align-items:center;gap:6px 8px;flex-wrap:wrap;min-width:0}
 .bhdr .ttl{font-family:'DsHead',monospace;font-size:20px;margin-right:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1 1 140px}
-.bhdr .chip{padding:1px 8px 2px 4px;font-size:19px}
-.bhdr .btn{font-size:19px;padding:2px 9px 5px}
+.bhdr .chip{padding:1px 8px 2px 4px;font-size:20px}
+.bhdr .btn{font-size:20px;padding:2px 9px 5px}
 .tstrip{grid-area:turn;display:flex;gap:3px;overflow-x:auto;scrollbar-width:none;align-items:center;min-width:0}
 .tstrip::-webkit-scrollbar{display:none}
-.tstrip .lbl{font-size:17px;color:var(--ash);text-transform:uppercase;letter-spacing:.08em;flex:none;padding-right:2px}
-.tstrip .tb{width:auto;flex-direction:row;gap:3px;padding:2px 6px 2px 3px;font-size:17px}
+.tstrip .lbl{font-size:18px;color:var(--ash);text-transform:uppercase;letter-spacing:.08em;flex:none;padding-right:2px}
+.tstrip .tb{width:auto;flex-direction:row;gap:3px;padding:2px 6px 2px 3px;font-size:18px}
 .tstrip .tb span{max-width:70px}
 .scene.stage{grid-area:stage;height:auto;min-height:0;display:flex;justify-content:space-between;align-items:flex-end;gap:8px;padding:28px 2% 10px}
 .stage .gnd{height:30%}
@@ -592,7 +604,7 @@ body.lay-stack .unit.big .fo img.px{width:min(calc(var(--us) * 1.275),calc((100c
 .unit.foe:hover .uinfo{background:#1a1422e8}
 .unit.down{opacity:.5}
 .uname{font-size:18px;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.uname small{color:var(--ash);font-size:17px}
+.uname small{color:var(--ash);font-size:18px}
 .uname:has(.ufat){display:flex;align-items:center;gap:4px}.uname .unm{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .approach{display:flex;align-items:flex-end;gap:6px;flex:none}.approach .afar{opacity:.55;filter:brightness(.7) saturate(.7);transform:translateY(-10px)}
 .bar.fatb i{background:#8a7a5a}.bar.fatb.mid i{background:#c98b3c}.bar.fatb.hi i{background:#c4463f}
@@ -600,7 +612,7 @@ body.lay-stack .unit.big .fo img.px{width:min(calc(var(--us) * 1.275),calc((100c
 .ufat i{position:absolute;left:0;top:0;bottom:0;background:#8a7a5a}.ufat.mid i{background:#c98b3c}.ufat.hi i{background:#c4463f}
 .ufat span{position:relative;display:block;text-align:center;font-size:13px;line-height:13px;color:#f3ead8;text-shadow:1px 1px 0 #000}
 body.lay-wide .ufat{flex-basis:58px;height:15px}body.lay-wide .ufat span{font-size:15px;line-height:15px}
-.umeta{font-size:17px;line-height:1;color:var(--ash);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.umeta{font-size:18px;line-height:1;color:var(--ash);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ubar{height:14px;background:#0c0a0f;box-shadow:inset 0 0 0 1px #000;position:relative;overflow:hidden}
 .ubar i{display:block;height:100%}
 .ubar.hp i{background:linear-gradient(#e0574f,#a3302c)}
@@ -626,16 +638,16 @@ body.lay-wide .ufat{flex-basis:58px;height:15px}body.lay-wide .ufat span{font-si
 .blogline p:first-child{color:#fff3dc}
 .actbar{grid-area:act;max-height:48dvh;overflow-y:auto;overscroll-behavior:contain;min-height:132px;display:flex;flex-direction:column;gap:6px;padding:8px 10px;
   background:linear-gradient(180deg,#231d2b,#17131d);box-shadow:0 0 0 2px #050408,inset 2px 2px 0 #3f3550,inset -2px -2px 0 #0c0a11}
-.acthead{display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline;font-size:19px}
+.acthead{display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline;font-size:20px}
 .acthead .tinfo{color:var(--ash);font-size:18px}
 .skgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px}
 .skgrid .btn{padding:4px 8px 6px;text-align:left;display:flex;flex-direction:column;gap:1px;font-size:20px;line-height:1.05}
-.skgrid .sub2{font-size:17px;color:var(--ash)}
+.skgrid .sub2{font-size:18px;color:var(--ash)}
 .skgrid .btn>span{max-width:100%}
 .hscroll{display:flex;gap:6px;overflow-x:auto;flex-wrap:nowrap;align-items:center;scrollbar-width:thin;padding-bottom:2px}
 .hscroll>*{flex:none}
-.hscroll .lab{font-size:17px;color:var(--ash)}
-.actbar .rewards p{font-size:19px}
+.hscroll .lab{font-size:18px;color:var(--ash)}
+.actbar .rewards p{font-size:20px}
 .drawer{position:absolute;inset:0;z-index:30;background:var(--void);overflow-y:auto;overscroll-behavior:contain;padding:10px max(10px,env(safe-area-inset-right)) 24px max(10px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:10px}
 .drawer-top{position:sticky;top:-10px;z-index:1;display:flex;justify-content:space-between;align-items:center;gap:10px;background:#0d0b10;padding:6px 0}
 .drawgrid{display:flex;flex-direction:column;gap:10px;min-width:0;width:100%;max-width:960px;margin:0 auto}
@@ -644,8 +656,8 @@ body.lay-wide .ufat{flex-basis:58px;height:15px}body.lay-wide .ufat span{font-si
 /* action sections: Fight, then Items */
 .asec{display:flex;flex-direction:column;gap:5px}
 .asec+.asec{border-top:2px solid var(--edge);padding-top:6px}
-.alabel{font-family:'DsHead',monospace;font-size:17px;color:var(--gold);text-transform:uppercase;letter-spacing:.1em}
-.alabel span{font-family:'DsBody',monospace;color:var(--ash);text-transform:none;letter-spacing:0;font-size:17px;margin-left:6px}
+.alabel{font-family:'DsHead',monospace;font-size:18px;color:var(--gold);text-transform:uppercase;letter-spacing:.1em}
+.alabel span{font-family:'DsBody',monospace;color:var(--ash);text-transform:none;letter-spacing:0;font-size:18px;margin-left:6px}
 /* roster: labeled bars under the pixel-art lineup on small screens */
 .roster{display:none;grid-area:roster;grid-template-columns:1fr 1fr;gap:6px;min-width:0}
 .rcol{display:flex;flex-direction:column;gap:4px;min-width:0}
@@ -689,9 +701,9 @@ body.lay-stack .rframe .utags{justify-content:flex-start}
 body.lay-wide .unit{--us:clamp(56px,9vw,120px);width:clamp(110px,14vw,180px)}
 body.lay-wide .unit.big{--us:clamp(80px,13vw,170px)}
 body.lay-wide .ubar{height:17px}
-body.lay-wide .ubar span{font-size:17px;line-height:17px}
+body.lay-wide .ubar span{font-size:18px;line-height:17px}
 body.lay-wide .uname{font-size:20px}
-body.lay-wide .umeta{font-size:17px}
+body.lay-wide .umeta{font-size:18px}
 }
 /* side by side (phones on their side): actions move to the right */
 body.lay-side .bscreen{grid-template-columns:minmax(0,1fr) minmax(220px,34%);grid-template-rows:auto auto minmax(0,1fr) auto auto;grid-template-areas:"hdr hdr" "turn act" "stage act" "roster act" "log act"}
@@ -717,7 +729,7 @@ body.lay-side .skgrid{grid-template-columns:1fr}
 .mlines line{stroke:#574b67;stroke-width:3;stroke-dasharray:6 6;stroke-linecap:round}
 .mlines line.hot{stroke:var(--gold);stroke-dasharray:none;stroke-width:4}
 .mlines line.past{stroke:#2e2838}
-.mrow{position:absolute;left:-22px;transform:translateY(-50%);font-size:17px;color:var(--dim);font-variant-numeric:tabular-nums}
+.mrow{position:absolute;left:-22px;transform:translateY(-50%);font-size:18px;color:var(--dim);font-variant-numeric:tabular-nums}
 .mrow.now{color:var(--gold)}
 .mnode{position:absolute;transform:translate(-50%,-50%);width:54px;height:54px;display:flex;align-items:center;justify-content:center;background:#15121a;box-shadow:0 0 0 2px #060509,inset 0 0 0 2px var(--edge);border:0;padding:0;font:inherit;color:var(--bone);z-index:1}
 .mnode.big{width:66px;height:66px;box-shadow:0 0 0 2px #060509,inset 0 0 0 2px #8a2e2e}
@@ -740,7 +752,7 @@ body.lay-side .skgrid{grid-template-columns:1fr}
 .mnode.unseen .qfog{color:#4a4058;font-size:20px}
 .mlines line.fade{stroke:#3a3245;stroke-dasharray:2 4}
 /* enemy intents */
-.uintent{display:flex;align-items:center;gap:3px;font-size:17px;line-height:1.05;color:#ffb3a8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.uintent{display:flex;align-items:center;gap:3px;font-size:18px;line-height:1.05;color:#ffb3a8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .uintent .ico{margin:0;flex:none}
 .uintent.self{color:#9fc4ee}
 .utag.tgtd{color:#ff8a7a}
@@ -804,7 +816,7 @@ span.dslot{cursor:default}
 @media (prefers-reduced-motion:reduce){.rv-rays,.rv-parts i,.rv-wpn,.rv-name,.rv-flash,.rv-card{animation:none}}
 .packblk{border-top:2px solid var(--edge);padding-top:8px;display:flex;flex-direction:column;gap:6px}
 .packrows{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px}
-.packrow{display:flex;align-items:center;gap:6px;background:#120f16;box-shadow:inset 0 0 0 2px var(--edge);padding:4px 8px;font-size:19px}
+.packrow{display:flex;align-items:center;gap:6px;background:#120f16;box-shadow:inset 0 0 0 2px var(--edge);padding:4px 8px;font-size:20px}
 .packrow .pn{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bringrow{display:flex;align-items:center;gap:6px;grid-column:1/-1;grid-row:3;margin-top:4px}
 .stkfull{color:#ff5a5a}.stkplus{color:var(--ash);font-size:.8em;margin:0 2px}.stks{display:inline-flex;gap:3px;vertical-align:middle;margin-left:4px}.stk{font-style:normal;font-size:16px;line-height:1;padding:2px 5px;border:1px solid var(--edge2);border-radius:4px;color:var(--bone)}.stk.full{color:#ff5a5a;border-color:#b83a3a;font-weight:bold}
@@ -831,7 +843,7 @@ span.dslot{cursor:default}
 .hrport{position:relative;flex:none;width:72px;height:72px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 60%,color-mix(in srgb,var(--ct) 45%,transparent),#0b0910 70%);box-shadow:inset 0 0 0 2px #2a2234}
 .hrlv{position:absolute;right:-4px;bottom:-4px;min-width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#15101a;background:var(--gold);box-shadow:0 0 0 2px #060509}
 .hrbody{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
-.hrname{font-size:21px;color:var(--bone);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hrname{font-size:22px;color:var(--bone);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hrpts{font-size:15px;color:#15101a;background:var(--gold);padding:0 4px}
 .hrcls{font-size:16px;color:var(--muted,#a99)}
 .hrcard .bar{display:block;height:16px;font-size:13px}
@@ -845,9 +857,9 @@ span.dslot{cursor:default}
 .herosheet h3{margin:10px 0 4px;color:var(--gold)}
 /* traits right under the XP bar: name, then a short description */
 .herosheet .straits{display:flex;flex-direction:column;gap:2px;margin-top:2px}
-.herosheet .strait{font-size:17px;line-height:1.25}.herosheet .strait .sdesc{margin-left:6px;font-size:16px}
+.herosheet .strait{font-size:18px;line-height:1.25}.herosheet .strait .sdesc{margin-left:6px;font-size:16px}
 /* a tighter Combat list */
-.herosheet .ss-combat .dl{row-gap:0}.herosheet .ss-combat .dl dt,.herosheet .ss-combat .dl dd{padding-top:1px;padding-bottom:1px;line-height:1.2;font-size:17px}
+.herosheet .ss-combat .dl{row-gap:0}.herosheet .ss-combat .dl dt,.herosheet .ss-combat .dl dd{padding-top:1px;padding-bottom:1px;line-height:1.2;font-size:18px}
 .herosheet .ss-skills .stack{gap:4px!important}
 .herosheet .ss-skills .item{padding:5px 8px;gap:1px}
 .herosheet .ss-skills .item .iname{font-size:18px}.herosheet .ss-skills .item .afx{font-size:15px;line-height:1.25}.herosheet .ss-skills .item .meta{font-size:15px;line-height:1.25}
@@ -876,7 +888,7 @@ body.lay-stack .herosheet .sheetcols{grid-template-columns:1fr}
 .dslot:hover:not(span){filter:brightness(1.25)}
 .dslot small{position:absolute;right:1px;bottom:0;font-size:15px;line-height:1;color:#ffe7ae;text-shadow:1px 1px 0 #000}
 .dslot img.px{width:24px;height:24px}
-.dsum{font-size:17px;color:var(--ash);display:flex;gap:5px;align-items:center}
+.dsum{font-size:18px;color:var(--ash);display:flex;gap:5px;align-items:center}
 .dsum i{font-style:normal;font-family:'DsHead',monospace;font-size:16px}
 .bpack{display:flex;flex-wrap:wrap;gap:5px}
 .slotpanel{padding:10px;background:#171320;box-shadow:inset 0 0 0 2px var(--gold)}
@@ -886,7 +898,7 @@ body.lay-stack .herosheet .sheetcols{grid-template-columns:1fr}
 .lcard.major{box-shadow:inset 0 0 0 2px #7a5a20}
 .lspr{min-height:52px;display:flex;align-items:flex-end}
 .tchips{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
-.tchip{font:inherit;font-size:17px;padding:2px 7px 3px;border:0;background:#120f16;color:var(--dim);box-shadow:inset 0 0 0 1px var(--edge);cursor:not-allowed}
+.tchip{font:inherit;font-size:18px;padding:2px 7px 3px;border:0;background:#120f16;color:var(--dim);box-shadow:inset 0 0 0 1px var(--edge);cursor:not-allowed}
 .tchip.ok{color:var(--c);box-shadow:inset 0 0 0 2px var(--c);cursor:pointer}
 .tchip.ok:hover,.tchip.cur{background:#2a2234}
 .ldetail{display:flex;flex-direction:column;gap:8px;padding:12px;background:#171320;box-shadow:inset 0 0 0 2px var(--gold)}
@@ -895,7 +907,7 @@ body.lay-stack .herosheet .sheetcols{grid-template-columns:1fr}
 .settings{max-height:calc(92dvh / var(--z,1));overflow-y:auto;max-width:560px!important}
 .optgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
 .opt{font:inherit;color:var(--bone);text-align:left;display:flex;flex-direction:column;gap:2px;padding:8px 10px;border:0;cursor:pointer;background:var(--stone);box-shadow:inset 0 0 0 2px var(--edge)}
-.opt span{font-size:17px;color:var(--ash);line-height:1.1}
+.opt span{font-size:18px;color:var(--ash);line-height:1.1}
 .opt:hover{background:#221c2b}
 .opt.cur{box-shadow:inset 0 0 0 2px var(--gold);background:#2a2214}
 body.nomotion *,body.nomotion *::before,body.nomotion *::after{animation:none!important;transition:none!important}
@@ -908,7 +920,7 @@ body{padding-block:8px 16px}
 .brand{flex-wrap:nowrap;align-items:center;gap:8px;min-width:0}
 .logo{font-size:clamp(18px,3.2vw,26px);white-space:nowrap}
 .toplogo{margin-left:0}
-.sub{font-size:21px;white-space:nowrap}
+.sub{font-size:22px;white-space:nowrap}
 .res{gap:5px;justify-content:flex-end}
 .top .chip{padding:1px 7px 2px 4px;font-size:20px}
 @media (max-width:640px){
@@ -916,7 +928,7 @@ body{padding-block:8px 16px}
   .res{flex-wrap:wrap}
 }
 .panel{padding:12px 14px;gap:10px}
-h2{font-size:23px}
+h2{font-size:24px}
 /* town square fits the screen height */
 .iso{width:min(100%,calc((100dvh - 230px) * 300 / 214));min-width:min(100%,320px)}
 .nextstep{padding:8px 14px}
@@ -933,8 +945,8 @@ h2{font-size:23px}
 .rh-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .rh-party{display:flex;align-items:flex-end;gap:2px;flex:none}
 .rh-party .fo img.px{width:36px;height:auto}
-.runhdr h2{font-size:21px;line-height:1.05}
-.runhdr .chip{padding:1px 7px 2px 4px;font-size:19px}
+.runhdr h2{font-size:22px;line-height:1.05}
+.runhdr .chip{padding:1px 7px 2px 4px;font-size:20px}
 .runlay{grid-template-columns:minmax(0,1fr) 340px;gap:10px}
 .partycol{max-height:calc(100dvh - 150px);overflow-y:auto;position:sticky;top:8px}
 .partybtn{display:none}
@@ -946,9 +958,9 @@ body.lay-stack .runlay{grid-template-columns:1fr}
 .pcard{padding-bottom:8px}
 .pc-head{display:flex;align-items:flex-start;gap:8px}
 .pc-head .portrait{padding:3px}
-.pc-head .hname small{font-size:17px}
+.pc-head .hname small{font-size:18px}
 .pc-head .bar{height:13px}.pc-head .bar span{font-size:16px;line-height:13px}
-.linkbtn{font:inherit;font-size:17px;color:var(--ash);background:none;border:0;padding:0;text-align:left;cursor:pointer;text-decoration:underline dotted}
+.linkbtn{font:inherit;font-size:18px;color:var(--ash);background:none;border:0;padding:0;text-align:left;cursor:pointer;text-decoration:underline dotted}
 .linkbtn:hover{color:var(--bone)}
 .doll.sm .dgrid{grid-template-columns:repeat(3,28px);grid-auto-rows:28px;gap:2px;padding:3px}
 .doll.sm .dslot{width:28px;height:28px}
@@ -964,10 +976,10 @@ body.lay-stack .runlay{grid-template-columns:1fr}
 .gategrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
 @media (max-width:760px){.gategrid{grid-template-columns:1fr}}
 .shoprow{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:5px}
-.shopitem{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:8px;row-gap:0;align-items:center;padding:5px 8px;font-size:19px}
+.shopitem{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:8px;row-gap:0;align-items:center;padding:5px 8px;font-size:20px}
 .shopitem>:nth-child(1){grid-row:1/3}
 .shopitem>:nth-child(2){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.shopitem>:nth-child(3){font-size:17px}
+.shopitem>:nth-child(3){font-size:18px}
 .shopitem>:nth-child(4){grid-row:1/3;grid-column:3}
 .setout{padding:10px}
 /* map rows a little tighter */
@@ -1004,14 +1016,14 @@ body.lay-side .unit.big{--us:clamp(36px,min(12cqw,90cqh),120px)}
 .street{padding-top:8px}
 /* phones: tighter building headers, one-row tab strips, gear grid beside the name */
 @media (max-width:640px){
-  .bhead{gap:10px}.bhead img.px{width:40px;height:auto}.bhead h2{font-size:21px}.bhead .muted{font-size:18px}
+  .bhead{gap:10px}.bhead img.px{width:40px;height:auto}.bhead h2{font-size:22px}.bhead .muted{font-size:18px}
   .subtabs,.tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
   .subtabs::-webkit-scrollbar,.tabs::-webkit-scrollbar{display:none}
   .subtabs>*,.tabs>*{flex:none}
-  .subtab{padding:4px 10px 6px;font-size:19px}
+  .subtab{padding:4px 10px 6px;font-size:20px}
   .hc-top{flex-wrap:nowrap}
   .hc-top .portrait img.px{width:54px;height:auto}
-  .hc-top input[type=text]{font-size:21px}
+  .hc-top input[type=text]{font-size:22px}
   .hc-top .doll .dgrid{grid-template-columns:repeat(3,30px);grid-auto-rows:30px;gap:2px;padding:3px}
   .hc-top .doll .dslot{width:30px;height:30px}
   .hc-top .doll .dslot img.px{width:18px;height:18px}
@@ -1052,9 +1064,9 @@ body.lay-stack .side.heroes{justify-content:flex-start}
 body.lay-stack .side.foes{justify-content:flex-end}
 body.lay-stack .roster .umeta{display:none}
 .rframe{padding:3px 6px 4px;gap:2px}
-.rframe .uname{font-size:19px}
+.rframe .uname{font-size:20px}
 .rframe .ubar{height:17px}.rframe .ubar span{font-size:16px;line-height:17px}
-.rframe .uintent{font-size:17px}
+.rframe .uintent{font-size:18px}
 .rframe .utag{font-size:15px}
 /* damage / heal numbers that stay until your next move */
 .unit .fo{position:relative}
@@ -1067,7 +1079,7 @@ body.lay-stack .roster .umeta{display:none}
 .mark.crit.fresh{animation:critin .55s cubic-bezier(.2,1.6,.4,1)}
 @keyframes critin{0%{transform:scale(2.6) rotate(-8deg);opacity:0}35%{transform:scale(.9) rotate(3deg);opacity:1}60%{transform:scale(1.12) rotate(-2deg)}100%{transform:none}}
 .mark.heal{color:#8fe08a}
-.mark.miss{color:#b9b1a3;font-size:17px}
+.mark.miss{color:#b9b1a3;font-size:18px}
 .mark.lvl{color:var(--gold);font-size:16px}
 .mark.fresh{animation:markin .35s steps(3)}
 @keyframes markin{0%{transform:translateY(8px) scale(1.4);opacity:0}100%{transform:none;opacity:1}}
@@ -1129,20 +1141,20 @@ button.chestbox:hover img.px{filter:drop-shadow(0 0 18px #e3b341cc) brightness(1
 /* inventory popup */
 .modal.layer .panel.invmodal{max-width:1180px}
 .invbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;position:sticky;top:-12px;z-index:2;background:#17131d;padding:6px 0}
-.invf .subtab{font-size:19px;padding:4px 10px 6px}.invf .subtab small{color:var(--dim);font-size:16px}
+.invf .subtab{font-size:20px;padding:4px 10px 6px}.invf .subtab small{color:var(--dim);font-size:16px}
 .invsort{display:flex;align-items:center;gap:6px}
-.bankbar{position:static;background:none;padding:2px 0;flex-wrap:nowrap}.bankbar{align-items:flex-start}.bankbar .subtabs,body .bankbar .subtabs{flex:1 1 auto;min-width:0;flex-wrap:wrap;overflow:visible;gap:4px}.bankbar .subtabs::-webkit-scrollbar{display:none}.bankbar .subtabs>*{flex:none}.bankbar .invsort{flex:none;margin-left:auto}.bankbar .subtab{font-size:17px;padding:3px 7px 5px;gap:3px}.bankbar .subtab small{font-size:14px}.bankbar .invsort>span{display:none}.bankbar .invsort select{font-size:17px;padding:3px 4px}.bankbar .subtab.empty{opacity:.55}
-.invsort select{font:inherit;font-size:19px;color:var(--bone);background:var(--stone);border:0;box-shadow:inset 0 0 0 2px var(--edge);padding:3px 8px}
+.bankbar{position:static;background:none;padding:2px 0;flex-wrap:nowrap}.bankbar{align-items:flex-start}.bankbar .subtabs,body .bankbar .subtabs{flex:1 1 auto;min-width:0;flex-wrap:wrap;overflow:visible;gap:4px}.bankbar .subtabs::-webkit-scrollbar{display:none}.bankbar .subtabs>*{flex:none}.bankbar .invsort{flex:none;margin-left:auto}.bankbar .subtab{font-size:18px;padding:3px 7px 5px;gap:3px}.bankbar .subtab small{font-size:14px}.bankbar .invsort>span{display:none}.bankbar .invsort select{font-size:18px;padding:3px 4px}.bankbar .subtab.empty{opacity:.55}
+.invsort select{font:inherit;font-size:20px;color:var(--bone);background:var(--stone);border:0;box-shadow:inset 0 0 0 2px var(--edge);padding:3px 8px}
 .invgrid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}
 @media (max-width:900px){.invgrid{grid-template-columns:1fr}}
 .invcol{display:flex;flex-direction:column;gap:6px;min-width:0;background:#0f0c1380;box-shadow:inset 0 0 0 2px var(--edge);padding:8px}
 .invlist{display:flex;flex-direction:column;gap:4px}
 @media (min-width:901px){.invlist{max-height:calc(78dvh - 120px);overflow-y:auto;padding-right:4px}}
-.invtip{font-size:17px}
+.invtip{font-size:18px}
 .invhero{display:flex;flex-direction:column;gap:6px;padding:6px;box-shadow:inset 0 0 0 1px var(--edge)}
 .invhero.down{opacity:.6}
 .invhero .doll.sm{flex:none}
-.invrow{display:flex;align-items:center;gap:8px;width:100%;background:var(--stone);border:0;box-shadow:inset 0 0 0 2px var(--edge);padding:4px 8px;color:var(--bone);font:inherit;font-size:19px;text-align:left;cursor:pointer;touch-action:pan-y}
+.invrow{display:flex;align-items:center;gap:8px;width:100%;background:var(--stone);border:0;box-shadow:inset 0 0 0 2px var(--edge);padding:4px 8px;color:var(--bone);font:inherit;font-size:20px;text-align:left;cursor:pointer;touch-action:pan-y}
 .invrow:hover{background:#2a2234}
 .invrow.cur{box-shadow:inset 0 0 0 2px var(--gold);background:#2a2234}
 .invrow .nm{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.05}
@@ -1163,7 +1175,7 @@ button.chestbox:hover img.px{filter:drop-shadow(0 0 18px #e3b341cc) brightness(1
 .dropfan .ibox{width:32px;height:32px}
 .dropfan .ltile small{font-size:12px;max-width:70px}
 body.lay-stack .dropfan .ltile small{display:none}
-details.rewards summary{cursor:pointer;font-size:17px}
+details.rewards summary{cursor:pointer;font-size:18px}
 .unit.down{opacity:1}.unit.down>.fo,.unit.down>.uinfo{opacity:.5}
 
 /* drag and drop */
@@ -1191,7 +1203,7 @@ body.dragging [data-drop]{outline:2px dashed #e3b34166;outline-offset:1px}
 .wheel.spin{animation:wheelspin 2.6s cubic-bezier(.15,.8,.2,1) forwards}
 @keyframes wheelspin{from{transform:rotate(0)}to{transform:rotate(var(--deg))}}
 .wheelptr{position:absolute;left:calc(clamp(140px,26vw,200px)/2 - 10px);top:-12px;z-index:2;border:10px solid transparent;border-top:18px solid var(--bone);filter:drop-shadow(0 2px 0 #000)}
-.wheelkey{display:flex;flex-direction:column;gap:3px;font-size:17px}
+.wheelkey{display:flex;flex-direction:column;gap:3px;font-size:18px}
 .wheelkey i{display:inline-block;width:12px;height:12px;margin-right:6px;vertical-align:-1px;box-shadow:0 0 0 1px #000}
 .wheelres{animation:fadein .4s 2.5s both}
 @keyframes fadein{from{opacity:0}to{opacity:1}}
@@ -1200,7 +1212,7 @@ body.dragging [data-drop]{outline:2px dashed #e3b34166;outline-offset:1px}
 /* merchant */
 .shopgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:6px}
 .shopcard{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;padding:6px 8px;background:linear-gradient(180deg,#1d1924,#141118);box-shadow:inset 0 0 0 2px var(--edge)}
-.shopcard .iname{font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.shopcard .iname{font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .shopcard .meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .shopcard.sold{opacity:.45}
 .shopcard.r-rare-b{box-shadow:inset 0 0 0 2px #2c4466}.shopcard.r-epic-b{box-shadow:inset 0 0 0 2px #4d3266}.shopcard.r-godlike-b{box-shadow:inset 0 0 0 2px #7a5420}
@@ -1226,7 +1238,7 @@ body.dragging [data-drop]{outline:2px dashed #e3b34166;outline-offset:1px}
 .govquiz{min-height:calc(100vh - 80px);justify-content:center;padding-bottom:84px}
 .govqtext{max-width:680px;font-size:25px;line-height:1.3;margin:0;animation:govfade .6s ease both}
 .govquiz{max-width:1040px}.govquiz .govans{width:min(100%,680px)}
-@media (min-width:760px){.govquiz .govans{grid-template-columns:1fr 1fr;width:100%}.govqtext{max-width:860px}}.govquiz .choice{padding:12px 14px 14px}.govquiz .choice .t{font-family:inherit;font-size:19px;line-height:1.3}
+@media (min-width:760px){.govquiz .govans{grid-template-columns:1fr 1fr;width:100%}.govqtext{max-width:860px}}.govquiz .choice{padding:12px 14px 14px}.govquiz .choice .t{font-family:inherit;font-size:20px;line-height:1.3}
 .govquiz.darkq .govqtext{color:var(--dark);font-style:italic}
 .govquiz.darkq .choice{background:linear-gradient(#1a1024,#0e0a14);box-shadow:inset 0 0 0 2px #4a3466,inset 0 -5px 0 rgba(0,0,0,.4)}
 .govquiz.darkq .choice:hover{box-shadow:inset 0 0 0 2px var(--dark),inset 0 -5px 0 rgba(0,0,0,.4)}
@@ -1245,7 +1257,7 @@ body.dragging [data-drop]{outline:2px dashed #e3b34166;outline-offset:1px}
 .gsh{margin:14px 0 6px;color:var(--gold)}.gsh.dark{color:var(--dark)}
 .gsbuffs{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px}
 .gsbuff,.gsdark{display:flex;flex-direction:column;gap:2px;padding:8px 10px;background:#120d18;box-shadow:inset 3px 0 0 var(--pc),inset 0 0 0 1px var(--edge)}
-.gsn{display:flex;gap:8px;align-items:baseline;justify-content:space-between}.gsn b{color:var(--pc);font-size:20px}.gsx{color:var(--ash);font-size:17px}
+.gsn{display:flex;gap:8px;align-items:baseline;justify-content:space-between}.gsn b{color:var(--pc);font-size:20px}.gsx{color:var(--ash);font-size:18px}
 .gsfx{color:var(--bone);font-size:18px}.gsbuff small,.gsdark small{color:var(--dim);font-size:16px}
 .gsdark{--pc:var(--dark);background:linear-gradient(#1a1024,#0e0a14);box-shadow:inset 3px 0 0 var(--dark),inset 0 0 0 1px #4a3466}.gsdark small{font-style:italic}
 .darkcard{--pc:var(--dark);flex-direction:column;text-align:center;background:linear-gradient(#1a1024,#0b0810)}
@@ -1298,7 +1310,7 @@ body.dragging [data-drop]{outline:2px dashed #e3b34166;outline-offset:1px}
 @keyframes msun{from{top:110%;background:#ff9a5a}to{top:40%}}
 @keyframes mfadein{from{opacity:0}to{opacity:1}}
 @media (prefers-reduced-motion:reduce){.dawn .mdark,.dawn .msun,.dawn .mbeam,.dawn .mref,.dawn .mctl,.dawn .mirrorsay{animation:none}}
-.govhint{font-size:22px;margin:0}.govhint.small{font-size:19px;color:var(--ash)}
+.govhint{font-size:22px;margin:0}.govhint.small{font-size:20px;color:var(--ash)}
 .storycard.govresult{flex-direction:column}
 .march{display:flex;gap:8px;align-items:stretch;flex-wrap:nowrap;overflow-x:auto}.mslot{display:flex;flex-direction:column;gap:4px;padding:8px 10px;background:var(--stone);box-shadow:inset 0 0 0 2px var(--edge);min-width:150px;flex:1}
 .mslot.front{box-shadow:inset 0 0 0 2px #c0503f}
@@ -1310,9 +1322,9 @@ body.dragging [data-drop]{outline:2px dashed #e3b34166;outline-offset:1px}
 .upos.p-front{color:#ef8a7a}.upos.p-middle{color:#e3b341}.upos.p-back{color:#8fb8e0}
 
 .lands{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}.land{font:inherit;color:var(--bone);display:flex;gap:8px;align-items:center;padding:6px 10px;border:0;cursor:pointer;background:var(--stone);box-shadow:inset 0 0 0 2px var(--edge);text-align:left}.land span{display:flex;flex-direction:column;line-height:1.05}.land small{color:var(--c)}.land.cur{box-shadow:inset 0 0 0 2px var(--c);background:#241c2c}
-.stranger p{margin:6px 0 2px}.stranger ul{margin:0 0 4px 20px;padding:0}.stranger li{font-size:19px;color:var(--ash)}
+.stranger p{margin:6px 0 2px}.stranger ul{margin:0 0 4px 20px;padding:0}.stranger li{font-size:20px;color:var(--ash)}
 .spot.mystery{cursor:default}.spot.mystery .plaque{color:var(--ash)}
-.scrapline{flex-basis:100%;display:flex;gap:4px 10px;flex-wrap:wrap;justify-content:flex-end;font-size:17px;color:var(--ash);cursor:help}
+.scrapline{flex-basis:100%;display:flex;gap:4px 10px;flex-wrap:wrap;justify-content:flex-end;font-size:18px;color:var(--ash);cursor:help}
 .scrapline .matchip{display:inline-flex;align-items:center;gap:3px}.scrapline b{color:var(--bone)}.scrapline small{font-size:15px}
 .runhdr .scrapline{margin-top:4px}
 @keyframes guidepulse{0%,100%{box-shadow:0 0 0 2px var(--gold),0 0 6px 2px #e3b34166}50%{box-shadow:0 0 0 3px #ffe08a,0 0 18px 6px #e3b341aa}}
@@ -1322,15 +1334,16 @@ body.dragging [data-drop]{outline:2px dashed #e3b34166;outline-offset:1px}
 @media (prefers-reduced-motion:reduce){.guide{animation:none;box-shadow:0 0 0 3px var(--gold)}}
 .top:has(> .scrapline){padding-bottom:24px}.top>.scrapline{position:absolute;right:0;bottom:0;left:0}
 @media (max-width:700px){.top:has(> .scrapline){padding-bottom:0;flex-wrap:wrap}.top>.scrapline{position:static;flex:1 0 100%}}
+:is(body.dev-phone,body.lay-stack) .top:has(> .scrapline){padding-bottom:0}:is(body.dev-phone,body.lay-stack) .top>.scrapline.open{position:absolute;top:calc(100% + 4px);bottom:auto;left:auto;right:0;flex:none}
 .coach{padding:10px 12px;margin:6px 0 10px;background:#f1e6cf;color:#241a14;box-shadow:0 0 0 2px #060509,4px 4px 0 #000a}
-.coach .who{font-weight:bold;color:#7a3b1c;font-size:17px}.coach p{margin:0;font-size:20px;line-height:1.2}.coach .btn{color:var(--bone)}
+.coach .who{font-weight:bold;color:#7a3b1c;font-size:18px}.coach p{margin:0;font-size:20px;line-height:1.2}.coach .btn{color:var(--bone)}
 .coach .tk-good{color:#2f7a1e}.coach .tk-neutral{color:#8a6a10}.coach .tk-bad{color:#a8322a}.coach .hpc{color:#a8322a}.coach .mpc{color:#2a4ea8}
 .hpc{color:#e0736c}.mpc{color:#7a9ae8}
 .card.tut-card{animation:guidepulse 1.1s ease-in-out infinite}
 .tut-top [data-tut=top],.tut-vit [data-tut=vit],.tut-traits [data-tut=traits],.tut-skills [data-tut=skills],.tut-xp [data-tut=xp],.tut-stats [data-tut=stats],.tut-el [data-tut=el],.tut-go [data-tut=go]{animation:guidepulse 1.1s ease-in-out infinite;position:relative;z-index:2;border-radius:2px}
 .tut-go [data-tut=go] .btn{animation:guidepulse 1.1s ease-in-out infinite}
 .bup{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:3px;text-align:right;padding:6px 10px;background:#171320;box-shadow:inset 0 0 0 2px var(--gold);max-width:48%;cursor:help}
-.bup .bup-eff{font-size:17px;color:var(--ash)}.bup .needs{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end}
+.bup .bup-eff{font-size:18px;color:var(--ash)}.bup .needs{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end}
 @media (max-width:640px){.bhead{flex-wrap:wrap}.bup{max-width:none;flex:1 0 100%;align-items:stretch;text-align:left}}
 
 /* ===== landscape layouts: Computer (wide) and Phone (side) ===== */
@@ -1345,7 +1358,7 @@ body .bscreen{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(
   grid-template-rows:auto auto clamp(200px,40dvh,440px) auto minmax(0,1fr)!important;
   grid-template-areas:"hdr hdr" "turn turn" "stage stage" "roster roster" "act log"!important}
 body .bscreen .actbar{grid-area:act;overflow-y:auto;min-height:0}
-body .bscreen .blogpanel{grid-area:log;height:auto!important;min-height:0;overflow-y:auto;display:block;cursor:default;white-space:normal;padding:4px 8px;font-size:17px;line-height:1.2}
+body .bscreen .blogpanel{grid-area:log;height:auto!important;min-height:0;overflow-y:auto;display:block;cursor:default;white-space:normal;padding:4px 8px;font-size:18px;line-height:1.2}
 .blogpanel .blogtitle{display:block;position:sticky;top:-4px;background:#0f0c13;color:var(--gold);font-size:16px;letter-spacing:1px;text-transform:uppercase;padding:2px 0}
 .blogpanel p{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;padding:1px 0;border-bottom:1px solid #1f1a26}
 .blogpanel p:nth-child(2){color:#fff3dc}.blogpanel p:nth-child(n+8){opacity:.7}
@@ -1392,7 +1405,7 @@ body.dev-phone.onrun .top{display:none}
 body.dev-phone .runhdr{padding:4px 8px}body.dev-phone .runhdr h2{font-size:18px}
 body.dev-phone footer{display:none!important}
 body.dev-phone .govsay{font-size:16px;line-height:1.25;padding:3px 8px;margin:0 0 6px;flex-wrap:nowrap}body.dev-phone .govsayface{display:none}body.dev-phone .govsaybtns .btn.small{font-size:15px;min-height:30px}
-body.dev-phone .bld>span{white-space:nowrap}body.dev-phone .bld .thumb{width:44px;height:auto}body.dev-phone .bld .lvl{font-size:14px}
+
 /* ---------- skill animations (see SK_FX) ---------- */
 .skfx{position:absolute;inset:0;pointer-events:none;z-index:2;line-height:0}
 /* weapon moves */
@@ -1616,9 +1629,9 @@ body.nomotion .npc{display:none}
 
 .upbadge{display:inline-block;align-self:flex-start;font-size:16px;line-height:1;padding:3px 6px 4px;color:#8fe08a;box-shadow:inset 0 0 0 1px #8fe08a66;background:#14261a}
 .upbadge.none{color:var(--dim);box-shadow:inset 0 0 0 1px #ffffff18;background:none}
-.loadouts{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:17px}
+.loadouts{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:18px}
 .lset{display:inline-flex;gap:5px;align-items:center;padding:3px 6px;background:var(--stone);box-shadow:inset 0 0 0 2px var(--edge)}
-.rtable{width:100%;border-collapse:collapse;font-size:17px;margin:4px 0}
+.rtable{width:100%;border-collapse:collapse;font-size:18px;margin:4px 0}
 .rtable th{font-weight:normal;color:var(--ash);text-align:right;padding:2px 6px;font-size:15px}.rtable th:first-child,.rtable td:first-child{text-align:left}
 .rtable td{text-align:right;padding:3px 6px;border-top:1px solid #ffffff12;white-space:nowrap}
 .rtable td .ico{vertical-align:-4px;margin-right:4px}
@@ -1638,7 +1651,7 @@ body.padmode .unit.padfocus{outline-offset:-2px}
 body:not(.padmode) .padfocus{outline:none}
 #padtoast{position:fixed;left:50%;bottom:18px;transform:translate(-50%,40px);opacity:0;z-index:200;background:#17131df2;color:var(--bone);padding:8px 14px;box-shadow:inset 0 0 0 2px var(--gold),0 6px 20px #000a;font-size:18px;transition:transform .25s,opacity .25s;pointer-events:none;max-width:92vw}
 #padtoast.show{transform:translate(-50%,0);opacity:1}
-.padmap{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:17px;margin-top:6px}
+.padmap{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:18px;margin-top:6px}
 .padmap .pk{color:var(--gold);white-space:nowrap}
 
 </style>
@@ -3105,7 +3118,7 @@ function levelPickModal(){
     body=`<p>${esc(h.name)} has reached level ${SKILL_LV[t]} and can learn one new skill. Choose carefully: it stays unless the Witch rerolls it.</p><div class="stack" style="gap:8px">${opts.map(id=>{const k=SKILLS[id];
       return `<div class="item pickopt"><span class="iname">${skillIco(id)} ${k.n} <span class="muted">· ${skillMp(h,id)} MP</span></span><span class="afx">${skillStats(id)}</span><span class="meta">${k.d}</span><div class="row"><button class="btn gold" data-a="pickSkill" data-x="${h.id}|${id}">Learn ${k.n}</button></div></div>`}).join('')}</div>`}
   else{const {opts}=h.pickTrait,tilt=clamp(Math.round((stat(h,'cha')+stat(h,'lck')-8)*2),-20,30);
-    body=`<p>${esc(h.name)} has grown at level ${h.level}. Choose one new trait. <span class="muted" style="font-size:17px">${tilt>0?`Their Charisma and Luck tipped the offers ${tilt}% toward good traits.`:tilt<0?`Their low Charisma and Luck tipped the offers toward bad traits.`:''} At least one offer is always good.</span></p><div class="stack" style="gap:8px">${opts.map(id=>{const T=TRAITS[id];
+    body=`<p>${esc(h.name)} has grown at level ${h.level}. Choose one new trait. <span class="muted" style="font-size:18px">${tilt>0?`Their Charisma and Luck tipped the offers ${tilt}% toward good traits.`:tilt<0?`Their low Charisma and Luck tipped the offers toward bad traits.`:''} At least one offer is always good.</span></p><div class="stack" style="gap:8px">${opts.map(id=>{const T=TRAITS[id];
       return `<div class="item pickopt"><span class="iname"><span class="tk-${T.kind}">${T.n}</span> <span class="muted" style="font-size:16px">${({good:'positive',neutral:'mixed',bad:'negative'})[T.kind]}</span></span><span class="meta">${traitDesc(T,h)}</span><div class="row"><button class="btn ${T.kind==='good'?'gold':''}" data-a="pickTrait" data-x="${h.id}|${id}">Take ${T.n}</button></div></div>`}).join('')}</div>`}
   return modalShell(`<span class="gold">${esc(h.name)}: ${h.pickSkill?'choose a skill':'choose a trait'}</span>`,body+`<div class="row" style="margin-top:8px"><button class="btn small" data-a="pickLater">Decide later</button></div>`,'pickLater','pickmodal');
 }
@@ -3909,7 +3922,7 @@ function mapView(){
     });
   }
   return `<div class="row" style="justify-content:space-between"><h3>${r.nodes[0]==='king'?'There is no other path':'Choose your path'}</h3><span class="row" style="gap:6px"><span class="chip mstat" data-tip="${esc(perNow(pp))}">${ico('eye','#9fd6ff',2)}Perception <b>${partyPer()}</b>${lenBase().per?` <span class="muted">/ ${lenBase().per}</span>`:''}</span><span class="chip mstat" data-tip="${esc(chaNow())}">${ico('crown','#e3b341',2)}Charisma <b>${partyCha()}</b> <span class="${partyChaEvent()>0?'ok':partyChaEvent()<0?'warn':'muted'}">${partyChaEvent()>0?'+':''}${partyChaEvent()}%</span></span><span class="chip mstat" data-tip="${esc(lckNow())}">${ico('clover','#78ab60',2)}Luck <b>${partyLck()}</b> <span class="${partyLckEvent()>0?'ok':partyLckEvent()<0?'warn':'muted'}">${partyLckEvent()>0?'+':''}${partyLckEvent()}%</span></span></span></div>
-    ${r.fatMsg?`<p class="muted" style="font-size:17px;margin:2px 0">${r.fatMsg}</p>`:''}
+    ${r.fatMsg?`<p class="muted" style="font-size:18px;margin:2px 0">${r.fatMsg}</p>`:''}
     <div class="map" style="height:${H}px"><svg class="mlines" viewBox="0 0 700 ${H}" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>${labels}${nodes}</div>`;
 }
 function startRun(){
@@ -5379,7 +5392,7 @@ function heroCard(h,footer,sel,tut){
   return `<div class="card ${sel?'sel':''} ${tut?'tut-'+tut:''}">
     <div class="hc-top" data-tut="top"><div class="portrait big">${heroArt(h,6)}<span class="clsbadge" data-tip="${esc(C.name+': '+C.style)}">${ico(({warrior:'sword',archer:'bow',mage:'staff'})[h.cls],C.tint,2)}</span></div>
       <div class="stack" style="gap:2px"><span class="hname">${esc(h.name)}<span class="grade" style="color:${gc}" data-tip="Roll grade from S to D: how well the stats fit the class. The class stat counts most." tabindex="0">${g}</span></span>
-      <span class="muted" data-tut="vit">Lv ${h.level} ${C.name} · <b class="hpc">${maxHp(h)} HP</b> · <b class="mpc">${maxMp(h)} MP</b> ${badgeIco(h.badge||0)}</span>${injOf(h)?`<span class="warn" style="font-size:18px" data-tip="${esc('Injured from exhaustion: '+INJURY[injOf(h)].d+'. Heals after week '+h.injury.until+'. Campsites don’t heal injuries.')}">✚ ${INJURY[injOf(h)].n}: ${INJURY[injOf(h)].d} (heals after week ${h.injury.until})</span>`:''}${h.points?`<span class="gold" style="font-size:19px">${h.points} points to assign</span>`:''}</div></div>
+      <span class="muted" data-tut="vit">Lv ${h.level} ${C.name} · <b class="hpc">${maxHp(h)} HP</b> · <b class="mpc">${maxMp(h)} MP</b> ${badgeIco(h.badge||0)}</span>${injOf(h)?`<span class="warn" style="font-size:18px" data-tip="${esc('Injured from exhaustion: '+INJURY[injOf(h)].d+'. Heals after week '+h.injury.until+'. Campsites don’t heal injuries.')}">✚ ${INJURY[injOf(h)].n}: ${INJURY[injOf(h)].d} (heals after week ${h.injury.until})</span>`:''}${h.points?`<span class="gold" style="font-size:20px">${h.points} points to assign</span>`:''}</div></div>
     <div data-tut="traits">${traitChips(h)}</div><div class="traits" data-tut="skills">${h.skills.map(id=>skillChip(h,id)).join('')}</div><div data-tut="xp">${xpBar(h)}</div><div data-tut="stats">${statPips(h,true)}</div><div data-tut="el">${innateLine(h)}${heroElTable(h)}</div><div data-tut="go">${footer||''}</div></div>`;
 }
 
@@ -5753,7 +5766,7 @@ function govView(){
   if(G.step==='quiz'){const Q=GOV_Q[G.q],n=GOV_Q.length;
     return `<div class="govwrap govquiz ${Q.dark?'darkq':''}">${G.redo&&!G.q?`<p class="muted" style="font-size:18px">The town has changed, and so have I. Before another day in office, I look back on who I really am.</p>`:''}
       <h2 class="govqtext">${Q.q}</h2>
-      ${Q.dark&&darkNeed()>1?`<p class="gold" style="font-size:19px">Mastery ${state.mastery}: choose ${darkNeed()} whispers. Each is a dark side you will carry. ${(G.dsel||[]).length}/${darkNeed()} chosen.</p>`:''}
+      ${Q.dark&&darkNeed()>1?`<p class="gold" style="font-size:20px">Mastery ${state.mastery}: choose ${darkNeed()} whispers. Each is a dark side you will carry. ${(G.dsel||[]).length}/${darkNeed()} chosen.</p>`:''}
       <div class="govans">${Q.a.map(([t],i)=>Q.dark&&darkNeed()>1?`<button class="choice ${(G.dsel||[]).includes(i)?'on':''}" data-a="govDarkTog" data-x="${i}" aria-pressed="${(G.dsel||[]).includes(i)}"><span class="t">${t}</span></button>`:`<button class="choice" data-a="govAns" data-x="${i}"><span class="t">${t}</span></button>`).join('')}</div>
       ${Q.dark&&darkNeed()>1?`<div class="row" style="justify-content:center"><button class="btn gold" data-a="govDarkGo" ${(G.dsel||[]).length===darkNeed()?'':'disabled'}>Carry ${darkNeed()===2?'both':'all '+darkNeed()}</button></div>`:''}
       <div class="qprog" role="progressbar" aria-valuemin="1" aria-valuemax="${n}" aria-valuenow="${G.q+1}" aria-label="Question ${G.q+1} of ${n}">
@@ -5868,12 +5881,14 @@ function topBar(){
     <div class="res">
       ${helpBtn()}${canOfferInstall()?`<button class="btn small gold" data-a="install" data-tip="Install as an app: full screen, works offline">Install app</button>`:''}<button class="btn small" data-a="settings" data-x="1">Settings</button>
       <span class="chip" data-tip="Gold">${sprite('coin',null,2)}<b class="num">${fmt(state.gold)}</b><span class="lbl"> gold</span></span>
+      ${(()=>{const t=Object.values(state.mats||{}).reduce((a,v)=>a+(v>0.05?v:0),0);return t>0.05?`<button class="chip scrapbtn ${ui.scrapOpen?'on':''}" data-a="scrapToggle" aria-expanded="${!!ui.scrapOpen}" aria-label="Scrap in storage: ${t.toFixed(1)}. Show the breakdown">${matIco('stone')}<b class="num">${t.toFixed(1)}</b><span class="lbl"> scrap</span> ▾</button>`:''})()}
       <span class="chip" data-tip="Return Scrolls">${sprite('scroll',null,2)}<b class="num">${state.scrolls}</b><span class="lbl"> scroll${state.scrolls===1?'':'s'}</span></span>
       <span class="chipgrp" style="display:inline-flex;gap:inherit"><span class="chip week" data-tip="Current week"><b class="num">Week ${state.week}</b></span>
       <span class="chip" data-tip="Heroes / room in the Barracks">${sprite('warrior',CLASSES.warrior.tint,2)}<b class="num">${state.heroes.length}/${slots()}</b><span class="lbl"> heroes</span></span></span>
       ${state.won?`<span class="chip won">${foeArt({base:'The Unlit King',kind:'king',type:'dark',spr:'boss'},2)}King slain, week ${state.won.week}</span>`:`<span class="chip" data-tip="Major bosses slain">${sprite('skull',null,2)}<b class="num">${state.bossKills||0}</b><span class="lbl"> bosses</span></span>`}
-    </div>${scrapStrip(state.mats,'Scrap in storage. Builders use it to raise buildings; the Farm and Still use it for upgrades.')}</header>${govSayBar()}`;
+    </div>${scrapStrip(state.mats,'Scrap in storage. Builders use it to raise buildings; the Farm and Still use it for upgrades.').replace('class="scrapline"','class="scrapline '+(ui.scrapOpen?'open':'')+'"')}</header>${govSayBar()}`;
 }
+const BLD_SHORT={heroes:'Barracks',smith:'Smith',hall:'Hall',adventure:'Gate'};
 const TABS=[['town','Town','banner','#8a2e2e',null],['heroes','Barracks','tent','#6a4a3a',null],['smith','Weaponsmith','anvil',null,'smith'],['hall','Town Hall','house',null,null],['bank','Bank','chest',null,'bank'],['adventure','The Gate','gate',null,null],['witch','Witch','crescent','#b56fe3',null],['farm','Farm','farmer','#6f8f4a',null],['ledger','Ledger','moon',null,null]];
 // The trip at a glance, at the top of the return summary.
 // Saved gear sets: a hero remembers up to two sets and pulls them back out of the stash in one tap.
@@ -5903,7 +5918,7 @@ function townView(){
       <div class="row"><button class="btn gold" data-a="dismiss">Continue</button></div>`,'dismiss',`summary ${dead?'dead':''}`);
   }else ui.summaryHtml='';
   if(state.tab!=='town')s+=`<nav class="street" aria-label="Town"><div class="moon" data-tip="${esc(moonTip())}" data-a="tab" data-x="ledger" role="button" tabindex="0">${moonImg(moonState().shown,3)}${ledgerNewCount()?`<span class="alert">${ledgerNewCount()}</span>`:''}</div><div class="buildings">${TABS.map(([k,n,sp,t,b])=>
-    `<button class="bld ${state.tab===k?'cur':''} ${OPEN_WEEK[k]&&!bldOpen(k)?'closed':''} ${guideAt()===k&&state.tab!==k?'guide':''}" ${bldKnown(k)?`data-a="tab" data-x="${k}"`:'disabled'}>${k==='ledger'?moonImg(moonState().shown,2,'thumb'):BLD_DEF[k]||k==='adventure'?`<img class="px thumb" src="${buildingThumb(k)}" width="84" height="74" alt="">`:sprite(sp,t,5)}<span>${bldKnown(k)?n:'?'}</span>${!bldKnown(k)?'<span class="lvl">&nbsp;</span>':b?`<span class="lvl">Lv ${state.b[b]}</span>`:k==='heroes'?`<span class="lvl">${state.heroes.length}/${slots()}</span>`:k==='adventure'?'<span class="lvl">week '+state.week+'</span>':k==='ledger'?'<span class="lvl">'+Object.keys(state.ledger||{}).length+' scouted'+(ledgerNewCount()?' <span class="alert-inline" title="Monsters with new information">'+ledgerNewCount()+'</span>':'')+'</span>':'<span class="lvl">&nbsp;</span>'}</button>`).join('')}</div><div class="ground"></div></nav>`;
+    `<button class="bld ${state.tab===k?'cur':''} ${OPEN_WEEK[k]&&!bldOpen(k)?'closed':''} ${guideAt()===k&&state.tab!==k?'guide':''}" ${bldKnown(k)?`data-a="tab" data-x="${k}"`:'disabled'}>${k==='ledger'?moonImg(moonState().shown,2,'thumb'):BLD_DEF[k]||k==='adventure'?`<img class="px thumb" src="${buildingThumb(k)}" width="84" height="74" alt="">`:sprite(sp,t,5)}<span>${bldKnown(k)?`<span class="bnl">${n}</span><span class="bns">${BLD_SHORT[k]||n}</span>`:'?'}</span>${!bldKnown(k)?'<span class="lvl">&nbsp;</span>':b?`<span class="lvl">Lv ${state.b[b]}</span>`:k==='heroes'?`<span class="lvl">${state.heroes.length}/${slots()}</span>`:k==='adventure'?'<span class="lvl">week '+state.week+'</span>':k==='ledger'?'<span class="lvl">'+Object.keys(state.ledger||{}).length+' scouted'+(ledgerNewCount()?' <span class="alert-inline" title="Monsters with new information">'+ledgerNewCount()+'</span>':'')+'</span>':'<span class="lvl">&nbsp;</span>'}</button>`).join('')}</div><div class="ground"></div></nav>`;
   const V={town:homeView,academy:()=>{state.tab='heroes';state.sel.btab='recruit';return barracksView()},heroes:barracksView,farm:farmView,alch:()=>{state.tab='witch';state.sel.wtab='brews';return witchView()},smith:smithView,alch:alchView,hall:hallView,bank:bankView,adventure:advView,ledger:ledgerView,witch:witchView}[state.tab];
   if(state.builtMsg&&state.tab===state.builtMsg){s+=`<div class="panel row" style="justify-content:space-between;box-shadow:inset 0 0 0 2px var(--gold)"><span class="gold">The ${({bank:'Bank',smith:'Weaponsmith',farm:'Farm',witch:'Witch'})[state.builtMsg]} is open for business!</span><button class="xbtn" data-a="builtOk" aria-label="Dismiss">×</button></div>`}
   s+=`<section class="panel">${state.tab!=='town'&&state.tab!=='ledger'&&state.tab!=='adventure'&&OPEN_WEEK[state.tab==='alch'?'witch':state.tab]&&!bldOpen(state.tab==='alch'?'witch':state.tab)?constructionView(state.tab==='alch'?'witch':state.tab):V()}</section>`;
@@ -5962,10 +5977,10 @@ function heroSheet(){
       ${czSec('sheet.combat','Combat',statTable(h),'ss ss-combat')}
       <div class="stack" style="gap:0">
         ${czSec('sheet.res','Resistances',heroElTable(h),'ss ss-res')}
-        ${czSec('sheet.skills','Skills',`<p class="muted" style="font-size:17px">${C.style}${h.cls==='mage'?` Natural affinity: ${elTag(h.affinity)}.`:''}</p>${skillList(h)}`,'ss ss-skills')}
+        ${czSec('sheet.skills','Skills',`<p class="muted" style="font-size:18px">${C.style}${h.cls==='mage'?` Natural affinity: ${elTag(h.affinity)}.`:''}</p>${skillList(h)}`,'ss ss-skills')}
       </div>
     </div>
-    <section class="ss ss-traits"><h3>Traits</h3><div class="stack" style="gap:6px">${ts.map(t=>`<p style="font-size:19px"><span class="tk-${t.kind} ${deadNote(t,h)?'tdead':''}">${t.n}</span> <span class="muted">${traitDesc(t,h)}</span></p>`).join('')||'<p class="muted">None yet.</p>'}</div></section>
+    <section class="ss ss-traits"><h3>Traits</h3><div class="stack" style="gap:6px">${ts.map(t=>`<p style="font-size:20px"><span class="tk-${t.kind} ${deadNote(t,h)?'tdead':''}">${t.n}</span> <span class="muted">${traitDesc(t,h)}</span></p>`).join('')||'<p class="muted">None yet.</p>'}</div></section>
     <div class="row" style="margin-top:8px"><button class="btn gold" data-a="openHero" data-x="${h.id}">Manage in Barracks</button></div></div>`;
   return modalShell(`${esc(h.name)}`,body,'sheetX','herosheet');
 }
@@ -6034,8 +6049,8 @@ function backpackBlock(){
   let s=`<div class="row" style="justify-content:space-between;gap:6px"><h3>Backpack · ${r.loot.length}/${cap}</h3><button class="btn small gold" data-a="inv">Open inventory</button></div><div class="bpack dropzone" data-drop="pack">${Array.from({length:Math.max(cap,r.loot.length)},(_,i)=>{const it=L[i];
     return it?`<button class="dslot full ${ui.bsel===it.id?'cur':''}" style="--rc:${getRarCol(it.rarity)}" data-a="bpSel" data-x="${it.id}" data-drag="pack:${it.id}" data-drop="pack:${it.id}" data-tip="${esc(it.name+' ('+RAR[it.rarity].l+' '+SLOTN[it.slot]+')')}" aria-label="${esc(it.name)}">${sprite(it.slot==='weapon'?({warrior:'sword',archer:'bow',mage:'staff'})[it.cls]:SLOT_SPR[it.slot==='ring'?'ring1':it.slot],getRarCol(it.rarity),3)}</button>`
       :'<span class="dslot empty" aria-label="Empty backpack slot"></span>'}).join('')}</div>`;
-  if(sel){const who=living().filter(h=>!sel.cls||sel.cls===h.cls);
-    s+=itemCard(sel,`<div class="row">${who.map(h=>`<button class="btn small gold" data-a="packEquip" data-x="${sel.id}|${h.id}">Equip${many?' on '+esc(h.name):''}</button>`).join('')}<button class="btn small" data-a="bpDrop" data-x="${sel.id}">Drop</button></div>${who.map(h=>itemCompare(sel,h)).join('')}${who.length?'':'<span class="meta">No one here can use it. Worth '+sellVal(sel)+' gold in town.</span>'}`)}
+  if(sel){const who=living().filter(h=>!sel.cls||sel.cls===h.cls),up=upgradeFor(sel);
+    s+=itemCard(sel,`<div class="row">${up.map(h=>`<button class="btn small gold" data-a="packEquip" data-x="${sel.id}|${h.id}">Equip${many?' on '+esc(h.name):''} ▲</button>`).join('')}${who.length&&!up.length?'<span class="meta">Not an upgrade for anyone.</span><button class="btn small" data-a="inv">Inventory…</button>':''}<button class="btn small" data-a="bpDrop" data-x="${sel.id}">Drop</button></div>${(up.length?up:who).map(h=>itemCompare(sel,h)).join("")}${who.length?'':'<span class="meta">No one here can use it. Worth '+sellVal(sel)+' gold in town.</span>'}`)}
   else s+=`<p class="muted" style="font-size:18px">${r.loot.length?'Tap an item to equip or drop it, or drag it onto a hero’s gear slot.':'Loot you find goes here and comes home with you.'} Bigger backpack: Bank.</p>`;
   const G=r.ground||[];
   if(ui.invMsg)s+=`<p class="warn" style="font-size:18px">${ui.invMsg}</p>`;
@@ -6072,7 +6087,7 @@ function heroesView(){
     ${slotPanel(h)}
   </div><div class="stack">
     <div class="subtabs">${[['stats','Stats'],['skills','Skills'],['traits','Traits'],['elements','Elements']].map(([k,l])=>`<button class="subtab ${ht===k?'cur':''}" data-a="htab" data-x="${k}">${l}${k==='skills'&&h.newSkill&&h.newSkill.length?' <span class="rbm skill">✦</span>':''}</button>`).join('')}</div>
-    ${ht==='stats'?statPips(h)+statTable(h):ht==='skills'?`<p class="muted" style="font-size:19px">${C.style}${h.cls==='mage'?` Natural affinity: ${elTag(h.affinity)}.`:''}</p>${skillList(h)}${learnBlock(h)}`:ht==='traits'?traitChips(h)+`<div class="stack" style="gap:4px">${(h.traits||[]).map(id=>TRAITS[id]).filter(Boolean).map(t=>`<p style="font-size:19px"><span class="tk-${t.kind} ${deadNote(t,h)?'tdead':''}">${t.n}</span> <span class="muted">${traitDesc(t,h)}</span></p>`).join('')}</div>`:heroElTable(h)}
+    ${ht==='stats'?statPips(h)+statTable(h):ht==='skills'?`<p class="muted" style="font-size:20px">${C.style}${h.cls==='mage'?` Natural affinity: ${elTag(h.affinity)}.`:''}</p>${skillList(h)}${learnBlock(h)}`:ht==='traits'?traitChips(h)+`<div class="stack" style="gap:4px">${(h.traits||[]).map(id=>TRAITS[id]).filter(Boolean).map(t=>`<p style="font-size:20px"><span class="tk-${t.kind} ${deadNote(t,h)?'tdead':''}">${t.n}</span> <span class="muted">${traitDesc(t,h)}</span></p>`).join('')}</div>`:heroElTable(h)}
     <div class="row" style="justify-content:space-between;margin-top:auto;gap:8px"><span class="muted" style="font-size:18px">Backpack on adventures: ${bagCap()} slots <span class="bpack inl">${Array.from({length:bagCap()},()=>'<span class="dslot empty sm"></span>').join('')}</span></span>
     ${state.sel.retire===h.id?`<span class="row"><span class="warn">Retire ${esc(h.name)}?</span><button class="btn red small" data-a="retireYes">Retire</button><button class="btn small" data-a="retireNo">Keep</button></span>`:`<button class="btn small" data-a="retire">Retire hero</button>`}</div></div></div>`;
   return s;
@@ -6087,7 +6102,7 @@ function smithView(){
     s+=`<div class="hdetail"><div class="stack">${itemCard(it,selE.h?`<span class="meta">Equipped by ${esc(selE.h.name)}</span>`:'<span class="meta">In the bank</span>')}</div><div class="stack">
       ${it.plus>=UP_MAX?`<p class="gold">Fully upgraded (+${UP_MAX}): every stat is ${Math.round(UP_TOTAL[UP_MAX]*100)}% stronger.</p>`:it.plus>=maxPlus?`<p class="muted">At the current limit (+${maxPlus}). Upgrade the Forge to go higher.</p>`:
       `<p>Upgrade to <b>+${it.plus+1}</b> for <b class="gold">${cost} gold</b> and ${whetNeed(it).stone} whetstone${whetNeed(it).stone>1?'s':''} ${needChips(whetNeed(it))} · ${Math.round(ch*100)}% success · every stat +${Math.round(UP_STEP[it.plus]*100)}% of its original (${Math.round(UP_TOTAL[it.plus+1]*100)}% total)</p><div class="row"><button class="btn gold" data-a="upgrade" ${state.gold<cost||!hasMats(whetNeed(it))?'disabled':''}>Upgrade</button></div>`}
-      <p class="muted" style="font-size:17px">Want different bonuses? The Witch rerolls them.</p>
+      <p class="muted" style="font-size:18px">Want different bonuses? The Witch rerolls them.</p>
       ${it.rarity==='perfect'?'':`<p>Sell to the shop for <b class="gold">${sellVal(it)} gold</b>${selE.h?` <span class="muted">(unequips it from ${esc(selE.h.name)})</span>`:''}</p><div class="row"><button class="btn" data-a="sellItem" data-x="${it.id}">Sell</button></div>`}
       ${state.sel.smithMsg?`<p class="gold">${state.sel.smithMsg}</p>`:''}</div></div>`;
   }
@@ -6274,7 +6289,7 @@ function farmFields(tabs){
   s+=`<div class="farmroad ${coachMark('farm','road')}">${FOODS.map(([id,n],t)=>`<div class="fstep ${L>t*4?'on':''}" data-tip="${esc(FARM_BLD[t]+': grows '+n+', up to 4 a week. One '+n+' heals '+Math.round(FOOD_PCT[t]*100)+'% of max health.')}">${consIco(id,3)}<span>${n}</span><span class="fpips">${[1,2,3,4].map(q=>`<i class="${L>=t*4+q?'on':''}"></i>`).join('')}</span></div>`).join('')}</div>`;
   s+=upgradeBlock(['feed']);
   const gear=state.bank.filter(it=>salvageOf(it));
-  s+=`<h3>Give gear to the farmer</h3><p class="muted" style="font-size:19px">He breaks old equipment down into scrap. Rarer gear gives more.</p>`;
+  s+=`<h3>Give gear to the farmer</h3><p class="muted" style="font-size:20px">He breaks old equipment down into scrap. Rarer gear gives more.</p>`;
   s+=gear.length?`<div class="items">${gear.map(it=>itemCard(it,`<div class="row"><button class="btn small" data-a="salvage" data-x="${it.id}">Break down → ${matsLine(salvageOf(it))}</button></div>`)).join('')}</div>`:'<p class="muted">Nothing in the stash to give.</p>';
   return s;
 }
@@ -6318,7 +6333,7 @@ function perfectLedger(){
   return `<details class="codex"><summary>Perfect weapons · ${found.length}/${PERFECTS.length} found</summary><div class="codexlist">${PERFECTS.map(P=>{
     if(!found.includes(P.id))return `<p><span class="muted">??? · ${CLASSES[P.cls].name} ${P.base}</span></p>`;
     const w=where(P.id);return `<p><span class="r-perfect">${P.n}</span> <span class="muted">· ${P.base} · ${w||'<span class="warn">Lost forever</span>'}</span></p>`}).join('')}</div>
-    <p class="muted" style="font-size:19px">Perfect weapons only come from bosses and final bosses on the longest adventures${descentUnlocked()?", and from the Dark Side":""}.</p></details>`;
+    <p class="muted" style="font-size:20px">Perfect weapons only come from bosses and final bosses on the longest adventures${descentUnlocked()?", and from the Dark Side":""}.</p></details>`;
 }
 // Bank filters: item type tabs plus a sort by tier (rarity, then item level and upgrades) or by sell value.
 const BANK_F=[['all','All'],['weapon','Weapons'],['armor','Armor'],['ring','Rings'],['amulet','Amulets']];
@@ -6367,7 +6382,7 @@ function advView(){
       (state.sel.len==='short'?` · <span class="ok" data-tip="${esc(`In the Cave the party can run back home at any time, even mid-battle. Running costs ${FLEE.min}–${FLEE.max}% of carried gold, and each item found during this adventure (even if equipped) has a 33% chance to be lost. Running mid-battle multiplies both (×2 regular fights, ×2.5 elites, ×3 major bosses), and there is no running from the final boss. Supplies and materials come home.`)}">can run home</span>`:'')}
   let s=`<div class="stack" style="gap:4px"><h2>The Gate</h2><p class="muted">Pick a land, a length and your heroes, then set out. ${help('Pick the land: every monster there deals and resists its element, so bring heroes who can handle it. Heroes who die are gone for good, with their gear. Monsters sometimes hunt in pairs or packs of three. In the Cave pairs only appear after stage 10 and packs of three never do; the longer the adventure, the more common packs become, and high on the Summit nearly every fight is a pack. The final boss of each adventure always fights alone.')}</p></div>
   <div class="gategrid"><div class="stack"><div class="stack" style="gap:6px"><h3>Length</h3>${bar}<p class="lensum">${sum}</p></div>${final?'':(()=>{const cur=LAND_PICK.includes(state.sel.biome)?state.sel.biome:null;
-    return `<div class="stack" style="gap:6px"><h3>Land</h3>${state.guide&&!cur?'<p class="guidehint">① Pick a land to explore</p>':''}<div class="lands ${state.guide&&!cur?'guide':''}" role="radiogroup" aria-label="Land">${LAND_PICK.map(k=>{const B=BIOMES[k],lm=LAND_MOD[landMods()[k]];return `<button class="land ${cur===k?'cur':''}" style="--c:${EL_COL[B.el]}" data-a="land" data-x="${k}" role="radio" aria-checked="${cur===k}">${elIco(B.el)}<span><b>${B.name}</b><small>${cap(B.el)}</small>${lm?`<small class="lmod ${lm.bad?'bad':'good'}">${lm.n}</small>`:''}${huntLand(k).length?`<small class="lmod lost">Lost gear ×${huntLand(k).length}</small>`:''}</span></button>`}).join('')}</div>${cur&&huntLand(cur).length?`<p class="lmodnote lost"><b>Lost gear here:</b> ${huntLand(cur).map(x=>`${aAn(esc(x.base))} carries ${esc(x.owner)}’s ${itemName(x.it)} <span class="muted">(${LENGTHS[x.len]?LENGTHS[x.len].name:'any length'}, stage ${x.stage||1}+)</span>`).join('; ')}. On that length, from that stage on, ${Math.round(HUNT_ODDS*100)}% of fights bring you face to face with it${huntLand(cur).some(x=>x.kind!=='normal')?' (bosses carry theirs every time you meet them there)':''}. Look for the white outline: the same kind of monster without the loot has none.</p>`:''}${cur?landModNote(landMods()[cur]):'<p class="muted" style="font-size:17px">Conditions change every week. Some lands carry a twist this week.</p>'}${cur?`<p class="muted" style="font-size:18px">${BIOMES[cur].flavor} Monsters here deal and resist ${elTag(BIOMES[cur].el)}.</p>`:'<p class="warn" style="font-size:18px">Choose where to go.</p>'}</div>`})()}`;
+    return `<div class="stack" style="gap:6px"><h3>Land</h3>${state.guide&&!cur?'<p class="guidehint">① Pick a land to explore</p>':''}<div class="lands ${state.guide&&!cur?'guide':''}" role="radiogroup" aria-label="Land">${LAND_PICK.map(k=>{const B=BIOMES[k],lm=LAND_MOD[landMods()[k]];return `<button class="land ${cur===k?'cur':''}" style="--c:${EL_COL[B.el]}" data-a="land" data-x="${k}" role="radio" aria-checked="${cur===k}">${elIco(B.el)}<span><b>${B.name}</b><small>${cap(B.el)}</small>${lm?`<small class="lmod ${lm.bad?'bad':'good'}">${lm.n}</small>`:''}${huntLand(k).length?`<small class="lmod lost">Lost gear ×${huntLand(k).length}</small>`:''}</span></button>`}).join('')}</div>${cur&&huntLand(cur).length?`<p class="lmodnote lost"><b>Lost gear here:</b> ${huntLand(cur).map(x=>`${aAn(esc(x.base))} carries ${esc(x.owner)}’s ${itemName(x.it)} <span class="muted">(${LENGTHS[x.len]?LENGTHS[x.len].name:'any length'}, stage ${x.stage||1}+)</span>`).join('; ')}. On that length, from that stage on, ${Math.round(HUNT_ODDS*100)}% of fights bring you face to face with it${huntLand(cur).some(x=>x.kind!=='normal')?' (bosses carry theirs every time you meet them there)':''}. Look for the white outline: the same kind of monster without the loot has none.</p>`:''}${cur?landModNote(landMods()[cur]):'<p class="muted" style="font-size:18px">Conditions change every week. Some lands carry a twist this week.</p>'}${cur?`<p class="muted" style="font-size:18px">${BIOMES[cur].flavor} Monsters here deal and resist ${elTag(BIOMES[cur].el)}.</p>`:'<p class="warn" style="font-size:18px">Choose where to go.</p>'}</div>`})()}`;
   if(!state.heroes.length)return s+'<p class="muted">Recruit a hero at the Barracks first.</p></div></div>';
   s+=`<h3>Party · ${p.length}/${max}</h3>${state.guide&&!p.length&&LAND_PICK.includes(state.sel.biome)?'<p class="guidehint">② Choose your hero</p>':''}<div class="tabs ${state.guide&&!p.length&&LAND_PICK.includes(state.sel.biome)?'guide':''}">${state.heroes.map(h=>`<button class="btn small ${p.includes(h.id)?'on':''}" data-a="partyToggle" data-x="${h.id}"><span>${esc(h.name)} · Lv ${h.level} ${C_(h).name} ${badgeIco(h.badge||0)}${h.points?` · <span class="gold">${h.points} pts</span>`:''}${h.newSkill&&h.newSkill.length?' <span class="rbm skill" title="New skill">✦</span>':''}${injOf(h)?' <span class="rbm inj" title="Injured">✚</span>':''}</span>${xpMini(h,false)}</button>`).join('')}</div>`;
   s+=max===1?`<p class="muted">Solo only. The War Table at the Town Hall unlocks parties: 2 heroes for ${fmt(BUILD.war.cost(0))} gold, then 3 for ${fmt(BUILD.war.cost(1))}.</p>`:`<p class="muted">Enemies grow tougher with each hero you bring, and gold grows too.</p>`;
@@ -6378,13 +6393,13 @@ function advView(){
   s+='</div><div class="stack">';
   // outfitter: supplies
   const stock=Object.values(state.items||{}).reduce((a,x)=>a+x,0),plan=packPlan(),bringN=Object.values(plan).reduce((a,x)=>a+x,0),bring=planSlots(plan);
-  s+=`<h3>Outfitter · supplies</h3><div class="bar xp" data-tip="Your Supply Pack (upgrade it at the Bank). Use − and + to choose what goes along; the rest stays stored in town."><i style="width:${clamp(bring/packCap()*100,0,100)}%"></i><span>Slots ${bring} / ${packCap()} · ${bringN} supplies${stock>bringN?` · ${stock-bringN} stay stored`:''}</span></div><p class="muted" style="font-size:19px">Choose how many of each to bring with − and +. Each slot holds a stack of up to 6 of one supply. The rest stays stored in town, and unused supplies come home if the party survives.${hg&&chaDiscount(hg)?` ${esc(hg.name)} haggles ${Math.round(chaDiscount(hg))}% off.`:''}</p>
+  s+=`<h3>Outfitter · supplies</h3><div class="bar xp" data-tip="Your Supply Pack (upgrade it at the Bank). Use − and + to choose what goes along; the rest stays stored in town."><i style="width:${clamp(bring/packCap()*100,0,100)}%"></i><span>Slots ${bring} / ${packCap()} · ${bringN} supplies${stock>bringN?` · ${stock-bringN} stay stored`:''}</span></div><p class="muted" style="font-size:20px">Choose how many of each to bring with − and +. Each slot holds a stack of up to 6 of one supply. The rest stays stored in town, and unused supplies come home if the party survives.${hg&&chaDiscount(hg)?` ${esc(hg.name)} haggles ${Math.round(chaDiscount(hg))}% off.`:''}</p>
   <div class="shoprow">${Object.entries(CONSUMABLES).filter(([id,C])=>!C.noShop&&state.b.alch>=C.lvl&&(consOpen(id)||state.items[id]>0)).map(([id,C])=>{const pc=priced(C.cost,hg),n=state.items[id]||0,open=consOpen(id);
     const k=plan[id]||0;
     return `<div class="shopitem" data-tip="${esc(C.d)}">${consIco(id)}<span>${C.n}</span><span class="muted">${open?pc+'g · ':''}have ${n}</span>${open?`<button class="btn small" data-a="buy" data-x="${id}|1" ${state.gold<pc?'disabled':''}>Buy</button>`:'<span></span>'}
       ${n?`<span class="bringrow"><span class="muted">Bring</span><button class="btn small pm" data-a="packAdj" data-x="${id}|-1" ${k<=0?'disabled':''} aria-label="Bring one fewer ${esc(C.n)}">−</button><b class="num pc">${qtyHtml(k)}</b><button class="btn small pm" data-a="packAdj" data-x="${id}|1" ${k>=n||(k%STACK===0&&bring>=packCap())?'disabled':''} aria-label="Bring one more ${esc(C.n)}">+</button></span>`:''}</div>`}).join('')}
     ${(()=>{return freeSupplies().map(([id,q,src])=>`<div class="shopitem" data-tip="${esc(CONSUMABLES[id].d+' Packed free on every adventure; unused ones spoil.')}">${consIco(id)}<span>${q} ${CONSUMABLES[id].n}</span><span class="muted">free ${src}</span></div>`).join('')})()}
-    ${(()=>{const nx=Object.entries(CONSUMABLES).filter(([id,C])=>!C.noShop&&!consOpen(id)&&!(state.items[id]>0));if(!nx.length)return '';const t=CONS_OPEN[nx[0][0]];const same=nx.filter(([id])=>CONS_OPEN[id]===t);return `<p class="muted" style="font-size:17px;grid-column:1/-1">More supplies arrive when ${LENGTHS[t].name} adventures open: ${same.map(([,C])=>C.n).join(', ')}.</p>`})()}
+    ${(()=>{const nx=Object.entries(CONSUMABLES).filter(([id,C])=>!C.noShop&&!consOpen(id)&&!(state.items[id]>0));if(!nx.length)return '';const t=CONS_OPEN[nx[0][0]];const same=nx.filter(([id])=>CONS_OPEN[id]===t);return `<p class="muted" style="font-size:18px;grid-column:1/-1">More supplies arrive when ${LENGTHS[t].name} adventures open: ${same.map(([,C])=>C.n).join(', ')}.</p>`})()}
     <div class="shopitem" data-tip="Brings the whole party home safely with everything they carry.">${ico('scroll',null,3)}<span>Return Scroll</span><span class="muted">${priced(SCROLL_PRICE,hg)}g · have ${state.scrolls}</span><button class="btn small gold" data-a="buyScroll" ${state.gold<priced(SCROLL_PRICE,hg)?'disabled':''}>Buy</button></div></div>`;
   s+='</div></div>';
   return s;
@@ -6460,7 +6475,7 @@ function partyPanel(){
     ${r.scrolls&&!(b&&b.over)?`<button class="btn" data-a="scroll">Read Return Scroll${many?' (whole party)':''}</button>`:''}
     ${czSec('run.bag','Bag',(()=>{const bag=Object.entries(r.bag||{}).filter(([id,n])=>n>0&&CONSUMABLES[id]),field=!(b&&!b.over);
       if(!bag.length)return '<p class="muted">No supplies.</p>';
-      return `${r.fieldMsg&&field?`<p class="gold" style="font-size:19px">${r.fieldMsg}</p>`:''}<div class="stack" style="gap:6px">${bag.map(([id,n])=>{const C=CONSUMABLES[id];
+      return `${r.fieldMsg&&field?`<p class="gold" style="font-size:20px">${r.fieldMsg}</p>`:''}<div class="stack" style="gap:6px">${bag.map(([id,n])=>{const C=CONSUMABLES[id];
         return `<div class="item"><span class="ihead">${consIco(id,3)}<span class="iname">${C.n} ${stackHtml(n)}</span></span><span class="meta">${C.d}</span>${field&&C.field?(C.party?`<div class="row"><button class="btn small gold" data-a="bagUse" data-x="${id}|${living()[0].id}">Feed the party</button></div>`:`<div class="row">${living().map(h=>`<button class="btn small" data-a="bagUse" data-x="${id}|${h.id}">${esc(h.name)}</button>`).join('')}</div>`):!field&&!C.fieldOnly?'<span class="meta">Use it from the Items row on a hero’s turn</span>':C.field?'<span class="meta">Between fights only</span>':'<span class="meta">Battle only</span>'}</div>`}).join('')}</div>`})())}
     ${Object.keys(r.mats||{}).length?czSec('run.mats','Materials',`<div class="row" style="gap:4px">${matsLine(r.mats)}</div>`):''}
     ${backpackBlock()}`;
@@ -6713,17 +6728,18 @@ function dropActions(items){
   const L=(items||[]).filter(it=>it&&(r.loot.includes(it)||G.includes(it)));if(!L.length)return '';
   const H=living(),many=H.length>1;
   return `<div class="stack dropacts" style="gap:6px">${L.map(it=>{const ground=G.includes(it),who=H.filter(h=>!it.cls||it.cls===h.cls),up=upgradeFor(it);
-    const eq=who.map(h=>`<button class="btn small gold ${up.includes(h)?'guide':''}" data-a="lootEquip" data-x="${it.id}|${h.id}">Equip${many?' on '+esc(h.name):''}${up.includes(h)?' ▲':''}</button>`).join('');
+    // Only heroes it would actually improve get a one-tap button; anything else goes through the inventory.
+    const eq=up.map(h=>`<button class="btn small gold" data-a="lootEquip" data-x="${it.id}|${h.id}">Equip${many?' on '+esc(h.name):''} ▲</button>`).join('')+(who.length&&!up.length?`<span class="meta">Not an upgrade for anyone.</span><button class="btn small" data-a="inv">Inventory…</button>`:'');
     const keep=ground?`<button class="btn small" data-a="bpTake" data-x="${it.id}" ${r.loot.length>=cap?'disabled':''}>Take${r.loot.length>=cap?' (pack full)':''}</button>`:it.rarity==='perfect'?'':`<button class="btn small" data-a="bpDrop" data-x="${it.id}">Drop</button>`;
     return `<div class="dropact r-${it.rarity}-b">
       <div class="row" style="gap:8px;flex-wrap:nowrap;align-items:center">${itemIcon(it,2)}<span class="stack" style="gap:0;min-width:0"><span class="iname">${itemName(it)}</span><span class="meta">${RAR[it.rarity].l} ${SLOTN[it.slot]}${it.cls?' · '+C_({cls:it.cls}).name:''}${ground?' · <span class="warn">on the ground</span>':' · in backpack'}</span></span></div>
-      ${who.map(h=>itemCompare(it,h)).join('')}${who.length?'':`<span class="meta">No one in the party can wear this. Worth ${sellVal(it)} gold in town.</span>`}
+      ${(up.length?up:who).map(h=>itemCompare(it,h)).join('')}${who.length?'':`<span class="meta">No one in the party can wear this. Worth ${sellVal(it)} gold in town.</span>`}
       <div class="row" style="gap:6px">${eq}${keep}</div></div>`}).join('')}</div>`;
 }
 const battleDrops=()=>{const b=state.run&&state.run.battle;if(!b)return [];return [...b.enemies.flatMap(e=>e.drop||[]),...(b.extraDrops||[])].filter(x=>x.k==='item').map(x=>x.it)};
 function resultModal(){
   const r=state.run,b=r.battle,P=partyAll();
-  if(b.over==='win')return modalShell(`<span class="gold">${r.kingSlain?'The King is dead':'Victory'}</span>`,`${r.blessOffer?`<div class="blessbox"><h3 class="gold">✦ Choose a blessing</h3><p class="muted" style="font-size:17px">The boss’s power settles on the party. Pick one; it lasts the rest of this adventure. Blessings stack, up to ${BLESS_MAX} per adventure (${(r.bless||[]).length} so far).</p><div class="blessopts">${r.blessOffer.map(id=>{const B=BLESSINGS[id];return `<button class="btn blessopt ${B.cost?'cost':''}" data-a="bless" data-x="${id}"><b>${B.n}</b><span>${B.d}</span></button>`}).join('')}</div></div>`:''}${r.invNote?`<p class="gold" style="font-size:18px">${r.invNote}</p>`:''}<h3>Loot</h3>${lootStrip()}${(()=>{const d=dropActions(battleDrops());return d?`<h3>Gear</h3>${d}`:''})()}<details class="rewards"><summary class="muted">Full report (XP, levels, materials)</summary><div class="stack" style="gap:3px">${b.rewards.map(l=>`<p>${l}</p>`).join('')}</div></details>
+  if(b.over==='win')return modalShell(`<span class="gold">${r.kingSlain?'The King is dead':'Victory'}</span>`,`${r.blessOffer?`<div class="blessbox"><h3 class="gold">✦ Choose a blessing</h3><p class="muted" style="font-size:18px">The boss’s power settles on the party. Pick one; it lasts the rest of this adventure. Blessings stack, up to ${BLESS_MAX} per adventure (${(r.bless||[]).length} so far).</p><div class="blessopts">${r.blessOffer.map(id=>{const B=BLESSINGS[id];return `<button class="btn blessopt ${B.cost?'cost':''}" data-a="bless" data-x="${id}"><b>${B.n}</b><span>${B.d}</span></button>`}).join('')}</div></div>`:''}${r.invNote?`<p class="gold" style="font-size:18px">${r.invNote}</p>`:''}<h3>Loot</h3>${lootStrip()}${(()=>{const d=dropActions(battleDrops());return d?`<h3>Gear</h3>${d}`:''})()}<details class="rewards"><summary class="muted">Full report (XP, levels, materials)</summary><div class="stack" style="gap:3px">${b.rewards.map(l=>`<p>${l}</p>`).join('')}</div></details>
     <div class="row"><button class="btn small" data-a="inv">Open inventory</button><button class="btn gold" data-a="cont" ${r.blessOffer?'disabled data-tip="Choose a blessing first."':''}>${r.pendingChest?'Open the chest':r.kingSlain?'Return to town':(!r.final&&r.stage>=r.total)?'Head home':'Continue'}</button></div>`,'hideResult','summary');
   return modalShell(`<span class="warn">${P.length>1?'The party has fallen':esc(P[0].name)+' has fallen'}</span>`,`<p class="muted">Their gear, ${r.gold} gold, and ${r.loot.length} looted item${r.loot.length===1?'':'s'} are lost.</p>${r.lostRule?`<div class="ruletip"><b class="gold">Learn from it · ${esc(r.lostRule.who)}: ${r.lostRule.n}</b><p>${r.lostRule.d}</p></div>`:''}<div class="row"><button class="btn red" data-a="fallen">Bury them</button></div>`,'hideResult','summary dead');
 }
@@ -6865,7 +6881,7 @@ function campView(ev){
   return `<div class="row" style="gap:12px;flex-wrap:nowrap;align-items:flex-start"><span class="portrait">${sprite('camp',null,5,'bob')}</span><div class="stack" style="gap:6px"><h2>${ev.title}</h2><p>${ev.text}</p></div></div>
     <div class="campleft">${Array.from({length:C.pts},(_,i)=>`<i class="${i<used?'on':''}"></i>`).join('')}<span>${left} of ${C.pts} camp point${C.pts>1?'s':''} left</span></div>
     <div class="stack" style="gap:6px">${Object.entries(CAMP_ACT).map(([k,A])=>{const n=C.use[k]||0;
-      return `<div class="campact ${n?'on':''}"><span class="row" style="gap:8px;flex-wrap:nowrap;min-width:0">${ico(A.ico[0],A.ico[1],3)}<span class="stack" style="gap:0;min-width:0"><b>${A.n}${n?` <span class="gold">×${n}</span>`:''}</b><span class="muted" style="font-size:17px">${A.d}</span></span></span>
+      return `<div class="campact ${n?'on':''}"><span class="row" style="gap:8px;flex-wrap:nowrap;min-width:0">${ico(A.ico[0],A.ico[1],3)}<span class="stack" style="gap:0;min-width:0"><b>${A.n}${n?` <span class="gold">×${n}</span>`:''}</b><span class="muted" style="font-size:18px">${A.d}</span></span></span>
         <span class="row" style="gap:4px;flex-wrap:nowrap"><button class="btn small" data-a="campSub" data-x="${k}" ${n?'':'disabled'} aria-label="One less">−</button><button class="btn small gold" data-a="campAdd" data-x="${k}" ${left?'':'disabled'} aria-label="One more">+</button></span></div>`}).join('')}</div>
     <div class="row" style="margin-top:6px"><button class="btn gold" data-a="campGo" ${used?'':'disabled'}>Make camp${left?` (${left} unspent)`:''}</button></div>`;
 }
@@ -6893,7 +6909,7 @@ function skillList(h){return `<div class="stack" style="gap:6px">${h.skills.map(
 function learnBlock(h){
   const nx=[1,2,3].find(k=>!hasTier(h,k));if(!nx)return '';
   const o=learnOpts(h,nx).map(id=>`<b>${SKILLS[id].n}</b>`),list=o.length>2?'one of '+o.slice(0,-1).join(', ')+' or '+o[o.length-1]:'either '+o.join(' or ');
-  return `<p class="muted" style="font-size:19px">At level ${SKILL_LV[nx]}, ${esc(h.name)} will learn ${list}. You choose which.${nx<3?` More skills come at level ${[1,2,3].filter(k=>k>nx).map(k=>SKILL_LV[k]).join(' and ')}.`:''}</p>`;
+  return `<p class="muted" style="font-size:20px">At level ${SKILL_LV[nx]}, ${esc(h.name)} will learn ${list}. You choose which.${nx<3?` More skills come at level ${[1,2,3].filter(k=>k>nx).map(k=>SKILL_LV[k]).join(' and ')}.`:''}</p>`;
 }
 function traitChips(h){
   const ts=(h.traits||[]).map(id=>TRAITS[id]).filter(Boolean);
@@ -6950,7 +6966,7 @@ function ledgerView(){
   const S=secs.find(x=>x.key===state.sel.lbiome)||secs[0];
   let s=`<div class="bhead">${moonImg(moonState().shown,3)}<div class="stack" style="gap:2px"><h2>Moon Ledger</h2><span class="muted">${got} of ${total} monsters found · ${full} fully scouted ${ledgerNewCount()?`· <span class="alert-inline">${ledgerNewCount()} new</span>`:''} ${help('Every monster has four stages of knowledge: basics, stats and resistances, skills, and its signature ability and fighting habit. At the start of each fight your party’s best Perception has a chance to learn the next stage about each enemy (10% + 3% per PER point, up to 90%), and every win gives a second, half-sized chance. Kills count as study too: every 3 kills of a monster guarantee its next stage. Easy, Medium and Hard versions are scouted separately. Monsters with new information are marked until you open them.')}</span></div></div>`;
   if(moonKnown()){const m=moonState();
-    s+=`<div class="moonbox"><h3>The dark side of the moon · ${Math.round(m.shown)}% dark</h3><p class="muted" style="font-size:19px">As the town grows stronger the moon turns its dark face toward you. ${descentUnlocked()?'It is fully dark: the Dark Side is open at the Gate.':'Nobody knows what happens when it is fully dark.'} The moon never turns back.</p>
+    s+=`<div class="moonbox"><h3>The dark side of the moon · ${Math.round(m.shown)}% dark</h3><p class="muted" style="font-size:20px">As the town grows stronger the moon turns its dark face toward you. ${descentUnlocked()?'It is fully dark: the Dark Side is open at the Gate.':'Nobody knows what happens when it is fully dark.'} The moon never turns back.</p>
       <div class="moonchecks">${m.parts.map(x=>`<div class="mcheck ${x.v>=1?'ok':''}"><div class="row" style="justify-content:space-between;gap:6px;font-size:18px"><span>${x.n}</span><span class="muted">${x.d}</span></div><div class="bar xp"><i style="width:${Math.round(x.v*100)}%"></i></div></div>`).join('')}</div></div>`}
   s+=`<div class="subtabs">${secs.map(x=>`<button class="subtab ${x===S?'cur':''}" data-a="lbiome" data-x="${x.key}">${x.el?elIco(x.el):''}${x.name} <span class="muted">${count(x)}/${size(x)}</span>${newIn(x)?` <span class="alert-inline">${newIn(x)}</span>`:''}</button>`).join('')}</div>`;
   const sel=state.sel.lent;if(sel&&L[sel])s+=ledgerDetail(sel);
@@ -7122,10 +7138,10 @@ function settingsModal(){
     <div class="row" style="gap:6px"><span class="muted">Battle pace</span>${Object.entries(SPEED).map(([k,S])=>`<button class="btn small ${set.speed===k?'on':''}" data-a="setSpeed" data-x="${k}">${S.n}</button>`).join('')}</div>
     <div class="row" style="gap:6px">${tog('autoDefault','Start battles on Auto')}${tog('confirmFlee','Ask before running home')}</div>
     <h3>Sound</h3>${[['sfx','Sound effects'],['music','Music']].map(([k,l])=>`<div class="row" style="gap:6px"><span class="muted" style="min-width:130px">${l}</span>${['Off','Low','Medium','High'].map((n,i)=>`<button class="btn small ${(set[k]??2)===i?'on':''}" data-a="setSnd" data-x="${k}|${i}" aria-pressed="${(set[k]??2)===i}">${n}</button>`).join('')}</div>`).join('')}
-    <h3>Controller</h3><div class="row" style="gap:6px">${tog('pad','Controller support')}<span class="muted" style="font-size:17px">${navigator.getGamepads&&[...navigator.getGamepads()].some(Boolean)?'Controller connected.':'Plug in or pair a PS4, PS5 or Xbox controller, then press any button.'}</span></div>
+    <h3>Controller</h3><div class="row" style="gap:6px">${tog('pad','Controller support')}<span class="muted" style="font-size:18px">${navigator.getGamepads&&[...navigator.getGamepads()].some(Boolean)?'Controller connected.':'Plug in or pair a PS4, PS5 or Xbox controller, then press any button.'}</span></div>
     ${set.pad?`<details class="padguide" ${navigator.getGamepads&&[...navigator.getGamepads()].some(Boolean)?'open':''}><summary class="muted">Controller buttons</summary><div class="padmap">${PAD_GUIDE.map(([k,d])=>`<span class="pk">${k}</span><span>${d}</span>`).join('')}</div></details>`:''}
-    <h3>Display</h3><div class="row" style="gap:6px">${tog('motion','Animations')}${tog('tips','Hover tips')}${tog('govTips','Governor tips & tutorials')}</div><p class="muted" style="font-size:17px">Governor tips & tutorials: the weekly thoughts, the Barracks walkthrough and the summary on the first visit to each building. Story chapters and promotions still appear.</p>
-    <h3>Game</h3><div class="row"><button class="btn gold" data-a="mainMenu">Main menu · save slots</button><span class="muted" style="font-size:17px">Slot ${ui.slot||1} is saving automatically.</span></div>
+    <h3>Display</h3><div class="row" style="gap:6px">${tog('motion','Animations')}${tog('tips','Hover tips')}${tog('govTips','Governor tips & tutorials')}</div><p class="muted" style="font-size:18px">Governor tips & tutorials: the weekly thoughts, the Barracks walkthrough and the summary on the first visit to each building. Story chapters and promotions still appear.</p>
+    <h3>Game</h3><div class="row"><button class="btn gold" data-a="mainMenu">Main menu · save slots</button><span class="muted" style="font-size:18px">Slot ${ui.slot||1} is saving automatically.</span></div>
     <h3>Save file</h3><p class="muted" style="font-size:18px">Your town saves automatically in this browser. To move it to another browser or the installed app, export it here and import it there.</p>
     <div class="row" style="gap:6px"><button class="btn small" data-a="saveExport">Export save</button><button class="btn small" data-a="saveImportOpen">Import save</button>${canOfferInstall()?'<button class="btn small gold" data-a="install">Install app</button>':''}${document.fullscreenEnabled?`<button class="btn small" data-a="fullscreen">${document.fullscreenElement?'Exit fullscreen':'Fullscreen'}</button>`:''}</div>
     ${ui.exportCode?`<div class="stack" style="gap:6px"><textarea id="expcode" class="savecode" readonly rows="4">${esc(ui.exportCode)}</textarea><div class="row" style="gap:6px"><button class="btn small gold" data-a="saveCopy">${ui.copied?'Copied!':'Copy code'}</button>${window.claude?'':'<button class="btn small" data-a="saveDownload">Download as file</button>'}<button class="btn small" data-a="saveExportClose">Done</button></div></div>`:''}
@@ -7165,17 +7181,17 @@ function witchView(){
     const tc=heroWitchCost(h,'trait'),rc=heroWitchCost(h,'respec');
     s+=`<div class="row" style="gap:10px"><span class="portrait">${heroArt(h,4)}</span><div class="stack" style="gap:2px"><span class="hname">${esc(h.name)} <small class="muted">Lv ${h.level} ${C_(h).name}</small></span><span class="muted">Visits to the witch: ${h.witch||0}. Next visit costs ${Math.round(Math.pow(1.6,h.witch||0)*100)}% of base, plus level.</span></div></div>
       <h3>${WITCH_HERO.trait.n} · <span class="gold">${fmt(tc)} gold</span></h3><p class="muted">${WITCH_HERO.trait.d}</p>
-      <div class="stack" style="gap:6px">${(h.traits||[]).map(id=>TRAITS[id]).filter(Boolean).map(t=>`<div class="row" style="gap:8px;justify-content:space-between;flex-wrap:nowrap"><span><span class="tk-${t.kind}">${t.n}</span> <span class="muted" style="font-size:17px">${traitDesc(t,h)}</span></span><button class="btn small" data-a="witchTrait" data-x="${h.id}|${t.id}" ${state.gold<tc||state.run?'disabled':''}>Reroll</button></div>`).join('')}</div>
+      <div class="stack" style="gap:6px">${(h.traits||[]).map(id=>TRAITS[id]).filter(Boolean).map(t=>`<div class="row" style="gap:8px;justify-content:space-between;flex-wrap:nowrap"><span><span class="tk-${t.kind}">${t.n}</span> <span class="muted" style="font-size:18px">${traitDesc(t,h)}</span></span><button class="btn small" data-a="witchTrait" data-x="${h.id}|${t.id}" ${state.gold<tc||state.run?'disabled':''}>Reroll</button></div>`).join('')}</div>
       <h3>Reroll a resistance</h3><p class="muted">Pick exactly which one. The new value is a fresh roll: usually a resistance of +5% to +30%, but 1 time in 4 a weakness of −5% to −15%. Each element’s price rises 60% every time that same element is rerolled.</p>
       ${(()=>{const els=ELEMENTS.filter(el=>(h.res||{})[el]);if(!els.length)return '<p class="muted">This hero was born with no elemental resistances to reroll.</p>';
         return `<div class="stack" style="gap:6px">${els.map(el=>{const v=h.res[el],c=resRerollCost(h,el),n=(h.resRolls||{})[el]||0;
-          return `<div class="row" style="gap:8px;justify-content:space-between;flex-wrap:nowrap"><span>${elTag(el)} <b style="color:${v<0?'#e0736c':'#8fcf6f'}">${v>0?'+':''}${v}%</b> <span class="muted" style="font-size:17px">${v<0?'weakness':'resistance'}${n?` · rerolled ${n}×`:''}</span></span><button class="btn small" data-a="witchRes" data-x="${h.id}|${el}" ${state.gold<c||onRun(h)?'disabled':''}>Reroll · ${fmt(c)}g</button></div>`}).join('')}</div>`})()}
+          return `<div class="row" style="gap:8px;justify-content:space-between;flex-wrap:nowrap"><span>${elTag(el)} <b style="color:${v<0?'#e0736c':'#8fcf6f'}">${v>0?'+':''}${v}%</b> <span class="muted" style="font-size:18px">${v<0?'weakness':'resistance'}${n?` · rerolled ${n}×`:''}</span></span><button class="btn small" data-a="witchRes" data-x="${h.id}|${el}" ${state.gold<c||onRun(h)?'disabled':''}>Reroll · ${fmt(c)}g</button></div>`}).join('')}</div>`})()}
       <h3>${WITCH_HERO.respec.n} · <span class="gold">${fmt(rc)} gold</span></h3><p class="muted">${WITCH_HERO.respec.d} ${h.spent?`${h.spent} point${h.spent>1?'s':''} would come back.`:'Nothing spent to undo yet.'}</p>
       <div class="row"><button class="btn" data-a="witchRespec" data-x="${h.id}" ${state.gold<rc||!h.spent?'disabled':''}>Rebalance ${esc(h.name)}</button></div>`;
     {const learned=h.skills.filter(id=>SKILLS[id]&&SKILLS[id].tier);
      s+=`<h3>Reroll a learned skill</h3><p class="muted">Skills learned at levels 8, 23 and 33 come down to fate. The Witch can roll the dice again. There is a ${Math.round(rerollSame(h))}% chance (less with Luck) it lands on the same skill. Each reroll of the same skill doubles the price.</p>`;
      s+=learned.length?`<div class="stack" style="gap:6px">${learned.map(id=>{const t=SKILLS[id].tier,c=skillRerollCost(h,t),others=learnOpts(h,t).filter(x=>x!==id).map(x=>SKILLS[x].n);
-       return `<div class="row" style="gap:8px;justify-content:space-between;flex-wrap:nowrap"><span><b>${SKILLS[id].n}</b> <span class="muted" style="font-size:17px">Lv ${SKILL_LV[t]} skill · could become ${others.join(' or ')}</span></span><button class="btn small" data-a="witchReroll" data-x="${h.id}|${id}" ${state.gold<c||onRun(h)||!others.length?'disabled':''}>Reroll · ${fmt(c)}g</button></div>`}).join('')}</div>`:'<p class="muted">No learned skills yet. The first comes at level 8.</p>'}
+       return `<div class="row" style="gap:8px;justify-content:space-between;flex-wrap:nowrap"><span><b>${SKILLS[id].n}</b> <span class="muted" style="font-size:18px">Lv ${SKILL_LV[t]} skill · could become ${others.join(' or ')}</span></span><button class="btn small" data-a="witchReroll" data-x="${h.id}|${id}" ${state.gold<c||onRun(h)||!others.length?'disabled':''}>Reroll · ${fmt(c)}g</button></div>`}).join('')}</div>`:'<p class="muted">No learned skills yet. The first comes at level 8.</p>'}
     return s;
   }
   const items=allItems().filter(x=>x.it.rarity!=='perfect');
@@ -7183,10 +7199,10 @@ function witchView(){
   const sel=items.find(x=>x.it.id===state.sel.witem);
   if(sel){const it=sel.it,c=k=>itemWitchCost(it,k),btn=(k,x,label)=>`<button class="btn small" data-a="witchItem" data-x="${it.id}|${k}${x!=null?'|'+x:''}" ${state.gold<c(k)?'disabled':''}>${label||WITCH_ITEM[k].n} · ${fmt(c(k))}g</button>`;
     s+=`<div class="hdetail"><div class="stack">${itemCard(it,`<span class="meta">${sel.h?'Worn by '+esc(sel.h.name):'In the bank'} · blessed ${it.witch||0} time${it.witch===1?'':'s'}</span>`)}</div><div class="stack">
-      <p class="muted" style="font-size:17px">Rarity sets the starting price (${RAR[it.rarity].l} ×${WITCH_RAR[it.rarity]}). Each blessing on this item makes the next 60% dearer.</p>
-      ${it.affixes.length?`<div class="stack" style="gap:4px"><div class="row" style="gap:6px">${btn('full')}${btn('values')}</div><span class="muted" style="font-size:17px">${WITCH_ITEM.full.d} · ${WITCH_ITEM.values.d}</span></div>
+      <p class="muted" style="font-size:18px">Rarity sets the starting price (${RAR[it.rarity].l} ×${WITCH_RAR[it.rarity]}). Each blessing on this item makes the next 60% dearer.</p>
+      ${it.affixes.length?`<div class="stack" style="gap:4px"><div class="row" style="gap:6px">${btn('full')}${btn('values')}</div><span class="muted" style="font-size:18px">${WITCH_ITEM.full.d} · ${WITCH_ITEM.values.d}</span></div>
       <h3>Reroll one line</h3><div class="stack" style="gap:4px">${it.affixes.map((a,i)=>`<div class="row" style="justify-content:space-between;gap:8px;flex-wrap:nowrap">${afxLine(it,a)}${btn('line',i,'Reroll')}</div>`).join('')}</div>`:'<p class="muted">This item has no bonuses to bless.</p>'}
-      ${it.base?`<div class="row" style="gap:6px">${btn('base')}<span class="muted" style="font-size:17px">${WITCH_ITEM.base.d}</span></div>`:''}</div></div>`}
+      ${it.base?`<div class="row" style="gap:6px">${btn('base')}<span class="muted" style="font-size:18px">${WITCH_ITEM.base.d}</span></div>`:''}</div></div>`}
   s+=`<h3>Choose an item</h3><div class="items">${items.map(({it,h})=>`<button class="item r-${it.rarity}-b ${state.sel.witem===it.id?'sel':''}" data-a="witem" data-x="${it.id}"><span class="ihead">${itemIcon(it,3)}<span class="stack" style="gap:1px"><span class="iname">${itemName(it)}</span><span class="meta">${h?esc(h.name):'Bank'}${it.witch?' · blessed ×'+it.witch:''}</span></span></span></button>`).join('')}</div>`;
   return s;
 }
@@ -7225,15 +7241,15 @@ function prepView(){
     <div class="prepgrid"><div class="stack">
       <div class="row" style="gap:12px;align-items:flex-start;flex-wrap:wrap"><span class="portrait">${heroArt(h,5)}</span>${gearDoll(h,'prepSlot',sl)}
         <dl class="dl" style="font-size:18px;flex:1;min-width:150px"><dt>Level</dt><dd>${h.level}</dd><dt>Health</dt><dd>${maxHp(h)}</dd><dt>Mana</dt><dd>${maxMp(h)}</dd><dt>Power</dt><dd>${Math.round(power(h))}</dd><dt>Armor</dt><dd>${armor(h)}</dd><dt>Crit</dt><dd>${critChance(h).toFixed(0)}%</dd><dt>Evasion</dt><dd>${evasion(h).toFixed(0)}%</dd></dl></div>${xpMini(h)}
-      ${sl?`<div class="slotpanel stack"><div class="row" style="justify-content:space-between"><h3>${SLOTN[sl]}</h3><button class="btn small" data-a="prepSlot" data-x="${h.id}|${sl}">Show all slots</button></div>${cur?itemCard(cur,`<div class="row"><button class="btn small" data-a="prepUnequip" data-x="${sl}">Unequip to stash</button></div>`):'<p class="muted">Empty.</p>'}</div>`:'<p class="muted" style="font-size:17px">Tap a gear slot to see only items for it, or browse everything below.</p>'}
+      ${sl?`<div class="slotpanel stack"><div class="row" style="justify-content:space-between"><h3>${SLOTN[sl]}</h3><button class="btn small" data-a="prepSlot" data-x="${h.id}|${sl}">Show all slots</button></div>${cur?itemCard(cur,`<div class="row"><button class="btn small" data-a="prepUnequip" data-x="${sl}">Unequip to stash</button></div>`):'<p class="muted">Empty.</p>'}</div>`:'<p class="muted" style="font-size:18px">Tap a gear slot to see only items for it, or browse everything below.</p>'}
       <div class="row" style="gap:6px"><button class="btn small gold" data-a="prepAuto">Auto-equip the party</button><button class="btn small" data-a="prepStrip" data-x="${h.id}">Unequip ${esc(h.name)}</button></div>
       ${loadoutRow(h)}
     </div><div class="stack">
       <div class="subtabs">${PREP_FILTERS.map(([k,l])=>`<button class="subtab ${!sl&&f===k?'cur':''}" data-a="prepFilter" data-x="${k}">${l}</button>`).join('')}${sl?`<span class="subtab cur">${SLOTN[sl]}</span>`:''}</div>
-      <p class="muted" style="font-size:17px">Drag gear onto a slot to equip it, or back here to unequip. On touch screens, press and hold first. · Stash · ${state.bank.length} item${state.bank.length===1?'':'s'}${list.length!==state.bank.length?` · ${list.length} fit ${esc(h.name)} here`:''}</p>
+      <p class="muted" style="font-size:18px">Drag gear onto a slot to equip it, or back here to unequip. On touch screens, press and hold first. · Stash · ${state.bank.length} item${state.bank.length===1?'':'s'}${list.length!==state.bank.length?` · ${list.length} fit ${esc(h.name)} here`:''}</p>
       <div class="dropzone" data-drop="bank">${list.length?`<div class="items preplist">${list.map(it=>{const to=equipSlotFor(it,h),old=h.gear[to];return itemCard(it,`<div class="row"><button class="btn small gold" data-a="prepEquip" data-x="${it.id}">${old?'Swap in':'Equip'}</button>${old?`<span class="meta">replaces ${itemName(old)}</span>`:''}</div>${itemCompare(it,h,to)}`,`data-drag="bank:${it.id}"`)}).join('')}</div>`:'<p class="muted">Nothing in the stash fits here. Drop gear here to unequip it.</p>'}</div>
     </div></div>
-    ${P.length>1?`<h3>Marching order</h3><p class="muted" style="font-size:17px">The party walks toward the monsters on the right. Whoever is in front (nearest the enemies) draws most of the attacks. Warriors fight best in front; archers and mages do best at the back.</p><div class="march">${lineup(P).map(({h:x,i})=>`<div class="mslot ${i===0?'front':''}"><span class="lab"><span class="upos p-${posName(i,P.length).toLowerCase()}">${i+1}·${posName(i,P.length)}</span> ${posChance(i,P.length)}% of attacks</span><span class="row" style="gap:6px;flex-wrap:nowrap">${heroArt(x,3,'ico')}<span class="stack" style="gap:0;min-width:0"><b>${esc(x.name)}</b><span class="muted">${C_(x).name}</span></span></span>${(F=>F?`<span class="mfx ${F.good?'posgood':'posbad'}" data-tip="${esc(F.d)}">${F.n}: ${F.d}</span>`:`<span class="mfx muted">No ${C_(x).name.toLowerCase()} bonus here</span>`)(posFxAt(x.cls,i,P.length))}<span class="row" style="gap:4px"><button class="btn small" data-a="prepOrder" data-x="${x.id}|1" ${i===P.length-1?'disabled':''} aria-label="Move ${esc(x.name)} back">◀ Back</button><button class="btn small" data-a="prepOrder" data-x="${x.id}|-1" ${i===0?'disabled':''} aria-label="Move ${esc(x.name)} forward">Forward ▶</button></span></div>`).join('')}<div class="mfoe" aria-hidden="true"><span>Monsters</span><b>▶</b></div></div>`:''}
+    ${P.length>1?`<h3>Marching order</h3><p class="muted" style="font-size:18px">The party walks toward the monsters on the right. Whoever is in front (nearest the enemies) draws most of the attacks. Warriors fight best in front; archers and mages do best at the back.</p><div class="march">${lineup(P).map(({h:x,i})=>`<div class="mslot ${i===0?'front':''}"><span class="lab"><span class="upos p-${posName(i,P.length).toLowerCase()}">${i+1}·${posName(i,P.length)}</span> ${posChance(i,P.length)}% of attacks</span><span class="row" style="gap:6px;flex-wrap:nowrap">${heroArt(x,3,'ico')}<span class="stack" style="gap:0;min-width:0"><b>${esc(x.name)}</b><span class="muted">${C_(x).name}</span></span></span>${(F=>F?`<span class="mfx ${F.good?'posgood':'posbad'}" data-tip="${esc(F.d)}">${F.n}: ${F.d}</span>`:`<span class="mfx muted">No ${C_(x).name.toLowerCase()} bonus here</span>`)(posFxAt(x.cls,i,P.length))}<span class="row" style="gap:4px"><button class="btn small" data-a="prepOrder" data-x="${x.id}|1" ${i===P.length-1?'disabled':''} aria-label="Move ${esc(x.name)} back">◀ Back</button><button class="btn small" data-a="prepOrder" data-x="${x.id}|-1" ${i===0?'disabled':''} aria-label="Move ${esc(x.name)} forward">Forward ▶</button></span></div>`).join('')}<div class="mfoe" aria-hidden="true"><span>Monsters</span><b>▶</b></div></div>`:''}
     ${packBlock()}
     <div class="row prepfoot"><button class="btn" data-a="prepClose">Back</button><button class="btn gold big ${state.guide?'guide':''}" data-a="prepGo">Depart: ${LENGTHS[state.sel.len]?LENGTHS[state.sel.len].name:''} with ${esc(listNames(P.map(x=>x.name)))}</button></div>`;
   return modalShell('Prepare the party',body,'prepClose','prep');
@@ -7251,8 +7267,8 @@ function packBlock(){
   return `<div class="packblk"><div class="row" style="justify-content:space-between"><h3>Supplies · ${used}/${cap} slots</h3>${ids.length?`<span class="row" style="gap:6px"><button class="btn small" data-a="packAll" data-x="0">None</button><button class="btn small" data-a="packAll" data-x="1">Fill</button></span>`:''}</div>
     ${ids.length?`<div class="packrows">${ids.map(id=>{const n=plan[id]||0;return `<div class="packrow" data-tip="${esc(CONSUMABLES[id].d)}">${consIco(id,2)}<span class="pn">${CONSUMABLES[id].n}</span><span class="muted">of ${state.items[id]}</span>
       <button class="btn small pm" data-a="packAdj" data-x="${id}|-1" ${n<=0?'disabled':''} aria-label="One fewer">−</button><b class="num pc">${qtyHtml(n)}</b><button class="btn small pm" data-a="packAdj" data-x="${id}|1" ${n>=state.items[id]||(n%STACK===0&&used>=cap)?'disabled':''} aria-label="One more">+</button></div>`}).join('')}</div>`:'<p class="muted">No supplies in town. The Witch sells them.</p>'}
-    ${free.length?`<p class="muted" style="font-size:17px">Also packed free: ${free.map(([id,q])=>`${consIco(id,2)}${q} ${CONSUMABLES[id].n}`).join(', ')} (no pack space).</p>`:''}
-    <p class="muted" style="font-size:17px">Each slot holds a stack of up to 6 of one supply (a full stack shows in red). Whatever you leave behind stays in storage, and unused supplies you bring come home. More slots: Supply Pack at the Bank.</p></div>`;
+    ${free.length?`<p class="muted" style="font-size:18px">Also packed free: ${free.map(([id,q])=>`${consIco(id,2)}${q} ${CONSUMABLES[id].n}`).join(', ')} (no pack space).</p>`:''}
+    <p class="muted" style="font-size:18px">Each slot holds a stack of up to 6 of one supply (a full stack shows in red). Whatever you leave behind stays in storage, and unused supplies you bring come home. More slots: Supply Pack at the Bank.</p></div>`;
 }
 function revealView(){
   const id=state.run.reveal[0],P=PERF[id],L=PERF_LOOK[id]||{c:'#ff5c7a',p:'burst',t:''};if(!P){state.run.reveal.shift();return ''}
@@ -7579,7 +7595,7 @@ function makeShop(mult){
 }
 function shopView(ev){
   const r=state.run,T=talker(),d=Math.round(chaDiscount(T));
-  return `<div class="shopwrap"><p class="muted" style="font-size:17px">You carry <b class="gold">${r.gold} gold</b>.${d?` ${esc(T.name)} haggles ${d}% off.`:''} Return Scrolls here cost less than in town (${priced(SCROLL_PRICE,bestHaggler())}g).</p>
+  return `<div class="shopwrap"><p class="muted" style="font-size:18px">You carry <b class="gold">${r.gold} gold</b>.${d?` ${esc(T.name)} haggles ${d}% off.`:''} Return Scrolls here cost less than in town (${priced(SCROLL_PRICE,bestHaggler())}g).</p>
     <div class="shopgrid">${ev.shop.map((x,i)=>{const sold=x.n<=0;
       const ic=x.k==='item'?itemIcon(x.it,3):x.k==='scroll'?`<span class="ibox">${sprite('scroll',null,3)}</span>`:`<span class="ibox">${consIco(x.id,3)}</span>`;
       const nm=x.k==='item'?itemName(x.it):x.k==='scroll'?'Return Scroll':CONSUMABLES[x.id].n;
@@ -7588,7 +7604,7 @@ function shopView(ev){
         <button class="btn small gold" data-a="shopBuy" data-x="${i}" ${sold||r.gold<x.price?'disabled':''}>${x.price}g</button></div>`}).join('')}</div>
     ${ev.shop.some(x=>x.k==='item')?'<details open><summary class="muted">Gear details</summary><div class="items">'+ev.shop.filter(x=>x.k==='item').map(x=>itemCard(x.it)).join('')+'</div></details>':''}
     ${ev.bought?`<p class="gold">${ev.bought}</p>`:''}
-    <h3>Sell loot</h3>${(()=>{const L=r.loot.filter(it=>it.rarity!=='perfect');return L.length?`<p class="muted" style="font-size:17px">The merchant pays about 40% more than the shops in town${d?`, plus ${d}% for ${esc(T.name)}’s haggling`:''}.</p><div class="items">${L.map(it=>itemCard(it,`<div class="row"><button class="btn small gold" data-a="shopSell" data-x="${it.id}">Sell · ${merchantPays(it)}g</button><span class="meta">town pays ${sellVal(it)}g</span></div>`)).join('')}</div>`:'<p class="muted" style="font-size:17px">Nothing in the backpack to sell.</p>'})()}</div>`;
+    <h3>Sell loot</h3>${(()=>{const L=r.loot.filter(it=>it.rarity!=='perfect');return L.length?`<p class="muted" style="font-size:18px">The merchant pays about 40% more than the shops in town${d?`, plus ${d}% for ${esc(T.name)}’s haggling`:''}.</p><div class="items">${L.map(it=>itemCard(it,`<div class="row"><button class="btn small gold" data-a="shopSell" data-x="${it.id}">Sell · ${merchantPays(it)}g</button><span class="meta">town pays ${sellVal(it)}g</span></div>`)).join('')}</div>`:'<p class="muted" style="font-size:18px">Nothing in the backpack to sell.</p>'})()}</div>`;
 }
 // Traveling merchants pay 40% more than town for loot, and Charisma adds to that.
 const merchantPays=it=>Math.round(sellVal(it)*1.4*(1+chaDiscount(talker())/100));
@@ -7641,6 +7657,7 @@ const ACT={
   selSlot:s=>{state.sel.slot=state.sel.slot===s?null:s},
   equip:id=>{const h=heroById(state.sel.hero),sl=state.sel.slot,it=state.bank.find(x=>x.id===id);if(!h||!sl||!it)return;if(it.slot==='ring')darkHit('greed');
     state.bank=state.bank.filter(x=>x.id!==id);if(h.gear[sl])state.bank.push(h.gear[sl]);h.gear[sl]=it},
+  scrapToggle:()=>{ui.scrapOpen=!ui.scrapOpen},
   bankEquipTo:x=>{const [iid,hid]=x.split('|'),h=heroById(hid),it=state.bank.find(y=>y.id===iid);if(!h||!it||onRun(h)||(it.cls&&it.cls!==h.cls))return;const sl=equipSlotFor(it,h);if(it.slot==='ring')darkHit('greed');
     state.bank=state.bank.filter(y=>y.id!==iid);if(h.gear[sl])state.bank.push(h.gear[sl]);h.gear[sl]=it},
   unequip:sl=>{const h=heroById(state.sel.hero);if(!h||!h.gear[sl])return;state.bank.push(h.gear[sl]);h.gear[sl]=null},
@@ -7899,7 +7916,7 @@ function musicFor(inBattle){
 }
 function render(){
   const app=document.getElementById('app');
-  const foot=`<footer class="row" style="justify-content:space-between;color:var(--dim);font-size:19px"><span>Your town saves automatically in this browser.</span></footer>`;
+  const foot=`<footer class="row" style="justify-content:space-between;color:var(--dim);font-size:20px"><span>Your town saves automatically in this browser.</span></footer>`;
   hideTip&&tipEl&&hideTip();
   if(ui.menu){SND.music('menu');document.body.classList.remove('inbattle');app.innerHTML=menuView();save();clearTimeout(autoTimer);return}
   // Governors from the old profession test retake the new ten questions (once home, never mid-adventure).
@@ -7965,7 +7982,9 @@ function autoStep(){
 document.addEventListener('change',ev=>{if(ev.target&&ev.target.id==='impfile'&&ev.target.files&&ev.target.files[0]){const r=new FileReader();r.onload=()=>{ui.importText=String(r.result||'');ui.importMsg=null;render()};r.readAsText(ev.target.files[0])}});
 document.addEventListener('fullscreenchange',()=>{if(ui.settings)render()});
 document.addEventListener('click',ev=>{
-  const t=ev.target.closest('[data-a]');if(!t||t.disabled)return;
+  const t=ev.target.closest('[data-a]');
+  if(ui.scrapOpen&&!(t&&t.dataset.a==='scrapToggle')&&!ev.target.closest('.scrapline')){ui.scrapOpen=false;if(!t||t.disabled){render();return}}
+  if(!t||t.disabled)return;
   const f=ACT[t.dataset.a];if(!f)return;sfx('click');
   ui.anchor=anchorOf(t);
   // Buttons with data-dbl do something else on a double-click, so their single click waits a moment first.
