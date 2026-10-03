@@ -545,6 +545,14 @@ body.lay-wide .ufat{flex-basis:58px;height:15px}body.lay-wide .ufat span{font-si
 .ubar.ch.full i{background:linear-gradient(#ff7a5a,#b8321e)}
 .ubar span{position:absolute;inset:0;font-size:16px;line-height:14px;text-align:center;color:#fff;text-shadow:1px 1px 0 #000;white-space:nowrap}
 .utags{display:flex;gap:3px;flex-wrap:wrap;justify-content:center}
+.uknow{display:flex;gap:2px 3px;flex-wrap:wrap;justify-content:center}
+.uknow .utag{font-size:14px;padding:0 3px 1px;box-shadow:inset 0 0 0 1px color-mix(in srgb,currentColor 55%,transparent)}
+.uknow .utag.kn{background:#ffffff10}
+:is(body.lay-stack,body.lay-side) .uknow{justify-content:flex-start}
+/* Phone layouts: one line per card (knowledge, weakness, resistances). Everything else is in the target line under the cards. */
+:is(body.lay-stack,body.lay-side) .uknow{flex-wrap:nowrap;overflow:hidden}
+:is(body.lay-stack,body.lay-side) .uknow .xtra{display:none}
+:is(body.lay-stack,body.lay-side) .uknow .utag{font-size:13px;flex:none}
 .utag{font-size:16px;line-height:1;padding:1px 4px 2px;box-shadow:inset 0 0 0 1px currentColor}
 .blogline{grid-area:log;font:inherit;font-size:18px;line-height:1.15;height:2.35em;overflow:hidden;color:var(--ash);background:#0f0c13;border:0;box-shadow:inset 0 0 0 2px var(--edge);padding:2px 8px;text-align:left;cursor:pointer;min-width:0}
 .blogline p{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2431,22 +2439,22 @@ const SMALL=4; // at this scale and below, units are shown as close-cropped port
 function foeArt(e,scale,cls){const s=e&&foeStripFor(e.base||e.name,e.kind,e.type,scale<=SMALL);return s?artImg(s,scale,cls):sprite(e.spr,EL_COL[e.type]||null,scale,cls)}
 const strHash=s=>{let n=0;for(const c of String(s))n=(n*31+c.charCodeAt(0))>>>0;return n};
 const H_SKIN=['#e8c09a','#d6a47e','#b9835a','#8a5a3a','#f0d0b0','#c89070'],H_HAIR=['#5a3a24','#2a1e18','#c8a050','#8a3a20','#d8d0c0','#3a2a40','#6a2a1a'];
-// Eight outfit colorways. Every hero arrives in one at random; the player can change it on the hero's page.
+// Eight general outfit colors. Every hero arrives in one at random; the player can change it on the hero's page.
+// Skin and hair are set when a hero is recruited and aren't player-picked. (Order matters: saves store the index.)
 const COLORWAYS=[
-  {n:'Crimson',A:'#a83838',p:'#4a3a30',b:'#6a4a2a'},{n:'Forest',A:'#3f7a3a',p:'#4a3a2a',b:'#6a4a2a'},
-  {n:'Midnight',A:'#3d3c96',p:'#2e2a40',b:'#5a4a6a'},{n:'Ash',A:'#7a7a86',p:'#3a3a44',b:'#4a4048'},
-  {n:'Sunlit',A:'#c89a2e',p:'#5a4428',b:'#7a5228'},{n:'Amethyst',A:'#7a3c9a',p:'#3a2a40',b:'#5a3a5a'},
-  {n:'Tidal',A:'#2e8a8a',p:'#24404a',b:'#4a5a5a'},{n:'Ember',A:'#c0602a',p:'#4a2e22',b:'#6a3a1e'}];
+  {n:'Red',A:'#a83838',p:'#4a3a30',b:'#6a4a2a'},{n:'Green',A:'#3f7a3a',p:'#4a3a2a',b:'#6a4a2a'},
+  {n:'Blue',A:'#3d3c96',p:'#2e2a40',b:'#5a4a6a'},{n:'Gray',A:'#7a7a86',p:'#3a3a44',b:'#4a4048'},
+  {n:'Yellow',A:'#c89a2e',p:'#5a4428',b:'#7a5228'},{n:'Purple',A:'#7a3c9a',p:'#3a2a40',b:'#5a3a5a'},
+  {n:'Teal',A:'#2e8a8a',p:'#24404a',b:'#4a5a5a'},{n:'Orange',A:'#c0602a',p:'#4a2e22',b:'#6a3a1e'}];
 const CW_DEFAULT={warrior:0,archer:1,mage:2};
 // A hero's look: colorway, skin and hair. Heroes from older saves keep the colors they had.
 function heroLook(h){
   if(!h.look){const n=strHash(h.id||h.name);h.look={cw:CW_DEFAULT[h.cls]||0,skin:n%H_SKIN.length,hair:(n>>4)%H_HAIR.length}}
   const L=h.look;return {cw:COLORWAYS[L.cw]||COLORWAYS[0],skin:H_SKIN[L.skin]||H_SKIN[0],hair:H_HAIR[L.hair]||H_HAIR[0],i:L}}
 const randomLook=()=>({cw:ri(0,COLORWAYS.length-1),skin:ri(0,H_SKIN.length-1),hair:ri(0,H_HAIR.length-1)});
-// Colorway, skin and hair swatches on the hero's page.
+// The eight color swatches on the hero's page.
 function lookPicker(h){const L=heroLook(h),i=L.i,sw=(k,cols,cur,names)=>cols.map((c,j)=>`<button class="swatch ${j===cur?'cur':''}" style="--sw:${c}" data-a="setLook" data-x="${h.id}|${k}|${j}" aria-label="${esc(names?names[j]:k+' '+(j+1))}" aria-pressed="${j===cur}" data-tip="${esc(names?names[j]:'')}"></button>`).join('');
-  return `<div class="lookpick"><span class="row"><small class="muted">Colors</small>${sw('cw',COLORWAYS.map(c=>c.A),i.cw,COLORWAYS.map(c=>c.n))}</span>
-    <span class="row"><small class="muted">Skin</small>${sw('skin',H_SKIN,i.skin)}</span><span class="row"><small class="muted">Hair</small>${sw('hair',H_HAIR,i.hair)}</span></div>`}
+  return `<div class="lookpick"><span class="row"><small class="muted">Color</small>${sw('cw',COLORWAYS.map(c=>c.A),i.cw,COLORWAYS.map(c=>c.n))}</span></div>`}
 function heroArt(h,scale,cls){
   const gear={};for(const sl of ['weapon','helmet','chest','pants']){const it=h.gear&&h.gear[sl];if(it)gear[sl]=it.rarity}
   const LK=h.look||h.id?heroLook(h):{cw:COLORWAYS[CW_DEFAULT[h.cls]||0],skin:H_SKIN[strHash(h.name)%H_SKIN.length],hair:H_HAIR[0]},skin=LK.skin,hair=LK.hair,tint=LK.cw.A;
@@ -6033,11 +6041,36 @@ function runView(){
    Everything a fight needs sits on one fixed screen: heroes on the left, enemies on the right,
    each with labeled health and mana (or charge) bars, and the current hero's actions underneath. */
 function foeBrief(e){
-  if(!isScouted(e))return `<span class="muted">not scouted yet. Strengths and weaknesses unknown until your Perception reads it.</span>${e.mutation?` · <span data-tip="${esc(MUT[e.mutation].d)}">${MUT[e.mutation].n}</span>`:''}`;
-  const res=ALL_EL.filter(x=>(e.res[x]||0)>=20).sort((a,b)=>e.res[b]-e.res[a]).map(x=>`${EL_ABBR[x]} ${e.res[x]}%`);
-  const weak=e.type!=='dark'&&e.type!=='physical'?ELEMENTS.find(x=>BEATS[x]===e.type):null;
-  return `hits ${mixText(foeMix(e,'attack'))} · resists ${res.length?res.join(', '):'little'}${weak?` · weak to ${elTag(weak)}`:''}${e.eva?` · ${e.eva}% evasion`:''}${e.mutation?` · <span data-tip="${esc(MUT[e.mutation].d)}">${MUT[e.mutation].n}</span>`:''}${e.skills.length?` · skills: ${e.skills.map(k=>`<span data-tip="${esc(FOE_SKILLS[k].d)}">${FOE_SKILLS[k].n}</span>`).join(', ')}`:''}`;
+  const mut=e.mutation?` · <span data-tip="${esc(MUT[e.mutation].d)}">${MUT[e.mutation].n}</span>`:'';
+  if(!isScouted(e))return `<span class="muted">not scouted yet. Strengths and weaknesses unknown until your Perception reads it.</span>${mut}`;
+  // What shows grows with knowledge, stage by stage, the same as the Moon Ledger.
+  const lv=scoutLv(e),S=spOf(e),out=[];
+  const weak=foeWeak(e);
+  out.push(weak?`weak to ${elTag(weak)}`:e.type==='dark'?'no weakness':'');
+  if(e.eva)out.push(`${e.eva}% evasion`);
+  if(lv>=2){const res=ALL_EL.filter(x=>(e.res[x]||0)>=20).sort((a,b)=>e.res[b]-e.res[a]).map(x=>`${EL_ABBR[x]} ${e.res[x]}%`);
+    out.push(`hits ${mixText(foeMix(e,'attack'))}`,`resists ${res.length?res.join(', '):'little'}`,`speed ${Math.round(e.spd)}`)}
+  if(lv>=3)out.push(e.skills.length?`skills: ${e.skills.map(k=>`<span data-tip="${esc(FOE_SKILLS[k].d)}">${FOE_SKILLS[k].n}</span>`).join(', ')}`:'no skills');
+  if(lv>=4&&S)out.push(`<span class="gold" data-tip="${esc(ABIL[S[0]](S[1]))}">${esc(S[3])}</span>: ${ABIL[S[0]](S[1])} ${HABIT[S[2]]}`);
+  const next=lv<4?` · <span class="muted">knowledge ${lv}/4, ${SCOUT_LV[lv+1].toLowerCase()} still hidden</span>`:'';
+  return out.filter(Boolean).join(' · ')+mut+next;
 }
+const foeWeak=e=>e.type!=='dark'&&e.type!=='physical'?ELEMENTS.find(x=>BEATS[x]===e.type):null;
+// Scouted details printed right on a monster's card. Each knowledge stage adds a row of facts.
+function foeKnow(e){
+  if(e.hp<=0||!isScouted(e))return '';
+  const lv=scoutLv(e),S=spOf(e),t=[],weak=foeWeak(e);
+  const tag=(txt,col,tip,cls)=>`<span class="utag ${cls||''}" ${col?`style="color:${col}"`:''} data-tip="${esc(tip)}">${txt}</span>`;
+  t.push(tag(`${lv}/4`,'#cfc6b0',`Knowledge ${lv}/4 (${SCOUT_LV.slice(1,lv+1).join(', ')}).${lv<4?` Next: ${SCOUT_LV[lv+1]}. Keep scouting or fighting it to reveal more.`:' Fully scouted.'}`,'kn'));
+  if(weak)t.push(tag(`weak: ${cap(weak)}`,EL_COL[weak],`Weak to ${cap(weak)}: takes 1.5× damage from it.`));
+  if(e.eva)t.push(tag(`eva ${e.eva}%`,'#cfc6b0',`${e.eva}% chance to dodge attacks.`,'xtra'));
+  if(lv>=2){for(const x of ALL_EL.filter(x=>(e.res[x]||0)>=20).sort((a,b)=>e.res[b]-e.res[a]))t.push(tag(`${EL_ABBR[x]} ${e.res[x]}%`,EL_COL[x],`Resists ${cap(x)}: takes ${e.res[x]}% less ${cap(x)} damage.`,'res'));
+    t.push(tag(`spd ${Math.round(e.spd)}`,'#cfc6b0',`Speed ${Math.round(e.spd)}. Hits ${mixText(foeMix(e,'attack'))}.`,'xtra'))}
+  if(lv>=3)for(const k of e.skills)t.push(tag(FOE_SKILLS[k].n,'#e0a86c',FOE_SKILLS[k].n+': '+FOE_SKILLS[k].d,'xtra'));
+  if(lv>=4&&S)t.push(tag(HABIT_N[S[2]],'#8fd3ff',HABIT[S[2]],'xtra'));
+  return `<div class="uknow">${t.join('')}</div>`;
+}
+const HABIT_N={front:'hits front',weak:'hunts weakest',back:'hits back line',fixate:'fixates'};
 /* Damage, healing and misses stay on screen until the player's next move, so nothing is missed during enemy turns. */
 // Every popup also makes a sound: hits carry their element, crits ring, misses whoosh, heals chime.
 function popSounds(b){
@@ -6133,11 +6166,12 @@ function foeInfo(e){
       <div class="ubar hp" data-tip="${esc(dead?'Defeated.':seeFoeNumbers()?`Health: ${e.hp} of ${e.maxHp}.`:'Health. Exact numbers need more party Perception.')}"><i style="width:${clamp(e.hp/e.maxHp*100,0,100)}%"></i><span>${dead?'dead':seeFoeNumbers()?`HP ${e.hp}/${e.maxHp}`:''}</span></div>
       <div class="urow3">${charge}${cond.length?`<span class="uconds">${cond.join('')}</span>`:''}</div>
       <div class="uintentrow">${dead?'&nbsp;':intentHtml(e)||'&nbsp;'}</div>
+      ${foeKnow(e)}
       <div class="utags">${tags.join('')}</div>`;
 }
 const KIND_TIP={elite:'Elite: a tougher, mutated version of a normal monster. More health and damage, better loot.',mimic:'Mimic: a treasure chest with teeth. Hits hard; kill it for the loot it was hiding.',boss:'Major boss: a champion of this land, far stronger than normal monsters. Guards the best loot. Beating one also helps darken the moon.',warden:'Warden: the final boss of this adventure. Beat it to finish the adventure and earn its badge. Stuns only last 1 turn on it, and Coup de Grâce can’t finish it.',king:'The Unlit King: the source of the smoke. The last fight of the game.'};
 const heroTip=h=>`${h.name} · Lv ${h.level} ${C_(h).name}. Armor ${armor(h)} · evasion ${Math.round(evasion(h))}% · speed ${Math.round(speed(h))} · crit ${Math.round(critChance(h))}%.`;
-const foeTip=e=>isScouted(e)?`${e.name} · ${TIER_N[e.tier]} · Lv ${Math.round(e.lvl)} ${cap(e.type)}. Speed ${Math.round(e.spd)}. Hits ${mixText(foeMix(e,'attack'))}; armor stops the physical part, resistance the rest. Every third attack is a crushing blow (1.6× damage, more physical).${e.skills.length?' Skills: '+e.skills.map(k=>FOE_SKILLS[k].n+' ('+FOE_SKILLS[k].d+')').join(' '):''}`:`${e.name} · ${TIER_N[e.tier]} · Lv ${Math.round(e.lvl)}. Not scouted yet: better Perception reads enemies and adds them to the Moon Ledger.`;
+const foeTip=e=>isScouted(e)?`${e.name} · ${TIER_N[e.tier]} · Lv ${Math.round(e.lvl)} ${cap(e.type)}.${scoutLv(e)>=2?` Speed ${Math.round(e.spd)}. Hits ${mixText(foeMix(e,'attack'))}; armor stops the physical part, resistance the rest.`:''} Every third attack is a crushing blow (1.6× damage, more physical).${scoutLv(e)>=3&&e.skills.length?' Skills: '+e.skills.map(k=>FOE_SKILLS[k].n+' ('+FOE_SKILLS[k].d+')').join(' '):''}`:`${e.name} · ${TIER_N[e.tier]} · Lv ${Math.round(e.lvl)}. Not scouted yet: better Perception reads enemies and adds them to the Moon Ledger.`;
 const foeTargetAttrs=(e,i)=>e.hp<=0||state.run.battle.over||(frontOnly()&&aliveFoes()[0]!==e)?'':`data-a="target" data-x="${i}" role="button" tabindex="0"`;
 const wuCls=id=>{const w=state.run.battle.windup;if(!w)return '';return w.u===id?(w.foe?'wind-l':'wind-r')+(w.heavy?' heavy':''):w.tg.includes(id)?'aimed':''};
 /* ---------- skill animations ----------
@@ -6280,7 +6314,7 @@ function actBar(){
   const effOf=el=>{const m=heroMatch(h,el,tgt.type),res=el==='physical'?0:tgt.res[el];return m*(1-res/100)*(el==='physical'?1:1+aff(h,'dmg_'+el)/100)};
   const known=isScouted(tgt);
   const odds=o=>{const el=atkEl(h,o.el),[lo,hi]=dmgRange(h,o,el);return `${el!=='physical'?elIco(el):''}<b>${lo}–${hi}</b>${o.hits>1?' ×'+o.hits:''} dmg · ${known||o.sure?Math.round(hitChance(h,tgt,o.acc,o.sure)):'?'}% hit · ${Math.round(critFor(h,o))}% crit`};
-  let s=`<div class="acthead"><b class="gold">${esc(h.name)}’s turn</b><button class="btn small ${b.auto?'on':''}" data-a="auto">Auto ${b.auto?'on':'off'}</button>${living().length>1?`<button class="btn small" data-a="moveOpen" data-tip="Step one place forward or back in the line. Uses the turn.">Move</button>`:''}<span class="tinfo">Target <b>${esc(tgt.name)}</b> <span class="muted">(tap a monster to change)</span>: ${foeBrief(tgt)}${h.cls==='warrior'&&aliveFoes().length>1?' <span class="muted">· Warriors can only reach the front line; Cleave also hits the enemy next to it, and only Earthshatter reaches the backh them all.</span>':''}</span></div>`;
+  let s=`<div class="acthead"><b class="gold">${esc(h.name)}’s turn</b><button class="btn small ${b.auto?'on':''}" data-a="auto">Auto ${b.auto?'on':'off'}</button>${living().length>1?`<button class="btn small" data-a="moveOpen" data-tip="Step one place forward or back in the line. Uses the turn.">Move</button>`:''}<span class="tinfo">Target <b>${esc(tgt.name)}</b> <span class="muted">(tap a monster to change)</span>: ${foeBrief(tgt)}${h.cls==='warrior'&&aliveFoes().length>1?' <span class="muted">· Warriors can only reach the front line; Cleave also hits the enemy next to it, and only Earthshatter reaches them all.</span>':''}</span></div>`;
   if(b.pending==='move'){const L=living(),i=L.indexOf(h);return s+`<p class="gold">Move ${esc(h.name)} (uses the turn)</p><div class="skgrid">${(()=>{const at=j=>{const F=posFxAt(h.cls,j,L.length);return F?` · <span class="${F.good?'posgood':'posbad'}">${F.n}</span>`:''};
     return `<button class="btn" data-a="moveGo" data-x="b" ${i>=L.length-1?'disabled':''}><span>◀ Back</span><span class="sub2">${i<L.length-1?'swap with '+esc(L[i+1].name)+at(i+1):'already at the back'}</span></button><button class="btn" data-a="moveGo" data-x="f" ${i<=0?'disabled':''}><span>Forward ▶</span><span class="sub2">${i>0?'swap with '+esc(L[i-1].name)+at(i-1):'already in front'}</span></button>`})()}<button class="btn" data-a="cancelCast">Cancel</button></div>`}
   if(b.pending){const nm=SKILLS[b.pending]?SKILLS[b.pending].n:CONSUMABLES[b.pending.slice(5)].n;
@@ -7190,7 +7224,7 @@ const ACT={
   inv:()=>{ui.inv=true;ui.invSel=null;ui.drawer=null},
   invClose:()=>{ui.inv=false;ui.invSel=null},
   invF:k=>{ui.invF=k},
-  setLook:x=>{const [id,k,j]=x.split('|'),h=heroById(id);if(!h||!['cw','skin','hair'].includes(k))return;heroLook(h);const max={cw:COLORWAYS,skin:H_SKIN,hair:H_HAIR}[k].length;h.look[k]=clamp(+j||0,0,max-1)},
+  setLook:x=>{const [id,k,j]=x.split('|'),h=heroById(id);if(!h||k!=='cw')return;heroLook(h);const max=COLORWAYS.length;h.look[k]=clamp(+j||0,0,max-1)},
   merchBuy:id=>{const E=townEv();if(!E||E.ev!=='merchant')return;const it=(E.stock||[]).find(x=>x.id===id);if(!it)return;const pc=merchPrice(it);if(state.gold<pc||state.bank.length>=bankCap())return;state.gold-=pc;state.bank.push(it);E.stock=E.stock.filter(x=>x!==it);sfx('coin')},
   pilgrimGift:()=>{const E=townEv();if(!E||E.ev!=='pilgrims'||E.claimed)return;E.claimed=true;state.items.potion=(state.items.potion||0)+2;state.scrolls=(state.scrolls||0)+1;sfx('loot')},
   bankF:k=>{state.sel.bankF=k},
