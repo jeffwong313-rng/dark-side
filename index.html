@@ -2220,6 +2220,8 @@ const SKELETONS={
 // The Dark Side's void bosses, in order: one on every 15th stage. phys = the physical share of every hit;
 // the rest is a random element (fire, ice, thunder, grass, fighting or dark), rolled again before every attack.
 // The Cave's final boss is one of three beasts, picked when the party sets out. hp/atk scale a normal warden; spd adds speed.
+// The Summit's Gatekeeper: a first, veiled look at what waits on the Dark Side.
+const GATEKEEPER='The Gatekeeper';
 const CAVE_BEASTS={
   'The Cave Bear':{d:'cbear',hp:1.4,atk:1,spd:-2,style:null,skills:['relentless','rend'],sp:['thick',15,'front','Thick Hide'],
     pal:{A:'#6a4a30',a:'#4a3220',M:'#a07a58',D:{c:'#120c08',flat:true},E:{c:'#ffcf5a',flat:true},w:'#f0e6d4',k0:'#1e140c'},
@@ -2235,7 +2237,7 @@ const VOID_BOSSES=[
   {n:'The Hollow Maw',d:'vmaw',phys:.4,sp:['leech',25,'weak','Devour'],pal:{E:{c:'#ff4ab0',flat:true}}},
   {n:'The Lantern Wraith',d:'vlantern',phys:.2,sp:['skin',25,'back','Borrowed Light'],pal:{C:{c:'#9fd6ff',flat:true},G:{c:'#e8faff',flat:true},E:{c:'#9fd6ff',flat:true}}},
   {n:'The Thousand-Eyed',d:'veyes',phys:.35,sp:['keen',20,'weak','Seen Everything'],pal:{E:{c:'#ff7a3a',flat:true}}},
-  {n:'The Gatekeeper',d:'vgate',phys:.6,sp:['thick',30,'front','Iron Vigil'],pal:{C:{c:'#7fe9ff',flat:true},E:{c:'#7fe9ff',flat:true}}},
+  {n:'The Bastion',d:'vgate',phys:.6,sp:['thick',30,'front','Iron Vigil'],pal:{C:{c:'#7fe9ff',flat:true},E:{c:'#7fe9ff',flat:true}}},
   {n:'The Hollow Choir',d:'vchoir',phys:.25,sp:['regen',4,'back','Endless Hymn'],pal:{E:{c:'#ffe05a',flat:true}}},
   {n:'The Crowned Shadow',d:'vherald',phys:.5,sp:['crusher',2.3,'fixate','Herald’s Verdict'],pal:{G:'#c8a040',E:{c:'#ff3a5a',flat:true}}},
 ];
@@ -2360,6 +2362,20 @@ const BOSS_DRAW={
     // the crown of bone floats on the void, then settles onto his head as a ring of smoke
     if(ph<3){const ky=cy-R[1]+6,kw=7-ph;g.rect(cx-kw,ky,kw*2+1,2,'G');for(let k=0;k<=kw;k+=2){g.poly([[cx-kw+k*2-1,ky],[cx-kw+k*2,ky-4-(k%4?0:2)],[cx-kw+k*2+1,ky]],'G')}}
     else{g.rect(cx-4,hy-5,9,1,'K');for(const dx of [-4,-1,2,4])g.px(cx+dx,hy-6,'K');g.px(cx,hy-6,'E')}},
+  // ---- The Summit's Gatekeeper: stone arch behind, a tall shape wrapped in drifting smoke, void light leaking through ----
+  gkeep:(g,fr)=>{const atk=fr===2,hurt=fr===3,by=fr===1?1:0,cx=21+(atk?-2:hurt?2:0);
+    const hs=(x,y)=>{const v=Math.sin(x*12.9898+y*78.233)*43758.5453;return v-Math.floor(v)};
+    g.rect(2,10,5,28,'S');g.rect(33,10,5,28,'S');for(let x=2;x<=37;x++){const t=(x-19.5)/17.5,y=Math.round(10-Math.sqrt(Math.max(0,1-t*t))*8);g.rect(x,y,1,3,'S')}
+    g.paint((x,y)=>(x+y*3)%7===0,'S','s');
+    g.poly([[cx-7,7+by],[cx+7,7+by],[cx+11,38],[cx-11,38]],'A');g.ell(cx,8+by,6,6,'A');
+    g.line(cx+2,10+by,cx+5,30+by,'C');g.line(cx-3,14+by,cx-6,26+by,'C');g.px(cx+1,20+by,'C');
+    if(!hurt){g.px(cx-2,7+by,'E');g.px(cx+2,7+by,'E')}else{g.px(cx-2,7+by,'k0');g.px(cx+2,7+by,'k0')}
+    const hx=atk?cx-16:cx-12,hy=atk?13+by:21+by;g.line(cx-6,14+by,hx,hy,'A',0,3);
+    g.line(hx,hy,hx,hy+(atk?-9:12),'M',0,2);g.ell(hx,hy+(atk?-10:13),2.4,2.4,'M');g.ell(hx,hy+(atk?-10:13),1,1,'D');g.rect(hx+1,hy+(atk?-5:6),3,1,'m');g.rect(hx+1,hy+(atk?-3:8),2,1,'m');
+    // smoke: drifting blobs that hide most of the figure (they shift every frame)
+    for(let k=0;k<14;k++){const x=cx-10+hs(k,3)*20+Math.sin(fr*1.3+k)*1.6,y=4+hs(k,7)*32,r=2.2+hs(k,5)*3.4;g.ell(x,y,r,r*.8,k%3?'V':'W')}
+    g.paint((x,y)=>hs(x,y+fr)<.06,'A','V');
+    if(!hurt){g.px(cx-2,7+by,'E');g.px(cx+2,7+by,'E')}},
   // ---- The Cave's three beasts (they face left, toward the heroes) ----
   cbear:(g,fr)=>{const atk=fr===2,hurt=fr===3,by=fr===1?1:0,cx=22+(atk?-3:hurt?2:0),hd=atk?2:0;
     for(const [x,m] of [[cx+10,'a'],[cx-6,'a'],[cx+5,'A'],[cx-11,'A']])g.rect(x,29,5,9,m);
@@ -2455,6 +2471,7 @@ const BOSSES={
   'The Unlit King':{d:'kingv',pal:{A:'#1c1430',a:'#110b1e',V:{c:'#5a3a8a',soft:true},E:{c:'#d090ff',flat:true},D:{c:'#06040c',flat:true},G:'#cfc4a8',K:{c:'#0a0812',flat:true},
     C:'#6a5640',c:'#4a3c2c',F:'#d6a47e',H:'#c8c8d0',B:'#b4b4bc',P:'#3a3a4a',d:'#241a14',k0:'#2a1e18'}},
   ...Object.fromEntries(Object.entries(CAVE_BEASTS).map(([n,v])=>[n,{d:v.d,pal:v.pal}])),
+  'The Gatekeeper':{d:'gkeep',pal:{S:'#5a5664',s:'#3e3a48',A:'#2a2236',a:'#1a1424',V:{c:'#4a3e5e',soft:true},W:{c:'#6a6078',soft:true},C:{c:'#b070ff',flat:true},E:{c:'#e090ff',flat:true},M:'#7a7068',m:'#4e4840',D:{c:'#06040c',flat:true},k0:'#06040c'}},
   ...Object.fromEntries(VOID_BOSSES.map(v=>[v.n,{d:v.d,pal:{A:'#251c3a',a:'#170f26',V:{c:'#5a3a8a',soft:true},D:{c:'#06040c',flat:true},w:'#d8d0e8',k0:'#06040c',M:'#3a3450',m:'#2a2440',
     K:{c:'#0a0812',flat:true},S:'#6a6080',d:'#1a1426',G:{c:'#f0d0ff',flat:true},C:{c:'#a070ff',flat:true},E:{c:'#e070ff',flat:true},...v.pal}}])),
 };
@@ -2548,7 +2565,7 @@ function portraitOf(key,frames,pal){return unitStrip('P|'+key,()=>{const r=ART.s
 const frames4=draw=>[0,1,2,3].map(draw);
 function foeStripFor(base,kind,type,small,ph){
   let key,fr,pal,sz=40;
-  if(kind==='warden'&&!CAVE_BEASTS[base]){key='W|'+type;fr=()=>frames4(f=>{const g=new ART.Grid(40,40);BOSS_DRAW.warden(g,f,type);return g});pal=wardenPal(type)}
+  if(kind==='warden'&&!CAVE_BEASTS[base]&&base!==GATEKEEPER){key='W|'+type;fr=()=>frames4(f=>{const g=new ART.Grid(40,40);BOSS_DRAW.warden(g,f,type);return g});pal=wardenPal(type)}
   else if(BOSSES[base]){const S=BOSSES[base];key='B|'+base+(ph?'|'+ph:'');fr=()=>frames4(f=>{const g=new ART.Grid(40,40);BOSS_DRAW[S.d](g,f,ph);return g});pal=S.pal}
   else{const U=UNIT_ART[base];if(!U)return null;key='U|'+base;fr=()=>frames4(f=>DRAW[U.fam](U.S,f));pal=U.S.pal;sz=32}
   return small?portraitOf(key,fr,pal):unitStrip(key,()=>({url:ART.strip(fr(),pal),w:sz,h:sz}));
@@ -3507,9 +3524,11 @@ function moonState(){
   const now=parts.reduce((a,x)=>a+x.v*x.w,0);
   // The moon never turns back, even if heroes die.
   state.moonMax=Math.max(state.moonMax||0,now);
-  return {now,shown:state.moonMax,parts};
+  return {now,shown:state.gateBeaten?100:Math.min(99,state.moonMax),parts};
 }
-const descentUnlocked=()=>moonState().shown>=99.99;
+// The Dark Side opens when the Gatekeeper at the top of the Summit is beaten. The moon fills with progress but holds at
+// 99% until then, and goes fully dark the moment the Gatekeeper falls.
+const descentUnlocked=()=>!!(state&&state.gateBeaten);
 // The moon's secret (what darkens it, and the Dark Side) stays hidden until the town sets out on a Long adventure or longer.
 const moonKnown=()=>!!(state&&state.reachedLong);
 const moonCache={};
@@ -3530,7 +3549,7 @@ function moonImg(p,scale,cls){
   }
   return `<img class="px ${cls||''}" src="${moonCache[key]}" width="${24*scale}" height="${24*scale}" alt="Moon, ${q}% dark">`;
 }
-function moonTip(){const m=moonState();if(!moonKnown())return 'The moon hangs over the town. Open the Moon Ledger to see every monster your heroes have read.';return `The moon is ${Math.round(m.shown)}% dark. ${descentUnlocked()?'The Dark Side is open at the Gate.':'When it is fully dark, something will change.'} `+m.parts.map(x=>`${x.n}: ${x.d}`).join('. ')+'.'}
+function moonTip(){const m=moonState();if(!moonKnown())return 'The moon hangs over the town. Open the Moon Ledger to see every monster your heroes have read.';return `The moon is ${Math.round(m.shown)}% dark. ${descentUnlocked()?'The Dark Side is open at the Gate.':m.shown>=99?'Almost dark. Something at the top of the Summit is holding back the last sliver of light.':'When it is fully dark, something will change.'} `+m.parts.map(x=>`${x.n}: ${x.d}`).join('. ')+'.'}
 const PARTY_HP=[1,1.6,2.2],PARTY_ATK=[1,1.1,1.2];
 const partyAll=()=>state.run.party.map(heroById).filter(Boolean);
 const living=()=>partyAll().filter(h=>h.hp>0);
@@ -3692,7 +3711,7 @@ function arrive(){
   if(!P.fog){const fc=fogChance(pp);P.fog=P.nodes.map(t=>!['boss','warden','king'].includes(t)&&chance(fc))}
   for(const k of Object.keys(r.plan))if(+k<r.stage-1)delete r.plan[k];
 }
-const nodeIco=(t,sc=3)=>t==='warden'&&state.run&&state.run.cave&&CAVE_BEASTS[state.run.cave]?foeArt({base:state.run.cave,kind:'warden',type:'physical',spr:'boss'},sc):t==='mystery'?'<span class="qm">?</span>':t==='merchant'?sprite('flask','#e3b341',sc):t==='king'?foeArt({base:'The Unlit King',kind:'king',type:'dark',spr:'boss'},sc):NODE[t].icon==='boss'?foeArt({base:BIOMES[state.run.biome].boss,kind:'boss',type:BIOMES[state.run.biome].el,spr:'boss'},sc):sprite(NODE[t].icon,null,sc);
+const nodeIco=(t,sc=3)=>t==='warden'&&state.run&&state.run.cave&&CAVE_BEASTS[state.run.cave]?foeArt({base:state.run.cave,kind:'warden',type:'physical',spr:'boss'},sc):t==='warden'&&state.run&&state.run.length==='expedition'&&!state.run.final?foeArt({base:GATEKEEPER,kind:'warden',type:'dark',spr:'boss'},sc):t==='mystery'?'<span class="qm">?</span>':t==='merchant'?sprite('flask','#e3b341',sc):t==='king'?foeArt({base:'The Unlit King',kind:'king',type:'dark',spr:'boss'},sc):NODE[t].icon==='boss'?foeArt({base:BIOMES[state.run.biome].boss,kind:'boss',type:BIOMES[state.run.biome].el,spr:'boss'},sc):sprite(NODE[t].icon,null,sc);
 // What the party's current Perception does right now (nothing about higher tiers).
 function perNow(pp){
   const sight=sightRange(pp),base=lenBase().per,parts=[`Party Perception ${partyPer()} (everyone's Perception added together)${base?`. This land is harder to read: the first ${base} points only get you started, leaving ${pp} to work with`:''}.`];
@@ -3888,6 +3907,7 @@ const SPECIES={
   'Mimic':['opener',60,'weak','Snap Shut'],'The Unlit King':['pack',10,'front','Lord of the Unlit'],
   ...Object.fromEntries(VOID_BOSSES.map(v=>[v.n,v.sp])),
   ...Object.fromEntries(Object.entries(CAVE_BEASTS).map(([n,v])=>[n,v.sp])),
+  'The Gatekeeper':['skin',20,'front','Veil of Smoke'],
 };
 const ABIL={
   pack:v=>`Deals ${v}% more damage for every other monster still standing beside it.`,
@@ -3956,6 +3976,7 @@ function makeEnemy0(kind,add,forceSpr){
   let lvl=enemyLevel(),name,spr,type=r.final?'dark':B.el;
   if(kind==='king'){name='The Unlit King';spr='boss';type='dark';lvl+=5}
   else if(kind==='boss'){name=r.final?VOID_BOSSES[clamp(Math.floor(r.stage/15)-1,0,VOID_BOSSES.length-1)].n:B.boss;spr='boss'}
+  else if(kind==='warden'&&r.length==='expedition'&&!r.final){name='The Gatekeeper';spr='boss'}
   else if(kind==='warden'){if(r.length==='short'&&!r.final){r.cave=r.cave&&CAVE_BEASTS[r.cave]?r.cave:pick(Object.keys(CAVE_BEASTS));name=r.cave}else name='Warden of '+B.name.replace(/^The /,'');spr='boss'}
   else if(kind==='mimic'){name='Mimic';spr='mimic';type='physical'}
   else [name,spr]=forceSpr?(B.mons.find(m=>m[1]===forceSpr)||pick(B.mons)):pick(B.mons);
@@ -3986,7 +4007,7 @@ function makeEnemy0(kind,add,forceSpr){
   const CB=CAVE_BEASTS[name];
   if(CB){hp=Math.max(1,Math.round(hp*CB.hp));atk*=CB.atk}
   const bossType=CB?CB.style:kind==='warden'?pick(['charge','scale']):null,relSk=bossType==='scale'?['relentless']:[];
-  return {name,base,tier,spr,kind,type,bossType,rage:0,voidPhys:VOID_N[name]?VOID_N[name].phys:undefined,mix:foeMixFor(spr,kind,type,r.final,rng),lvl:Math.round(lvl*10)/10,hp,maxHp:hp,atk,armor:Math.round(lvl*2*(F.arm||1)),res,baseRes,mutation,spd:10+lvl+(F.spd||0)+(CB?CB.spd:0),spdBonus:(F.spd||0)+(CB?CB.spd:0),unleashX:CB&&CB.unleash||undefined,chargeN:CB&&CB.chargeN||undefined,eva,skills:CB?CB.skills.slice():foeSkillsFor(spr,kind,tier,type).concat(relSk,kind!=='warden'&&kind!=='king'&&chance(1/3)?['weary']:[])};
+  return {name,base,tier,spr,kind,type,bossType,rage:0,voidPhys:VOID_N[name]?VOID_N[name].phys:name==='The Gatekeeper'?.5:undefined,mix:foeMixFor(spr,kind,type,r.final,rng),lvl:Math.round(lvl*10)/10,hp,maxHp:hp,atk,armor:Math.round(lvl*2*(F.arm||1)),res,baseRes,mutation,spd:10+lvl+(F.spd||0)+(CB?CB.spd:0),spdBonus:(F.spd||0)+(CB?CB.spd:0),unleashX:CB&&CB.unleash||undefined,chargeN:CB&&CB.chargeN||undefined,eva,skills:CB?CB.skills.slice():foeSkillsFor(spr,kind,tier,type).concat(relSk,kind!=='warden'&&kind!=='king'&&chance(1/3)?['weary']:[])};
 }
 /* Mixed damage: every monster hits with part physical force and part element.
    Armor fully blocks the physical part; the elemental part is cut by resistance and by half of the armor. */
@@ -4040,6 +4061,7 @@ function startBattle(kind){
     ct:{},cur:null,guard:{},taunt:null,warcry:null,attune:{},wards:{},surge:{},pending:null,dot:{},curse:{},howl:null};
   const lead=lead0;
   if(kind==='boss'||kind==='warden'||kind==='king')sfx('boss');
+  if(lead.base===GATEKEEPER)blog(`<b class="warn">At the very top of the world stands an old stone arch, and something stands in it. It is made of smoke and stone and does not breathe. Behind it, past the arch, something is watching.</b>`);
   if(kind==='king')blog(`<b class="warn">The torches die. The Unlit King rises from his throne of ash, flanked by his knights.</b>`);
   else blog(`${kind==='boss'?'A major boss appears: ':''}${lead.name} (Lv ${Math.round(lead.lvl)}) blocks the path${es.length>1?`, with ${es.length-1} more behind it`:''}.`);
   if(lead.mutation)blog(`Mutation: ${MUT[lead.mutation].n}, ${MUT[lead.mutation].d}.`);
@@ -4747,6 +4769,7 @@ function win(){
     if(e.kind==='boss'){chestTier='boss';e.drop.push({k:'chest',tier:'boss'});state.bossKills=(state.bossKills||0)+1}
     if(e.kind==='warden'){chestTier='final';e.drop.push({k:'chest',tier:'final'})}
     if(e.kind==='king'){drops.push(['king',e],['boss',e],['boss',e]);r.kingSlain=true}
+    if(e.kind==='warden'&&e.base===GATEKEEPER&&!state.gateBeaten){state.gateBeaten=true;b.gateFell=true}
     sc=Math.max(sc,SCROLL_DROP[e.kind]||0);
   }
   b.extraDrops=[];
@@ -4780,6 +4803,7 @@ function win(){
   b.rewards=lines;b.lootFresh=true;
   // Let the last blow, the falling monsters and the loot flying into the backpack play out before the results pop up.
   if(!window.__instant&&set.motion){b.revealAt=Date.now()+1700;setTimeout(()=>{if(state.run&&state.run.battle===b)render()},1750)}
+  if(b.gateFell)blog('<b class="gold">The Gatekeeper comes apart into smoke. It pours away down the far side of the mountain, toward the moon’s shadow, and the last sliver of moonlight goes out.</b>');
   blog(r.kingSlain?'<b class="gold">The Unlit King is dead.</b>':b.enemies.length>1?'The pack is broken.':`${b.enemies[0].name} is slain.`);
 }
 function lose(){const b=state.run.battle;b.over='lose';sfx('defeat',null,.3);blog(`<span class="warn">${partyAll().length>1?'The whole party has fallen.':'No one is left standing.'}</span>`);seizePack()}
@@ -5438,7 +5462,7 @@ const STORY=[
   {id:'lantern',n:'The Lantern',when:()=>storyCleared('expedition'),
     t:()=>`At the edge of the world, where the land turns to black glass, my heroes find his lantern, still burning. Footprints lead off into the moon’s shadow and do not come back. Whatever he found there, he never returned. It falls to me now.`},
   {id:'rift',n:'The Dark Side Opens',when:()=>descentUnlocked(),
-    t:()=>`Tonight the moon went fully dark. Beyond the gate a road that was not there yesterday runs down into shadow: the Dark Side. The Unlit King waits at its end. I’ll send my three best.`},
+    t:()=>`The Gatekeeper is gone, and tonight the moon went fully dark. Beyond the old arch at the Summit a road that was not there yesterday runs down into shadow: the Dark Side. The Unlit King waits at its end. I’ll send my three best.`},
   {id:'dawn',n:'Dawn',when:()=>state.won,
     t:()=>`The Unlit King is dead. My heroes came home quiet. At the end, they say, the smoke burned away and there was only an old man in a mended coat, wearing my father’s face. Whatever the King was, it had worn him a long time. For the first time in years the smoke lifts, and the moon slowly turns back toward the light. Someone rings the old bell in the square. My father stood at the gate so the town could live. I went to the Dark Side so it could have a future.`},
 ];
@@ -6561,6 +6585,7 @@ function ledgerSections(){
     rows.push({base:B.boss,spr:'boss',type:B.el,kind:'boss'},{base:'Warden of '+B.name.replace(/^The /,''),spr:'boss',type:B.el,kind:'warden'});
     out.push({key:bk,name:B.name,el:B.el,rows});
   }
+  out.push({key:'summit',name:'The Summit',rows:[{base:GATEKEEPER,spr:'boss',type:'dark',kind:'warden',tiers:['medium','hard']}]});
   out.push({key:'cave',name:'The Cave',rows:Object.keys(CAVE_BEASTS).map(n=>({base:n,spr:'boss',type:'physical',kind:'warden',tiers:['easy']}))});
   if(descentUnlocked())out.push({key:'void',name:'The Dark Side',el:'dark',rows:VOID_BOSSES.map(v=>({base:v.n,spr:'boss',type:'dark',kind:'boss',tiers:['hard']}))});
   out.push({key:'other',name:'Anywhere',rows:[{base:'Mimic',spr:'mimic',type:'physical',kind:'mimic'},...(descentUnlocked()?[{base:'The Unlit King',spr:'boss',type:'dark',kind:'king',tiers:['hard']}]:[])]});
@@ -7762,6 +7787,7 @@ function start(d){
   // Opening the game always lands on the main menu; Continue picks up exactly where you left off.
   // With no save yet, nothing is written until the player starts a new town.
   if(!booted){booted=true;if(!hot){ui.menu=true;if(!had)ui.erased=ui.slot||1}}
+  if(!state.gateBeaten&&(state.moonMax||0)>=99.99)state.gateBeaten=true;
   for(const h of [...state.heroes,...state.candidates]){h.traits=h.traits||[];while(h.traits.length<traitSlots(h.level||1))h.traits.push(rollTrait(h.traits,null,h.cls))}
   {const all=[...state.bank,...state.heroes.flatMap(h=>Object.values(h.gear||{})),...(state.hunted||[]).map(x=>x.it),...((state.run&&state.run.loot)||[])].filter(Boolean);
    for(const x of [...((state.market&&state.market.items)||[]),...((state.town&&state.town.stock)||[])])if(x&&x.slot)all.push(x);
