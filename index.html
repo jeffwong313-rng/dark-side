@@ -140,6 +140,8 @@ input[type=text]{font:inherit;font-size:24px;background:var(--stone);color:var(-
 .blogpanel.czlog>p{display:none}
 :is(body.dev-phone,body.lay-stack,body.lay-side) .herosheet .cz.shut>.czb{display:block!important}
 :is(body.dev-phone,body.lay-stack,body.lay-side) .herosheet .czmini>.czhd{display:none}
+.dropact{display:flex;flex-direction:column;gap:4px;padding:6px 8px;background:#15121a;box-shadow:inset 0 0 0 2px var(--edge)}
+.dropact .cmp{font-size:15px}
 .btn.helpq{min-width:40px;font-size:22px;font-weight:bold;color:#1a1208!important;background:linear-gradient(#ffd86a,#c8962a)!important;box-shadow:inset 0 0 0 2px #7a5420,0 0 10px #e3b34155!important}
 .btn.helpq.on{background:#1a1208!important;color:var(--gold)!important;box-shadow:inset 0 0 0 2px var(--gold),0 0 14px #e3b341aa!important;animation:glow 1.2s steps(2) infinite}
 .inspbar{position:fixed;left:50%;top:6px;transform:translateX(-50%);z-index:90;background:#2a2214;color:var(--gold);padding:6px 14px;box-shadow:0 0 0 2px #060509,inset 0 0 0 2px var(--gold);font-size:18px;white-space:nowrap;pointer-events:none}
@@ -4947,7 +4949,7 @@ function chestScene(){
   return html;
 }
 function chooseNode(i){
-  const r=state.run;if(r.event||r.battle||!(r.reach||[]).includes(+i))return;r.pos=+i;r.fatMsg=null;
+  const r=state.run;if(r.event||r.battle||!(r.reach||[]).includes(+i))return;r.pos=+i;r.fatMsg=null;r.invNote=null;
   const t=r.nodes[+i],s=r.stage,h=runHero(),L=living();
   if(['battle','elite','boss','warden','king'].includes(t)){startBattle(t==='battle'?'normal':t);return}
   if(t==='chest'){
@@ -6295,7 +6297,7 @@ function runView(){
   let prog='';if(r.final)for(let i=1;i<=cells;i++){const boss=i%15===0;prog+=`<i class="${i<r.stage?'done':i===r.stage?'now':''} ${boss?'boss':''}"></i>`}
   let s=`<section class="panel runhdr" style="--s1:${B.s[0]};--s2:${B.s[1]}"><div class="rh-row"><div class="rh-party">${lineup(P).map(({h})=>`<span class="fo ${h.hp<=0?'dead':''}">${heroArt(h,3,h.hp>0?'bob':'')}</span>`).join('')}</div>
     <div class="stack" style="gap:0;min-width:0;flex:1"><h2>${r.final?'The Dark Side · ':''}${B.name}</h2><span class="muted" style="font-size:18px">${stageText(r)}</span>${runModTags(r)?`<span class="lmodrow">${runModTags(r)}</span>`:''}</div>
-    <div class="res">${helpBtn()}<span class="chip" data-tip="Gold carried">${sprite('coin',null,2)}<b class="num">${r.gold}</b></span><span class="chip" data-tip="Backpack">${sprite('chest',null,2)}<b class="num">${r.loot.length}/${bagCap()}</b></span><span class="chip" data-tip="Return Scrolls">${sprite('scroll',null,2)}<b class="num">${r.scrolls}</b></span><button class="btn small ${(r.ground||[]).length?'guide':''}" data-a="inv" data-tip="Gear, backpack and anything on the ground">Inventory</button><button class="btn small partybtn ${partyAll().some(x=>x.hp>0&&x.points)&&ui.drawer!=='party'?'guide':''}" data-a="drawer" data-x="party" ${partyAll().some(x=>x.hp>0&&x.points)?'data-tip="Level up! Open the party to spend attribute points."':''}>Party</button>${fleeBtn('small red')}</div></div>${scrapStrip(r.mats,'Scrap gathered this trip. It comes home if the party returns or flees, and is lost if everyone falls.')}
+    <div class="res"><span class="chip" data-tip="Gold carried">${sprite('coin',null,2)}<b class="num">${r.gold}</b></span><span class="chip" data-tip="Backpack">${sprite('chest',null,2)}<b class="num">${r.loot.length}/${bagCap()}</b></span><span class="chip" data-tip="Return Scrolls">${sprite('scroll',null,2)}<b class="num">${r.scrolls}</b></span><button class="btn small ${(r.ground||[]).length?'guide':''}" data-a="inv" data-tip="Gear, backpack and anything on the ground">Inventory</button><button class="btn small partybtn ${partyAll().some(x=>x.hp>0&&x.points)&&ui.drawer!=='party'?'guide':''}" data-a="drawer" data-x="party" ${partyAll().some(x=>x.hp>0&&x.points)?'data-tip="Level up! Open the party to spend attribute points."':''}>Party</button>${fleeBtn('small red')}</div></div>${scrapStrip(r.mats,'Scrap gathered this trip. It comes home if the party returns or flees, and is lost if everyone falls.')}
     ${r.final?`<div class="prog" title="Red marks are bosses">${prog}</div>`:''}</section>`;
   s+=`<div class="runlay"><section class="panel">${r.event?eventView():nodesView()}</section><aside class="panel partycol">${partyPanel()}</aside></div>`;
   if(ui.drawer==='party')s+=`<div class="drawer fx"><div class="drawer-top"><h2>Party</h2><button class="xbtn" data-a="drawer" data-x="" aria-label="Close">×</button></div><div class="drawgrid">${partyPanel()}</div></div>`;
@@ -6522,11 +6524,25 @@ function lootStrip(){
   const gold=all.filter(x=>x.k==='gold').reduce((a,x)=>a+x.g,0),rest=all.filter(x=>x.k!=='gold');
   return `<div class="lootstrip">${[{k:'gold',g:gold},...rest].map((x,i)=>`<span class="lt-wrap ${b.lootFresh?'fresh':''}" style="animation-delay:${i*.15}s">${lootTile(x)}</span>`).join('')}</div>`;
 }
+// Gear that just dropped (from a fight or a chest): each piece with a quick comparison and one-tap actions.
+// Items still in the backpack or on the ground are listed; anything already equipped or dropped drops off the list.
+function dropActions(items){
+  const r=state.run;if(!r)return '';const cap=bagCap(),G=r.ground||[];
+  const L=(items||[]).filter(it=>it&&(r.loot.includes(it)||G.includes(it)));if(!L.length)return '';
+  const H=living(),many=H.length>1;
+  return `<div class="stack dropacts" style="gap:6px">${L.map(it=>{const ground=G.includes(it),who=H.filter(h=>!it.cls||it.cls===h.cls),up=upgradeFor(it);
+    const eq=who.map(h=>`<button class="btn small gold ${up.includes(h)?'guide':''}" data-a="lootEquip" data-x="${it.id}|${h.id}">Equip${many?' on '+esc(h.name):''}${up.includes(h)?' ▲':''}</button>`).join('');
+    const keep=ground?`<button class="btn small" data-a="bpTake" data-x="${it.id}" ${r.loot.length>=cap?'disabled':''}>Take${r.loot.length>=cap?' (pack full)':''}</button>`:it.rarity==='perfect'?'':`<button class="btn small" data-a="bpDrop" data-x="${it.id}">Drop</button>`;
+    return `<div class="dropact r-${it.rarity}-b">
+      <div class="row" style="gap:8px;flex-wrap:nowrap;align-items:center">${itemIcon(it,2)}<span class="stack" style="gap:0;min-width:0"><span class="iname">${itemName(it)}</span><span class="meta">${RAR[it.rarity].l} ${SLOTN[it.slot]}${it.cls?' · '+C_({cls:it.cls}).name:''}${ground?' · <span class="warn">on the ground</span>':' · in backpack'}</span></span></div>
+      ${who.map(h=>itemCompare(it,h)).join('')}${who.length?'':`<span class="meta">No one in the party can wear this. Worth ${sellVal(it)} gold in town.</span>`}
+      <div class="row" style="gap:6px">${eq}${keep}</div></div>`}).join('')}</div>`;
+}
+const battleDrops=()=>{const b=state.run&&state.run.battle;if(!b)return [];return [...b.enemies.flatMap(e=>e.drop||[]),...(b.extraDrops||[])].filter(x=>x.k==='item').map(x=>x.it)};
 function resultModal(){
   const r=state.run,b=r.battle,P=partyAll();
-  if(b.over==='win')return modalShell(`<span class="gold">${r.kingSlain?'The King is dead':'Victory'}</span>`,`<h3>Loot</h3>${lootStrip()}<details class="rewards" open><summary class="muted">Full report (XP, levels, materials)</summary><div class="stack" style="gap:3px">${b.rewards.map(l=>`<p>${l}</p>`).join('')}</div></details>
-    ${(r.ground||[]).length?`<div class="row"><span class="warn">Backpack full: ${r.ground.length} item${r.ground.length>1?'s':''} on the ground.</span><button class="btn small gold" data-a="inv">Open inventory</button></div>`:''}
-    <div class="row"><button class="btn gold" data-a="cont">${r.pendingChest?'Open the chest':r.kingSlain?'Return to town':(!r.final&&r.stage>=r.total)?'Head home':'Continue'}</button></div>`,'hideResult','summary');
+  if(b.over==='win')return modalShell(`<span class="gold">${r.kingSlain?'The King is dead':'Victory'}</span>`,`${r.invNote?`<p class="gold" style="font-size:18px">${r.invNote}</p>`:''}<h3>Loot</h3>${lootStrip()}${(()=>{const d=dropActions(battleDrops());return d?`<h3>Gear</h3>${d}`:''})()}<details class="rewards"><summary class="muted">Full report (XP, levels, materials)</summary><div class="stack" style="gap:3px">${b.rewards.map(l=>`<p>${l}</p>`).join('')}</div></details>
+    <div class="row"><button class="btn small" data-a="inv">Open inventory</button><button class="btn gold" data-a="cont">${r.pendingChest?'Open the chest':r.kingSlain?'Return to town':(!r.final&&r.stage>=r.total)?'Head home':'Continue'}</button></div>`,'hideResult','summary');
   return modalShell(`<span class="warn">${P.length>1?'The party has fallen':esc(P[0].name)+' has fallen'}</span>`,`<p class="muted">Their gear, ${r.gold} gold, and ${r.loot.length} looted item${r.loot.length===1?'':'s'} are lost.</p><div class="row"><button class="btn red" data-a="fallen">Bury them</button></div>`,'hideResult','summary dead');
 }
 // The King's void burns away as he weakens. Each step down tells a little more of who is inside.
@@ -6612,7 +6628,7 @@ function eventView(){
   const wf=!!(ev.wheel&&ev.wheel.fresh),wheel=ev.mystery==='wheel'||ev.wheel?wheelHtml(ev):'';
   const last=!state.run.final&&state.run.stage>=state.run.total;
   if(ev.shop)return `<div class="row" style="gap:12px;flex-wrap:nowrap;align-items:flex-start"><span class="portrait">${sprite('flask','#e3b341',5,'bob')}</span><div class="stack" style="gap:6px"><h2>${ev.title}</h2><p>${ev.text}</p></div></div>${shopView(ev)}<div class="row"><button class="btn gold" data-a="cont">Move on</button></div>`;
-  if(ev.chest)return `<h2>${ev.chest.opened?'The chest is open':(CHEST_TIER[ev.chest.tier]||CHEST_TIER.map).n}</h2>${chestScene()}${ev.chest.opened?`<p>${ev.text}</p>${(state.run.ground||[]).length?`<div class="row"><span class="warn">Backpack full: some gear is on the ground.</span><button class="btn small gold" data-a="inv">Open inventory</button></div>`:''}<div class="row"><button class="btn gold" data-a="cont">${last?'Head home':'Continue'}</button></div>`:'<p class="muted">Old iron bands, a heavy lid. Open it to see what spills out.</p>'}`;
+  if(ev.chest)return `<h2>${ev.chest.opened?'The chest is open':(CHEST_TIER[ev.chest.tier]||CHEST_TIER.map).n}</h2>${chestScene()}${ev.chest.opened?`<p>${ev.text}</p>${state.run.invNote?`<p class="gold" style="font-size:18px">${state.run.invNote}</p>`:''}${dropActions((ev.chest.got||[]).filter(x=>x.k==='item').map(x=>x.it))}<div class="row"><button class="btn gold" data-a="cont">${last?'Head home':'Continue'}</button></div>`:'<p class="muted">Old iron bands, a heavy lid. Open it to see what spills out.</p>'}`;
   return `<div class="row" style="gap:12px;flex-wrap:nowrap;align-items:flex-start">${ev.approach?`<span class="approach"><span class="afar">${foeArt({base:BIOMES[state.run.biome].boss,kind:'boss',type:BIOMES[state.run.biome].el,spr:'boss'},5,'bob')}</span><span class="portrait">${sprite('camp',null,5,'bob')}</span></span>`:ev.icon?`<span class="portrait">${sprite(ev.icon,null,5,'bob')}</span>`:''}<div class="stack" style="gap:6px"><h2>${ev.title}</h2><p class="${wf?'wheelres':''}">${ev.text}</p></div></div>${wheel}<div class="row">${ev.choices?ev.choices.map(c=>`<button class="btn ${c.x==='leave'?'':'gold'}" data-a="${c.myst?'myst':c.ev?'evPick':'gamble'}" data-x="${c.x}" ${c.off?'disabled':''}>${c.l}</button>`).join(''):`<button class="btn gold" data-a="cont">${ev.intro?'Press on':'Continue'}</button>`}</div>`;
 }
 function skillChip(h,id){const k=SKILLS[id];return `<span class="trait tk-skill" tabindex="0" data-tip="${esc(k.n+' · '+k.mp+' MP. '+skillStats(id)+'. '+k.d)}">${k.n}</span>`}
@@ -7542,6 +7558,13 @@ const ACT={
     r.loot.push(h.gear[sl]);h.gear[sl]=null;h.hp=Math.min(h.hp,maxHp(h));h.mp=Math.min(h.mp,maxMp(h));ui.pslot=null},
   sellItem:id=>{if(state.run)return;const e=allItems().find(x=>x.it.id===id);if(!e||e.it.rarity==='perfect')return;
     state.gold+=sellVal(e.it);if(e.h)e.h.gear[e.s]=null;else state.bank=state.bank.filter(x=>x.id!==id);if(state.sel.item===id)state.sel.item=null;state.sel.smithMsg=`Sold ${esc(e.it.name)} for ${sellVal(e.it)} gold.`},
+  lootEquip:x=>{const [id,hid]=x.split('|'),r=state.run,h=heroById(hid);if(!r||!h||h.hp<=0)return;
+    const G=r.ground||(r.ground=[]),it=r.loot.find(y=>y.id===id)||G.find(y=>y.id===id);if(!it||(it.cls&&it.cls!==h.cls))return;
+    let sl=it.slot;if(sl==='ring')sl=!h.gear.ring1||darkIs('greed')?'ring1':!h.gear.ring2?'ring2':'ring1';if(it.slot==='ring')darkHit('greed');
+    const mh=maxHp(h),mm=maxMp(h),old=h.gear[sl];r.loot=r.loot.filter(y=>y!==it);r.ground=G.filter(y=>y!==it);h.gear[sl]=it;
+    if(old){if(r.loot.length<bagCap()||old.rarity==='perfect')r.loot.push(old);else r.ground.push(old)}
+    h.hp=clamp(h.hp+Math.max(0,maxHp(h)-mh),1,maxHp(h));h.mp=clamp(h.mp+Math.max(0,maxMp(h)-mm),0,maxMp(h));
+    r.invNote=`${esc(h.name)} equips ${itemName(it)}${old?`. ${itemName(old)} goes ${r.loot.includes(old)?'into the backpack':'on the ground (backpack full)'}`:''}.`},
   packEquip:x=>{const [id,hid]=x.split('|'),r=state.run,h=heroById(hid),it=r.loot.find(y=>y.id===id);if(!h||h.hp<=0||!it||(it.cls&&it.cls!==h.cls))return;
     let sl=it.slot;if(sl==='ring')sl=!h.gear.ring1||darkIs('greed')?'ring1':!h.gear.ring2?'ring2':'ring1';if(it.slot==='ring')darkHit('greed');
     const mh=maxHp(h),mm=maxMp(h);r.loot=r.loot.filter(x=>x.id!==id);if(h.gear[sl])r.loot.push(h.gear[sl]);h.gear[sl]=it;ui.bsel=null;
