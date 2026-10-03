@@ -3096,8 +3096,12 @@ function biomeLayers(biome){
 
 
 /* ---------- rules ---------- */
-// Wheel order (each beats the next): Thunder → Ice → Fire → Grass → Fighting → Thunder. Every list shows elements in this order.
-const ELEMENTS=['thunder','ice','fire','grass','fighting'];
+// Wheel (each beats the next): Thunder → Ice → Fire → Grass → Fighting → Thunder.
+// Display order everywhere: Fire, Ice, Thunder, Fighting, Grass. (Who beats whom is set by BEATS, not by this order.)
+const ELEMENTS=['fire','ice','thunder','fighting','grass'];
+// Item bonus lines: plain bonuses first, then elemental ones in element order (damage before resistance).
+const afxRank=a=>{const m=/^(dmg|res)_(.+)$/.exec(a.k);return m&&ELEMENTS.includes(m[2])?100+ELEMENTS.indexOf(m[2])*2+(m[1]==='res'?1:0):0};
+const afxOrd=L=>L.map((a,i)=>[a,i]).sort((x,y)=>afxRank(x[0])-afxRank(y[0])||x[1]-y[1]);
 const ALL_EL=[...ELEMENTS,'dark'];
 const BEATS={thunder:'ice',ice:'fire',fire:'grass',grass:'fighting',fighting:'thunder'};
 const EL_COL={fire:'#e0643a',ice:'#8fd0ea',thunder:'#e6d55a',grass:'#6fb35a',fighting:'#c98b5c',dark:'#9b70dc',physical:'#b9b1a3'};
@@ -3728,7 +3732,7 @@ function gainXp(h,x,lines){
 const partySize=()=>1+(state.b.war||0);
 const DESCENT_ORDER=['tundra','island','sky','forest','badlands'];
 // Lands the party can choose at the Gate. The Abyss only lies on the Dark Side.
-const LAND_PICK=['tundra','island','sky','forest','badlands'];
+const LAND_PICK=['island','tundra','sky','badlands','forest']; // listed in element order: Fire, Ice, Thunder, Fighting, Grass
 /* This week's conditions: each week 3 of the 5 lands carry a twist, 80% of the time a bad one.
    foeAtk/foeHp/foeSpd/gold/xp/heal/per multiply; foeRes adds to every enemy resistance. */
 const LAND_MOD={
@@ -5350,11 +5354,11 @@ function itemBody(it){
   if(it.pid){const P=PERF[it.pid];
     let s=`<div class="ihead">${itemIcon(it)}<div class="stack" style="gap:1px"><span class="iname">${itemName(it)}</span><span class="meta"><span data-tip="Perfect: one of nine unique weapons, each found only once per game. It can never be sold. If its wielder falls, a monster takes it, and you can hunt that monster down to get it back.">Perfect</span> ${P.base} · ${CLASSES[P.cls].name}</span></div></div>
       <span class="istat">${ico('blade','#ddd')}<b>${Math.round(baseVal(it))}</b> damage · ${elTag(it.el||'physical')}</span><span class="ptitle" style="--pc:${(PERF_LOOK[P.id]||{}).c||'#ff5c7a'}">“${(PERF_LOOK[P.id]||{}).t||''}”</span><span class="pfx" data-tip="${esc(P.fxd)}">${P.fxn}: ${P.fxd}</span><span class="meta">Never sold. If its wielder falls, hunt down the monster that takes it.</span>`;
-    for(const a of it.affixes)s+=afxLine(it,a);return s}
+    for(const [a] of afxOrd(it.affixes))s+=afxLine(it,a);return s}
   let s=`<div class="ihead">${itemIcon(it)}<div class="stack" style="gap:1px"><span class="iname">${itemName(it)}</span><span class="meta"><span data-tip="${esc(RAR[it.rarity].l+': '+RAR[it.rarity].n+' random bonus'+(RAR[it.rarity].n>1?'es':'')+'. Rarer items roll bigger numbers. Item level '+it.ilvl+'.')}">${RAR[it.rarity].l}</span> ${SLOTN[it.slot]}${it.cls?` · <span data-tip="Weapons, helmets, body armor and pants belong to one class. Rings and amulets fit anyone.">${CLASSES[it.cls].name} only</span>`:` · ${it.wt?({warrior:'Heavy',archer:'Medium',mage:'Light'})[it.wt]+', ':''}any class`}</span></div></div>`;
   if(it.slot==='weapon')s+=`<span class="istat">${ico('blade','#ddd')}<b>${Math.round(baseVal(it))}</b> damage · ${elTag(it.el||'physical')}</span>`;
   else if(ARMOR_BASE[it.slot])s+=`<span class="istat">${ico('shield','#8fa8c8')}<b>${Math.round(baseVal(it))}</b> armor · ${({warrior:'heavy',archer:'medium',mage:'light'})[it.cls]||''}${it.cls==='archer'?` · +${(2+it.ilvl*.05).toFixed(1)}% evasion`:''}</span>`;
-  for(const a of it.affixes)s+=afxLine(it,a);
+  for(const [a] of afxOrd(it.affixes))s+=afxLine(it,a);
   if(!it.affixes.length)s+='<span class="meta">No bonuses</span>';
   return s;
 }
@@ -5417,7 +5421,7 @@ function resLine(h){
   return r.length?`<div class="resl">${r.map(([e,v])=>`<span class="el" style="--c:${EL_COL[e]}">${cap(e)} ${Math.round(v)}%</span>`).join('')}</div>`:'<div class="resl muted">No resistances</div>';
 }
 function innateLine(h){
-  const r=Object.entries(h.res||{}).filter(([,v])=>v),d=Object.entries(h.innate||{}).filter(([,v])=>v);if(!r.length&&!d.length)return '';
+  const ord=k=>ELEMENTS.indexOf(k.replace(/^dmg_/,'')),r=Object.entries(h.res||{}).filter(([,v])=>v).sort((x,y)=>ord(x[0])-ord(y[0])),d=Object.entries(h.innate||{}).filter(([,v])=>v).sort((x,y)=>ord(x[0])-ord(y[0]));if(!r.length&&!d.length)return '';
   const t=[...d.map(([k,v])=>`<span class="el" style="--c:${EL_COL[k.slice(4)]}">+${v}% ${cap(k.slice(4))} dmg</span>`),...r.map(([e,v])=>`<span class="el" style="--c:${v<0?'#c4463f':EL_COL[e]}">${v>0?'+':''}${v}% ${cap(e)} res</span>`)];
   return `<div class="resl" data-tip="Born with these. They stay for life."><span class="muted">Born with</span> ${t.join('')}</div>`;
 }
@@ -7297,7 +7301,7 @@ function witchView(){
     s+=`<div class="hdetail"><div class="stack">${itemCard(it,`<span class="meta">${sel.h?'Worn by '+esc(sel.h.name):'In the bank'} · blessed ${it.witch||0} time${it.witch===1?'':'s'}</span>`)}</div><div class="stack">
       <p class="muted" style="font-size:18px">Rarity sets the starting price (${RAR[it.rarity].l} ×${WITCH_RAR[it.rarity]}). Each blessing on this item makes the next 60% dearer.</p>
       ${it.affixes.length?`<div class="stack" style="gap:4px"><div class="row" style="gap:6px">${btn('full')}${btn('values')}</div><span class="muted" style="font-size:18px">${WITCH_ITEM.full.d} · ${WITCH_ITEM.values.d}</span></div>
-      <h3>Reroll one line</h3><div class="stack" style="gap:4px">${it.affixes.map((a,i)=>`<div class="row" style="justify-content:space-between;gap:8px;flex-wrap:nowrap">${afxLine(it,a)}${btn('line',i,'Reroll')}</div>`).join('')}</div>`:'<p class="muted">This item has no bonuses to bless.</p>'}
+      <h3>Reroll one line</h3><div class="stack" style="gap:4px">${afxOrd(it.affixes).map(([a,i])=>`<div class="row" style="justify-content:space-between;gap:8px;flex-wrap:nowrap">${afxLine(it,a)}${btn('line',i,'Reroll')}</div>`).join('')}</div>`:'<p class="muted">This item has no bonuses to bless.</p>'}
       ${it.base?`<div class="row" style="gap:6px">${btn('base')}<span class="muted" style="font-size:18px">${WITCH_ITEM.base.d}</span></div>`:''}</div></div>`}
   s+=`<h3>Choose an item</h3><div class="items">${items.map(({it,h})=>`<button class="item r-${it.rarity}-b ${state.sel.witem===it.id?'sel':''}" data-a="witem" data-x="${it.id}"><span class="ihead">${itemIcon(it,3)}<span class="stack" style="gap:1px"><span class="iname">${itemName(it)}</span><span class="meta">${h?esc(h.name):'Bank'}${it.witch?' · blessed ×'+it.witch:''}</span></span></span></button>`).join('')}</div>`;
   return s;
