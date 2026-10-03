@@ -5983,8 +5983,7 @@ function topBar(){
       ${st>0.05?`<button class="chip scrapbtn ${ui.scrapOpen?'on':''}" data-a="scrapToggle" aria-expanded="${!!ui.scrapOpen}" aria-label="Scrap in storage: ${st.toFixed(1)}. Show the breakdown">${matIco('stone')}<b class="num">${st.toFixed(1)}</b> ▾</button>`:''}${scrap}</div>
     <div class="res">
       <span class="chip" data-tip="Gold">${sprite('coin',null,2)}<b class="num">${fmt(state.gold)}</b><span class="lbl"> gold</span></span>
-      <span class="chipgrp" style="display:inline-flex;gap:inherit"><span class="chip week" data-tip="Current week"><b class="num">Week ${state.week}</b></span>
-      <span class="chip" data-tip="Heroes / room in the Barracks">${sprite('warrior',CLASSES.warrior.tint,2)}<b class="num">${state.heroes.length}/${slots()}</b><span class="lbl"> heroes</span></span></span>
+      <span class="chip week" data-tip="Current week"><b class="num">Week ${state.week}</b></span>
       ${state.won?`<span class="chip won">${foeArt({base:'The Unlit King',kind:'king',type:'dark',spr:'boss'},2)}King slain, week ${state.won.week}</span>`:''}
       ${canOfferInstall()?`<button class="btn small gold" data-a="install" data-tip="Install as an app: full screen, works offline">Install app</button>`:''}${helpBtn()}<button class="btn small" data-a="settings" data-x="1">Settings</button>
     </div></header>${govSayBar()}`;
