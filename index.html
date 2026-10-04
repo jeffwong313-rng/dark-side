@@ -20,7 +20,7 @@
   color-scheme:dark;
   --void:#0d0b10;--stone:#15121a;--panel:#1c1823;--panel2:#262030;--edge:#3a3245;--edge2:#574b67;
   --bone:#e4d8c1;--ash:#9a8fa4;--dim:#6d6377;--gold:#e3b341;--blood:#c4463f;--moss:#78ab60;
-  --fire:#e0643a;--ice:#8fd0ea;--thunder:#e6d55a;--grass:#6fb35a;--fighting:#c98b5c;--dark:#9b70dc;--physical:#b9b1a3;
+  --fire:#e0643a;--grass:#6fb35a;--fighting:#c98b5c;--thunder:#e6d55a;--ice:#8fd0ea;--dark:#9b70dc;--physical:#b9b1a3;
   --common:#b9b1a3;--rare:#5f97e3;--epic:#b56fe3;--godlike:#f2a83a;--perfect:#ff5c7a;
 }
 html,body{background:var(--void);color:var(--bone)}
@@ -2361,7 +2361,7 @@ const SKELETONS={
 
 /* Bosses, wardens, the Unlit King and the Mimic: one-off designs on a 40×40 grid. */
 // The Dark Side's void bosses, in order: one on every 15th stage. phys = the physical share of every hit;
-// the rest is a random element (fire, ice, thunder, grass, fighting or dark), rolled again before every attack.
+// the rest is a random element (fire, grass, fighting, thunder, ice or dark), rolled again before every attack.
 // The Cave's final boss is one of three beasts, picked when the party sets out. hp/atk scale a normal warden; spd adds speed.
 // The Summit's Gatekeeper: a first, veiled look at what waits on the Dark Side.
 const GATEKEEPER='The Gatekeeper';
@@ -3108,16 +3108,16 @@ function biomeLayers(biome){
 
 
 /* ---------- rules ---------- */
-// Wheel (each beats the next): Thunder → Ice → Fire → Grass → Fighting → Thunder.
-// Display order everywhere: Fire, Ice, Thunder, Fighting, Grass. (Who beats whom is set by BEATS, not by this order.)
-const ELEMENTS=['fire','ice','thunder','fighting','grass'];
+// Wheel (each beats the next): Fire → Grass → Fighting → Thunder → Ice → Fire.
+// Display order everywhere: Fire, Grass, Fighting, Thunder, Ice (the wheel itself, starting at Fire). Who beats whom is set by BEATS.
+const ELEMENTS=['fire','grass','fighting','thunder','ice'];
 // Item bonus lines: plain bonuses first, then elemental ones in element order (damage before resistance).
 const afxRank=a=>{const m=/^(dmg|res)_(.+)$/.exec(a.k);return m&&ELEMENTS.includes(m[2])?100+ELEMENTS.indexOf(m[2])*2+(m[1]==='res'?1:0):0};
 const afxOrd=L=>L.map((a,i)=>[a,i]).sort((x,y)=>afxRank(x[0])-afxRank(y[0])||x[1]-y[1]);
 const ALL_EL=[...ELEMENTS,'dark'];
-const BEATS={thunder:'ice',ice:'fire',fire:'grass',grass:'fighting',fighting:'thunder'};
-const EL_COL={fire:'#e0643a',ice:'#8fd0ea',thunder:'#e6d55a',grass:'#6fb35a',fighting:'#c98b5c',dark:'#9b70dc',physical:'#b9b1a3'};
-const ELPRE={fire:'Burning',ice:'Frost',thunder:'Storm',grass:'Thorn',fighting:'Brawler’s',dark:'Umbral'};
+const BEATS={fire:'grass',grass:'fighting',fighting:'thunder',thunder:'ice',ice:'fire'};
+const EL_COL={fire:'#e0643a',grass:'#6fb35a',fighting:'#c98b5c',thunder:'#e6d55a',ice:'#8fd0ea',dark:'#9b70dc',physical:'#b9b1a3'};
+const ELPRE={fire:'Burning',grass:'Thorn',fighting:'Brawler’s',thunder:'Storm',ice:'Frost',dark:'Umbral'};
 // Mages exploit weaknesses harder than anyone: 1.75x instead of 1.5x.
 const heroMatch=(h,el,type)=>{const m=matchup(el,type);return m>1&&h.cls==='mage'?1.75:m};
 function matchup(atk,def){
@@ -3126,7 +3126,7 @@ function matchup(atk,def){
   if(BEATS[def]===atk)return 0.5;
   return 1;
 }
-const EL_ICON={fire:'flame',ice:'flake',thunder:'bolt',grass:'leaf',fighting:'fist',dark:'crescent',physical:'blade'};
+const EL_ICON={fire:'flame',grass:'leaf',fighting:'fist',thunder:'bolt',ice:'flake',dark:'crescent',physical:'blade'};
 const STAT_ICON={str:['fist','#d6a47e'],per:['eye','#6ab0e0'],end:['shield','#8fa8c8'],cha:['crown',null],int:['tome','#7a6ae0'],agi:['feather','#8fd08a'],lck:['clover','#5fbf5f']};
 const ico=(name,tint,sc=2,cls='ico')=>sprite(name,tint,sc,cls);
 const elIco=(e,sc=2)=>ico(EL_ICON[e||'physical'],EL_COL[e||'physical'],sc);
@@ -3241,12 +3241,12 @@ const STATN={str:'STR',per:'PER',end:'END',cha:'CHA',int:'INT',agi:'AGI',lck:'LC
 const STATS=['str','per','end','cha','int','agi','lck']; // SPECIAL
 // Luck helps every class a little and its own class specialty 2.5× as much.
 const LUCK={gold:{base:1,cls:'warrior'},crit:{base:.25,cls:'archer'},surge:{base:.5,cls:'mage'}};
-const EL_ABBR={fire:'FIR',ice:'ICE',thunder:'THU',grass:'GRA',fighting:'FIG',dark:'DRK'};
+const EL_ABBR={fire:'FIR',grass:'GRA',fighting:'FIG',thunder:'THU',ice:'ICE',dark:'DRK'};
 function elTip(e){
   if(!e||e==='physical')return 'Physical: no element. Ignores elemental resistance and weaknesses.';
   if(e==='dark')return 'Dark sits outside the wheel. It is never strong or weak against anything, and heroes can’t resist it'+((()=>{try{return !!state&&descentUnlocked()}catch(x){return false}})()?', and Abyss foes ignore 25% of your resistances.':'.');
   const loses=Object.keys(BEATS).find(k=>BEATS[k]===e);
-  return `${cap(e)} beats ${cap(BEATS[e])} (1.5× damage) and is weak against ${cap(loses)} (0.5×). Wheel: Thunder → Ice → Fire → Grass → Fighting → Thunder.`;
+  return `${cap(e)} beats ${cap(BEATS[e])} (1.5× damage) and is weak against ${cap(loses)} (0.5×). Wheel: Fire → Grass → Fighting → Thunder → Ice → Fire.`;
 }
 
 const BIOMES={
@@ -3749,7 +3749,7 @@ function gainXp(h,x,lines){
 const partySize=()=>1+(state.b.war||0);
 const DESCENT_ORDER=['tundra','island','sky','forest','badlands'];
 // Lands the party can choose at the Gate. The Abyss only lies on the Dark Side.
-const LAND_PICK=['island','tundra','sky','badlands','forest']; // listed in element order: Fire, Ice, Thunder, Fighting, Grass
+const LAND_PICK=['island','forest','badlands','sky','tundra']; // listed in element order: Fire, Grass, Fighting, Thunder, Ice
 /* This week's conditions: each week 3 of the 5 lands carry a twist, 80% of the time a bad one.
    foeAtk/foeHp/foeSpd/gold/xp/heal/per multiply; foeRes adds to every enemy resistance. */
 const LAND_MOD={
@@ -4647,7 +4647,7 @@ const foeWeakEl=e=>e.type!=='dark'&&e.type!=='physical'?ELEMENTS.find(x=>BEATS[x
 function bossRule(e){
   if(!e)return null;
   if(e.kind==='king')return {n:'Knights’ oath',d:'Takes 40% less damage while one of his knights still stands. Cut down the knights first.'};
-  if(e.voidPhys!=null)return {n:'Shifting weakness',d:'Its element changes every attack (shown on its next move). It takes 50% more damage from the element that beats that one: Thunder beats Ice, Ice beats Fire, Fire beats Grass, Grass beats Fighting, Fighting beats Thunder.'};
+  if(e.voidPhys!=null)return {n:'Shifting weakness',d:'Its element changes every attack (shown on its next move). It takes 50% more damage from the element that beats that one: Fire beats Grass, Grass beats Fighting, Fighting beats Thunder, Thunder beats Ice, Ice beats Fire.'};
   if(e.base==='The Night Panther')return {n:'Pounce',d:'Every third move it pounces on the weakest hero with a crushing blow. A taunt or Shield Wall draws it off, and a stun before it lands cancels the pounce.'};
   if(e.bossType==='charge')return {n:'Charge',d:'Every fourth move is a charged blow on the whole party. Stun it while it charges (its next move shows ⚡) and the charge is lost.'};
   if(e.bossType==='scale'||(e.skills||[]).includes('relentless'))return {n:'Relentless',d:'Now and then it spends a turn building fury (+12% damage each time). Stun it and all of that fury is lost.'};
@@ -6317,15 +6317,15 @@ function alchShop(){
 /* materials, workshop recipes and the farm */
 // Scrap: every enemy type drops one primary kind. The Farm and the Witch both use it.
 const MATS={
-  wood:{n:'Wood',ico:['log',null],from:'grass'},carbon:{n:'Carbon',ico:['pile','#4a4448'],from:'fire'},crystal:{n:'Ice Crystal',ico:['gem','#8fd0ea'],from:'ice'},
-  metal:{n:'Scrap Metal',ico:['ingot',null],from:'thunder'},hide:{n:'Hide',ico:['hide',null],from:'fighting'},void:{n:'Void Shard',ico:['gem','#9b70dc'],from:'dark'},
+  carbon:{n:'Carbon',ico:['pile','#4a4448'],from:'fire'},wood:{n:'Wood',ico:['log',null],from:'grass'},hide:{n:'Hide',ico:['hide',null],from:'fighting'},
+  metal:{n:'Scrap Metal',ico:['ingot',null],from:'thunder'},crystal:{n:'Ice Crystal',ico:['gem','#8fd0ea'],from:'ice'},void:{n:'Void Shard',ico:['gem','#9b70dc'],from:'dark'},
   stone:{n:'Stone',ico:['rock','#8a8a92'],from:'physical'}};
 const EL_MAT=Object.fromEntries(Object.entries(MATS).map(([k,m])=>[m.from,k]));
 /* Who uses which scrap. The Farm grows from Rotwood and the Bone Badlands, the Witch from the Frozen Tundra and the Ember Isles,
    Storm Spires metal serves both, Stone (from every land) builds the rest of the town, and Void Shards finish both at the top. */
 const MAT_USE={wood:'the Farm (fences, barns, coops)',hide:'the Farm (harnesses, pens)',crystal:'the Witch (vials, scrying glass)',carbon:'the Witch (charcoal for her cauldron)',
   metal:'both the Farm and the Witch (the still and the cauldron)',stone:'the town: foundations, Bank and Barracks upgrades, the Forge, and whetstones for upgrading gear',void:'the final upgrades at the Farm and the Witch'};
-const LAND_OF={grass:'Rotwood',fighting:'the Bone Badlands',ice:'the Frozen Tundra',fire:'the Ember Isles',thunder:'the Storm Spires',dark:'the Abyss',physical:'every land'};
+const LAND_OF={fire:'the Ember Isles',grass:'Rotwood',fighting:'the Bone Badlands',thunder:'the Storm Spires',ice:'the Frozen Tundra',dark:'the Abyss',physical:'every land'};
 const matTip=k=>`${MATS[k].n}: dropped in ${LAND_OF[MATS[k].from]||'every land'}. Used by ${MAT_USE[k]}.`;
 // Paying in scrap: {stone:2,wood:1}...
 const hasMats=need=>Object.entries(need||{}).every(([k,v])=>(state.mats[k]||0)+1e-9>=v);
@@ -6450,7 +6450,7 @@ function farmHead(){
 function farmFields(tabs){
   const L=state.farm.lvl,cur=farmStep(L),nx=farmStep(L+1);
   const foodChip=(st,sc=3)=>`${consIco(st.food,sc)} <b>${st.q} ${CONSUMABLES[st.food].n}</b>`;
-  let s=coachBox('farm')+bHead('farmer','#6f8f4a','The Farm',L?`Old Bram tends your ${cur.bld.toLowerCase()}.`:'Old Bram the farmer is looking for work.','Every enemy drops scrap of its own type: Carbon from fire, Wood from grass, Ice Crystal from ice, Scrap Metal from thunder, Hide from fighting, '+(voidKnown()?'Void Shards from dark, ':'')+'Stone from armored foes. Or hand the farmer old gear to break down. Each level grows more food, and every fourth level he builds something new that grows better food. Food is free healing, packed for every adventure.',farmHead());
+  let s=coachBox('farm')+bHead('farmer','#6f8f4a','The Farm',L?`Old Bram tends your ${cur.bld.toLowerCase()}.`:'Old Bram the farmer is looking for work.','Every enemy drops scrap of its own type: Carbon from fire, Wood from grass, Hide from fighting, Scrap Metal from thunder, Ice Crystal from ice, '+(voidKnown()?'Void Shards from dark, ':'')+'Stone from armored foes. Or hand the farmer old gear to break down. Each level grows more food, and every fourth level he builds something new that grows better food. Food is free healing, packed for every adventure.',farmHead());
   s+=tabs;
   s+=`<div class="farmscene">${sprite('farmer','#6f8f4a',6)}<div class="stack" style="gap:4px">
     <p>“${L?(nx?`Keep the scrap coming and I’ll ${nx.newBld?`build you a ${nx.bld.toLowerCase()}`:'grow you more'}.`:'Finest farm this side of the moon. Nothing more I can build.'):'Bring me enough scrap – old blades, broken armor, lumber and good dirt – and I’ll start you a farm.'}”</p>
@@ -7116,7 +7116,8 @@ function codex(){
 /* ---------- Moon Ledger: every monster the party has fully scouted ---------- */
 function ledgerSections(){
   const out=[];
-  for(const [bk,B] of Object.entries(BIOMES)){
+  const elRank=B=>{const i=ELEMENTS.indexOf(B.el);return i<0?99:i};
+  for(const [bk,B] of Object.entries(BIOMES).sort((x,y)=>elRank(x[1])-elRank(y[1]))){
     if(bk==='abyss'&&!descentUnlocked())continue; // no spoilers: the Abyss stays off the ledger until the Dark Side opens
     const rows=B.mons.map(([n,spr])=>({base:n,spr,type:B.el,kind:'normal'}));
     rows.push({base:B.boss,spr:'boss',type:B.el,kind:'boss'},{base:'Warden of '+B.name.replace(/^The /,''),spr:'boss',type:B.el,kind:'warden'});
