@@ -3836,9 +3836,9 @@ function goldAmt(base){
 // Just before the final boss: the party sees it coming and makes camp. Same as a campsite, no stop on the map.
 function finalApproach(){
   const r=state.run,B=BIOMES[r.biome],L=living(),inj=[];
-  const parts=L.map(x=>{const v=Math.round(maxHp(x)*.4*healMult(x)*depthsMult()),m=Math.round(maxMp(x)*.4*depthsMult());x.hp=Math.min(maxHp(x),x.hp+v);x.mp=Math.min(maxMp(x),x.mp+m);x.fat=Math.max(0,(x.fat||0)-50);if(injOf(x))inj.push(`${esc(x.name)}’s ${INJURY[injOf(x)].n} still aches.`);return `${esc(x.name)} +${v} HP, +${m} MP, fatigue ${fatOf(x)}%`});
+  const parts=L.map(x=>{const v=Math.round(maxHp(x)*.4*healMult(x)*depthsMult()),m=Math.round(maxMp(x)*.4*depthsMult());x.hp=Math.min(maxHp(x),x.hp+v);x.mp=Math.min(maxMp(x),x.mp+m);x.fat=Math.max(0,(x.fat||0)-33);if(injOf(x))inj.push(`${esc(x.name)}’s ${INJURY[injOf(x)].n} still aches.`);return `${esc(x.name)} +${v} HP, +${m} MP, fatigue ${fatOf(x)}%`});
   r.fatMsg=null;
-  r.event={intro:true,approach:true,title:'The Final Approach',text:`Far ahead, a shape moves against the horizon: the <b class="warn">Warden of ${esc(B.name.replace(/^The /,''))}</b>, and it is coming this way. The ${L.length>1?'party makes':'hero makes'} one last camp and rests by the fire while it approaches. Fatigue drops by 50%. ${parts.join(', ')}.${inj.length?' <span class="warn">'+inj.join(' ')+'</span>':''}`};
+  r.event={intro:true,approach:true,title:'The Final Approach',text:`Far ahead, a shape moves against the horizon: the <b class="warn">Warden of ${esc(B.name.replace(/^The /,''))}</b>, and it is coming this way. The ${L.length>1?'party makes':'hero makes'} one last camp and rests by the fire while it approaches. Fatigue drops by 33. ${parts.join(', ')}.${inj.length?' <span class="warn">'+inj.join(' ')+'</span>':''}`};
 }
 function biomeIntro(){
   const B=BIOMES[state.run.biome];
