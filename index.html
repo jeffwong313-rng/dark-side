@@ -3137,12 +3137,12 @@ const helpBtn=()=>`<button class="btn helpq ${ui.inspect?'on':''}" data-a="inspe
 const elTag=e=>`<span class="el" style="--c:${EL_COL[e||'physical']}" data-tip="${elTip(e)}">${elIco(e)}${cap(e||'physical')}</span>`;
 
 const CLASSES={
-  warrior:{name:'Warrior',primary:'str',hp:72,mp:10,tint:'#8a3030',var:[.95,1.05],crit:0,critDmg:150,spd:-1,elRes:-15,
+  warrior:{name:'Warrior',primary:'str',hp:78,mp:10,tint:'#8a3030',var:[.95,1.05],crit:0,critDmg:150,spd:-1,elRes:-15,
     style:'Heavy armor: the most health and the most armor of any class, built to stand in front. Consistent: every hit lands close to its expected damage. Weak spot: elements. Warriors have 15% less resistance to every element.'},
   archer:{name:'Archer',primary:'agi',hp:54,mp:15,tint:'#3f6d38',var:[.6,1.4],crit:10,critDmg:165,spd:2,taken:10,
     style:'High risk, high reward. Medium armor that adds evasion with every piece, so many blows miss, but the ones that land hurt 10% more. Swingy damage, the most crits, the biggest crit damage, and extra turns from speed.'},
-  mage:{name:'Mage',primary:'int',hp:43,mp:25,tint:'#3d3c86',var:[.9,1.1],crit:0,critDmg:150,spd:0,elem:10,
-    style:'Light cloth: the most fragile class, with the least health and armor. Every attack is elemental (+10% damage), and weakness hits deal 1.75× instead of 1.5×. Attune to any element mid-battle.'},
+  mage:{name:'Mage',primary:'int',hp:47,mp:25,tint:'#3d3c86',var:[.9,1.1],crit:0,critDmg:150,spd:0,elem:15,
+    style:'Light cloth: the most fragile class, with the least health and armor. Every attack is elemental (+15% damage), and weakness hits deal 1.75× instead of 1.5×. Attune to any element mid-battle.'},
 };
 // Basic attacks. acc = base hit chance before agility and enemy evasion.
 const ATTACK={warrior:{mult:1,acc:95,crit:0,el:'weapon'},archer:{mult:1,acc:85,crit:5,el:'weapon'},mage:{mult:.9,acc:100,crit:0,el:'attune'}};
@@ -3150,9 +3150,9 @@ const ATTACK={warrior:{mult:1,acc:95,crit:0,el:'weapon'},archer:{mult:1,acc:85,c
 const SKILLS={
   cleave:{cls:'warrior',n:'Cleave',mp:14,tgt:'all',mult:1.3,acc:100,crit:0,el:'physical',d:'Sweeps the front enemy and the one next to it.'},
   crush:{cls:'warrior',n:'Crushing Blow',mp:12,tgt:'enemy',mult:2.6,acc:95,crit:10,cdmg:25,el:'physical',d:'A slow, heavy strike. Hits hard when it lands.'},
-  wall:{cls:'warrior',n:'Shield Wall',mp:12,tgt:'self',d:'Until next round, takes half damage and every enemy attacks this hero.'},
-  warcry:{cls:'warrior',n:'War Cry',mp:18,tgt:'party',d:'The whole party deals +25% damage for 3 rounds.'},
-  wind:{cls:'warrior',n:'Second Wind',mp:15,tgt:'self',d:'Recovers 30% of max health.'},
+  wall:{cls:'warrior',n:'Shield Wall',mp:12,tgt:'self',d:'Until next round, takes a third of the damage and every enemy attacks this hero.'},
+  warcry:{cls:'warrior',n:'War Cry',mp:18,tgt:'party',d:'The whole party deals +33% damage for 3 rounds.'},
+  wind:{cls:'warrior',n:'Second Wind',mp:15,tgt:'self',d:'Recovers 40% of max health.'},
   pierce:{cls:'archer',n:'Piercing Shot',mp:12,tgt:'enemy',mult:1.8,acc:100,crit:35,el:'weapon',d:'An aimed shot that looks for weak points.'},
   volley:{cls:'archer',n:'Volley',mp:15,tgt:'all',mult:1.15,acc:95,crit:10,el:'weapon',d:'Rains arrows on every enemy. Each arrow rolls separately.'},
   double:{cls:'archer',n:'Double Shot',mp:14,tgt:'enemy',mult:1,hits:2,acc:100,crit:5,el:'weapon',d:'Two quick arrows. The second moves on if the first kills.'},
@@ -3160,30 +3160,30 @@ const SKILLS={
   deadeye:{cls:'archer',n:'Deadeye',mp:18,tgt:'enemy',mult:1.6,acc:90,forceCrit:true,cdmg:50,el:'weapon',d:'Always crits if it hits. Hard to land.'},
   bolt:{cls:'mage',n:'Elemental Bolt',mp:15,tgt:'enemy',mult:2,acc:100,crit:5,el:'attune',d:'A focused blast in the attuned element.'},
   storm:{cls:'mage',n:'Elemental Storm',mp:21,tgt:'all',mult:1.15,acc:100,crit:5,el:'attune',d:'Engulfs every enemy in the attuned element.'},
-  hex:{cls:'mage',n:'Hex',mp:12,tgt:'enemy',acc:100,d:'On hit, the target takes 25% more damage from everyone for 3 rounds.'},
-  mend:{cls:'mage',n:'Mend',mp:18,tgt:'ally',d:'Heals one ally for 30% of their max health plus 2× the caster’s INT.'},
+  hex:{cls:'mage',n:'Hex',mp:12,tgt:'enemy',acc:100,d:'On hit, the target takes 33% more damage from everyone for 3 rounds.'},
+  mend:{cls:'mage',n:'Mend',mp:18,tgt:'ally',d:'Heals one ally for 40% of their max health plus 2.7× the caster’s INT.'},
   drain:{cls:'mage',n:'Life Drain',mp:15,tgt:'enemy',mult:1.5,acc:100,crit:5,el:'dark',d:'Dark damage. Heals the caster for half the damage dealt.'},
   imbue:{cls:'archer',tier:1,n:'Elemental Arrows',mp:14,tgt:'self',dur:3,d:'For the next 3 turns, arrows carry an element of your choice, so they can hit enemy weaknesses like a mage’s spells.'},
   imbue2:{cls:'archer',tier:2,n:'Elemental Arrows',mp:18,tgt:'self',dur:5,d:'For the next 5 turns, arrows carry an element of your choice, so they can hit enemy weaknesses like a mage’s spells.'},
-  coup:{cls:'warrior',tier:3,n:'Coup de Grâce',mp:30,tgt:'enemy',mult:2.2,acc:100,crit:5,el:'physical',coup:true,d:'A finishing strike with a chance to kill outright: 6% plus STR and Luck (up to 25%), less against elites and bosses. Final bosses can’t be finished this way.'},
+  coup:{cls:'warrior',tier:3,n:'Coup de Grâce',mp:30,tgt:'enemy',mult:2.2,acc:100,crit:5,el:'physical',coup:true,d:'A finishing strike with a chance to kill outright: 8% plus STR and Luck (up to 33%), less against elites and bosses. Final bosses can’t be finished this way.'},
   // Learned skills: at levels 8, 23 and 33 each hero picks one of two, fixed per class.
-  taunt:{cls:'warrior',tier:1,n:'Iron Challenge',mp:16,tgt:'self',d:'For 3 rounds every enemy must attack this hero, who takes 35% less damage (more with END, up to 60%).'},
+  taunt:{cls:'warrior',tier:1,n:'Iron Challenge',mp:16,tgt:'self',d:'For 3 rounds every enemy must attack this hero, who takes 47% less damage (more with END, up to 75%).'},
   stunblow:{cls:'warrior',tier:1,n:'Battle Stun',mp:16,tgt:'enemy',mult:1.6,acc:100,crit:5,el:'physical',stun:'roll',d:'Stuns the target for 1 turn. STR and Luck give a chance at 2 or even 3 turns. Bosses shake it off after 1.'},
   feather:{cls:'archer',tier:1,n:'Featherweight',mp:16,tgt:'self',d:'Evasion rises to 90% for 2 turns, up to 4 with high AGI and Luck.'},
   sniper:{cls:'archer',tier:1,n:'Sniper',mp:16,tgt:'self',d:'Crit chance rises to 80% for the next 2 turns, up to 4 with high PER and Luck.'},
-  circle:{cls:'mage',tier:1,n:'Circle of Mending',mp:26,tgt:'party',d:'Heals every ally for 20% of their max health plus the caster’s INT.'},
+  circle:{cls:'mage',tier:1,n:'Circle of Mending',mp:26,tgt:'party',d:'Heals every ally for 27% of their max health plus 1.3× the caster’s INT.'},
   chain:{cls:'mage',tier:1,n:'Chain Lightning',mp:22,tgt:'enemy',mult:1.6,acc:100,crit:5,el:'thunder',chain:3,d:'Thunder that leaps from the target to up to 2 more enemies, losing a quarter of its force each jump.'},
-  bulwark:{cls:'warrior',tier:2,n:'Bulwark',mp:26,tgt:'party',d:'For 2 rounds the whole party takes 50% less damage, and every enemy must attack this hero.'},
-  quake:{cls:'warrior',tier:2,n:'Earthshatter',mp:28,tgt:'all',mult:1.7,acc:100,crit:5,el:'physical',stun:'chance',d:'Slams every enemy. Each one hit may be stunned for 1 turn (50% plus STR and Luck, half against bosses).'},
+  bulwark:{cls:'warrior',tier:2,n:'Bulwark',mp:26,tgt:'party',d:'For 2 rounds the whole party takes 67% less damage, and every enemy must attack this hero.'},
+  quake:{cls:'warrior',tier:2,n:'Earthshatter',mp:28,tgt:'all',mult:1.7,acc:100,crit:5,el:'physical',stun:'chance',d:'Slams every enemy. Each one hit may be stunned for 1 turn (67% plus STR and Luck, half against bosses).'},
   hail:{cls:'archer',tier:2,n:'Hail of Arrows',mp:26,tgt:'rand',mult:0.9,hits:6,acc:95,crit:10,el:'weapon',d:'Six arrows at random enemies. Each one rolls its own crit.'},
   assassin:{cls:'archer',tier:2,n:'Assassinate',mp:26,tgt:'enemy',mult:2.9,acc:100,crit:30,cdmg:25,el:'weapon',exec:.3,d:'A lethal shot. Finishes off any non-boss enemy it leaves under 30% health.'},
-  revive:{cls:'mage',tier:2,n:'Revive',mp:40,tgt:'dead',d:'Brings a fallen ally back into the fight with 40% health.'},
+  revive:{cls:'mage',tier:2,n:'Revive',mp:40,tgt:'dead',d:'Brings a fallen ally back into the fight with 53% health.'},
   combo:{cls:'mage',tier:2,n:'Arcane Combo',mp:34,tgt:'enemy',mult:3,acc:100,crit:5,el:'attune',stun:1,d:'Major damage in the attuned element, then stuns the target for 1 turn.'},
   titan:{cls:'warrior',tier:3,n:'Titan’s Wrath',mp:38,tgt:'enemy',mult:5,acc:100,crit:10,el:'physical',pierce:true,stun:2,d:'A blow that ignores armor and stuns the target for 2 turns (1 for bosses).'},
-  undying:{cls:'warrior',tier:3,n:'Undying Vow',mp:36,tgt:'self',d:'For 3 rounds every enemy must attack this hero, who takes 50% less damage and cannot fall below 1 health.'},
+  undying:{cls:'warrior',tier:3,n:'Undying Vow',mp:36,tgt:'self',d:'For 3 rounds every enemy must attack this hero, who takes 67% less damage and cannot fall below 1 health.'},
   thousand:{cls:'archer',tier:3,n:'Thousand Arrows',mp:40,tgt:'all',mult:0.9,hits:3,acc:95,crit:10,el:'weapon',d:'Three arrows into every enemy. Each one rolls its own crit.'},
   killshot:{cls:'archer',tier:3,n:'Killshot',mp:38,tgt:'enemy',mult:5,sure:true,forceCrit:true,cdmg:50,el:'weapon',d:'Never misses and always crits.'},
-  resurrect:{cls:'mage',tier:3,n:'Resurrection',mp:60,tgt:'party',d:'Every fallen ally rises with 60% health, and the whole party heals 40%.'},
+  resurrect:{cls:'mage',tier:3,n:'Resurrection',mp:60,tgt:'party',d:'Every fallen ally rises with 80% health, and the whole party heals 53%.'},
   cataclysm:{cls:'mage',tier:3,n:'Cataclysm',mp:55,tgt:'all',mult:2.5,acc:100,crit:5,el:'attune',stun:1,d:'Engulfs every enemy in the attuned element and stuns them all for 1 turn.'},
 };
 const SKILL_LV={1:8,2:23,3:33};
@@ -3591,7 +3591,7 @@ const armorEva=h=>['helmet','chest','pants'].reduce((a,sl)=>{const it=h.gear[sl]
 const EVA_CAP=30;
 const evasion=h=>clamp((h.cls==='archer'?Math.min(22,stat(h,'agi')*.45):Math.min(15,stat(h,'agi')*.25))+armorEva(h)+tr(h,'eva'),0,EVA_CAP);
 const speed=h=>Math.max(4,(8+stat(h,'agi')*.6+C_(h).spd+tr(h,'spd'))*(1+tr(h,'spdPct')/100)*fatSpd(h));
-const skillMp=(h,id)=>Math.max(1,Math.round(SKILLS[id].mp*(1+tr(h,'skillCost')/100)*(1+posV(h,'mp')/100)));
+const skillMp=(h,id)=>Math.max(1,Math.round(SKILLS[id].mp*(SKILLS[id].cls==='warrior'?2/3:1)*(1+tr(h,'skillCost')/100)*(1+posV(h,'mp')/100)));
 // Percent traits multiply the damage a hero takes from one element (or every non-physical one); they stack on top of resistance.
 const elTaken=(h,e)=>e==='physical'?1:Math.max(.1,1+(tr(h,'tk_'+e)+tr(h,'tkAll'))/100);
 // Resistance as shown on the hero sheet: flat resistance and the percent traits combined.
@@ -4274,6 +4274,8 @@ function makeEnemy0(kind,add,forceSpr){
   const base=name,tier=kind==='king'?'hard':(runTier()||tierOf(lvl)),rng=srng(base+'|'+tier),rr=(a,b)=>a+Math.floor(rng()*(b-a+1));
   const res={};for(const e of ['fire','ice','thunder','grass','fighting','dark'])res[e]=kind==='king'?rr(20,50):rng()<.5?rr(0,30):0;
   if(type!=='physical'){res[type]=kind==='king'?80:rr(40,80);for(const e of ELEMENTS)if(BEATS[e]===type)res[e]=0}
+  // Void monsters (everything on the Dark Side except the King) keep only half of every resistance.
+  if(r.final&&kind!=='king')for(const k of Object.keys(res))res[k]=Math.round(res[k]*.5);
   const baseRes={...res};
   let mutation=null;
   if(kind==='elite'){
@@ -4358,6 +4360,7 @@ function startBattle(kind){
   initTimeline();
   const first=nextUnit(b0ct());
   blog(`${first[0]==='h'?esc(heroById(first.slice(2)).name):es[+first.slice(2)].name} moves first.`);
+  if(balanced())blog(`<b class="gold">Balanced party:</b> a Warrior, an Archer and a Mage together deal ${BAL.dmg}% more damage and take ${BAL.def}% less.`);else if(monoParty())blog(`<span class="warn">A party of one class leaves gaps: ${MONO.dmg}% less damage dealt, ${MONO.taken}% more taken.</span>`);
   advance();
 }
 const b0ct=()=>state.run.battle.ct;
@@ -4490,7 +4493,7 @@ const focusRegen=h=>Math.round((1+stat(h,'int')*.2)*(h.cls==='mage'?1.5:1));
 // Timed hero buffs from learned skills, counted down at the start of that hero's own turn.
 const heroBuff=(h,k)=>{const b=state.run&&state.run.battle,x=b&&b.hb&&b.hb[h.id];return x&&x[k]&&x[k].n>0?x[k]:null};
 const heroEva=h=>Math.max(heroBuff(h,'eva')?90:0,stanceOf(h)==='archer'?rollDodge(h):0,evasion(h));
-const heroDef=h=>{const b=state.run.battle,x=heroBuff(h,'def'),m=Math.max(x?x.v:0,b.bulwark&&b.bulwark.n>0?50:0),p=posV(h,'def');return p?100-(100-m)*(1-p/100):m};
+const heroDef=h=>{const b=state.run.battle,x=heroBuff(h,'def'),m=Math.max(x?x.v:0,b.bulwark&&b.bulwark.n>0?67:0),p=posV(h,'def'),q=bulwarkCut(h)+(balanced()?BAL.def:0);let v=p?100-(100-m)*(1-p/100):m;return q?100-(100-v)*(1-q/100):v};
 function setBuff(h,k,n,v){const b=state.run.battle;b.hb=b.hb||{};const x=b.hb[h.id]=b.hb[h.id]||{};x[k]={n,v}}
 const BUFF_N={def:'guard',eva:'Featherweight',crit:'Sniper',undying:'Undying Vow',focus:'Starsight'};
 // Food and mana items restore a slice at the start of each of the hero's next 3 turns.
@@ -4557,7 +4560,9 @@ const ATK_KINDS={
 };
 // Skills cost mana, so they are built to beat every basic attack: higher multipliers, better accuracy,
 // and they scale with the same power mix (+2% per point) that Power Attack uses.
-const skillMult=(h,sk)=>(sk.mult||0)*(1+tr(h,'skillDmg')/100)*(1+powerScore(h)*.02);
+// Warrior and Mage skills hit a third harder than their listed multiplier.
+const SK_BOOST={warrior:4/3,mage:4/3};
+const skillMult=(h,sk)=>(sk.mult||0)*(SK_BOOST[sk.cls]||1)*(1+tr(h,'skillDmg')/100)*(1+powerScore(h)*.02);
 function atkOpts(h,kind){
   const A=ATTACK[h.cls],o={...A,el:atkEl(h,A.el),label:'attacks',basic:true};
   // Power: much more damage (2.2x, +1% per power point, so the average beats a normal attack despite the misses), +10% crit chance and +40% crit damage (more with power), but a big accuracy penalty (-45, shrinking to -32 with power). A gamble, not the new default.
@@ -4670,14 +4675,14 @@ function stunFoe(h,e,sk){
   if(e.stunImm>0){blog(`${e.name} shakes off the stun. It can’t be stunned for ${e.stunImm} more turn${e.stunImm>1?'s':''}.`);state.run.battle.pops.push({s:'e',i:state.run.battle.enemies.indexOf(e),t:'IMMUNE'});return}
   let n;const lk=stat(h,'str')+stat(h,'lck');
   if(sk.stun==='roll'){n=1;if(chance(Math.min(.6,lk*.015))){n=2;if(chance(Math.min(.3,lk*.0075)))n=3}}
-  else if(sk.stun==='chance'){if(!chance(Math.min(.9,.5+lk/100)*(bigFoe(e)?.5:1)))return;n=1}
+  else if(sk.stun==='chance'){if(!chance(Math.min(.9,.67+lk/100)*(bigFoe(e)?.5:1)))return;n=1}
   else n=sk.stun;
   if(bigFoe(e))n=Math.min(n,1);
   e.stun=Math.max(e.stun||0,n);blog(`${e.name} is stunned for ${n} turn${n>1?'s':''}!`);
   interruptFoe(e);if(e.ward==='up')breakWard(e,'The stun');
 }
 // Coup de Grâce: 6% + 0.25% per STR and Luck point, capped at 25%; elites x0.6, bosses x0.35, never wardens or the King.
-function coupChance(h,e){if(!e||e.kind==='warden'||e.kind==='king')return 0;const base=Math.min(25,6+(stat(h,'str')+stat(h,'lck'))*.25);return base*(e.kind==='elite'||e.kind==='mimic'?.6:e.kind==='boss'?.35:1)}
+function coupChance(h,e){if(!e||e.kind==='warden'||e.kind==='king')return 0;const base=Math.min(33,8+(stat(h,'str')+stat(h,'lck'))*.33);return base*(e.kind==='elite'||e.kind==='mimic'?.6:e.kind==='boss'?.35:1)}
 function afterHit(h,t,act,d){
   if(d<=0)return;
   const sk=SKILLS[act];
@@ -4692,25 +4697,25 @@ function reviveHero(x,pct,b){x.hp=Math.max(1,Math.round(maxHp(x)*pct*healMult(x)
 function applyUtility(h,act,tgt,ally){
   const b=state.run.battle,n=esc(h.name);
   const turns=(a,c,base)=>Math.min(4,base+Math.floor((stat(h,a)+stat(h,c))/20));
-  if(act==='taunt'){const v=Math.min(60,35+Math.round(stat(h,'end')*.5));b.taunt=h.id;b.tauntN=3;setBuff(h,'def',3,v);blog(`${n} bellows an Iron Challenge! Every enemy must attack ${n} for 3 rounds, and ${n} takes ${v}% less damage.`);return}
+  if(act==='taunt'){const v=Math.min(75,47+Math.round(stat(h,'end')*.5));b.taunt=h.id;b.tauntN=3;setBuff(h,'def',3,v);blog(`${n} bellows an Iron Challenge! Every enemy must attack ${n} for 3 rounds, and ${n} takes ${v}% less damage.`);return}
   if(act==='imbue'||act==='imbue2'){const t=SKILLS[act].dur,tg=fixTarget();let best=attuned(h),bv=-1;if(tg&&isScouted(tg))for(const el of ELEMENTS){const v=matchup(el,tg.type)*(1-(tg.res[el]||0)/100);if(v>bv){bv=v;best=el}}b.attune[h.id]=best;setBuff(h,'imbue',t);blog(`${n} nocks Elemental Arrows: ${elTag(best)} for the next ${t} turns. Change the element any time.`);return}
   if(act==='feather'){const t=turns('agi','lck',2);setBuff(h,'eva',t);blog(`${n} turns Featherweight: 90% evasion for ${t} turns.`);return}
   if(act==='sniper'){const t=turns('per','lck',2);setBuff(h,'crit',t);blog(`${n} settles into a Sniper’s stance: 80% crit chance for the next ${t} turns.`);return}
-  if(act==='circle'){const parts=(darkIs('selfish')?[h]:living()).map(x=>{const v=Math.round((maxHp(x)*.2+stat(h,'int'))*healMult(x));x.hp=Math.min(maxHp(x),x.hp+v);b.pops.push({s:'h',hid:x.id,t:'+'+v});return `${esc(x.name)} +${v}`});blog(`${n} draws a Circle of Mending: ${parts.join(', ')} HP.`);return}
-  if(act==='bulwark'){b.bulwark={by:h.id,n:2};b.taunt=h.id;b.tauntN=2;blog(`${n} raises a Bulwark! The party takes 50% less damage for 2 rounds, and every enemy must face ${n}.`);return}
-  if(act==='undying'){b.taunt=h.id;b.tauntN=3;setBuff(h,'def',3,50);setBuff(h,'undying',3);blog(`<b class="gold">${n} swears an Undying Vow!</b> For 3 rounds every enemy must face ${n}, who takes 50% less damage and cannot fall.`);return}
-  if(act==='revive'){reviveHero(ally,.4,b);blog(`<b class="gold">${n} revives ${esc(ally.name)}!</b> They rise with ${ally.hp} HP.`);return}
-  if(act==='resurrect'){const up=partyAll().filter(x=>x.hp<=0);for(const x of up)reviveHero(x,.6,b);
-    for(const x of living())if(!up.includes(x)){const v=Math.round(maxHp(x)*.4*healMult(x));x.hp=Math.min(maxHp(x),x.hp+v);b.pops.push({s:'h',hid:x.id,t:'+'+v})}
-    blog(`<b class="gold">${n} calls down Resurrection!</b>${up.length?' '+esc(listNames(up.map(x=>x.name)))+' rise again, and':''} the party heals 40%.`);return}
+  if(act==='circle'){const parts=(darkIs('selfish')?[h]:living()).map(x=>{const v=Math.round((maxHp(x)*.27+stat(h,'int')*1.33)*healMult(x));x.hp=Math.min(maxHp(x),x.hp+v);b.pops.push({s:'h',hid:x.id,t:'+'+v});return `${esc(x.name)} +${v}`});blog(`${n} draws a Circle of Mending: ${parts.join(', ')} HP.`);return}
+  if(act==='bulwark'){b.bulwark={by:h.id,n:2};b.taunt=h.id;b.tauntN=2;blog(`${n} raises a Bulwark! The party takes 67% less damage for 2 rounds, and every enemy must face ${n}.`);return}
+  if(act==='undying'){b.taunt=h.id;b.tauntN=3;setBuff(h,'def',3,67);setBuff(h,'undying',3);blog(`<b class="gold">${n} swears an Undying Vow!</b> For 3 rounds every enemy must face ${n}, who takes 67% less damage and cannot fall.`);return}
+  if(act==='revive'){reviveHero(ally,.53,b);blog(`<b class="gold">${n} revives ${esc(ally.name)}!</b> They rise with ${ally.hp} HP.`);return}
+  if(act==='resurrect'){const up=partyAll().filter(x=>x.hp<=0);for(const x of up)reviveHero(x,.8,b);
+    for(const x of living())if(!up.includes(x)){const v=Math.round(maxHp(x)*.53*healMult(x));x.hp=Math.min(maxHp(x),x.hp+v);b.pops.push({s:'h',hid:x.id,t:'+'+v})}
+    blog(`<b class="gold">${n} calls down Resurrection!</b>${up.length?' '+esc(listNames(up.map(x=>x.name)))+' rise again, and':''} the party heals 53%.`);return}
   if(act==='wall'){b.guard[h.id]=true;b.taunt=h.id;blog(`${n} raises a Shield Wall and draws every enemy’s eye until their next turn.`)}
-  else if(act==='warcry'){b.warcry={by:h.id,n:3};blog(`${n} lets out a War Cry. The party deals +25% damage until ${n}’s third turn from now.`)}
-  else if(act==='wind'){const v=Math.round(maxHp(h)*.3*healMult(h));h.hp=Math.min(maxHp(h),h.hp+v);b.pops.push({s:'h',hid:h.id,t:'+'+v});blog(`${n} catches a Second Wind: +${v} HP.`)}
+  else if(act==='warcry'){b.warcry={by:h.id,n:3};blog(`${n} lets out a War Cry. The party deals +33% damage until ${n}’s third turn from now.`)}
+  else if(act==='wind'){const v=Math.round(maxHp(h)*.4*healMult(h));h.hp=Math.min(maxHp(h),h.hp+v);b.pops.push({s:'h',hid:h.id,t:'+'+v});blog(`${n} catches a Second Wind: +${v} HP.`)}
   else if(act==='hex'){
     if(!chance(hitChance(h,tgt,SKILLS.hex.acc)/100)){blog(`${n}’s Hex fizzles against ${tgt.name}.`);return}
-    tgt.hex=3;blog(`${n} hexes ${tgt.name}. It takes 25% more damage until 3 of its turns pass.`)}
+    tgt.hex=3;blog(`${n} hexes ${tgt.name}. It takes 33% more damage until 3 of its turns pass.`)}
   else if(act==='mend'){
-    const v=Math.round((maxHp(ally)*.3+stat(h,'int')*2)*healMult(ally));ally.hp=Math.min(maxHp(ally),ally.hp+v);
+    const v=Math.round((maxHp(ally)*.4+stat(h,'int')*2.67)*healMult(ally));ally.hp=Math.min(maxHp(ally),ally.hp+v);
     b.pops.push({s:'h',hid:ally.id,t:'+'+v});blog(`${n} mends ${ally===h?'their own wounds':esc(ally.name)}: +${v} HP.`);bloom(h,ally,v)}
 }
 /* consumables */
@@ -4791,8 +4796,10 @@ function hitEnemy(h,e,o){
     +(alive>=2?tr(h,'pack'):tr(h,'solo'))+posV(h,'dmg')+(el!=='physical'?posV(h,'spell'):0)+(hpPct<.35?tr(h,'low'):0)+(h.hp>=maxHp(h)?tr(h,'full'):0)+(e.hp/e.maxHp<.3?tr(h,'executer'):0)+(o.basic?tr(h,'basicDmg'):0);
   const cbn=cbStacks(h);if(cbn){if(h.cls==='warrior')bonus+=cbn*8;else if(h.cls==='mage'&&el!=='physical')bonus+=cbn*4}
   let d=power(h)*o.mult*Math.max(.1,1+bonus/100)*rand(C.var[0],C.var[1])*HERO_DMG_SCALE*fatDmg(h)*(b.planDmg?1+b.planDmg/100:1);
-  if(b.warcry)d*=1.25;
-  if(e.hex)d*=1.25;
+  if(b.warcry)d*=1.33;
+  if(e.hex)d*=1.33;
+  d*=arcaneSight();if(balanced())d*=1+BAL.dmg/100;if(monoParty())d*=1-MONO.dmg/100;
+  if(h.cls==='mage'&&isVoid(e))d*=1.1;
   d*=stunMult(e);
   if(e.ward==='up'){if(el===foeWeakEl(e))breakWard(e,`${esc(h.name)}’s ${cap(el)} hit`);else d*=WARD_CUT}
   if(e.ward==='open')d*=WARD_EXPOSED;
@@ -4898,18 +4905,30 @@ const posName=(i,n)=>n<2?'':['Front','Middle','Back'][n===2&&i===1?2:i];
 /* Where a hero stands changes how they fight. Warriors want to lead the line, archers and mages want the back.
    Monsters that push and pull heroes around (Blast Wave, Frost Hook and the like) now cost more than a hit. */
 const POS_FX={
-  warrior:{front:{dmg:15,def:10,n:'Vanguard',d:'+15% damage and 10% less damage taken while leading the line',good:1},
-           middle:{dmg:-10,n:'Hemmed in',d:'−10% damage: swinging past the hero in front'},
-           back:{dmg:-20,n:'Out of reach',d:'−20% damage: swinging past the whole party'}},
-  archer:{back:{crit:15,n:'Overwatch',d:'+15% crit chance with a clear line of sight from the back',good:1},
+  warrior:{front:{dmg:15,def:10,n:'Vanguard',d:'+15% damage and 10% less damage taken while leading the line. Bulwark: the heroes behind take 12% less damage, and enemies aim at the Vanguard more often',good:1},
+           middle:{dmg:-30,n:'Hemmed in',d:'−30% damage: swinging past the hero in front'},
+           back:{dmg:-45,n:'Out of reach',d:'−45% damage: swinging past the whole party'}},
+  archer:{middle:{crit:10,dmg:10,n:'Skirmisher',d:'+10% crit chance and +10% damage from the middle of the line',good:1},
+          back:{crit:7,n:'Overwatch',d:'+7% crit chance with a clear line of sight from the back',good:1},
           front:{acc:-15,n:'Crowded',d:'−15% accuracy with monsters in your face'}},
-  mage:{back:{spell:15,n:'Sanctum',d:'+15% spell damage while protected at the back',good:1},
-        front:{mp:25,n:'Exposed',d:'Skills cost 25% more mana in the front line'}},
+  mage:{back:{spell:15,n:'Sanctum',d:'+15% spell damage while protected at the back. Arcane Sight: the whole party deals 10% more damage',good:1},
+        middle:{spell:-15,n:'Jostled',d:'−15% spell damage: hard to focus in the middle of the line'},
+        front:{mp:25,spell:-25,n:'Exposed',d:'Skills cost 25% more mana and spells deal 25% less in the front line'}},
 };
 // Position effects only count in battle, with two or more heroes standing.
 function posFx(h){const r=state.run;if(!r||!r.battle||!h||h.hp<=0)return null;const L=living(),i=L.indexOf(h);if(L.length<2||i<0)return null;
   const k=posName(i,L.length).toLowerCase(),F=(POS_FX[h.cls]||{})[k];return F||null}
 const posV=(h,k)=>{const F=posFx(h);return (F&&F[k])||0};
+const isVoid=e=>!!e&&e.kind!=='king'&&!!(state.run&&state.run.final);
+// Party auras from the line: a Warrior leading it shields the heroes behind (Bulwark); a Mage at the back sharpens everyone's blows (Arcane Sight).
+const lineFront=()=>{const r=state.run;if(!r||!r.battle)return null;const L=living();return L.length>=2?L[0]:null};
+const bulwarkCut=h=>{const f=lineFront();return f&&f!==h&&f.cls==='warrior'?12:0};
+// Balanced party: one Warrior, one Archer and one Mage all standing gives everyone more damage and less damage taken.
+const BAL={dmg:10,def:10},MONO={dmg:15,taken:15};
+// A full party of one class leaves gaps no one covers.
+const monoParty=()=>{const r=state.run;if(!r||!r.battle)return false;const P=partyAll();return P.length===3&&P.every(h=>h.cls===P[0].cls)};
+const balanced=()=>{const r=state.run;if(!r||!r.battle)return false;const L=living();return L.length===3&&['warrior','archer','mage'].every(c=>L.some(h=>h.cls===c))};
+const arcaneSight=()=>{const r=state.run;if(!r||!r.battle)return 1;const L=living();return L.length>=2&&L[L.length-1].cls==='mage'?1.1:1};
 // Plain words for what a class gets at a given spot (used before a battle, too).
 const posFxAt=(cls,i,n)=>n<2?null:(POS_FX[cls]||{})[posName(i,n).toLowerCase()]||null;
 // Party drawn left to right as the monsters see it: back line on the far left, front-liner nearest the enemies.
@@ -4921,7 +4940,7 @@ function pickTarget(e){const L=living();if(!L.length)return null;const b=state.r
   {const S=spOf(e),hb=S&&S[2];
    if(hb==='weak'&&chance(.75))return L.reduce((a,x)=>x.hp/maxHp(x)<a.hp/maxHp(a)?x:a,L[0]);
    if(hb==='back'&&L.length>1&&chance(.7))return L[L.length-1];
-   if(hb==='fixate'&&e.lastHit){const f=heroById(e.lastHit);if(f&&f.hp>0&&chance(.8))return f}}const back=e&&foePos(e)>0,w={};L.forEach((h,i)=>w[h.id]=posChance(back?L.length-1-i:i,L.length));return heroById(weighted(w))}
+   if(hb==='fixate'&&e.lastHit){const f=heroById(e.lastHit);if(f&&f.hp>0&&chance(.8))return f}}const back=e&&foePos(e)>0,w={};L.forEach((h,i)=>w[h.id]=posChance(back?L.length-1-i:i,L.length));if(L.length>1&&L[0].cls==='warrior')w[L[0].id]*=1.3;return heroById(weighted(w))}
 function enemyTurn(){
   const b=state.run.battle;
   b.enemies.forEach((e,i)=>{if(e.hp>0&&living().length)enemyAct(e,i)});
@@ -4947,9 +4966,9 @@ function intentTarget(e){
 }
 // Expected damage before evasion, variance and crits.
 function foeEst(e,h,mult,heavy,act){
-  const r=state.run,b=r.battle;let d=e.atk*mult*(e.weak?.7:1)*(b.guard[h.id]?.5:1)*(b.howl&&b.howl.n>0?1.2:1)*(1+(e.rage||0))*(1+.25*(e.grief||0))*(e.rallied?1.35:1)*spDmg(e,h);
+  const r=state.run,b=r.battle;let d=e.atk*mult*(e.weak?.7:1)*(b.guard[h.id]?.33:1)*(b.howl&&b.howl.n>0?1.2:1)*(1+(e.rage||0))*(1+.25*(e.grief||0))*(e.rallied?1.35:1)*spDmg(e,h);
   d=mitigate(h,d,foeMix(e,act||(heavy?'heavy':'attack')));
-  d*=Math.max(.1,1+tr(h,'taken')/100)*(heavy?Math.max(.1,1+tr(h,'heavyTaken')/100):1)*(1-heroDef(h)/100);
+  d*=Math.max(.1,1+tr(h,'taken')/100)*(heavy?Math.max(.1,1+tr(h,'heavyTaken')/100):1)*(1-heroDef(h)/100)*(monoParty()?1+MONO.taken/100:1);
   return Math.max(1,Math.round(d));
 }
 const INTENT_ICO={relentless:['flame','#ff8a5a'],weary:['crescent','#b9a0d0'],flurry:['sword','#e3b341'],windup:['star','#e3b341'],unleash:['skull','#ff5a4a'],whirl:['sword','#78ab60'],jolt:['bolt','#e6d55a'],hook:['flake','#8fd0ea'],blast:['flame','#e0643a'],charge:['fist','#c98b5c'],grasp:['crescent','#9b70dc'],attack:['sword',null],heavy:['skull',null],sweep:['sword','#e0736c'],rend:['drop','#c4463f'],drain:['heart',null],curse:['crescent','#b56fe3'],web:['eye','#cfc6b0'],howl:['fist','#e3b341'],harden:['shield','#8fa8c8'],ooze:['heart','#8fe08a']};
@@ -4970,12 +4989,12 @@ function intentHtml(e){
 function foeStrike(e,i,h,mult,o){
   const r=state.run,b=r.battle;o=o||{};
   if(chance(heroEva(h)/100)){blog(`${esc(h.name)} dodges ${e.name}’s ${o.name||'attack'}.`);b.pops.push({s:'h',hid:h.id,t:'miss'});return -1}
-  let d=e.atk*mult*rand(.85,1.15)*(e.weak?.7:1)*(b.guard[h.id]?.5:1)*(b.howl&&b.howl.n>0?1.2:1)*(1+(e.rage||0))*(1+.25*(e.grief||0))*(e.rallied?1.35:1)*spDmg(e,h);e.struck=true;e.rallied=false;
+  let d=e.atk*mult*rand(.85,1.15)*(e.weak?.7:1)*(b.guard[h.id]?.33:1)*(b.howl&&b.howl.n>0?1.2:1)*(1+(e.rage||0))*(1+.25*(e.grief||0))*(e.rallied?1.35:1)*spDmg(e,h);e.struck=true;e.rallied=false;
   const mix=foeMix(e,o.act||(o.heavy?'heavy':'attack')),el=Object.keys(mix).filter(k=>k!=='physical'&&mix[k]>0).sort((a,c)=>mix[c]-mix[a])[0]||'physical';
   d=mitigate(h,d,mix);
   const bigE=e.kind==='boss'||e.kind==='warden';
   const crit=chance(.06+(bigE&&e.type==='fighting'?.19:0)+(spOf(e)&&spOf(e)[0]==='keen'?spOf(e)[1]/100:0));if(crit)d*=1.5;
-  d*=Math.max(.1,1+tr(h,'taken')/100)*(o.heavy?Math.max(.1,1+tr(h,'heavyTaken')/100):1)*(1-heroDef(h)/100);
+  d*=Math.max(.1,1+tr(h,'taken')/100)*(o.heavy?Math.max(.1,1+tr(h,'heavyTaken')/100):1)*(1-heroDef(h)/100)*(monoParty()?1+MONO.taken/100:1);
   d=Math.max(1,Math.round(d));
   runStat(h).taken+=Math.min(d,h.hp);h.hp=Math.max(0,h.hp-d);b.fx['h'+h.id]=1;if(crit){b.fx.crit=1;b.fx.shake=1}b.pops.push({s:'h',hid:h.id,t:d,crit,el});e.lastHit=h.id;
   {const S=spOf(e);if(S&&S[0]==='leech'&&e.hp>0){const x=Math.round(d*S[1]/100);if(x>0){e.hp=Math.min(e.maxHp,e.hp+x);b.pops.push({s:'e',i,t:'+'+x})}}}
@@ -6546,7 +6565,7 @@ function advView(){
     sum=`<b>${L.name}</b> · ${L.feel}, length unknown · ${L.max>15?'major bosses along the way, ':''}a final boss at the end · ×${L.mult} gold · best loot ${state.sel.len==='expedition'?'<span class="muted">?</span>':`<span class="r-${bl}">${RAR[bl].l}</span>`}`+
       (state.sel.len==='short'?` · <span class="ok" data-tip="${esc(`In the Cave the party can run back home at any time, even mid-battle. Running costs ${FLEE.min}–${FLEE.max}% of carried gold, and each item found during this adventure (even if equipped) has a 33% chance to be lost. Running mid-battle multiplies both (×2 regular fights, ×2.5 elites, ×3 major bosses), and there is no running from the final boss. Supplies and materials come home.`)}">can run home</span>`:'')}
   const pickHint=state.guide&&!p.length&&LAND_PICK.includes(state.sel.biome);
-  let s=`${!state.guide?coachBox('gate'):''}<div class="stack" style="gap:4px"><div class="gatehead"><h2>The Gate</h2>${state.heroes.length?`<div class="gatepick ${coachMark('gate','party')}">${pickHint&&!ui.partyPick?'<p class="guidehint">② Choose your hero</p>':''}<span class="partycount ${p.length?'':'none'}">Party <b>${p.length}/${max}</b></span>${help(max===1?`Solo only for now. The War Table at the Town Hall unlocks parties: 2 heroes for ${fmt(BUILD.war.cost(0))} gold, then 3 for ${fmt(BUILD.war.cost(1))}.`:`Tick up to ${max} heroes in the list on the right. Their number is their marching spot: 1 walks in front and draws most attacks${max>2?', 2 in the middle, 3 at the back':', 2 at the back'}. Enemies grow tougher with each hero you bring, and gold grows too.`)}<button class="btn ${ui.partyPick?'on':'gold'} ${pickHint&&!ui.partyPick?'guide':''}" data-a="partyPick" aria-pressed="${!!ui.partyPick}" data-tip="${esc(ui.partyPick?'Done choosing. Tap heroes in the list on the right to add or remove them.':'Tick heroes in the list on the right. The number is their marching spot: 1 walks in front.')}">${ui.partyPick?'✓ Done':'Select Party'}</button></div>`:''}</div><p class="muted">Pick a land, a length and your heroes, then set out. ${help('Pick the land: every monster there deals and resists its element, so bring heroes who can handle it. Heroes who die are gone for good, with their gear. Monsters sometimes hunt in pairs or packs of three. In the Cave pairs only appear after stage 10 and packs of three never do; the longer the adventure, the more common packs become, and high on the Summit nearly every fight is a pack. The final boss of each adventure always fights alone.')}</p></div>
+  let s=`${!state.guide?coachBox('gate'):''}<div class="stack" style="gap:4px"><div class="gatehead"><h2>The Gate</h2>${state.heroes.length?`<div class="gatepick ${coachMark('gate','party')}">${pickHint&&!ui.partyPick?'<p class="guidehint">② Choose your hero</p>':''}<span class="partycount ${p.length?'':'none'}">Party <b>${p.length}/${max}</b></span>${help(max===1?`Solo only for now. The War Table at the Town Hall unlocks parties: 2 heroes for ${fmt(BUILD.war.cost(0))} gold, then 3 for ${fmt(BUILD.war.cost(1))}.`:`Tick up to ${max} heroes in the list on the right. Their number is their marching spot: 1 walks in front and draws most attacks${max>2?', 2 in the middle, 3 at the back':', 2 at the back'}. Enemies grow tougher with each hero you bring, and gold grows too. A Warrior, an Archer and a Mage together form a balanced party (+${BAL.dmg}% damage, ${BAL.def}% less taken); three of one class fight worse.`)}<button class="btn ${ui.partyPick?'on':'gold'} ${pickHint&&!ui.partyPick?'guide':''}" data-a="partyPick" aria-pressed="${!!ui.partyPick}" data-tip="${esc(ui.partyPick?'Done choosing. Tap heroes in the list on the right to add or remove them.':'Tick heroes in the list on the right. The number is their marching spot: 1 walks in front.')}">${ui.partyPick?'✓ Done':'Select Party'}</button></div>`:''}</div><p class="muted">Pick a land, a length and your heroes, then set out. ${help('Pick the land: every monster there deals and resists its element, so bring heroes who can handle it. Heroes who die are gone for good, with their gear. Monsters sometimes hunt in pairs or packs of three. In the Cave pairs only appear after stage 10 and packs of three never do; the longer the adventure, the more common packs become, and high on the Summit nearly every fight is a pack. The final boss of each adventure always fights alone.')}</p></div>
   <div class="gategrid"><div class="stack"><div class="stack ${coachMark('gate','len')}" style="gap:6px"><h3>Length</h3>${bar}<p class="lensum">${sum}</p></div>${final?'':(()=>{const cur=LAND_PICK.includes(state.sel.biome)?state.sel.biome:null;
     return `<div class="stack" style="gap:6px"><h3>Land</h3>${state.guide&&!cur?'<p class="guidehint">① Pick a land to explore</p>':''}<div class="lands ${state.guide&&!cur?'guide':''} ${coachMark('gate','land')}" role="radiogroup" aria-label="Land">${LAND_PICK.map(k=>{const B=BIOMES[k],lm=LAND_MOD[landMods()[k]];return `<button class="land ${cur===k?'cur':''}" style="--c:${EL_COL[B.el]}" data-a="land" data-x="${k}" role="radio" aria-checked="${cur===k}">${elIco(B.el)}<span><b>${B.name}</b><small>${cap(B.el)}</small>${lm?`<small class="lmod ${lm.bad?'bad':'good'}">${lm.n}</small>`:''}${huntLand(k).length?`<small class="lmod lost">Lost gear ×${huntLand(k).length}</small>`:''}</span></button>`}).join('')}</div>${cur&&huntLand(cur).length?`<p class="lmodnote lost"><b>Lost gear here:</b> ${huntLand(cur).map(x=>`${aAn(esc(x.base))} carries ${esc(x.owner)}’s ${itemName(x.it)} <span class="muted">(${LENGTHS[x.len]?LENGTHS[x.len].name:'any length'}, stage ${x.stage||1}+)</span>`).join('; ')}. On that length, from that stage on, ${Math.round(HUNT_ODDS*100)}% of fights bring you face to face with it${huntLand(cur).some(x=>x.kind!=='normal')?' (bosses carry theirs every time you meet them there)':''}. Look for the white outline: the same kind of monster without the loot has none.</p>`:''}${cur?landModNote(landMods()[cur]):'<p class="muted" style="font-size:18px">Conditions change every week. Some lands carry a twist this week.</p>'}${cur?`<p class="muted" style="font-size:18px">${BIOMES[cur].flavor} Monsters here deal and resist ${elTag(BIOMES[cur].el)}.</p>`:'<p class="warn" style="font-size:18px">Choose where to go.</p>'}</div>`})()}`;
   if(!state.heroes.length)return s+'<p class="muted">Recruit a hero at the Barracks first.</p></div></div>';
@@ -6664,7 +6683,7 @@ function runView(){
    each with labeled health and mana (or charge) bars, and the current hero's actions underneath. */
 function foeBrief(e){
   const mut=e.mutation?` · <span data-tip="${esc(MUT[e.mutation].d)}">${MUT[e.mutation].n}</span>`:'';
-  const cb=(e.stun>0?33:0)+(e.hex?25:0),cbTxt=cb?`<b class="gold" data-tip="${esc('Bonus damage right now: '+(e.stun>0?'stunned +33%':'')+(e.stun>0&&e.hex?', ':'')+(e.hex?'hexed +25%':'')+'.')}">takes +${e.stun>0&&e.hex?'33% +25%':cb+'%'} now</b> · `:'';
+  const cb=(e.stun>0?33:0)+(e.hex?33:0),cbTxt=cb?`<b class="gold" data-tip="${esc('Bonus damage right now: '+(e.stun>0?'stunned +33%':'')+(e.stun>0&&e.hex?', ':'')+(e.hex?'hexed +33%':'')+'.')}">takes +${e.stun>0&&e.hex?'33% +33%':cb+'%'} now</b> · `:'';
   if(!isScouted(e))return cbTxt+`<span class="muted">not scouted yet. Strengths and weaknesses unknown until your Perception reads it.</span>${mut}`;
   // What shows grows with knowledge, stage by stage, the same as the Moon Ledger.
   const lv=scoutLv(e),S=spOf(e),out=[];
@@ -6724,11 +6743,11 @@ function marksHtml(k){const L=(state.run.battle.marks||{})[k];if(!L||!L.length)r
   const g=state.run.battle.gen||0;return `<span class="marks">${L.map(m=>`<span class="mark ${m.c} ${m.fresh?'fresh':''} ${(m.g||0)<g?'old':''}" ${m.st?`style="${m.st}"`:''}>${m.t}</span>`).join('')}</span>`}
 function heroInfo(h){
   const b=state.run.battle,mh=maxHp(h),mm=maxMp(h),tags=[],cb=cbStacks(h);
-  if(b.guard[h.id])tags.push('<span class="utag" style="color:#8fa8c8" data-tip="Shield Wall: takes half damage and draws every enemy attack until this hero’s next turn.">Shield Wall</span>');
+  if(b.guard[h.id])tags.push('<span class="utag" style="color:#8fa8c8" data-tip="Shield Wall: takes a third of the damage and draws every enemy attack until this hero’s next turn.">Shield Wall</span>');
   if(cb)tags.push(`<span class="utag gold" data-tip="${esc(CRIT_BUFF[h.cls].n+' ×'+cb+': earned by landing crits, stacks up to 5 for the rest of the battle. '+CRIT_BUFF[h.cls].d.charAt(0).toUpperCase()+CRIT_BUFF[h.cls].d.slice(1)+'.')}">${CRIT_BUFF[h.cls].n} ×${cb}</span>`);
-  if(b.warcry&&b.warcry.by===h.id)tags.push('<span class="utag gold" data-tip="War Cry: the whole party deals 25% more damage until it fades.">War Cry</span>');
+  if(b.warcry&&b.warcry.by===h.id)tags.push('<span class="utag gold" data-tip="War Cry: the whole party deals 33% more damage until it fades.">War Cry</span>');
   if(b.tauntN&&b.taunt===h.id)tags.push(`<span class="utag" style="color:#8fa8c8" data-tip="Taunting: every enemy must attack this hero for ${b.tauntN} more round${b.tauntN>1?'s':''}.">Taunting</span>`);
-  if(b.bulwark&&b.bulwark.n>0)tags.push('<span class="utag" style="color:#8fa8c8" data-tip="Bulwark: the whole party takes 50% less damage while it lasts.">Bulwark</span>');
+  if(b.bulwark&&b.bulwark.n>0)tags.push('<span class="utag" style="color:#8fa8c8" data-tip="Bulwark: the whole party takes 67% less damage while it lasts.">Bulwark</span>');
   if(heroBuff(h,'eva'))tags.push(`<span class="utag" style="color:#cfc6b0" data-tip="Featherweight: 90% chance to dodge every attack for ${heroBuff(h,'eva').n} more turn${heroBuff(h,'eva').n>1?'s':''}.">90% evade ×${heroBuff(h,'eva').n}</span>`);
   if(heroBuff(h,'imbue'))tags.push(`<span class="utag" style="color:${EL_COL[attuned(h)]}" data-tip="Elemental Arrows: arrows deal ${cap(attuned(h))} damage for ${heroBuff(h,'imbue').n} more turn${heroBuff(h,'imbue').n>1?'s':''}. Pick another element under the skills.">${cap(attuned(h))} arrows ×${heroBuff(h,'imbue').n}</span>`);
   if(b.hpois&&b.hpois[h.id])tags.push(`<span class="utag" style="color:#6fb35a" data-tip="Poisoned: loses ${b.hpois[h.id].dmg} health at the start of each of their next ${b.hpois[h.id].n} turns.">Poisoned</span>`);
@@ -6782,7 +6801,7 @@ function foeInfo(e){
   if(e.rallied)cond.push('<span class="utag" style="color:#ffb02e" data-tip="Rallied: its next attack deals 35% more damage.">rallied</span>');
   if(e.guardBy!=null&&(state.run.battle.enemies[e.guardBy]||{}).hp>0)cond.push(`<span class="utag" style="color:#8fa8c8" data-tip="${esc(`Shielded by ${state.run.battle.enemies[e.guardBy].name}: takes 50% less damage until that monster acts again. Kill the guardian to break it.`)}">shielded</span>`);
   if(TEAM_OF[e.base]&&isScouted(e))cond.push(`<span class="utag" style="color:#8fe08a" data-tip="${esc('Pack role: '+FOE_SKILLS[TEAM_OF[e.base]].n+'. '+FOE_SKILLS[TEAM_OF[e.base]].d)}">${({mend:'healer',rally:'leader',guard:'guardian'})[TEAM_OF[e.base]]}</span>`);
-  if(e.hex)cond.push(`<span class="utag" style="color:#b56fe3" data-tip="Hexed: takes 25% more damage from everyone for ${e.hex} more turn${e.hex>1?'s':''}.">hexed</span>`);
+  if(e.hex)cond.push(`<span class="utag" style="color:#b56fe3" data-tip="Hexed: takes 33% more damage from everyone for ${e.hex} more turn${e.hex>1?'s':''}.">hexed</span>`);
   if(e.stun>0)cond.push(`<span class="utag" style="color:#e3b341" data-tip="Stunned: loses its next ${e.stun>1?e.stun+' turns':'turn'} and takes 33% more damage from everything until then.${stunImmTurns(e)?` Afterward it can’t be stunned for ${stunImmTurns(e)} turn${stunImmTurns(e)>1?'s':''}.`:''}">stunned${e.stun>1?' ×'+e.stun:''}</span>`);
   if(e.stunImm>0&&!(e.stun>0))cond.push(`<span class="utag" style="color:#a89a70" data-tip="Recovering from a stun: can’t be stunned for ${e.stunImm} more turn${e.stunImm>1?'s':''}.">stun-proof ×${e.stunImm}</span>`);
   if(e.weak)cond.push(`<span class="utag" style="color:#8fcf6f" data-tip="Crippled: deals 30% less damage for ${e.weak} more turn${e.weak>1?'s':''}.">crippled</span>`);
@@ -6858,7 +6877,7 @@ function heroUnit(h,cur,fx,pops){
 function foeUnit(e,i,fx,pops){
   const b=state.run.battle,big=e.kind==='boss'||e.kind==='warden'||e.kind==='king',dead=e.hp<=0,tgt=i===b.target&&!b.over&&!dead;
   const noreach=!dead&&!b.over&&frontOnly()&&aliveFoes()[0]!==e?'noreach':'';
-  const bonusDmg=[];if(!dead&&e.stun>0)bonusDmg.push(['+33%','Stunned: takes 33% more damage from everything until it recovers.']);if(!dead&&e.hex)bonusDmg.push(['+25%','Hexed: takes 25% more damage from everyone.']);
+  const bonusDmg=[];if(!dead&&e.stun>0)bonusDmg.push(['+33%','Stunned: takes 33% more damage from everything until it recovers.']);if(!dead&&e.hex)bonusDmg.push(['+33%','Hexed: takes 33% more damage from everyone.']);
   const combo=bonusDmg.length?`<span class="combob" data-tip="${esc(bonusDmg.map(x=>x[1]).join(' '))}">${bonusDmg.map(x=>x[0]).join(' ')} dmg</span>`:'';
   const MUT_ICO={regen:['heart','#8fe08a'],thorns:['blade','#c8c8d4'],frenzy:['flame','#ff7a2a'],warded:['shield','#8fa8c8'],colossal:['fist','#e3b341']};
   const mutB=e.mutation&&!dead?`<span class="mutbadge" style="--mc:${(MUT_ICO[e.mutation]||[])[1]||'#b56fe3'}" data-tip="${esc('Elite · '+MUT[e.mutation].n+': '+MUT[e.mutation].d+'.')}">${ico(...(MUT_ICO[e.mutation]||['star',null]),2)}</span>`:'';
@@ -6999,7 +7018,7 @@ function dmgRange(h,o,el){
   const b=state.run.battle,C=C_(h);
   let bonus=tr(h,'power')+(el==='physical'?tr(h,'physDmg'):0)+(el!=='physical'&&C.elem?C.elem:0)+posV(h,'dmg')+(el!=='physical'?posV(h,'spell'):0);
   const cbn=cbStacks(h);if(cbn&&(h.cls==='warrior'||(h.cls==='mage'&&el!=='physical')))bonus+=cbn*(h.cls==='warrior'?8:4);
-  let d=power(h)*o.mult*HERO_DMG_SCALE*fatDmg(h)*Math.max(.1,1+bonus/100)*(b.warcry?1.25:1)*(b.curse&&b.curse[h.id]!=null?.75:1)*(el!=='physical'?(archSplit(h,el)?ARCH_PHYS+(1-ARCH_PHYS)*(1+aff(h,'dmg_'+el)/100):1+aff(h,'dmg_'+el)/100):1);
+  let d=power(h)*o.mult*HERO_DMG_SCALE*fatDmg(h)*Math.max(.1,1+bonus/100)*(b.warcry?1.33:1)*arcaneSight()*(b.curse&&b.curse[h.id]!=null?.75:1)*(el!=='physical'?(archSplit(h,el)?ARCH_PHYS+(1-ARCH_PHYS)*(1+aff(h,'dmg_'+el)/100):1+aff(h,'dmg_'+el)/100):1);
   return [Math.max(1,Math.round(d*C.var[0])),Math.max(1,Math.round(d*C.var[1]))];
 }
 function actBar(){
