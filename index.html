@@ -6232,9 +6232,10 @@ function smithView(){
   }
   // Same type tabs and sort as the Bank; equipped gear is listed too, marked with its wearer.
   const f=BANK_F.some(([k])=>k===state.sel.smithF)?state.sel.smithF:'all',srt=BANK_SORT.some(([k])=>k===state.sel.smithSort)?state.sel.smithSort:'new';
-  const byIt=new Map(items.map(x=>[x.it,x])),shown=bankSorted(items.filter(x=>bankCat(x.it,f)).map(x=>x.it),srt).map(it=>byIt.get(it));
+  const fc=CLS_F.includes(state.sel.smithC)?state.sel.smithC:null;
+  const byIt=new Map(items.map(x=>[x.it,x])),shown=bankSorted(items.filter(x=>bankCat(x.it,f)&&clsOk(x.it,fc)).map(x=>x.it),srt).map(it=>byIt.get(it));
   s+=`<h3>Your items</h3><div class="invbar bankbar"><div class="subtabs invf" role="tablist" aria-label="Item type">${BANK_F.map(([k,l])=>{const n=items.filter(x=>bankCat(x.it,k)).length;return `<button class="subtab ${f===k?'cur':''} ${n?'':'empty'}" role="tab" aria-selected="${f===k}" data-a="smithF" data-x="${k}">${l} <small>${n}</small></button>`}).join('')}</div>
-    <label class="invsort"><span class="muted">Sort</span><select title="Sort by tier or value" data-smithsort aria-label="Sort your items">${BANK_SORT.map(([k,l])=>`<option value="${k}" ${srt===k?'selected':''}>${l}</option>`).join('')}</select></label></div>${shown.length?'':'<p class="muted">Nothing of this type.</p>'}<div class="items">${shown.map(({it,h})=>`<button class="item r-${it.rarity}-b ${state.sel.item===it.id?'sel':''}" data-a="selItem" data-x="${it.id}"><span class="ihead">${itemIcon(it,3)}<span class="stack" style="gap:1px"><span class="iname">${itemName(it)}</span><span class="meta">${h?esc(h.name):'Bank'}</span></span></span></button>`).join('')}</div>`;
+    <label class="invsort"><span class="muted">Sort</span><select title="Sort by tier or value" data-smithsort aria-label="Sort your items">${BANK_SORT.map(([k,l])=>`<option value="${k}" ${srt===k?'selected':''}>${l}</option>`).join('')}</select></label></div>${clsRow(items.filter(x=>bankCat(x.it,f)).map(x=>x.it),fc,'smithC')}${shown.length?'':'<p class="muted">Nothing of this type.</p>'}<div class="items">${shown.map(({it,h})=>`<button class="item r-${it.rarity}-b ${state.sel.item===it.id?'sel':''}" data-a="selItem" data-x="${it.id}"><span class="ihead">${itemIcon(it,3)}<span class="stack" style="gap:1px"><span class="iname">${itemName(it)}</span><span class="meta">${h?esc(h.name):'Bank'}</span></span></span></button>`).join('')}</div>`;
   return s;
 }
 const upCost=it=>Math.round(25*Math.pow(it.plus+1,1.6)*(1+RAR[it.rarity].i*.5));
@@ -6468,10 +6469,13 @@ function perfectLedger(){
 }
 // Bank filters: item type tabs plus a sort by tier (rarity, then item level and upgrades) or by sell value.
 const BANK_F=[['all','All'],['weapon','Weapons'],['armor','Armor'],['ring','Rings'],['amulet','Amulets']];
-const BANK_SORT=[['new','Newest'],['up','Upgrades first'],['tierD','Best tier'],['tierA','Low tier'],['valD','Top value'],['valA','Low value']];
+const BANK_SORT=[['new','Newest'],['up','Upgrades first'],['cls','By class'],['tierD','Best tier'],['tierA','Low tier'],['valD','Top value'],['valA','Low value']];
 const bankCat=(it,f)=>f==='all'||(f==='armor'?!['weapon','ring','amulet'].includes(it.slot):it.slot===f);
 const itemTier=it=>RAR[it.rarity].i*1e4+it.ilvl*10+(it.plus||0);
-function bankSorted(L,srt){const o=L.slice();if(srt==='new')return o.reverse();if(srt==='up')return o.reverse().sort((a,b)=>(bankUpFor(b).length>0)-(bankUpFor(a).length>0)||itemScore(b)-itemScore(a));
+// Class filter (items a class can use: its own gear plus any-class gear) and class order for sorting.
+const CLS_F=['warrior','archer','mage'],clsOk=(it,c)=>!c||!it.cls||it.cls===c,clsRank=it=>it.cls?CLS_F.indexOf(it.cls):3;
+function clsRow(list,cur,act){return `<div class="subtabs invf clsf" role="tablist" aria-label="Class">${CLS_F.map(c=>{const n=list.filter(it=>clsOk(it,c)).length;return `<button class="subtab ${cur===c?'cur':''} ${n?'':'empty'}" role="tab" aria-selected="${cur===c}" data-a="${act}" data-x="${c}" data-tip="${esc('Gear a '+CLASSES[c].name+' can use (including any-class pieces). Tap again to show every class.')}">${CLASSES[c].name} <small>${n}</small></button>`}).join('')}</div>`}
+function bankSorted(L,srt){const o=L.slice();if(srt==='new')return o.reverse();if(srt==='cls')return o.reverse().sort((a,b)=>clsRank(a)-clsRank(b)||itemScore(b)-itemScore(a));if(srt==='up')return o.reverse().sort((a,b)=>(bankUpFor(b).length>0)-(bankUpFor(a).length>0)||itemScore(b)-itemScore(a));
   const k=srt.startsWith('tier')?itemTier:sellVal,d=srt.endsWith('D')?-1:1;return o.sort((a,b)=>d*(k(a)-k(b))||d*(sellVal(a)-sellVal(b)))}
 function bankView(){
   let s=bHead('chest',null,'Bank',`Equipment ${state.bank.length}/${bankCap()} · supply slots: ${packCap()} (6 per stack)`,'The Vault stores weapons, armor and accessories you find on adventures. Equipment is never sold in town; it only comes from loot. When it is full, new loot is sold automatically. The Supply Pack sets how many potions and other supplies the party can take on an adventure.',headUp('bank'));
@@ -6479,9 +6483,10 @@ function bankView(){
   if(Object.values(state.mats).some(v=>v>0))s+=`<div class="matbar"><span class="muted">Materials</span>${matsLine(state.mats)}<button class="btn small" data-a="atab" data-x="craft">Craft →</button></div>`;
   s+=`<div class="bar xp" data-tip="Vault space used"><i style="width:${clamp(state.bank.length/bankCap()*100,0,100)}%"></i><span>Vault ${state.bank.length} / ${bankCap()}</span></div>`;
   const f=BANK_F.some(([k])=>k===state.sel.bankF)?state.sel.bankF:'all',srt=BANK_SORT.some(([k])=>k===state.sel.bankSort)?state.sel.bankSort:'new';
-  const shown=bankSorted(state.bank.filter(it=>bankCat(it,f)),srt);
+  const fc=CLS_F.includes(state.sel.bankC)?state.sel.bankC:null;
+  const shown=bankSorted(state.bank.filter(it=>bankCat(it,f)&&clsOk(it,fc)),srt);
   if(state.bank.length)s+=`<div class="invbar bankbar"><div class="subtabs invf" role="tablist" aria-label="Item type">${BANK_F.map(([k,l])=>{const n=state.bank.filter(it=>bankCat(it,k)).length;return `<button class="subtab ${f===k?'cur':''} ${n?'':'empty'}" role="tab" aria-selected="${f===k}" data-a="bankF" data-x="${k}">${l} <small>${n}</small></button>`}).join('')}</div>
-    <label class="invsort"><span class="muted">Sort</span><select title="Sort by tier or value" data-banksort aria-label="Sort the vault">${BANK_SORT.map(([k,l])=>`<option value="${k}" ${srt===k?'selected':''}>${l}</option>`).join('')}</select></label></div>`;
+    <label class="invsort"><span class="muted">Sort</span><select title="Sort by tier or value" data-banksort aria-label="Sort the vault">${BANK_SORT.map(([k,l])=>`<option value="${k}" ${srt===k?'selected':''}>${l}</option>`).join('')}</select></label></div>${clsRow(state.bank.filter(it=>bankCat(it,f)),fc,'bankC')}`;
   s+=state.bank.length&&!shown.length?'<p class="muted">Nothing of this type in the vault.</p>':'';
   s+=state.bank.length?`<div class="items">${shown.map(it=>itemCard(it,upBadge(it)+(it.rarity==='perfect'?'<span class="meta">Perfect weapons cannot be sold.</span>':`<div class="row">${bankUpFor(it).filter(h=>!onRun(h)).slice(0,3).map(h=>`<button class="btn small gold" data-a="bankEquipTo" data-x="${it.id}|${h.id}" data-tip="${esc('Put this on '+h.name+'. What they wore goes back into the vault.')}">Equip on ${esc(h.name)}</button>`).join('')}<button class="btn small" data-a="sell" data-x="${it.id}">Sell · ${sellVal(it)} gold</button></div>`))).join('')}</div>`:'<p class="muted">Empty.</p>';
   if(state.graveyard.length)s+=`<h3>Graveyard</h3><div class="grave">${state.graveyard.slice(0,20).map(g=>`<p>${esc(g.name)}, Lv ${g.level} ${CLASSES[g.cls].name}. Fell in ${g.biome} on stage ${g.stage}, week ${g.week}.</p>`).join('')}</div>`;
@@ -7973,6 +7978,8 @@ const ACT={
   pilgrimGift:()=>{const E=townEv();if(!E||E.ev!=='pilgrims'||E.claimed)return;E.claimed=true;state.items.potion=(state.items.potion||0)+2;state.scrolls=(state.scrolls||0)+1;sfx('loot')},
   bankF:k=>{state.sel.bankF=k},
   smithF:k=>{state.sel.smithF=k},
+  bankC:c=>{state.sel.bankC=state.sel.bankC===c?null:c},
+  smithC:c=>{state.sel.smithC=state.sel.smithC===c?null:c},
   invSel:x=>{ui.invSel=ui.invSel===x?null:x;ui.invMsg=null},
   invGear:x=>{const [hid,sl]=x.split('|'),h=heroById(hid);const k='gear:'+x;ui.invSel=ui.invSel===k||!h||!h.gear[sl]?null:k},
   invEquip:hid=>{const S=invSelItem(),h=heroById(hid),r=state.run;if(!S||!h)return;
