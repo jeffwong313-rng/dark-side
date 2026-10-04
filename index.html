@@ -7048,15 +7048,23 @@ function nodesView(){return mapView()}
 const popCls=p=>(p.sk?'skname ':'')+(p.t==='FURY'||p.t==='FOCUS'||p.t==='ARCANA'?'lvl ':'')+(p.crit?'crit ':'')+(String(p.t)[0]==='+'?'heal ':'')+(p.t==='miss'?'miss ':'')+(p.t==='LEVEL UP'?'lvl ':'');
 /* Camp: a fixed budget of camp points to split between activities (no luck involved). Each activity can be taken more than once. */
 const CAMP_PTS=3;
-// Drill XP per camp point, as a share of a level: shorter roads train more (Cave 10%, Wilds 8%, Wasteland 6%, Summit 4%, Dark Side 3%).
-const DRILL_PCT={short:.1,medium:.08,long:.06,expedition:.04,descent:.03};
-const drillPct=()=>{const r=state.run;return r&&r.final?DRILL_PCT.descent:DRILL_PCT[(r&&r.length)||'short']||.06};
+// Drill XP: all three camp points together are worth two regular battles at this stage (so each point is 2/3 of one).
+// An average battle: the usual monster count and difficulty mix for this road and stage, same formula as real fights.
+const DRILL_BATTLES=2/3;
+function avgBattleXp(){const r=state.run;if(!r)return 0;const s=r.stage||1,o=packOdds(r.length,s),n=(o.one+2*o.two+3*o.three)/100,
+  M=TIER_MIX[r.length]||{easy:1},W=Object.values(M).reduce((a,b)=>a+b,0),t=Object.entries(M).reduce((a,[k,w])=>a+(TIER_XP[k]||1)*w,0)/W;
+  return (10+4*s)*(LENGTHS[r.length]||LENGTHS.short).mult*t*n}
+const drillXp=(h,pts=1)=>Math.max(1,Math.round(avgBattleXp()*DRILL_BATTLES*pts*runMod('xp')*(1+aff(h,'xp')/100)));
+const drillTxt=()=>{const L=living();if(!L.length)return 'Every hero gains experience.';const xs=L.map(h=>drillXp(h)),pc=L.map((h,i)=>xs[i]/xpNeed(h.level)*100),avg=pc.reduce((a,b)=>a+b,0)/pc.length,
+  sp=v=>v<1?'<1':Math.round(v);
+  return L.length>1?`Every hero gains ~${fmt(xs.reduce((a,b)=>a+b,0)/xs.length)} XP per point (~${sp(avg)}% of a level on average). Three points match two battles here.`
+    :`${esc(L[0].name)} gains ${fmt(xs[0])} XP per point (${sp(avg)}% of a level). Three points match two battles here.`};
 const CAMP_ACT={
   rest:{n:'Rest',d:'Every hero recovers 15% health and 15% mana.',ico:['heart',null]},
   ease:{n:'Ease the aches',d:'Every hero loses 15 fatigue.',ico:['crescent','#b9a0d0']},
   plan:{n:'Plan the next fight',d:'The next battle: the party deals 8% more damage per point and acts first.',ico:['sword','#e3b341']},
   scout:{n:'Scout ahead',d:'See what waits on the next stage, whatever the party’s Perception.',ico:['eye','#9fd6ff']},
-  drill:{n:'Drill',d:()=>`Every hero gains ${Math.round(drillPct()*100)}% of a level in XP.`,ico:['book','#b56fe3']},
+  drill:{n:'Drill',d:()=>drillTxt(),ico:['book','#b56fe3']},
 };
 function campView(ev){
   const C=ev.camp,used=Object.values(C.use).reduce((a,b)=>a+b,0),left=C.pts-used;
@@ -7073,7 +7081,7 @@ function campGo(){
   if(U.ease){for(const h of L)h.fat=Math.max(0,(h.fat||0)-15*U.ease);out.push(`Fatigue down: ${L.map(h=>`${esc(h.name)} ${fatOf(h)}%`).join(', ')}`)}
   if(U.plan){r.campBuff={dmg:8*U.plan,first:true};out.push(`<b class="gold">The plan is set:</b> next battle +${8*U.plan}% damage, and the party acts first.`)}
   if(U.scout){r.scoutTo=Math.max(r.scoutTo||0,r.stage+U.scout);for(let k=r.stage+1;k<=r.scoutTo;k++)if(r.plan&&r.plan[k])r.plan[k].seen=true;out.push(`Scouts mark the trails for the next ${U.scout>1?U.scout+' stages':'stage'}.`)}
-  if(U.drill){const ln=[];for(const h of L)xpTo(h,drillPct()*U.drill,ln);out.push(ln.join('<br>'))}
+  if(U.drill){const ln=[];for(const h of L){const x=drillXp(h,U.drill);ln.push(`${esc(h.name)} +${fmt(x)} XP`);gainXp(h,x,ln)}out.push(ln.join('<br>'))}
   const inj=L.filter(h=>injOf(h)).map(h=>`${esc(h.name)}’s ${INJURY[injOf(h)].n} still aches.`);
   r.event={title:ev.title,icon:ev.icon,text:out.join('<br>')+(inj.length?'<br><span class="warn">'+inj.join(' ')+'</span>':'')};
 }
