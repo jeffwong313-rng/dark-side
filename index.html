@@ -3942,6 +3942,14 @@ function planRow(k){
     const from=c=>{let best=0,bd=1e9;A.cols.forEach((x,i)=>{const d=Math.abs(x*C/(ncOf(A)-1)-c);if(d<bd){bd=d;best=i}});return best};
     w.forEach((c,i)=>{const a=from(c),b=cols.indexOf(nw[i]);if(!A.next[a].includes(b))A.next[a].push(b)});
     A.next.forEach((n,i)=>{if(!n.length){let best=0,bd=1e9;cols.forEach((x,j)=>{const d=Math.abs(x-A.cols[i]*C/(ncOf(A)-1));if(d<bd){bd=d;best=j}});n.push(best)}});
+    // No long corridors: count how many stops in a row along any path offered no choice. The second such stop
+    // in a row gets a second road to a neighbouring stop, so a straight line with no options is at most 3 stops long.
+    const Z=r.plan[k-2];A.st=A.next.map((n,i)=>{if(n.length!==1)return 0;
+      const ps=Z&&Z.next&&Z.st?Z.next.map((m,x)=>m.includes(i)?Z.st[x]||0:-1).filter(v=>v>=0):[];
+      return 1+(ps.length?Math.max(...ps):0)});
+    if(cols.length>1)A.next.forEach((n,i)=>{if(A.st[i]<2)return;
+      const b0=n[0],ac=A.cols[i]*C/(ncOf(A)-1),alt=[b0-1,b0+1].filter(j=>j>=0&&j<cols.length).sort((x,y)=>Math.abs(cols[x]-ac)-Math.abs(cols[y]-ac));
+      if(alt.length){n.push(alt[0]);n.sort((x,y)=>x-y);A.st[i]=0}});
     for(const n of A.next)n.sort((a,b)=>a-b);
   }
   r.walk=nw;
