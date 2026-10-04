@@ -5027,7 +5027,10 @@ function bossAfflict(e,h,d){
   else if(e.type==='fire'){b.burn=b.burn||{};const was=b.burn[h.id]||0;b.burn[h.id]=Math.min(40,was+10);if(b.burn[h.id]>was)blog(`${n} is burned: −${b.burn[h.id]}% Fire resistance for this fight.`)}
   else if(e.type==='thunder'){const opts=['atk:normal','atk:power','atk:aim','stance',...h.skills];b.jam=b.jam||{};b.jam[h.id]=pick(opts);blog(`${n} is jolted: ${JAM_N(b.jam[h.id])} is locked for their next turn.`)}
 }
-const jammed=(h,act)=>{const b=state.run&&state.run.battle,j=b&&b.jam&&b.jam[h.id];if(!j)return false;return j===(act==='atk'?'atk:normal':act)};
+// A Warrior standing third in the line can't reach the enemy: no attacks or damaging skills, only buffs (or step forward).
+const benched=h=>{const r=state.run;if(!r||!r.battle||!h||h.cls!=='warrior')return false;const L=living();return L.length>=3&&L.indexOf(h)===2};
+const reachBlocked=(h,act)=>benched(h)&&(act==='atk'||String(act).startsWith('atk:')||!!(SKILLS[act]&&SKILLS[act].mult));
+const jammed=(h,act)=>{if(reachBlocked(h,act))return true;const b=state.run&&state.run.battle,j=b&&b.jam&&b.jam[h.id];if(!j)return false;return j===(act==='atk'?'atk:normal':act)};
 function swapHeroes(a,c){const r=state.run,p=r.party,i=p.indexOf(a.id),j=p.indexOf(c.id);if(i<0||j<0)return;[p[i],p[j]]=[p[j],p[i]]}
 function foeSkill(e,i,id,h){
   const b=state.run.battle,S=FOE_SKILLS[id];
@@ -7030,6 +7033,7 @@ function actBar(){
   if(b.pending){const nm=SKILLS[b.pending]?SKILLS[b.pending].n:CONSUMABLES[b.pending.slice(5)].n;
     return s+`<p class="gold">${nm}: choose a hero</p><div class="skgrid">${(SKILLS[b.pending]&&SKILLS[b.pending].tgt==='dead'?partyAll().filter(x=>x.hp<=0):living()).map(x=>`<button class="btn" data-a="allyCast" data-x="${x.id}"><span>${esc(x.name)}</span><span class="sub2">${x.hp}/${maxHp(x)} HP · ${x.mp}/${maxMp(x)} MP</span></button>`).join('')}<button class="btn" data-a="cancelCast">Cancel</button></div>`}
   const wico=ico(({warrior:'sword',archer:'bow',mage:'staff'})[h.cls],C_(h).tint,2);
+  if(benched(h))s+=`<p class="warn" style="margin:0 0 4px">${esc(h.name)} is too far back to reach the enemy. Use a buff, or Move forward.</p>`;
   s+=`<div class="asec"><div class="alabel">${czBtn('bat.attack')}<span data-tip="Basic attacks cost no mana. Attack is reliable, Power Attack hits harder but misses more, Accurate Attack rarely misses but hits softer.">Attack</span></div><div class="skgrid atk3 atk4 ${czShut('bat.attack')?'czhide':''}">${Object.entries(ATK_KINDS).map(([k,K])=>`<button class="btn skillbtn ${k}" data-a="atk" data-x="${k}" ${jammed(h,'atk:'+k)?'disabled':''} data-tip="${esc(K.n+': '+K.d)}"><span>${wico} ${K.n}</span><span class="sub2">${odds(atkOpts(h,k))}</span></button>`).join('')}${(()=>{const S=STANCE[h.cls],c=h.cls==='mage'?manaWallCost(h):0;return `<button class="btn skillbtn stance" data-a="stance" ${h.mp<c||jammed(h,'stance')?'disabled':''} data-tip="${esc(S.n+': '+S.d(h)+' Uses the turn.')}"><span>${ico(S.ico[0],S.ico[1],2)} ${S.n}${c?` <span class="muted">· ${c} MP</span>`:''}</span><span class="sub2">${h.cls==='warrior'?`−${stoneDef(h)}% damage · holds position`:h.cls==='archer'?`${rollDodge(h)}% dodge`:'no elemental damage · −25% physical'}</span></button>`})()}</div>
     <div class="alabel">${czBtn('bat.skills')}<span data-tip="Skills cost mana (shown on each). Mana comes back a little every turn.">Skills</span></div><div class="skgrid ${czShut('bat.skills')?'czhide':''}">${h.skills.map(id=>{const k=SKILLS[id],c=skillMp(h,id);
       const info=k.mult?odds({...k,mult:skillMult(h,k)}):k.tgt==='enemy'?`${known?Math.round(hitChance(h,tgt,k.acc)):'?'}% hit · ${k.d}`:k.d;
@@ -8171,6 +8175,8 @@ function autoStep(){
   else if(!b.warcry&&L.length>1&&can('warcry'))act='warcry';
   else for(const id of ['crush','bolt','pierce','double','drain','deadeye','cripple'])if(can(id)){act=id;break}
   if(jammed(h,act))act=['atk','atk:aim','atk:power'].find(x=>!jammed(h,x));
+  // Stuck at the back as a Warrior: lift the party if possible, otherwise step forward.
+  if(!act&&benched(h)){act=['warcry','bulwark','undying','taunt','wind','wall'].find(id=>can(id)&&!(id==='warcry'&&b.warcry)&&!(id==='wind'&&h.hp>=maxHp(h)*.7))||'move:f'}
   queueHero(act,ally);
   render();
 }
