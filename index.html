@@ -2365,6 +2365,8 @@ const SKELETONS={
 // The Cave's final boss is one of three beasts, picked when the party sets out. hp/atk scale a normal warden; spd adds speed.
 // The Summit's Gatekeeper: a first, veiled look at what waits on the Dark Side.
 const GATEKEEPER='The Gatekeeper';
+// The Cave's final boss: one of the three not yet beaten in this town, at random; once all three have fallen, any of them.
+const caveNext=()=>{const all=Object.keys(CAVE_BEASTS),left=all.filter(n=>!(state.caveBeaten||[]).includes(n));return pick(left.length?left:all)};
 const CAVE_BEASTS={
   'The Cave Bear':{d:'cbear',hp:1.4,atk:1,spd:-2,style:null,skills:['relentless','rend'],sp:['thick',15,'front','Thick Hide'],
     pal:{A:'#6a4a30',a:'#4a3220',M:'#a07a58',D:{c:'#120c08',flat:true},E:{c:'#ffcf5a',flat:true},w:'#f0e6d4',k0:'#1e140c'},
@@ -4047,7 +4049,7 @@ function startRun(){
   let scrolls=0;if(state.sel.carry&&state.scrolls>0){state.scrolls--;scrolls=1}state.sel.carry=false;
   let biome='tundra';
   if(!final)biome=LAND_PICK.includes(state.sel.biome)?state.sel.biome:pick(LAND_PICK);
-  const total=final?null:ri(L.min,L.max),fin=final?ri(FINAL.finMin,FINAL.finMax):null,cave=len==='short'?pick(Object.keys(CAVE_BEASTS)):null,bossAt=[];
+  const total=final?null:ri(L.min,L.max),fin=final?ri(FINAL.finMin,FINAL.finMax):null,cave=len==='short'?caveNext():null,bossAt=[];
   if(!final){let k=ri(12,17);while(k<total-2){bossAt.push(k);k+=ri(12,18)}}
   state.run={stats:{},id:uid(),mod:final?null:(landMods()[biome]||null),pacts:[],startLv:Object.fromEntries(ids.map(id=>[id,heroById(id).level])),chestAt:[],party:ids,length:len,final,fin,cave,total,bossAt,stage:1,biome,gold:0,loot:[],scrolls,battle:null,nodes:[],event:null,
     lastStand:{},fallen:[],autoPref:false,kingChance:0,bag:{},mats:{}};
@@ -4254,7 +4256,7 @@ function makeEnemy0(kind,add,forceSpr){
   if(kind==='king'){name='The Unlit King';spr='boss';type='dark';lvl+=5}
   else if(kind==='boss'){name=r.final?VOID_BOSSES[clamp(Math.floor(r.stage/15)-1,0,VOID_BOSSES.length-1)].n:B.boss;spr='boss'}
   else if(kind==='warden'&&r.length==='expedition'&&!r.final){name='The Gatekeeper';spr='boss'}
-  else if(kind==='warden'){if(r.length==='short'&&!r.final){r.cave=r.cave&&CAVE_BEASTS[r.cave]?r.cave:pick(Object.keys(CAVE_BEASTS));name=r.cave}else name='Warden of '+B.name.replace(/^The /,'');spr='boss'}
+  else if(kind==='warden'){if(r.length==='short'&&!r.final){r.cave=r.cave&&CAVE_BEASTS[r.cave]?r.cave:caveNext();name=r.cave}else name='Warden of '+B.name.replace(/^The /,'');spr='boss'}
   else if(kind==='mimic'){name='Mimic';spr='mimic';type='physical'}
   else [name,spr]=forceSpr?(B.mons.find(m=>m[1]===forceSpr)||pick(B.mons)):pick(B.mons);
   const M={normal:[1,1],elite:[1.8,1.35],warden:[2.6,1.4],boss:[4,1.7],mimic:[1.5,1.3],king:[FINAL.kingHp,FINAL.kingAtk]}[kind];
@@ -5098,7 +5100,7 @@ function win(){
     if(e.kind==='mimic')drops.push(['chest',e]);
     // Every major boss and every final boss leaves a chest to open after the fight.
     if(e.kind==='boss'){chestTier='boss';e.drop.push({k:'chest',tier:'boss'});state.bossKills=(state.bossKills||0)+1}
-    if(e.kind==='warden'){chestTier='final';e.drop.push({k:'chest',tier:'final'})}
+    if(e.kind==='warden'){chestTier='final';e.drop.push({k:'chest',tier:'final'});if(CAVE_BEASTS[e.base]){state.caveBeaten=state.caveBeaten||[];if(!state.caveBeaten.includes(e.base))state.caveBeaten.push(e.base)}}
     if(e.kind==='king'){drops.push(['king',e],['boss',e],['boss',e]);r.kingSlain=true;set.masteryMax=Math.min(MASTERY_MAX,Math.max(set.masteryMax||0,(state.mastery||0)+1));saveSet()}
     if(e.kind==='boss'&&!r.blessOffer&&(r.bless||[]).length<BLESS_MAX){const have=r.bless||[],pool=Object.keys(BLESSINGS).filter(k=>!have.includes(k));r.blessOffer=pool.sort(()=>Math.random()-.5).slice(0,3)}
     if(e.kind==='warden'&&e.base===GATEKEEPER&&!state.gateBeaten){state.gateBeaten=true;b.gateFell=true}
