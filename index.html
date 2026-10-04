@@ -2368,13 +2368,13 @@ const GATEKEEPER='The Gatekeeper';
 // The Cave's final boss: one of the three not yet beaten in this town, at random; once all three have fallen, any of them.
 const caveNext=()=>{const all=Object.keys(CAVE_BEASTS),left=all.filter(n=>!(state.caveBeaten||[]).includes(n));return pick(left.length?left:all)};
 const CAVE_BEASTS={
-  'The Cave Bear':{d:'cbear',hp:1.4,atk:1,spd:-2,style:null,skills:['relentless','rend'],sp:['thick',15,'front','Thick Hide'],
+  'The Cave Bear':{d:'cbear',hp:1.65,atk:1.05,spd:-2,style:null,skills:['relentless','rend'],sp:['thick',15,'front','Thick Hide'],
     pal:{A:'#6a4a30',a:'#4a3220',M:'#a07a58',D:{c:'#120c08',flat:true},E:{c:'#ffcf5a',flat:true},w:'#f0e6d4',k0:'#1e140c'},
     blurb:'Slow and enormous, with the most health of the three. It works itself into a Relentless fury as the fight drags on.'},
-  'The Giant Boar':{d:'cboar',hp:1.1,atk:1.05,spd:0,style:'charge',unleash:1.35,skills:[],sp:['opener',40,'front','Head Down'],chargeN:{windup:'Pawing the Ground',unleash:'Tusk Charge'},
+  'The Giant Boar':{d:'cboar',hp:1.1,atk:1.05,spd:0,style:'charge',unleash:1.2,skills:[],sp:['opener',40,'front','Head Down'],chargeN:{windup:'Pawing the Ground',unleash:'Tusk Charge'},
     pal:{A:'#5a4436',a:'#3a2a20',M:'#c08a7a',D:{c:'#120c08',flat:true},E:{c:'#ff4a3a',flat:true},w:'#f4ecd8',k0:'#1e140c'},
     blurb:'Paws the ground, then charges the whole party with its tusks for massive damage. Brace when it lowers its head.'},
-  'The Night Panther':{d:'cpanther',hp:.85,atk:1,spd:8,style:null,skills:['rend'],sp:['keen',15,'weak','Pounce'],
+  'The Night Panther':{d:'cpanther',hp:.85,atk:.95,spd:6,style:null,skills:['rend'],sp:['keen',15,'weak','Pounce'],
     pal:{A:'#2a2632',a:'#17141d',M:'#3e3848',D:{c:'#06040a',flat:true},E:{c:'#9cff5a',flat:true},w:'#e8e4dc',k0:'#06040a'},
     blurb:'The fastest thing in the caves. It acts far more often than your heroes and goes for the weakest.'},
 };
@@ -5100,7 +5100,7 @@ function win(){
     if(e.kind==='mimic')drops.push(['chest',e]);
     // Every major boss and every final boss leaves a chest to open after the fight.
     if(e.kind==='boss'){chestTier='boss';e.drop.push({k:'chest',tier:'boss'});state.bossKills=(state.bossKills||0)+1}
-    if(e.kind==='warden'){chestTier='final';e.drop.push({k:'chest',tier:'final'});if(CAVE_BEASTS[e.base]){state.caveBeaten=state.caveBeaten||[];if(!state.caveBeaten.includes(e.base))state.caveBeaten.push(e.base)}}
+    if(e.kind==='warden'){chestTier='final';e.drop.push({k:'chest',tier:'final'});if(CAVE_BEASTS[e.base]){state.caveBeaten=state.caveBeaten||[];if(!state.caveBeaten.includes(e.base))state.caveBeaten.push(e.base);if(state.caveBeaten.length>=Object.keys(CAVE_BEASTS).length&&!state.caveBonus){state.caveBonus=true;r.bonusChest=true}}}
     if(e.kind==='king'){drops.push(['king',e],['boss',e],['boss',e]);r.kingSlain=true;set.masteryMax=Math.min(MASTERY_MAX,Math.max(set.masteryMax||0,(state.mastery||0)+1));saveSet()}
     if(e.kind==='boss'&&!r.blessOffer&&(r.bless||[]).length<BLESS_MAX){const have=r.bless||[],pool=Object.keys(BLESSINGS).filter(k=>!have.includes(k));r.blessOffer=pool.sort(()=>Math.random()-.5).slice(0,3)}
     if(e.kind==='warden'&&e.base===GATEKEEPER&&!state.gateBeaten){state.gateBeaten=true;b.gateFell=true}
@@ -5199,11 +5199,15 @@ const CHEST_TIER={
   elite:{n:'An elite’s stash',gold:1.5,table:'elite',sure:0},
   boss:{n:'A boss’s hoard',gold:2.5,table:'boss',sure:1},
   final:{n:'The final boss’s treasure',gold:3,table:'final',sure:2},
+  cave:{n:'The hunters’ cache',gold:2,table:'final',sure:0,epic:1}, // once per town, after all three Cave beasts have fallen
 };
+// A guaranteed Epic piece (rerolled until the table gives one).
+function epicItem(table,cls){let it;for(let k=0;k<400;k++){it=makeItem(table,ilvl(),cls);if(it.rarity==='epic')return it}return it}
 function rollChest(tier){
   const T=CHEST_TIER[tier]||CHEST_TIER.map,r=state.run,L=living(),F=eventBonus(),out=[chestGold(T.gold),chestConsumable()];
   const eq=()=>({k:'item',it:makeItem(T.table,ilvl(),pick(L).cls)});
   for(let i=0;i<T.sure;i++)out.push(eq());
+  if(T.epic)out.push({k:'item',it:epicItem(T.table,pick(L).cls)});
   if(!T.sure&&chance(Math.min(.95,(Math.min(90,80+r.stage*.5)+F/10)/100)))out.push(eq());
   // Bonus slots: 60% consumable, 25% equipment, 15% another gold pile.
   for(const p of CHEST_EXTRA){if(!chance(p))break;const x=Math.random();out.push(x<.6?chestConsumable():x<.85?eq():chestGold(.6))}
@@ -7055,9 +7059,9 @@ function eventView(){
   const ev=state.run.event;
   if(ev.camp)return campView(ev);
   const wf=!!(ev.wheel&&ev.wheel.fresh),wheel=ev.mystery==='wheel'||ev.wheel?wheelHtml(ev):'';
-  const last=!state.run.final&&state.run.stage>=state.run.total;
+  const last=!state.run.final&&state.run.stage>=state.run.total&&!state.run.bonusChest;
   if(ev.shop)return `<div class="row" style="gap:12px;flex-wrap:nowrap;align-items:flex-start"><span class="portrait">${sprite('flask','#e3b341',5,'bob')}</span><div class="stack" style="gap:6px"><h2>${ev.title}</h2><p>${ev.text}</p></div></div>${shopView(ev)}<div class="row"><button class="btn gold" data-a="cont">Move on</button></div>`;
-  if(ev.chest)return `<h2>${ev.chest.opened?'The chest is open':(CHEST_TIER[ev.chest.tier]||CHEST_TIER.map).n}</h2>${chestScene()}${ev.chest.opened?`<p>${ev.text}</p>${state.run.invNote?`<p class="gold" style="font-size:18px">${state.run.invNote}</p>`:''}${dropActions((ev.chest.got||[]).filter(x=>x.k==='item').map(x=>x.it))}<div class="row"><button class="btn gold" data-a="cont">${last?'Head home':'Continue'}</button></div>`:'<p class="muted">Old iron bands, a heavy lid. Open it to see what spills out.</p>'}`;
+  if(ev.chest)return `<h2>${ev.chest.opened?'The chest is open':(CHEST_TIER[ev.chest.tier]||CHEST_TIER.map).n}</h2>${chestScene()}${ev.chest.opened?`<p>${ev.text}</p>${state.run.invNote?`<p class="gold" style="font-size:18px">${state.run.invNote}</p>`:''}${dropActions((ev.chest.got||[]).filter(x=>x.k==='item').map(x=>x.it))}<div class="row"><button class="btn gold" data-a="cont">${last?'Head home':'Continue'}</button></div>`:ev.gov?`<div class="row govnote" style="gap:12px;align-items:flex-start;flex-wrap:nowrap">${state.gov?govPic(state.gov,3):''}<p>That’s the last of the three great beasts. The caves are finally quiet, and the reward we’ve been hunting for was hidden in this one all along. Open it up! We can always come back to the caves, but this cache won’t be waiting for us again.</p></div>`:'<p class="muted">Old iron bands, a heavy lid. Open it to see what spills out.</p>'}`;
   return `<div class="row" style="gap:12px;flex-wrap:nowrap;align-items:flex-start">${ev.approach?`<span class="approach"><span class="afar">${foeArt({base:BIOMES[state.run.biome].boss,kind:'boss',type:BIOMES[state.run.biome].el,spr:'boss'},5,'bob')}</span><span class="portrait">${sprite('camp',null,5,'bob')}</span></span>`:ev.icon?`<span class="portrait">${sprite(ev.icon,null,5,'bob')}</span>`:''}<div class="stack" style="gap:6px"><h2>${ev.title}</h2><p class="${wf?'wheelres':''}">${ev.text}</p></div></div>${wheel}<div class="row">${ev.choices?ev.choices.map(c=>`<button class="btn ${c.x==='leave'?'':'gold'}" data-a="${c.myst?'myst':c.ev?'evPick':'gamble'}" data-x="${c.x}" ${c.off?'disabled':''}>${c.l}</button>`).join(''):`<button class="btn gold" data-a="cont">${ev.intro?'Press on':'Continue'}</button>`}</div>`;
 }
 function skillChip(h,id){const k=SKILLS[id];return `<span class="trait tk-skill" tabindex="0" data-tip="${esc(k.n+' · '+k.mp+' MP. '+skillStats(id)+'. '+k.d)}">${k.n}</span>`}
@@ -7952,6 +7956,8 @@ const ACT={
   attune:x=>{const [hid,el]=x.split('|'),b=state.run&&state.run.battle;if(b&&ELEMENTS.includes(el)){b.attune[hid]=el;const h=heroById(hid);if(h&&h.cls==='mage')h.attuneEl=el}},
   auto:()=>{const b=state.run.battle;b.auto=!b.auto;state.run.autoPref=b.auto},
   cont:()=>{const r=state.run;if(r.battle&&r.blessOffer){ui.hideResult=false;return}if(r.event&&r.event.intro){r.event=null;return}
+    // All three Cave beasts beaten: after the boss's own treasure, the hunters' cache turns up (once per town).
+    if(r.bonusChest&&!r.battle&&r.event&&r.event.chest&&r.event.chest.opened){r.bonusChest=false;r.event={title:CHEST_TIER.cave.n,icon:'chest',gov:true,chest:{opened:false,tier:'cave'}};return}
     if(r.battle&&r.battle.over==='win'&&r.pendingChest){const tier=r.pendingChest;r.pendingChest=null;r.battle=null;r.event={title:CHEST_TIER[tier].n,icon:'chest',chest:{opened:false,tier}};return}if(r.kingSlain){endRun('victory');return}nextStage()},
   fallen:()=>{ui.drawer=null;endRun('dead')},
   flee:()=>{if(!canFlee())return;if(set.confirmFlee)ui.flee=true;else ACT.fleeYes()},
