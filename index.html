@@ -4905,13 +4905,12 @@ const posName=(i,n)=>n<2?'':['Front','Middle','Back'][n===2&&i===1?2:i];
    Monsters that push and pull heroes around (Blast Wave, Frost Hook and the like) now cost more than a hit. */
 const POS_FX={
   warrior:{front:{dmg:15,def:10,n:'Vanguard',d:'+15% damage and 10% less damage taken while leading the line. Bulwark: the heroes behind take 12% less damage, and enemies aim at the Vanguard more often',good:1},
-           middle:{dmg:-10,n:'Hemmed in',d:'−10% damage: swinging past the hero in front'},
-           back:{dmg:-20,n:'Out of reach',d:'−20% damage: swinging past the whole party'}},
+},
   archer:{middle:{crit:10,dmg:10,n:'Skirmisher',d:'+10% crit chance and +10% damage from the middle of the line',good:1},
           back:{crit:7,n:'Overwatch',d:'+7% crit chance with a clear line of sight from the back',good:1},
-          front:{acc:-15,n:'Crowded',d:'−15% accuracy with monsters in your face'}},
+},
   mage:{back:{spell:15,n:'Sanctum',d:'+15% spell damage while protected at the back. Arcane Sight: the whole party deals 10% more damage',good:1},
-        front:{mp:25,n:'Exposed',d:'Skills cost 25% more mana in the front line'}},
+},
 };
 // Position effects only count in battle, with two or more heroes standing.
 function posFx(h){const r=state.run;if(!r||!r.battle||!h||h.hp<=0)return null;const L=living(),i=L.indexOf(h);if(L.length<2||i<0)return null;
