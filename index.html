@@ -6230,7 +6230,11 @@ function smithView(){
       ${it.rarity==='perfect'?'':`<p>Sell to the shop for <b class="gold">${sellVal(it)} gold</b>${selE.h?` <span class="muted">(unequips it from ${esc(selE.h.name)})</span>`:''}</p><div class="row"><button class="btn" data-a="sellItem" data-x="${it.id}">Sell</button></div>`}
       ${state.sel.smithMsg?`<p class="gold">${state.sel.smithMsg}</p>`:''}</div></div>`;
   }
-  s+=`<h3>Your items</h3><div class="items">${items.map(({it,h})=>`<button class="item r-${it.rarity}-b ${state.sel.item===it.id?'sel':''}" data-a="selItem" data-x="${it.id}"><span class="ihead">${itemIcon(it,3)}<span class="stack" style="gap:1px"><span class="iname">${itemName(it)}</span><span class="meta">${h?esc(h.name):'Bank'}</span></span></span></button>`).join('')}</div>`;
+  // Same type tabs and sort as the Bank; equipped gear is listed too, marked with its wearer.
+  const f=BANK_F.some(([k])=>k===state.sel.smithF)?state.sel.smithF:'all',srt=BANK_SORT.some(([k])=>k===state.sel.smithSort)?state.sel.smithSort:'new';
+  const byIt=new Map(items.map(x=>[x.it,x])),shown=bankSorted(items.filter(x=>bankCat(x.it,f)).map(x=>x.it),srt).map(it=>byIt.get(it));
+  s+=`<h3>Your items</h3><div class="invbar bankbar"><div class="subtabs invf" role="tablist" aria-label="Item type">${BANK_F.map(([k,l])=>{const n=items.filter(x=>bankCat(x.it,k)).length;return `<button class="subtab ${f===k?'cur':''} ${n?'':'empty'}" role="tab" aria-selected="${f===k}" data-a="smithF" data-x="${k}">${l} <small>${n}</small></button>`}).join('')}</div>
+    <label class="invsort"><span class="muted">Sort</span><select title="Sort by tier or value" data-smithsort aria-label="Sort your items">${BANK_SORT.map(([k,l])=>`<option value="${k}" ${srt===k?'selected':''}>${l}</option>`).join('')}</select></label></div>${shown.length?'':'<p class="muted">Nothing of this type.</p>'}<div class="items">${shown.map(({it,h})=>`<button class="item r-${it.rarity}-b ${state.sel.item===it.id?'sel':''}" data-a="selItem" data-x="${it.id}"><span class="ihead">${itemIcon(it,3)}<span class="stack" style="gap:1px"><span class="iname">${itemName(it)}</span><span class="meta">${h?esc(h.name):'Bank'}</span></span></span></button>`).join('')}</div>`;
   return s;
 }
 const upCost=it=>Math.round(25*Math.pow(it.plus+1,1.6)*(1+RAR[it.rarity].i*.5));
@@ -7968,6 +7972,7 @@ const ACT={
   merchBuy:id=>{const E=townEv();if(!E||E.ev!=='merchant')return;const it=(E.stock||[]).find(x=>x.id===id);if(!it)return;const pc=merchPrice(it);if(state.gold<pc||state.bank.length>=bankCap())return;state.gold-=pc;state.bank.push(it);E.stock=E.stock.filter(x=>x!==it);sfx('coin')},
   pilgrimGift:()=>{const E=townEv();if(!E||E.ev!=='pilgrims'||E.claimed)return;E.claimed=true;state.items.potion=(state.items.potion||0)+2;state.scrolls=(state.scrolls||0)+1;sfx('loot')},
   bankF:k=>{state.sel.bankF=k},
+  smithF:k=>{state.sel.smithF=k},
   invSel:x=>{ui.invSel=ui.invSel===x?null:x;ui.invMsg=null},
   invGear:x=>{const [hid,sl]=x.split('|'),h=heroById(hid);const k='gear:'+x;ui.invSel=ui.invSel===k||!h||!h.gear[sl]?null:k},
   invEquip:hid=>{const S=invSelItem(),h=heroById(hid),r=state.run;if(!S||!h)return;
@@ -8011,7 +8016,8 @@ const ACT={
 let autoTimer=null,lastView=null,lastMode=null;
 document.addEventListener('change',ev=>{const t=ev.target;if(!t||!t.matches)return;
   if(t.matches('[data-invsort]')){ui.invSort=t.value;render()}
-  else if(t.matches('[data-banksort]')){state.sel.bankSort=t.value;save();render()}});
+  else if(t.matches('[data-banksort]')){state.sel.bankSort=t.value;save();render()}
+  else if(t.matches('[data-smithsort]')){state.sel.smithSort=t.value;save();render()}});
 try{document.addEventListener('fullscreenchange',()=>{if(document.fullscreenElement)screen.orientation.lock('landscape').catch(()=>{})})}catch(e){}
 function drawIntentArrows(){
   const svg=document.querySelector('.bscreen .intentarrows');if(!svg||!state.run||!state.run.battle)return;
