@@ -2365,10 +2365,12 @@ const SKELETONS={
 // The Cave's final boss is one of three beasts, picked when the party sets out. hp/atk scale a normal warden; spd adds speed.
 // The Summit's Gatekeeper: a first, veiled look at what waits on the Dark Side.
 const GATEKEEPER='The Gatekeeper';
+// All three Cave beasts are tuned so a well-equipped level 4 hero alone wins sometimes and a level 6 hero almost always does.
+const CAVE_SCALE={hp:.45,atk:.55};
 // The Cave's final boss: one of the three not yet beaten in this town, at random; once all three have fallen, any of them.
 const caveNext=()=>{const all=Object.keys(CAVE_BEASTS),left=all.filter(n=>!(state.caveBeaten||[]).includes(n));return pick(left.length?left:all)};
 const CAVE_BEASTS={
-  'The Cave Bear':{d:'cbear',hp:1.65,atk:1.05,spd:-2,style:null,skills:['relentless','rend'],sp:['thick',15,'front','Thick Hide'],
+  'The Cave Bear':{d:'cbear',hp:1.3,atk:.95,spd:-2,style:null,skills:['relentless','rend'],sp:['thick',15,'front','Thick Hide'],
     pal:{A:'#6a4a30',a:'#4a3220',M:'#a07a58',D:{c:'#120c08',flat:true},E:{c:'#ffcf5a',flat:true},w:'#f0e6d4',k0:'#1e140c'},
     blurb:'Slow and enormous, with the most health of the three. It works itself into a Relentless fury as the fight drags on.'},
   'The Giant Boar':{d:'cboar',hp:1.1,atk:1.05,spd:0,style:'charge',unleash:1.2,skills:[],sp:['opener',40,'front','Head Down'],chargeN:{windup:'Pawing the Ground',unleash:'Tusk Charge'},
@@ -4284,7 +4286,7 @@ function makeEnemy0(kind,add,forceSpr){
   // On the Dark Side every monster is void-touched, whatever land it came from.
   if(r.final&&(kind==='normal'||kind==='elite')&&r.biome!=='abyss')name='Void '+name;
   const CB=CAVE_BEASTS[name],ward=kind==='boss'&&!r.final&&BOSSES[name]?'up':null;
-  if(CB){hp=Math.max(1,Math.round(hp*CB.hp));atk*=CB.atk}
+  if(CB){hp=Math.max(1,Math.round(hp*CB.hp*CAVE_SCALE.hp));atk*=CB.atk*CAVE_SCALE.atk}
   const bossType=CB?CB.style:kind==='warden'?pick(['charge','scale']):null,relSk=bossType==='scale'?['relentless']:[];
   return {name,base,tier,spr,kind,type,bossType,rage:0,ward,voidPhys:VOID_N[name]?VOID_N[name].phys:name==='The Gatekeeper'?.5:undefined,mix:foeMixFor(spr,kind,type,r.final,rng),lvl:Math.round(lvl*10)/10,hp,maxHp:hp,atk,armor:Math.round(lvl*2*(F.arm||1)),res,baseRes,mutation,spd:10+lvl+(F.spd||0)+(CB?CB.spd:0),spdBonus:(F.spd||0)+(CB?CB.spd:0),unleashX:CB&&CB.unleash||undefined,chargeN:CB&&CB.chargeN||undefined,eva,skills:CB?CB.skills.slice():foeSkillsFor(spr,kind,tier,type).concat(relSk,kind!=='warden'&&kind!=='king'&&chance(1/3)?['weary']:[])};
 }
