@@ -861,6 +861,7 @@ span.dslot{cursor:default}
 .gatehead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:nowrap}.gatehead h2{margin:0}
 .gatepick{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;margin-left:auto}.gatepick .guidehint{margin:0}.gatepick .btn{padding-block:2px 5px}
 .partycount{font-size:20px;color:var(--ash)}.partycount b{color:var(--bone)}.partycount.none b{color:var(--warn,#e0736c)}
+.scrollask{padding:8px 10px;background:#241e14;box-shadow:inset 0 0 0 2px var(--gold)}.scrollask p{margin:0 0 6px}
 .lvbanner{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:8px 12px;margin-bottom:8px;background:#2a2214;color:var(--bone);box-shadow:inset 0 0 0 2px var(--gold),0 0 14px #e3b34155;animation:govfade .4s ease both}.lvbanner b{color:var(--gold)}.lvbanner .btn{margin-left:auto}
 .hrcard.viewing,.hrcard.viewing:hover{background:#2a2033;box-shadow:inset 0 0 0 3px var(--gold),0 0 10px #e3b34166}.hrcard.inparty.viewing{box-shadow:inset 0 0 0 3px var(--gold),inset 0 0 0 6px #8fd3ff}
 .hrport{position:relative;flex:none;width:72px;height:72px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 60%,color-mix(in srgb,var(--ct) 45%,transparent),#0b0910 70%);box-shadow:inset 0 0 0 2px #2a2234}
@@ -6614,7 +6615,7 @@ function partyPanel(){
         ${bars(h)}${fatLine(h)}<button class="linkbtn ${h.points&&h.hp>0&&!open?'guide':''}" data-a="pdet" data-x="${h.id}" aria-expanded="${open}">${open?'Hide details ▴':'Details ▾'}${h.points?` <span class="gold">· ${h.points} pts</span>`:''}</button></div>
         ${gearDoll(h,'pslot',sel[0]===h.id?sel[1]:null,true)}</div>${pslotDetail(h)}
       ${open?`<div class="stack pdetail" style="gap:2px">${czSec('run.traits','Traits & skills',`${traitChips(h)}<div class="traits">${h.skills.map(id=>skillChip(h,id)).join('')}</div>${h.hp>0?learnBlock(h):''}`)}${czSec('run.xp','Level',`${xpBar(h)}${h.hp>0?allocBtns(h):''}`)}${czSec('run.attr','Attributes',statPips(h))}${czSec('run.combat','Combat',statTable(h))}${czSec('run.res','Resistances',heroElTable(h))}</div>`:''}</div>`}).join('')}
-    ${r.scrolls&&!(b&&b.over)?`<button class="btn" data-a="scroll">Read Return Scroll${many?' (whole party)':''}</button>`:''}
+    ${r.scrolls&&!(b&&b.over)?(ui.scrollAsk?`<div class="scrollask"><p><b class="gold">Read the Return Scroll?</b> The adventure ends here and ${many?'the whole party goes':'the hero goes'} home with everything carried. ${r.scrolls>1?`(${r.scrolls-1} left after this.)`:'It’s your only scroll.'}</p><div class="row"><button class="btn gold" data-a="scroll">Read it, go home</button><button class="btn" data-a="scrollAsk" data-x="0">Keep going</button></div></div>`:`<button class="btn" data-a="scrollAsk" data-x="1">Read Return Scroll${many?' (whole party)':''}</button>`):''}
     ${czSec('run.bag','Bag',(()=>{const bag=Object.entries(r.bag||{}).filter(([id,n])=>n>0&&CONSUMABLES[id]),field=!(b&&!b.over);
       if(!bag.length)return '<p class="muted">No supplies.</p>';
       return `${r.fieldMsg&&field?`<p class="gold" style="font-size:20px">${r.fieldMsg}</p>`:''}<div class="stack" style="gap:6px">${bag.map(([id,n])=>{const C=CONSUMABLES[id];
@@ -7951,10 +7952,11 @@ const ACT={
   zoomReset:()=>applyZoom((PROFILES[set.profile]||{}).zoom||1),
   fleeNo:()=>{ui.flee=false},
   fleeYes:()=>{ui.flee=false;ui.drawer=null;if(!canFlee())return;clearTimeout(advTimer);state.run.fleeTerms=fleeTerms();endRun('flee')},
-  drawer:x=>{if(!x&&ui.lvlOpen){ui.lvlOpen=false;ui.hideResult=false}ui.drawer=x||null;const b=state.run&&state.run.battle;if(x==='party'&&b&&b.over)ui.hideResult=true},
+  drawer:x=>{ui.scrollAsk=false;if(!x&&ui.lvlOpen){ui.lvlOpen=false;ui.hideResult=false}ui.drawer=x||null;const b=state.run&&state.run.battle;if(x==='party'&&b&&b.over)ui.hideResult=true},
   zoomIn:()=>applyZoom(ui.zoom+.1),
   zoomOut:()=>applyZoom(ui.zoom-.1),
-  scroll:()=>{const r=state.run;if(!r.scrolls)return;r.scrolls--;ui.drawer=null;clearTimeout(advTimer);endRun('scroll')},
+  scrollAsk:x=>{ui.scrollAsk=x==='1'},
+  scroll:()=>{const r=state.run;ui.scrollAsk=false;if(!r.scrolls)return;r.scrolls--;ui.drawer=null;clearTimeout(advTimer);endRun('scroll')},
   gamble:x=>gamble(x),
   myst:x=>mystChoice(x),
   evPick:x=>eventPick(x),
