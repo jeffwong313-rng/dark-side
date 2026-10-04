@@ -7022,19 +7022,22 @@ function nodesView(){return mapView()}
 const popCls=p=>(p.sk?'skname ':'')+(p.t==='FURY'||p.t==='FOCUS'||p.t==='ARCANA'?'lvl ':'')+(p.crit?'crit ':'')+(String(p.t)[0]==='+'?'heal ':'')+(p.t==='miss'?'miss ':'')+(p.t==='LEVEL UP'?'lvl ':'');
 /* Camp: a fixed budget of camp points to split between activities (no luck involved). Each activity can be taken more than once. */
 const CAMP_PTS=3;
+// Drill XP per camp point, as a share of a level: shorter roads train more (Cave 10%, Wilds 8%, Wasteland 6%, Summit 4%, Dark Side 3%).
+const DRILL_PCT={short:.1,medium:.08,long:.06,expedition:.04,descent:.03};
+const drillPct=()=>{const r=state.run;return r&&r.final?DRILL_PCT.descent:DRILL_PCT[(r&&r.length)||'short']||.06};
 const CAMP_ACT={
   rest:{n:'Rest',d:'Every hero recovers 15% health and 15% mana.',ico:['heart',null]},
   ease:{n:'Ease the aches',d:'Every hero loses 15 fatigue.',ico:['crescent','#b9a0d0']},
   plan:{n:'Plan the next fight',d:'The next battle: the party deals 8% more damage per point and acts first.',ico:['sword','#e3b341']},
   scout:{n:'Scout ahead',d:'See what waits on the next stage, whatever the party’s Perception.',ico:['eye','#9fd6ff']},
-  drill:{n:'Drill',d:'Every hero gains 6% of a level in XP.',ico:['book','#b56fe3']},
+  drill:{n:'Drill',d:()=>`Every hero gains ${Math.round(drillPct()*100)}% of a level in XP.`,ico:['book','#b56fe3']},
 };
 function campView(ev){
   const C=ev.camp,used=Object.values(C.use).reduce((a,b)=>a+b,0),left=C.pts-used;
   return `<div class="row" style="gap:12px;flex-wrap:nowrap;align-items:flex-start"><span class="portrait">${sprite('camp',null,5,'bob')}</span><div class="stack" style="gap:6px"><h2>${ev.title}</h2><p>${ev.text}</p></div></div>
     <div class="campleft">${Array.from({length:C.pts},(_,i)=>`<i class="${i<used?'on':''}"></i>`).join('')}<span>${left} of ${C.pts} camp point${C.pts>1?'s':''} left</span></div>
     <div class="stack" style="gap:6px">${Object.entries(CAMP_ACT).map(([k,A])=>{const n=C.use[k]||0;
-      return `<div class="campact ${n?'on':''}"><span class="row" style="gap:8px;flex-wrap:nowrap;min-width:0">${ico(A.ico[0],A.ico[1],3)}<span class="stack" style="gap:0;min-width:0"><b>${A.n}${n?` <span class="gold">×${n}</span>`:''}</b><span class="muted" style="font-size:18px">${A.d}</span></span></span>
+      return `<div class="campact ${n?'on':''}"><span class="row" style="gap:8px;flex-wrap:nowrap;min-width:0">${ico(A.ico[0],A.ico[1],3)}<span class="stack" style="gap:0;min-width:0"><b>${A.n}${n?` <span class="gold">×${n}</span>`:''}</b><span class="muted" style="font-size:18px">${typeof A.d==='function'?A.d():A.d}</span></span></span>
         <span class="row" style="gap:4px;flex-wrap:nowrap"><button class="btn small" data-a="campSub" data-x="${k}" ${n?'':'disabled'} aria-label="One less">−</button><button class="btn small gold" data-a="campAdd" data-x="${k}" ${left?'':'disabled'} aria-label="One more">+</button></span></div>`}).join('')}</div>
     <div class="row" style="margin-top:6px"><button class="btn gold" data-a="campGo" ${used?'':'disabled'}>Make camp${left?` (${left} unspent)`:''}</button></div>`;
 }
@@ -7044,7 +7047,7 @@ function campGo(){
   if(U.ease){for(const h of L)h.fat=Math.max(0,(h.fat||0)-15*U.ease);out.push(`Fatigue down: ${L.map(h=>`${esc(h.name)} ${fatOf(h)}%`).join(', ')}`)}
   if(U.plan){r.campBuff={dmg:8*U.plan,first:true};out.push(`<b class="gold">The plan is set:</b> next battle +${8*U.plan}% damage, and the party acts first.`)}
   if(U.scout){r.scoutTo=Math.max(r.scoutTo||0,r.stage+U.scout);for(let k=r.stage+1;k<=r.scoutTo;k++)if(r.plan&&r.plan[k])r.plan[k].seen=true;out.push(`Scouts mark the trails for the next ${U.scout>1?U.scout+' stages':'stage'}.`)}
-  if(U.drill){const ln=[];for(const h of L)xpTo(h,.06*U.drill,ln);out.push(ln.join('<br>'))}
+  if(U.drill){const ln=[];for(const h of L)xpTo(h,drillPct()*U.drill,ln);out.push(ln.join('<br>'))}
   const inj=L.filter(h=>injOf(h)).map(h=>`${esc(h.name)}’s ${INJURY[injOf(h)].n} still aches.`);
   r.event={title:ev.title,icon:ev.icon,text:out.join('<br>')+(inj.length?'<br><span class="warn">'+inj.join(' ')+'</span>':'')};
 }
