@@ -4388,8 +4388,14 @@ function initTimeline(){
   // Lingering Inertia: the enemy always moves first.
   if(darkIs('inertia')){const m=Math.max(...b.enemies.map((e,i)=>b.ct['e:'+i]));for(const h of living())b.ct['h:'+h.id]=Math.max(b.ct['h:'+h.id],m+.01);darkHit('inertia')}
 }
-function nextUnit(ct){let best=null,bv=Infinity;for(const k in ct){if(!unitAlive(k))continue;if(ct[k]<bv){bv=ct[k];best=k}}return best}
-function turnOrder(n){const b=state.run.battle,ct={...b.ct},out=[];for(let i=0;i<n;i++){const k=nextUnit(ct);if(!k)break;out.push(k);ct[k]+=delayOf(k)}return out}
+// No one acts more than MAX_ROW turns in a row: after three, the next-soonest unit goes first (the fast one still keeps its pace afterwards).
+const MAX_ROW=3;
+function nextUnit(ct,skip){let best=null,bv=Infinity;for(const k in ct){if(!unitAlive(k)||k===skip)continue;if(ct[k]<bv){bv=ct[k];best=k}}return best||(skip&&unitAlive(skip)?skip:null)}
+function pickNext(b){const st=b.streak||{},k=nextUnit(b.ct,st.n>=MAX_ROW?st.k:null);if(!k)return null;
+  if(!(st.k===k&&st.ct===b.ct[k]))b.streak=st.k===k?{k,n:(st.n||0)+1,ct:b.ct[k]}:{k,n:1,ct:b.ct[k]};return k}
+function turnOrder(n){const b=state.run.battle,ct={...b.ct},out=[];let st={...(b.streak||{})};
+  for(let i=0;i<n;i++){const k=nextUnit(ct,st.n>=MAX_ROW?st.k:null);if(!k)break;
+    const cur=st.k===k&&st.ct===ct[k];if(!cur)st=st.k===k?{k,n:(st.n||0)+1,ct:ct[k]}:{k,n:1,ct:ct[k]};out.push(k);ct[k]+=delayOf(k);st.ct=ct[k]-1e-9}return out}
 // Runs enemy turns until it is a hero's turn or the battle ends.
 // The trip's closest call: the lowest a living hero's health has dropped.
 function noteLow(){const r=state.run;if(!r||!r.battle)return;for(const h of living()){const p=h.hp/maxHp(h);if(p>0&&p<1&&(!r.low||p<r.low.p))r.low={p,n:h.name,stage:r.stage,foe:(aliveFoes()[0]||{}).name||''}}}
@@ -4404,7 +4410,7 @@ function advance(){
     noteLow();
     if(!living().length){lose();return}
     if(!aliveFoes().length){win();return}
-    const k=nextUnit(b.ct);if(!k)return;
+    const k=pickNext(b);if(!k)return;
     if(k[0]==='h'){const h=heroById(k.slice(2));b.cur=h.id;b.busy=false;startHeroTurn(h);if(h.hp<=0){b.cur=null;continue}return}
     b.cur=null;const i=+k.slice(2);
     // Each enemy move: a pause to read the last result, a half-second wind-up showing what is coming, then the hit.
