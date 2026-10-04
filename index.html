@@ -6468,7 +6468,7 @@ function perfectLedger(){
     <p class="muted" style="font-size:20px">Perfect weapons only come from bosses and final bosses on the longest adventures${descentUnlocked()?", and from the Dark Side":""}.</p></details>`;
 }
 // Bank filters: item type tabs plus a sort by tier (rarity, then item level and upgrades) or by sell value.
-const BANK_F=[['all','All'],['weapon','Weapons'],['armor','Armor'],['ring','Rings'],['amulet','Amulets']];
+const BANK_F=[['all','All'],['weapon','Weapons'],['helmet','Helmets'],['chest','Chests'],['pants','Pants'],['ring','Rings'],['amulet','Amulets']];
 const BANK_SORT=[['new','Newest'],['up','Upgrades first'],['cls','By class'],['tierD','Best tier'],['tierA','Low tier'],['valD','Top value'],['valA','Low value']];
 const bankCat=(it,f)=>f==='all'||(f==='armor'?!['weapon','ring','amulet'].includes(it.slot):it.slot===f);
 const itemTier=it=>RAR[it.rarity].i*1e4+it.ilvl*10+(it.plus||0);
