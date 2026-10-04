@@ -6991,11 +6991,11 @@ const popCls=p=>(p.sk?'skname ':'')+(p.t==='FURY'||p.t==='FOCUS'||p.t==='ARCANA'
 /* Camp: a fixed budget of camp points to split between activities (no luck involved). Each activity can be taken more than once. */
 const CAMP_PTS=3;
 const CAMP_ACT={
-  rest:{n:'Rest',d:'Every hero recovers 25% health and 25% mana.',ico:['heart',null]},
-  ease:{n:'Ease the aches',d:'Every hero loses 30 fatigue.',ico:['crescent','#b9a0d0']},
-  plan:{n:'Plan the next fight',d:'The next battle: the party deals 15% more damage and acts first.',ico:['sword','#e3b341']},
-  scout:{n:'Scout ahead',d:'See what waits on the next 2 stages, whatever the party’s Perception.',ico:['eye','#9fd6ff']},
-  drill:{n:'Drill',d:'Every hero gains 12% of a level in XP.',ico:['book','#b56fe3']},
+  rest:{n:'Rest',d:'Every hero recovers 15% health and 15% mana.',ico:['heart',null]},
+  ease:{n:'Ease the aches',d:'Every hero loses 15 fatigue.',ico:['crescent','#b9a0d0']},
+  plan:{n:'Plan the next fight',d:'The next battle: the party deals 8% more damage per point and acts first.',ico:['sword','#e3b341']},
+  scout:{n:'Scout ahead',d:'See what waits on the next stage, whatever the party’s Perception.',ico:['eye','#9fd6ff']},
+  drill:{n:'Drill',d:'Every hero gains 6% of a level in XP.',ico:['book','#b56fe3']},
 };
 function campView(ev){
   const C=ev.camp,used=Object.values(C.use).reduce((a,b)=>a+b,0),left=C.pts-used;
@@ -7008,11 +7008,11 @@ function campView(ev){
 }
 function campGo(){
   const r=state.run,ev=r.event;if(!ev||!ev.camp)return;const U=ev.camp.use,L=living(),out=[];
-  if(U.rest){const p=.25*U.rest;out.push(L.map(h=>{const v=Math.round(maxHp(h)*p*healMult(h)*depthsMult()),m=Math.round(maxMp(h)*p*depthsMult());h.hp=Math.min(maxHp(h),h.hp+v);h.mp=Math.min(maxMp(h),h.mp+m);return `${esc(h.name)} +${v} HP, +${m} MP`}).join(', '))}
-  if(U.ease){for(const h of L)h.fat=Math.max(0,(h.fat||0)-30*U.ease);out.push(`Fatigue down: ${L.map(h=>`${esc(h.name)} ${fatOf(h)}%`).join(', ')}`)}
-  if(U.plan){r.campBuff={dmg:15*U.plan,first:true};out.push(`<b class="gold">The plan is set:</b> next battle +${15*U.plan}% damage, and the party acts first.`)}
-  if(U.scout){r.scoutTo=Math.max(r.scoutTo||0,r.stage+2*U.scout);for(let k=r.stage+1;k<=r.scoutTo;k++)if(r.plan&&r.plan[k])r.plan[k].seen=true;out.push(`Scouts mark the trails for the next ${2*U.scout} stages.`)}
-  if(U.drill){const ln=[];for(const h of L)xpTo(h,.12*U.drill,ln);out.push(ln.join('<br>'))}
+  if(U.rest){const p=.15*U.rest;out.push(L.map(h=>{const v=Math.round(maxHp(h)*p*healMult(h)*depthsMult()),m=Math.round(maxMp(h)*p*depthsMult());h.hp=Math.min(maxHp(h),h.hp+v);h.mp=Math.min(maxMp(h),h.mp+m);return `${esc(h.name)} +${v} HP, +${m} MP`}).join(', '))}
+  if(U.ease){for(const h of L)h.fat=Math.max(0,(h.fat||0)-15*U.ease);out.push(`Fatigue down: ${L.map(h=>`${esc(h.name)} ${fatOf(h)}%`).join(', ')}`)}
+  if(U.plan){r.campBuff={dmg:8*U.plan,first:true};out.push(`<b class="gold">The plan is set:</b> next battle +${8*U.plan}% damage, and the party acts first.`)}
+  if(U.scout){r.scoutTo=Math.max(r.scoutTo||0,r.stage+U.scout);for(let k=r.stage+1;k<=r.scoutTo;k++)if(r.plan&&r.plan[k])r.plan[k].seen=true;out.push(`Scouts mark the trails for the next ${U.scout>1?U.scout+' stages':'stage'}.`)}
+  if(U.drill){const ln=[];for(const h of L)xpTo(h,.06*U.drill,ln);out.push(ln.join('<br>'))}
   const inj=L.filter(h=>injOf(h)).map(h=>`${esc(h.name)}’s ${INJURY[injOf(h)].n} still aches.`);
   r.event={title:ev.title,icon:ev.icon,text:out.join('<br>')+(inj.length?'<br><span class="warn">'+inj.join(' ')+'</span>':'')};
 }
