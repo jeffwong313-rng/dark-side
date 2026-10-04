@@ -329,7 +329,7 @@ button.item{cursor:pointer}button.item:hover{background:#1f1a27}
 .astat{display:flex;align-items:center;gap:8px;padding:4px 6px 4px 10px;background:var(--stone);box-shadow:inset 0 0 0 2px var(--edge);min-height:44px}
 .astat.up{box-shadow:inset 0 0 0 2px var(--gold);background:#241e14}
 .astat .an{font-size:18px;color:var(--ash);letter-spacing:.04em;min-width:36px}.astat .av{font-size:26px;line-height:1;color:var(--bone)}.astat.up .av{color:var(--gold)}
-.astat .actl{margin-left:auto;display:flex;gap:4px}.astat .pm{min-width:34px;font-size:22px;padding:0 8px 3px}
+.astat .ac{font-size:16px;color:var(--ash)}.astat .actl{margin-left:auto;display:flex;gap:4px}.astat .pm{min-width:34px;font-size:22px;padding:0 8px 3px}
 .tabs{display:flex;flex-wrap:wrap;gap:6px}
 
 /* choice cards */
@@ -6141,7 +6141,7 @@ function allocBtns(h){
   return `${gd?`<p class="guidehint">${lvl?'Level up! ':''}Spend ${esc(h.name)}’s points: use + and − on each stat, then Confirm. Or let Auto-assign pick a good ${C_(h).name} build.</p>`:''}<div class="stack allocbox ${gd?'guide':''}" style="gap:8px;${gd?'padding:6px':''}">
     <div class="row" style="justify-content:space-between;gap:8px"><span class="gold" data-tip="Raising a stat up to 6 costs 1 point; from 7 the cost rises by 1 every 3 steps (7–9 cost 2, 10–12 cost 3, 13–15 cost 4, and so on). Each level gives 3 points up to level 5, 4 up to level 10, 5 up to level 15, and so on. Gear, elixirs and tonics are not affected.">${left} of ${h.points} point${h.points>1?'s':''} left</span>
       <button class="btn small ${gd&&!any?'guide':''}" data-a="autoAssign" data-x="${h.id}" data-tip="Spends all remaining points on a suggested ${C_(h).name} build: mostly ${STATN[C_(h).primary]} and END.">Auto-assign</button></div>
-    <div class="alloc2">${STATS.map(k=>{const n=add[k]||0,nc=statCost(h[k]+n);return `<div class="astat ${n?'up':''}" data-tip="${esc(statTip(h,k))}"><span class="an">${STATN[k]}</span><b class="av">${h[k]+n}</b><span class="actl">${n?`<button class="btn small pm" data-a="pendAdj" data-x="${h.id}|${k}|-1" aria-label="Undo one ${STATN[k]}">−</button>`:''}<button class="btn small pm" data-a="pendAdj" data-x="${h.id}|${k}|1" ${left<nc?'disabled':''} data-tip="${esc(`+1 ${STATN[k]} costs ${nc} point${nc>1?'s':''}`)}" aria-label="One more ${STATN[k]} (${nc} point${nc>1?'s':''})">+</button></span></div>`}).join('')}</div>
+    <div class="alloc2">${STATS.map(k=>{const n=add[k]||0,nc=statCost(h[k]+n);return `<div class="astat ${n?'up':''}" data-tip="${esc(statTip(h,k))}"><span class="an">${STATN[k]}</span><b class="av">${h[k]+n}</b><small class="ac" data-tip="${esc(`Points the next +1 ${STATN[k]} costs`)}">(${nc})</small><span class="actl">${n?`<button class="btn small pm" data-a="pendAdj" data-x="${h.id}|${k}|-1" aria-label="Undo one ${STATN[k]}">−</button>`:''}<button class="btn small pm" data-a="pendAdj" data-x="${h.id}|${k}|1" ${left<nc?'disabled':''} data-tip="${esc(`+1 ${STATN[k]} costs ${nc} point${nc>1?'s':''}`)}" aria-label="One more ${STATN[k]} (${nc} point${nc>1?'s':''})">+</button></span></div>`}).join('')}</div>
     <div class="row" style="justify-content:flex-end;gap:8px"><button class="btn small" data-a="pendReset" data-x="${h.id}" ${any?'':'disabled'}>Reset</button><button class="btn gold ${gd&&any?'guide':''}" data-a="pendOk" data-x="${h.id}" ${any?'':'disabled'}>Confirm${any?` · ${used} pt${used>1?'s':''}`:''}</button></div></div>`;
 }
 function barracksView(){
