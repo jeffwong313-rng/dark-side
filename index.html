@@ -3139,7 +3139,7 @@ const elTag=e=>`<span class="el" style="--c:${EL_COL[e||'physical']}" data-tip="
 const CLASSES={
   warrior:{name:'Warrior',primary:'str',hp:72,mp:10,tint:'#8a3030',var:[.95,1.05],crit:0,critDmg:150,spd:-1,elRes:-15,
     style:'Heavy armor: the most health and the most armor of any class, built to stand in front. Consistent: every hit lands close to its expected damage. Weak spot: elements. Warriors have 15% less resistance to every element.'},
-  archer:{name:'Archer',primary:'agi',hp:54,mp:15,tint:'#3f6d38',var:[.6,1.5],crit:10,critDmg:165,spd:5,taken:10,
+  archer:{name:'Archer',primary:'agi',hp:54,mp:15,tint:'#3f6d38',var:[.6,1.4],crit:10,critDmg:165,spd:5,taken:10,
     style:'High risk, high reward. Medium armor that adds evasion with every piece, so many blows miss, but the ones that land hurt 10% more. Swingy damage, the most crits, the biggest crit damage, and extra turns from speed.'},
   mage:{name:'Mage',primary:'int',hp:43,mp:25,tint:'#3d3c86',var:[.9,1.1],crit:0,critDmg:150,spd:0,elem:10,
     style:'Light cloth: the most fragile class, with the least health and armor. Every attack is elemental (+10% damage), and weakness hits deal 1.75× instead of 1.5×. Attune to any element mid-battle.'},
@@ -3579,7 +3579,8 @@ function armor(h){let a=0;for(const s of ['helmet','chest','pants'])if(h.gear[s]
 const weaponDmg=h=>h.gear.weapon?baseVal(h.gear.weapon):3;
 // Each level past 1 adds a little raw power, so experience matters on its own.
 const LEVEL_POWER=.08;
-function power(h){const p=C_(h).primary;let v=weaponDmg(h);for(const k of ['str','agi','int'])v+=stat(h,k)*(k===p?1:.25);return v*(1+LEVEL_POWER*(h.level-1))}
+// Each point of the class's main stat adds 1 damage (archers 0.85: their speed and crits make up the rest); the other two add a quarter.
+function power(h){const p=C_(h).primary;let v=weaponDmg(h);for(const k of ['str','agi','int'])v+=stat(h,k)*(k===p?(h.cls==='archer'?.85:1):.25);return v*(1+LEVEL_POWER*(h.level-1))}
 const critChance=h=>clamp(5+C_(h).crit+stat(h,'agi')*(h.cls==='archer'?.5:.3)+luckRate(h,'crit')+aff(h,'crit'),0,75);
 const critDmg=h=>C_(h).critDmg+aff(h,'critdmg');
 // Medium armor (archer pieces) adds evasion: 2% per piece plus a little per item level.
