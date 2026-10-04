@@ -2863,7 +2863,7 @@ const OPEN_WEEK={bank:1,smith:1,farm:4,witch:5};
 const BLD_NEED={bank:{stone:1},smith:{stone:1},farm:{stone:1,wood:1.5,hide:1.5},witch:{stone:1,crystal:2,carbon:2}};
 const buildCost=k=>Math.round(OPEN_WEEK[k]*10)/10;
 const bldOpen=k=>!state||!OPEN_WEEK[k]||!!(state.built&&state.built[k]);
-// New towns hide what each building site will be: the Bank and Weaponsmith show once a mage comes home alive,
+// New towns hide what each building site will be: the Bank and Weaponsmith show once a mage comes home alive (or by week 7),
 // the Farm and Witch once the first Short final boss falls. Until then they read "?".
 const bldKnown=k=>!state||!OPEN_WEEK[k]||bldOpen(k)||!state.hideBld||!!(state.reveal&&state.reveal[k]);
 // What the first-time guide points at: the Barracks until someone is recruited, then the Gate.
@@ -5327,9 +5327,9 @@ function endRun(outcome){
     if(c==='mage'){state.mageRush=true;lines.push(`<b class="gold">Word of the safe return spreads, and the whole town is buzzing about the rebuilding. Two mages have come to the Barracks, and three more fighters have followed them.</b>`)}
     else lines.push(`<b class="gold">Word of the safe return spreads. Archers have come to the Barracks asking to join.</b>`)}
   if(state.hideBld){state.reveal=state.reveal||{};const nb=[];
-    if(!state.reveal.bank&&survivors.some(h=>h.cls==='mage')){state.reveal.bank=state.reveal.smith=true;nb.push('the Bank','the Weaponsmith')}
+    if(!state.reveal.bank&&(survivors.some(h=>h.cls==='mage')||state.week+1>=BANK_REVEAL_WEEK)){state.reveal.bank=state.reveal.smith=true;nb.push('the Bank','the Weaponsmith')}
     if(!state.reveal.farm&&outcome!=='dead'&&outcome!=='flee'&&outcome!=='scroll'&&outcome!=='victory'&&r.length==='short'){state.reveal.farm=state.reveal.witch=true;nb.push('the Farm','the Witch’s hut')}
-    if(nb.length)lines.push(`<b class="gold">Word spreads of the victory. The builders now know what to raise on the empty lots: ${listNames(nb)}. Bring them scrap.</b>`)}
+    if(nb.length)lines.push(`<b class="gold">${survivors.some(h=>h.cls==='mage')||nb.length>2?'Word spreads of the victory.':'The town has settled in.'} The builders now know what to raise on the empty lots: ${listNames(nb)}. Bring them scrap.</b>`)}
   const names=esc(listNames(survivors.map(h=>h.name)));
   const where=r.final?'the Dark Side':B.name;
   let title,sub;
@@ -6417,8 +6417,11 @@ function farmFields(tabs){
   s+=gear.length?`<div class="items">${gear.map(it=>itemCard(it,`<div class="row"><button class="btn small" data-a="salvage" data-x="${it.id}">Break down → ${matsLine(salvageOf(it))}</button></div>`)).join('')}</div>`:'<p class="muted">Nothing in the stash to give.</p>';
   return s;
 }
+// The Bank and Weaponsmith lots are revealed when a mage comes home alive, or at the start of this week, whichever comes first.
+const BANK_REVEAL_WEEK=7;
 function advanceWeek(){
-  ui.pickHide=false;state.week++;rollCandidates();for(const h of state.heroes)injOf(h);rollTownEvent();
+  ui.pickHide=false;state.week++;
+  if(state.hideBld&&state.week>=BANK_REVEAL_WEEK){state.reveal=state.reveal||{};if(!state.reveal.bank)state.reveal.bank=state.reveal.smith=true}rollCandidates();for(const h of state.heroes)injOf(h);rollTownEvent();
   if(state.mageRush){state.mageRush=false;rebuildRush()}
 }
 // The week mages unlock: excitement about the rebuilding brings two mages plus three warriors and archers (at least one of each, never a third mage).
@@ -8358,7 +8361,7 @@ function start(d){
     const kept=state.built||{};for(const k of Object.keys(kept))if(kept[k]&&!b[k]&&OPEN_WEEK[k])addMat(state.mats,'stone',OPEN_WEEK[k]);state.built=b}
   if(!state.up5){state.up5=true;const cap=it=>{if(it&&it.plus>UP_MAX)it.plus=UP_MAX};for(const it of state.bank)cap(it);for(const h of state.heroes)for(const sl of SLOTS)cap(h.gear[sl]);if(state.run)for(const it of state.run.loot)cap(it)}
   if(state.reachedLong==null)state.reachedLong=state.heroes.some(h=>h.level>=10)||(state.bossKills||0)>0;
-  if(!state.ration3){state.ration3=true;for(const [id] of FOODS)delete state.items[id]}if(state.b.potency==null)state.b.potency=0;if(state.b.feed==null)state.b.feed=0;
+  if(!state.ration3){state.ration3=true;for(const [id] of FOODS)delete state.items[id]}if(state.b.potency==null)state.b.potency=0;if(state.b.feed==null)state.b.feed=0;if(state.hideBld&&(state.week||1)>=BANK_REVEAL_WEEK){state.reveal=state.reveal||{};if(!state.reveal.bank)state.reveal.bank=state.reveal.smith=true}
   if(!state.farm2){state.farm2=true;state.farm.lvl={0:0,1:3,2:4,3:6}[state.farm.lvl]??state.farm.lvl;
     if(state.items.ration){state.items.wheat=(state.items.wheat||0)+state.items.ration*2;delete state.items.ration}
     if(state.items.meal){state.items.fruit=(state.items.fruit||0)+state.items.meal*2;delete state.items.meal}}
