@@ -3587,7 +3587,9 @@ const critChance=h=>clamp(5+C_(h).crit+stat(h,'agi')*(h.cls==='archer'?.5:.3)+lu
 const critDmg=h=>C_(h).critDmg+aff(h,'critdmg');
 // Medium armor (archer pieces) adds evasion: 2% per piece plus a little per item level.
 const armorEva=h=>['helmet','chest','pants'].reduce((a,sl)=>{const it=h.gear[sl];return a+(it&&it.cls==='archer'?2+it.ilvl*.05:0)},0);
-const evasion=h=>clamp((h.cls==='archer'?Math.min(30,stat(h,'agi')*.6):Math.min(15,stat(h,'agi')*.25))+armorEva(h)+tr(h,'eva'),0,40);
+// Archers get 0.45% evasion per AGI (up to 22%), others 0.25% (up to 15%); armor and traits add on top. Total evasion caps at 30%.
+const EVA_CAP=30;
+const evasion=h=>clamp((h.cls==='archer'?Math.min(22,stat(h,'agi')*.45):Math.min(15,stat(h,'agi')*.25))+armorEva(h)+tr(h,'eva'),0,EVA_CAP);
 const speed=h=>Math.max(4,(8+stat(h,'agi')*.6+C_(h).spd+tr(h,'spd'))*(1+tr(h,'spdPct')/100)*fatSpd(h));
 const skillMp=(h,id)=>Math.max(1,Math.round(SKILLS[id].mp*(1+tr(h,'skillCost')/100)*(1+posV(h,'mp')/100)));
 // Percent traits multiply the damage a hero takes from one element (or every non-physical one); they stack on top of resistance.
@@ -5437,7 +5439,7 @@ function statTip(h,k){
   if(k==='per')return `Perception. Accuracy +0.3% per point. Perception adds up across the whole party on the map and in battle: with 1–2 total every choice on the map is unknown; with 3–8 some choices are fogged; from 9 every choice is clear and you see 1 stage ahead, +1 more per 6 points (up to 6). At 6+ you see enemy health and damage numbers; at 10+ you see what each enemy will do next. The party’s best single Perception also fully reads unknown enemies at the start of a fight (${Math.round(fullScoutChance(stat(h,'per')))}%, adding them to the Moon Ledger), spots trapped chests (${Math.round(spotChance(stat(h,'per')))}%), and finds bonus gold or items after fights (${Math.round(findChance(stat(h,'per')))}%).`;
   if(k==='end')return `Endurance. Each point adds 5 max health, +0.5% resistance to every element (${(stat(h,'end')*.5).toFixed(1)}% now), and faster recovery between fights: 2% + 0.8% per point, up to 30% (${Math.round(restPct(h))}% now).`;
   if(k==='cha')return `Charisma. The whole party’s Charisma adds up for every non-battle event (chests, gold caches, shrines, strangers). Each point above the land’s baseline makes results 3% better, each point below 3% worse (Cave 8, Wilds 14, Wasteland 20, Summit 28). Also lowers the Witch’s brew and supply prices by 1.5% per point, up to 40% (${Math.round(chaDiscount(h))}% now). Treatments use this hero’s Charisma; supplies use your most charming hero.`;
-  if(k==='agi')return `Agility. ${own?'Archers add 1 damage per point':'Adds 0.25 damage per point (Archers get 1)'}. Raises speed, so more turns, plus crit chance, evasion and accuracy.`;
+  if(k==='agi')return `Agility. ${own?'Archers add 0.85 damage per point':'Adds 0.25 damage per point (Archers get 0.85)'}. Raises speed, so more turns, plus crit chance, evasion and accuracy.`;
   if(k==='int')return `Intelligence. ${own?'Mages add 1 damage per point':'Adds 0.25 damage per point (Mages get 1)'}. Each point adds 3 max mana and ${h.cls==='mage'?'0.3':'0.2'} mana regained each turn (${focusRegen(h)} now), and strengthens Mend.`;
   return `Luck. For this hero right now: +${luckRate(h,'crit').toFixed(1)}% crit chance, +${luckRate(h,'gold').toFixed(1)}% gold found, ${luckRate(h,'surge').toFixed(1)}% chance of a lucky surge on each ${h.cls==='mage'?'spell or attack':'skill'} (a random boon for the battle). ${C.name}s get 2.5× the ${{warrior:'gold',archer:'crit',mage:'surge'}[h.cls]} bonus. The whole party's Luck also adds up to make chance-based events kinder: each point above the land's baseline is 2% (Cave 6, Wilds 12, Wasteland 18, Summit 26).`;
 }
@@ -6153,7 +6155,7 @@ function statTable(h){
     ${row('Crit chance',critChance(h).toFixed(1)+'%','Chance for a hit to crit. Comes from class, AGI, LCK, gear and traits. Capped at 75% before skill bonuses.')}
     ${row('Crit damage',Math.round(critDmg(h))+'%','Damage dealt by a crit, as a percent of a normal hit.')}
     ${row('On crit',CRIT_BUFF[h.cls].n,CRIT_BUFF[h.cls].n+': '+CRIT_BUFF[h.cls].d+'. Stacks up to 5 times per battle.')}
-    ${row('Evasion',evasion(h).toFixed(1)+'%','Chance to dodge an enemy attack completely. Archers get more from AGI.')}
+    ${row('Evasion',evasion(h).toFixed(1)+'%','Chance to dodge an enemy attack completely. Archers get more from AGI. Capped at '+EVA_CAP+'%.')}
     ${row('Speed',Math.round(speed(h)),`How often this hero acts. Twice an enemy’s speed means two turns for each of theirs. 8 + 0.6 × AGI${C.spd?` ${C.spd>0?'+':''}${C.spd} (${C.name})`:''}.`)}
     ${row('Damage range',`${Math.round(C.var[0]*100)}–${Math.round(C.var[1]*100)}%`,`${C.name} hits roll between these percents of expected damage. ${C.style}`)}
     ${row('Recovery',Math.round(restPct(h))+'%','Health regained after each won battle. 2% + 0.8% per END point (max 30%), plus traits.')}
