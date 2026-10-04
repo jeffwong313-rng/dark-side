@@ -3605,7 +3605,7 @@ function xpBar(h){
   const need=xpNeed(h.level),left=need-h.xp;
   let total=h.xp;for(let i=1;i<h.level;i++)total+=xpNeed(i);
   return `<div class="stack" style="gap:2px"><div class="xplabel"><span>Level ${h.level}</span><span class="muted">${fmt(left)} XP to level ${h.level+1}</span></div>
-    <div class="bar xp" data-tip="${esc(`Experience: ${fmt(h.xp)} of ${fmt(need)} toward level ${h.level+1}. ${fmt(total)} XP earned in total. Each level gives ${pointsFor(h.level+1)} attribute points (more at higher levels: 3 up to level 5, 4 to level 10, 5 to level 15...), and fully restores health and mana; a new trait develops at level ${(Math.floor(h.level/10)+1)*10}${h.level<20?'; a third skill unlocks at level 20':''}.`)}"><i style="width:${clamp(h.xp/need*100,0,100)}%"></i><span>${fmt(h.xp)} / ${fmt(need)} XP</span></div></div>`;
+    <div class="bar xp" data-tip="${esc(`Experience: ${fmt(h.xp)} of ${fmt(need)} toward level ${h.level+1}. ${fmt(total)} XP earned in total. Each level gives ${pointsFor(h.level+1)} attribute points (more at higher levels: 3 up to level 5, 4 to level 10, 5 to level 15...), and fully restores health and mana; a new trait develops at level ${(Math.floor(h.level/10)+1)*10}${h.level<20?'; a third skill unlocks at level 20':''}.`)}"><i style="width:${clamp(h.xp/need*100,0,100)}%"></i><span>${Math.floor(clamp(h.xp/need*100,0,100))}% · ${fmt(h.xp)} / ${fmt(need)} XP</span></div></div>`;
 }
 function grade(h){if(h.pool&&h.level===1&&h.runs===0){const q=h.pool-(state.b.academy-1)+STATS.reduce((a,k)=>a+(h[k]||0),0)-2;return q>=40?['S','#f2a83a']:q>=36?['A','#b56fe3']:q>=32?['B','#5f97e3']:q>=28?['C','#b9b1a3']:['D','#8a6a6a']}
   const p=C_(h).primary,o=STATS.filter(k=>k!==p);const g=h[p]+o.reduce((a,k)=>a+(h[k]||0),0)/12;
