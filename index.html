@@ -4360,7 +4360,6 @@ function startBattle(kind){
   initTimeline();
   const first=nextUnit(b0ct());
   blog(`${first[0]==='h'?esc(heroById(first.slice(2)).name):es[+first.slice(2)].name} moves first.`);
-  if(balanced())blog(`<b class="gold">Balanced party:</b> a Warrior, an Archer and a Mage together deal ${BAL.dmg}% more damage and take ${BAL.def}% less.`);else if(monoParty())blog(`<span class="warn">A party of one class leaves gaps: ${MONO.dmg}% less damage dealt, ${MONO.taken}% more taken.</span>`);
   advance();
 }
 const b0ct=()=>state.run.battle.ct;
@@ -4493,7 +4492,7 @@ const focusRegen=h=>Math.round((1+stat(h,'int')*.2)*(h.cls==='mage'?1.5:1));
 // Timed hero buffs from learned skills, counted down at the start of that hero's own turn.
 const heroBuff=(h,k)=>{const b=state.run&&state.run.battle,x=b&&b.hb&&b.hb[h.id];return x&&x[k]&&x[k].n>0?x[k]:null};
 const heroEva=h=>Math.max(heroBuff(h,'eva')?90:0,stanceOf(h)==='archer'?rollDodge(h):0,evasion(h));
-const heroDef=h=>{const b=state.run.battle,x=heroBuff(h,'def'),m=Math.max(x?x.v:0,b.bulwark&&b.bulwark.n>0?67:0),p=posV(h,'def'),q=bulwarkCut(h)+(balanced()?BAL.def:0);let v=p?100-(100-m)*(1-p/100):m;return q?100-(100-v)*(1-q/100):v};
+const heroDef=h=>{const b=state.run.battle,x=heroBuff(h,'def'),m=Math.max(x?x.v:0,b.bulwark&&b.bulwark.n>0?67:0),p=posV(h,'def'),q=bulwarkCut(h);let v=p?100-(100-m)*(1-p/100):m;return q?100-(100-v)*(1-q/100):v};
 function setBuff(h,k,n,v){const b=state.run.battle;b.hb=b.hb||{};const x=b.hb[h.id]=b.hb[h.id]||{};x[k]={n,v}}
 const BUFF_N={def:'guard',eva:'Featherweight',crit:'Sniper',undying:'Undying Vow',focus:'Starsight'};
 // Food and mana items restore a slice at the start of each of the hero's next 3 turns.
@@ -4798,7 +4797,7 @@ function hitEnemy(h,e,o){
   let d=power(h)*o.mult*Math.max(.1,1+bonus/100)*rand(C.var[0],C.var[1])*HERO_DMG_SCALE*fatDmg(h)*(b.planDmg?1+b.planDmg/100:1);
   if(b.warcry)d*=1.33;
   if(e.hex)d*=1.33;
-  d*=arcaneSight();if(balanced())d*=1+BAL.dmg/100;if(monoParty())d*=1-MONO.dmg/100;
+  d*=arcaneSight();
   if(h.cls==='mage'&&isVoid(e))d*=1.1;
   d*=stunMult(e);
   if(e.ward==='up'){if(el===foeWeakEl(e))breakWard(e,`${esc(h.name)}’s ${cap(el)} hit`);else d*=WARD_CUT}
@@ -4906,14 +4905,13 @@ const posName=(i,n)=>n<2?'':['Front','Middle','Back'][n===2&&i===1?2:i];
    Monsters that push and pull heroes around (Blast Wave, Frost Hook and the like) now cost more than a hit. */
 const POS_FX={
   warrior:{front:{dmg:15,def:10,n:'Vanguard',d:'+15% damage and 10% less damage taken while leading the line. Bulwark: the heroes behind take 12% less damage, and enemies aim at the Vanguard more often',good:1},
-           middle:{dmg:-30,n:'Hemmed in',d:'−30% damage: swinging past the hero in front'},
-           back:{dmg:-45,n:'Out of reach',d:'−45% damage: swinging past the whole party'}},
+           middle:{dmg:-10,n:'Hemmed in',d:'−10% damage: swinging past the hero in front'},
+           back:{dmg:-20,n:'Out of reach',d:'−20% damage: swinging past the whole party'}},
   archer:{middle:{crit:10,dmg:10,n:'Skirmisher',d:'+10% crit chance and +10% damage from the middle of the line',good:1},
           back:{crit:7,n:'Overwatch',d:'+7% crit chance with a clear line of sight from the back',good:1},
           front:{acc:-15,n:'Crowded',d:'−15% accuracy with monsters in your face'}},
   mage:{back:{spell:15,n:'Sanctum',d:'+15% spell damage while protected at the back. Arcane Sight: the whole party deals 10% more damage',good:1},
-        middle:{spell:-15,n:'Jostled',d:'−15% spell damage: hard to focus in the middle of the line'},
-        front:{mp:25,spell:-25,n:'Exposed',d:'Skills cost 25% more mana and spells deal 25% less in the front line'}},
+        front:{mp:25,n:'Exposed',d:'Skills cost 25% more mana in the front line'}},
 };
 // Position effects only count in battle, with two or more heroes standing.
 function posFx(h){const r=state.run;if(!r||!r.battle||!h||h.hp<=0)return null;const L=living(),i=L.indexOf(h);if(L.length<2||i<0)return null;
@@ -4923,11 +4921,6 @@ const isVoid=e=>!!e&&e.kind!=='king'&&!!(state.run&&state.run.final);
 // Party auras from the line: a Warrior leading it shields the heroes behind (Bulwark); a Mage at the back sharpens everyone's blows (Arcane Sight).
 const lineFront=()=>{const r=state.run;if(!r||!r.battle)return null;const L=living();return L.length>=2?L[0]:null};
 const bulwarkCut=h=>{const f=lineFront();return f&&f!==h&&f.cls==='warrior'?12:0};
-// Balanced party: one Warrior, one Archer and one Mage all standing gives everyone more damage and less damage taken.
-const BAL={dmg:10,def:10},MONO={dmg:15,taken:15};
-// A full party of one class leaves gaps no one covers.
-const monoParty=()=>{const r=state.run;if(!r||!r.battle)return false;const P=partyAll();return P.length===3&&P.every(h=>h.cls===P[0].cls)};
-const balanced=()=>{const r=state.run;if(!r||!r.battle)return false;const L=living();return L.length===3&&['warrior','archer','mage'].every(c=>L.some(h=>h.cls===c))};
 const arcaneSight=()=>{const r=state.run;if(!r||!r.battle)return 1;const L=living();return L.length>=2&&L[L.length-1].cls==='mage'?1.1:1};
 // Plain words for what a class gets at a given spot (used before a battle, too).
 const posFxAt=(cls,i,n)=>n<2?null:(POS_FX[cls]||{})[posName(i,n).toLowerCase()]||null;
@@ -4968,7 +4961,7 @@ function intentTarget(e){
 function foeEst(e,h,mult,heavy,act){
   const r=state.run,b=r.battle;let d=e.atk*mult*(e.weak?.7:1)*(b.guard[h.id]?.33:1)*(b.howl&&b.howl.n>0?1.2:1)*(1+(e.rage||0))*(1+.25*(e.grief||0))*(e.rallied?1.35:1)*spDmg(e,h);
   d=mitigate(h,d,foeMix(e,act||(heavy?'heavy':'attack')));
-  d*=Math.max(.1,1+tr(h,'taken')/100)*(heavy?Math.max(.1,1+tr(h,'heavyTaken')/100):1)*(1-heroDef(h)/100)*(monoParty()?1+MONO.taken/100:1);
+  d*=Math.max(.1,1+tr(h,'taken')/100)*(heavy?Math.max(.1,1+tr(h,'heavyTaken')/100):1)*(1-heroDef(h)/100);
   return Math.max(1,Math.round(d));
 }
 const INTENT_ICO={relentless:['flame','#ff8a5a'],weary:['crescent','#b9a0d0'],flurry:['sword','#e3b341'],windup:['star','#e3b341'],unleash:['skull','#ff5a4a'],whirl:['sword','#78ab60'],jolt:['bolt','#e6d55a'],hook:['flake','#8fd0ea'],blast:['flame','#e0643a'],charge:['fist','#c98b5c'],grasp:['crescent','#9b70dc'],attack:['sword',null],heavy:['skull',null],sweep:['sword','#e0736c'],rend:['drop','#c4463f'],drain:['heart',null],curse:['crescent','#b56fe3'],web:['eye','#cfc6b0'],howl:['fist','#e3b341'],harden:['shield','#8fa8c8'],ooze:['heart','#8fe08a']};
@@ -4994,7 +4987,7 @@ function foeStrike(e,i,h,mult,o){
   d=mitigate(h,d,mix);
   const bigE=e.kind==='boss'||e.kind==='warden';
   const crit=chance(.06+(bigE&&e.type==='fighting'?.19:0)+(spOf(e)&&spOf(e)[0]==='keen'?spOf(e)[1]/100:0));if(crit)d*=1.5;
-  d*=Math.max(.1,1+tr(h,'taken')/100)*(o.heavy?Math.max(.1,1+tr(h,'heavyTaken')/100):1)*(1-heroDef(h)/100)*(monoParty()?1+MONO.taken/100:1);
+  d*=Math.max(.1,1+tr(h,'taken')/100)*(o.heavy?Math.max(.1,1+tr(h,'heavyTaken')/100):1)*(1-heroDef(h)/100);
   d=Math.max(1,Math.round(d));
   runStat(h).taken+=Math.min(d,h.hp);h.hp=Math.max(0,h.hp-d);b.fx['h'+h.id]=1;if(crit){b.fx.crit=1;b.fx.shake=1}b.pops.push({s:'h',hid:h.id,t:d,crit,el});e.lastHit=h.id;
   {const S=spOf(e);if(S&&S[0]==='leech'&&e.hp>0){const x=Math.round(d*S[1]/100);if(x>0){e.hp=Math.min(e.maxHp,e.hp+x);b.pops.push({s:'e',i,t:'+'+x})}}}
@@ -6565,7 +6558,7 @@ function advView(){
     sum=`<b>${L.name}</b> · ${L.feel}, length unknown · ${L.max>15?'major bosses along the way, ':''}a final boss at the end · ×${L.mult} gold · best loot ${state.sel.len==='expedition'?'<span class="muted">?</span>':`<span class="r-${bl}">${RAR[bl].l}</span>`}`+
       (state.sel.len==='short'?` · <span class="ok" data-tip="${esc(`In the Cave the party can run back home at any time, even mid-battle. Running costs ${FLEE.min}–${FLEE.max}% of carried gold, and each item found during this adventure (even if equipped) has a 33% chance to be lost. Running mid-battle multiplies both (×2 regular fights, ×2.5 elites, ×3 major bosses), and there is no running from the final boss. Supplies and materials come home.`)}">can run home</span>`:'')}
   const pickHint=state.guide&&!p.length&&LAND_PICK.includes(state.sel.biome);
-  let s=`${!state.guide?coachBox('gate'):''}<div class="stack" style="gap:4px"><div class="gatehead"><h2>The Gate</h2>${state.heroes.length?`<div class="gatepick ${coachMark('gate','party')}">${pickHint&&!ui.partyPick?'<p class="guidehint">② Choose your hero</p>':''}<span class="partycount ${p.length?'':'none'}">Party <b>${p.length}/${max}</b></span>${help(max===1?`Solo only for now. The War Table at the Town Hall unlocks parties: 2 heroes for ${fmt(BUILD.war.cost(0))} gold, then 3 for ${fmt(BUILD.war.cost(1))}.`:`Tick up to ${max} heroes in the list on the right. Their number is their marching spot: 1 walks in front and draws most attacks${max>2?', 2 in the middle, 3 at the back':', 2 at the back'}. Enemies grow tougher with each hero you bring, and gold grows too. A Warrior, an Archer and a Mage together form a balanced party (+${BAL.dmg}% damage, ${BAL.def}% less taken); three of one class fight worse.`)}<button class="btn ${ui.partyPick?'on':'gold'} ${pickHint&&!ui.partyPick?'guide':''}" data-a="partyPick" aria-pressed="${!!ui.partyPick}" data-tip="${esc(ui.partyPick?'Done choosing. Tap heroes in the list on the right to add or remove them.':'Tick heroes in the list on the right. The number is their marching spot: 1 walks in front.')}">${ui.partyPick?'✓ Done':'Select Party'}</button></div>`:''}</div><p class="muted">Pick a land, a length and your heroes, then set out. ${help('Pick the land: every monster there deals and resists its element, so bring heroes who can handle it. Heroes who die are gone for good, with their gear. Monsters sometimes hunt in pairs or packs of three. In the Cave pairs only appear after stage 10 and packs of three never do; the longer the adventure, the more common packs become, and high on the Summit nearly every fight is a pack. The final boss of each adventure always fights alone.')}</p></div>
+  let s=`${!state.guide?coachBox('gate'):''}<div class="stack" style="gap:4px"><div class="gatehead"><h2>The Gate</h2>${state.heroes.length?`<div class="gatepick ${coachMark('gate','party')}">${pickHint&&!ui.partyPick?'<p class="guidehint">② Choose your hero</p>':''}<span class="partycount ${p.length?'':'none'}">Party <b>${p.length}/${max}</b></span>${help(max===1?`Solo only for now. The War Table at the Town Hall unlocks parties: 2 heroes for ${fmt(BUILD.war.cost(0))} gold, then 3 for ${fmt(BUILD.war.cost(1))}.`:`Tick up to ${max} heroes in the list on the right. Their number is their marching spot: 1 walks in front and draws most attacks${max>2?', 2 in the middle, 3 at the back':', 2 at the back'}. Enemies grow tougher with each hero you bring, and gold grows too.`)}<button class="btn ${ui.partyPick?'on':'gold'} ${pickHint&&!ui.partyPick?'guide':''}" data-a="partyPick" aria-pressed="${!!ui.partyPick}" data-tip="${esc(ui.partyPick?'Done choosing. Tap heroes in the list on the right to add or remove them.':'Tick heroes in the list on the right. The number is their marching spot: 1 walks in front.')}">${ui.partyPick?'✓ Done':'Select Party'}</button></div>`:''}</div><p class="muted">Pick a land, a length and your heroes, then set out. ${help('Pick the land: every monster there deals and resists its element, so bring heroes who can handle it. Heroes who die are gone for good, with their gear. Monsters sometimes hunt in pairs or packs of three. In the Cave pairs only appear after stage 10 and packs of three never do; the longer the adventure, the more common packs become, and high on the Summit nearly every fight is a pack. The final boss of each adventure always fights alone.')}</p></div>
   <div class="gategrid"><div class="stack"><div class="stack ${coachMark('gate','len')}" style="gap:6px"><h3>Length</h3>${bar}<p class="lensum">${sum}</p></div>${final?'':(()=>{const cur=LAND_PICK.includes(state.sel.biome)?state.sel.biome:null;
     return `<div class="stack" style="gap:6px"><h3>Land</h3>${state.guide&&!cur?'<p class="guidehint">① Pick a land to explore</p>':''}<div class="lands ${state.guide&&!cur?'guide':''} ${coachMark('gate','land')}" role="radiogroup" aria-label="Land">${LAND_PICK.map(k=>{const B=BIOMES[k],lm=LAND_MOD[landMods()[k]];return `<button class="land ${cur===k?'cur':''}" style="--c:${EL_COL[B.el]}" data-a="land" data-x="${k}" role="radio" aria-checked="${cur===k}">${elIco(B.el)}<span><b>${B.name}</b><small>${cap(B.el)}</small>${lm?`<small class="lmod ${lm.bad?'bad':'good'}">${lm.n}</small>`:''}${huntLand(k).length?`<small class="lmod lost">Lost gear ×${huntLand(k).length}</small>`:''}</span></button>`}).join('')}</div>${cur&&huntLand(cur).length?`<p class="lmodnote lost"><b>Lost gear here:</b> ${huntLand(cur).map(x=>`${aAn(esc(x.base))} carries ${esc(x.owner)}’s ${itemName(x.it)} <span class="muted">(${LENGTHS[x.len]?LENGTHS[x.len].name:'any length'}, stage ${x.stage||1}+)</span>`).join('; ')}. On that length, from that stage on, ${Math.round(HUNT_ODDS*100)}% of fights bring you face to face with it${huntLand(cur).some(x=>x.kind!=='normal')?' (bosses carry theirs every time you meet them there)':''}. Look for the white outline: the same kind of monster without the loot has none.</p>`:''}${cur?landModNote(landMods()[cur]):'<p class="muted" style="font-size:18px">Conditions change every week. Some lands carry a twist this week.</p>'}${cur?`<p class="muted" style="font-size:18px">${BIOMES[cur].flavor} Monsters here deal and resist ${elTag(BIOMES[cur].el)}.</p>`:'<p class="warn" style="font-size:18px">Choose where to go.</p>'}</div>`})()}`;
   if(!state.heroes.length)return s+'<p class="muted">Recruit a hero at the Barracks first.</p></div></div>';
