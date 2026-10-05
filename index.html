@@ -2387,10 +2387,10 @@ const CAVE_BEASTS={
 };
 // The Wilds raiders (the Town Hall's second bounty). A raid is always a captain (an elite, 10% more health and damage
 // than a regular elite, no mutation) and two Raider Cutthroats in front of them (regular monsters with 10% less health
-// and damage). Raids replace some elite fights on Wilds adventures until all three captains are dead, then never return.
+// and damage). Raids replace 15% of elite fights on Wilds adventures until all three captains are dead, then never return.
 // A captain takes the most valuable piece a fallen hero wore (and the best thing in the pack if the party is wiped),
 // keeps it between adventures, and drops it all when finally killed.
-const RAID={odds:.5,capHp:1.1,capAtk:1.1,gruntHp:.9,gruntAtk:.9,grunt:'Raider Cutthroat',gruntSp:['pack',12,'front','Gang Up'],gruntSkills:['sweep']};
+const RAID={odds:.15,capHp:1.1,capAtk:1.1,gruntHp:.9,gruntAtk:.9,grunt:'Raider Cutthroat',gruntSp:['pack',12,'front','Gang Up'],gruntSkills:['sweep']};
 const RAIDERS={
   'Gorran Ironjaw':{hp:1.2,atk:.9,spd:-2,skills:['sweep','harden'],sp:['thick',25,'front','Iron Plate'],
     blurb:'The raiders’ shield wall. Slow and heavily armored: shrugs off a quarter of physical damage and wades into the front line.'},
