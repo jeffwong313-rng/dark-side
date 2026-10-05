@@ -5915,17 +5915,15 @@ function bountyBlock(){
     s+=`<p class="ok">Bounty claimed. The caves are quiet and the town sleeps easier.</p>`;
     if(G&&G.fresh){const it=state.bank.find(i=>i.id===G.id);s+=`<p class="gold">The council pays ${G.gold} gold${G.item?` and hands over <span class="r-epic">${esc(G.item)}</span>${it?' (in the vault)':''}`:''}.</p>`;if(it)s+=`<div class="items">${itemCard(it,'')}</div>`}
   }else if(n>=all.length){
-    const cls=[...new Set(state.heroes.map(h=>h.cls))];const opts=cls.length?cls:Object.keys(CLASSES);
-    s+=`<p class="gold">All three beasts are dead. The council is ready to pay: ${BOUNTY.gold} gold and a piece of Epic gear. Choose who it’s made for.</p><div class="row" style="flex-wrap:wrap;gap:8px">${opts.map(c=>`<button class="btn gold" data-a="bountyClaim" data-x="${c}">Claim · ${CLASSES[c].name} gear</button>`).join('')}</div>`;
+    s+=`<p class="gold">All three beasts are dead. The council is ready to pay: ${BOUNTY.gold} gold and a piece of Epic gear from the town armory.</p><div class="row"><button class="btn gold" data-a="bountyClaim">Claim the bounty</button></div>`;
   }else s+=`<p class="muted">${n}/${all.length} slain. Each trip to the Cave ends at the den of a beast still on the list. Reward: ${BOUNTY.gold} gold and a guaranteed piece of Epic gear.</p>`;
   return s+`</div>`;
 }
-function claimBounty(cls){
+function claimBounty(){
   const all=Object.keys(CAVE_BEASTS);if(state.caveBonus||state.run||!all.every(x=>(state.caveBeaten||[]).includes(x)))return;
-  if(!CLASSES[cls])cls=null;
   state.caveBonus=true;state.gold+=BOUNTY.gold;
-  // An Epic piece the chosen class can wear (its own gear, or a ring or amulet anyone can).
-  let it;for(let k=0;k<40;k++){it=epicItem('final',cls,bountyLv());if(!cls||!it.cls||it.cls===cls)break}
+  // A random Epic piece: any slot, any class.
+  const it=epicItem('final',null,bountyLv());
   const ln=[];addToBank(it,ln);
   state.bountyGot={gold:BOUNTY.gold,item:it.name,id:it.id,fresh:true};
 }
@@ -7858,7 +7856,7 @@ const ACT={
   stillUp:()=>{const nx=stillStep((state.still||0)+1);if(!nx||state.gold<nx.gold||!Object.entries(nx.need).every(([k,v])=>(state.mats[k]||0)+1e-9>=v))return;
     for(const [k,v] of Object.entries(nx.need))addMat(state.mats,k,-v);state.gold-=nx.gold;state.still=(state.still||0)+1},
   salvage:id=>{const it=state.bank.find(x=>x.id===id),o=it&&salvageOf(it);if(!o)return;state.bank=state.bank.filter(x=>x!==it);for(const [k,v] of Object.entries(o))addMat(state.mats,k,v)},
-  bountyClaim:x=>claimBounty(x),
+  bountyClaim:()=>claimBounty(),
   goUpg:x=>{state.tab=x;if(x==='heroes')state.sel.btab='upgrades';if(x==='witch')state.sel.wtab='up'},
   dismiss:()=>{state.summary=null},
   recruit:id=>{const c=state.candidates.find(x=>x.id===id),fee=recruitFee();if(!c||state.heroes.length>=slots()||state.gold<fee)return;darkHit('grim');
