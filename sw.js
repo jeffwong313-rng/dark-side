@@ -1,5 +1,5 @@
 // Dark Side of the Moon service worker. The version changes whenever the game changes, so updates install automatically.
-const VERSION='dsotm-33a9b2cba0';
+const VERSION='dsotm-a1d42c7af0';
 const CORE=['./','./index.html','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/maskable-512.png','./icons/apple-touch-icon.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(VERSION).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==VERSION&&k!=='dsotm-fonts').map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});

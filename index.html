@@ -2370,10 +2370,10 @@ const CAVE_SCALE={hp:.45,atk:.55};
 // The Cave's final boss: one of the three not yet beaten in this town, at random; once all three have fallen, any of them.
 const caveNext=()=>{const all=Object.keys(CAVE_BEASTS),left=all.filter(n=>!(state.caveBeaten||[]).includes(n));return pick(left.length?left:all)};
 const CAVE_BEASTS={
-  'The Cave Bear':{d:'cbear',hp:1.3,atk:.95,spd:-2,style:null,skills:['relentless','rend'],sp:['thick',15,'front','Thick Hide'],
+  'The Cave Bear':{d:'cbear',hp:1.73,atk:.95,spd:-2,style:null,skills:['relentless','rend'],sp:['thick',15,'front','Thick Hide'],
     pal:{A:'#6a4a30',a:'#4a3220',M:'#a07a58',D:{c:'#120c08',flat:true},E:{c:'#ffcf5a',flat:true},w:'#f0e6d4',k0:'#1e140c'},
     blurb:'Slow and enormous, with the most health of the three. It works itself into a Relentless fury as the fight drags on.'},
-  'The Giant Boar':{d:'cboar',hp:1.1,atk:1.05,spd:0,style:'charge',unleash:1.2,skills:[],sp:['opener',40,'front','Head Down'],chargeN:{windup:'Pawing the Ground',unleash:'Tusk Charge'},
+  'The Giant Boar':{d:'cboar',hp:1.46,atk:1.05,spd:0,style:'charge',unleash:1.2,skills:[],sp:['opener',40,'front','Head Down'],chargeN:{windup:'Pawing the Ground',unleash:'Tusk Charge'},
     pal:{A:'#5a4436',a:'#3a2a20',M:'#c08a7a',D:{c:'#120c08',flat:true},E:{c:'#ff4a3a',flat:true},w:'#f4ecd8',k0:'#1e140c'},
     blurb:'Paws the ground, then charges the whole party with its tusks for massive damage. Brace when it lowers its head.'},
   'The Night Panther':{d:'cpanther',hp:.85,atk:.95,spd:6,style:null,skills:['rend'],sp:['keen',15,'weak','Pounce'],
@@ -3591,7 +3591,8 @@ const armorEva=h=>['helmet','chest','pants'].reduce((a,sl)=>{const it=h.gear[sl]
 const EVA_CAP=30;
 const evasion=h=>clamp((h.cls==='archer'?Math.min(22,stat(h,'agi')*.45):Math.min(15,stat(h,'agi')*.25))+armorEva(h)+tr(h,'eva'),0,EVA_CAP);
 const speed=h=>Math.max(4,(8+stat(h,'agi')*.6+C_(h).spd+tr(h,'spd'))*(1+tr(h,'spdPct')/100)*fatSpd(h));
-const skillMp=(h,id)=>Math.max(1,Math.round(SKILLS[id].mp*(SKILLS[id].cls==='warrior'?2/3:1)*(1+tr(h,'skillCost')/100)*(1+posV(h,'mp')/100)));
+// Warrior skills cost 80% of their listed MP (2/3 before, raised 20%).
+const skillMp=(h,id)=>Math.max(1,Math.round(SKILLS[id].mp*(SKILLS[id].cls==='warrior'?.8:1)*(1+tr(h,'skillCost')/100)*(1+posV(h,'mp')/100)));
 // Percent traits multiply the damage a hero takes from one element (or every non-physical one); they stack on top of resistance.
 const elTaken=(h,e)=>e==='physical'?1:Math.max(.1,1+(tr(h,'tk_'+e)+tr(h,'tkAll'))/100);
 // Resistance as shown on the hero sheet: flat resistance and the percent traits combined.
@@ -4068,7 +4069,7 @@ function startRun(){
   {const r=state.run;r.free={};
     for(const [id,q0] of freeSupplies()){const q=q0||0;if(!id||!q)continue;r.bag[id]=(r.bag[id]||0)+q;r.free[id]=(r.free[id]||0)+q}}
   state.run.event=biomeIntro();
-  if(cave)state.run.event.text+=`<br><br><span class="warn">${({'The Cave Bear':'Huge claw marks score the cave walls. A bear has made its den at the far end.','The Giant Boar':'The floor is churned up and the walls are gouged at tusk height. A giant boar has made its den at the far end.','The Night Panther':'Nothing moves, but the heroes feel watched. Something fast and silent has made its den at the far end.'})[cave]}</span>`;
+  if(cave)state.run.event.text+=`<br><br><span class="warn">${({'The Cave Bear':'Huge claw marks score the cave walls. A bear has made its den at the far end.','The Giant Boar':'The floor is churned up and the walls are gouged at tusk height. A giant boar has made its den at the far end.','The Night Panther':'Nothing moves, but the heroes feel watched. Something fast and silent has made its den at the far end.'})[cave]}${!state.caveBonus&&!(state.caveBeaten||[]).includes(cave)?' It’s one of the beasts on the Town Hall bounty.':''}</span>`;
   if(final)state.run.event.text=`<b class="gold">You step onto the Dark Side.</b> Every few dozen stages the path sinks into a new land. Past stage ${finStages(state.run)} lies the Abyss, where the Unlit King waits.<br><br>`+state.run.event.text;
   arrive();
   state.screen='run';
@@ -5121,7 +5122,7 @@ function win(){
     if(e.kind==='mimic')drops.push(['chest',e]);
     // Every major boss and every final boss leaves a chest to open after the fight.
     if(e.kind==='boss'){chestTier='boss';e.drop.push({k:'chest',tier:'boss'});state.bossKills=(state.bossKills||0)+1}
-    if(e.kind==='warden'){chestTier='final';e.drop.push({k:'chest',tier:'final'});if(CAVE_BEASTS[e.base]){state.caveBeaten=state.caveBeaten||[];if(!state.caveBeaten.includes(e.base))state.caveBeaten.push(e.base);if(state.caveBeaten.length>=Object.keys(CAVE_BEASTS).length&&!state.caveBonus){state.caveBonus=true;r.bonusChest=true}}}
+    if(e.kind==='warden'){chestTier='final';e.drop.push({k:'chest',tier:'final'});if(CAVE_BEASTS[e.base]){state.caveBeaten=state.caveBeaten||[];if(!state.caveBeaten.includes(e.base)){state.caveBeaten.push(e.base);if(!state.caveBonus)b.bountyHit=e.base}}}
     if(e.kind==='king'){drops.push(['king',e],['boss',e],['boss',e]);r.kingSlain=true;set.masteryMax=Math.min(MASTERY_MAX,Math.max(set.masteryMax||0,(state.mastery||0)+1));saveSet()}
     if(e.kind==='boss'&&!r.blessOffer&&(r.bless||[]).length<BLESS_MAX){const have=r.bless||[],pool=Object.keys(BLESSINGS).filter(k=>!have.includes(k));r.blessOffer=pool.sort(()=>Math.random()-.5).slice(0,3)}
     if(e.kind==='warden'&&e.base===GATEKEEPER&&!state.gateBeaten){state.gateBeaten=true;b.gateFell=true}
@@ -5133,6 +5134,7 @@ function win(){
   for(const h of L){const hx=Math.round(xp*runMod('xp')*(1+aff(h,'xp')/100));h.kills+=b.enemies.length;lines.push(`${esc(h.name)} +${hx} XP`);gainXp(h,hx,lines)}
   for(const [t,e] of drops){const it=makeItem(t,ilvl(),pick(L).cls);addLoot(it,lines,t==='king'?'The King’s crown-chest: ':t==='boss'?'Boss chest: ':'Dropped ');e.drop.push({k:'item',it,ground:(r.ground||[]).includes(it)})}
   if(eliteBits){r.bag.potion=(r.bag.potion||0)+eliteBits;lines.push(`The elite dropped ${eliteBits>1?eliteBits+' ':'a '}<b>Small Healing Potion${eliteBits>1?'s':''}</b> (bag)`)}
+  if(b.bountyHit){const n=state.caveBeaten.length,T=Object.keys(CAVE_BEASTS).length;lines.push(`<b class="gold">Bounty: ${esc(b.bountyHit)} slain (${n}/${T}).</b>${n>=T?' Every beast is dead. Claim the reward at the Town Hall.':''}`);b.bountyHit=null}
   if(chestTier){r.pendingChest=chestTier;lines.push(`<b class="gold">${CHEST_TIER[chestTier].n} dropped!</b> Open it after the fight.`)}
   if(chance(sc+partyTr('scroll')/100)){r.scrolls++;lines.push('Found a <b>Return Scroll</b>');b.extraDrops.push({k:'scroll'})}
   {const per=bestStat(L,'per');if(chance(findChance(per)/100)){const spotter=L.reduce((a,x)=>stat(x,'per')>stat(a,'per')?x:a,L[0]);
@@ -5220,15 +5222,13 @@ const CHEST_TIER={
   elite:{n:'An elite’s stash',gold:1.5,table:'elite',sure:0},
   boss:{n:'A boss’s hoard',gold:2.5,table:'boss',sure:1},
   final:{n:'The final boss’s treasure',gold:3,table:'final',sure:2},
-  cave:{n:'The hunters’ cache',gold:2,table:'final',sure:0,epic:1}, // once per town, after all three Cave beasts have fallen
 };
 // A guaranteed Epic piece (rerolled until the table gives one).
-function epicItem(table,cls){let it;for(let k=0;k<400;k++){it=makeItem(table,ilvl(),cls);if(it.rarity==='epic')return it}return it}
+function epicItem(table,cls,lv){let it;for(let k=0;k<400;k++){it=makeItem(table,lv||ilvl(),cls);if(it.rarity==='epic')return it}return it}
 function rollChest(tier){
   const T=CHEST_TIER[tier]||CHEST_TIER.map,r=state.run,L=living(),F=eventBonus(),out=[chestGold(T.gold),chestConsumable()];
   const eq=()=>({k:'item',it:makeItem(T.table,ilvl(),pick(L).cls)});
   for(let i=0;i<T.sure;i++)out.push(eq());
-  if(T.epic)out.push({k:'item',it:epicItem(T.table,pick(L).cls)});
   if(!T.sure&&chance(Math.min(.95,(Math.min(90,80+r.stage*.5)+F/10)/100)))out.push(eq());
   // Bonus slots: 60% consumable, 25% equipment, 15% another gold pile.
   for(const p of CHEST_EXTRA){if(!chance(p))break;const x=Math.random();out.push(x<.6?chestConsumable():x<.85?eq():chestGold(.6))}
@@ -5902,6 +5902,33 @@ function storyView(){
     <span class="muted">Chapter ${i} of ${STORY.length}</span><h2 class="disp">${c.n}</h2><p class="govtext">${c.t()}</p>
     <div class="row" style="justify-content:center">${state.gov?govPic(state.gov,2):''}<button class="btn gold" data-a="storyOk" data-x="${c.id}">${ui.storyRe?'Close':'Continue'}</button></div></section></div>`;
 }
+// The Cave bounty, posted in the Town Hall: slay all three Cave beasts, then claim the reward here once per town.
+const BOUNTY={gold:150,
+  story:'The beasts in the caves near town have grown bold. They have carried off children who strayed too close to the treeline, torn through the outer fences, wrecked the mill and gutted the grain stores. The town council has posted a bounty: kill all three and the town pays out.'};
+const bountyLv=()=>Math.max(1,Math.round(Math.min(LENGTHS.short.cap||99,lenLevel(LENGTHS.short,LENGTHS.short.max))+townPower()*.3));
+function bountyBlock(){
+  const all=Object.keys(CAVE_BEASTS),done=state.caveBeaten||[],n=all.filter(x=>done.includes(x)).length;
+  let s=`<h3>Bounty board</h3><div class="bounty"><p class="hname">Wanted: The Beasts of the Cave</p><p>${BOUNTY.story}</p>`;
+  s+=`<div class="row" style="flex-wrap:wrap;gap:12px">${all.map(x=>{const k=done.includes(x);return `<div class="item bwant ${k?'slain':''}" style="min-width:150px;flex:1">${foeArt({base:x,kind:'warden',type:'physical',spr:'boss'},3)}<span class="iname">${x}</span><span class="meta">${k?'<span class="ok">Slain</span>':'<span class="warn">Still at large</span>'}</span></div>`}).join('')}</div>`;
+  if(state.caveBonus){
+    const G=state.bountyGot;
+    s+=`<p class="ok">Bounty claimed. The caves are quiet and the town sleeps easier.</p>`;
+    if(G&&G.fresh){const it=state.bank.find(i=>i.id===G.id);s+=`<p class="gold">The council pays ${G.gold} gold${G.item?` and hands over <span class="r-epic">${esc(G.item)}</span>${it?' (in the vault)':''}`:''}.</p>`;if(it)s+=`<div class="items">${itemCard(it,'')}</div>`}
+  }else if(n>=all.length){
+    const cls=[...new Set(state.heroes.map(h=>h.cls))];const opts=cls.length?cls:Object.keys(CLASSES);
+    s+=`<p class="gold">All three beasts are dead. The council is ready to pay: ${BOUNTY.gold} gold and a piece of Epic gear. Choose who it’s made for.</p><div class="row" style="flex-wrap:wrap;gap:8px">${opts.map(c=>`<button class="btn gold" data-a="bountyClaim" data-x="${c}">Claim · ${CLASSES[c].name} gear</button>`).join('')}</div>`;
+  }else s+=`<p class="muted">${n}/${all.length} slain. Each trip to the Cave ends at the den of a beast still on the list. Reward: ${BOUNTY.gold} gold and a guaranteed piece of Epic gear.</p>`;
+  return s+`</div>`;
+}
+function claimBounty(cls){
+  const all=Object.keys(CAVE_BEASTS);if(state.caveBonus||state.run||!all.every(x=>(state.caveBeaten||[]).includes(x)))return;
+  if(!CLASSES[cls])cls=null;
+  state.caveBonus=true;state.gold+=BOUNTY.gold;
+  // An Epic piece the chosen class can wear (its own gear, or a ring or amulet anyone can).
+  let it;for(let k=0;k<40;k++){it=epicItem('final',cls,bountyLv());if(!cls||!it.cls||it.cls===cls)break}
+  const ln=[];addToBank(it,ln);
+  state.bountyGot={gold:BOUNTY.gold,item:it.name,id:it.id,fresh:true};
+}
 function chronicleBlock(){
   const seen=(state.story||[]);if(!state.gov||!seen.length)return '';
   return `<h3>Chronicle</h3><p class="muted">The story so far. Reread any chapter.</p><div class="row" style="flex-wrap:wrap;gap:6px">${STORY.filter(c=>seen.includes(c.id)).map(c=>`<button class="btn small" data-a="storyRe" data-x="${c.id}">${STORY.indexOf(c)+1}. ${c.n}</button>`).join('')}${seen.length<STORY.length?`<span class="muted">${STORY.length-seen.length} chapter${STORY.length-seen.length>1?'s':''} still to come…</span>`:''}</div>`;
@@ -6482,6 +6509,7 @@ function rebuildRush(){
 function hallView(){
   let s=bHead('house',null,'Town Hall','The War Table sets how many heroes go on each adventure.','Other upgrades are inside each building. Stronger towns also draw slightly stronger monsters.',headUp('war'));
   s+=chronicleBlock();
+  s+=bountyBlock();
   s+=`<h3>Building upgrades</h3><div class="bgrid">${[['heroes','Barracks','tent','#6a4a3a',['academy','barracks']],['smith','Weaponsmith','anvil',null,['smith']],['witch','Witch','crescent','#b56fe3',['alch','potency']],['farm','Farm','farmer','#6f8f4a',['feed']],['bank','Bank','chest',null,['bank','bag','pack']]].map(([t,n,sp,tn,ks])=>
     `<button class="bcard" data-a="goUpg" data-x="${t}"><span class="row" style="gap:8px">${sprite(sp,tn,3)}<span class="hname">${n}</span></span>${ks.map(k=>`<span class="meta">${BUILD[k].name}: Lv ${state.b[k]}/${BUILD[k].max}</span>`).join('')}</button>`).join('')}</div>`;
   return s;
@@ -7089,9 +7117,9 @@ function eventView(){
   const ev=state.run.event;
   if(ev.camp)return campView(ev);
   const wf=!!(ev.wheel&&ev.wheel.fresh),wheel=ev.mystery==='wheel'||ev.wheel?wheelHtml(ev):'';
-  const last=!state.run.final&&state.run.stage>=state.run.total&&!state.run.bonusChest;
+  const last=!state.run.final&&state.run.stage>=state.run.total;
   if(ev.shop)return `<div class="row" style="gap:12px;flex-wrap:nowrap;align-items:flex-start"><span class="portrait">${sprite('flask','#e3b341',5,'bob')}</span><div class="stack" style="gap:6px"><h2>${ev.title}</h2><p>${ev.text}</p></div></div>${shopView(ev)}<div class="row"><button class="btn gold" data-a="cont">Move on</button></div>`;
-  if(ev.chest)return `<h2>${ev.chest.opened?'The chest is open':(CHEST_TIER[ev.chest.tier]||CHEST_TIER.map).n}</h2>${chestScene()}${ev.chest.opened?`<p>${ev.text}</p>${state.run.invNote?`<p class="gold" style="font-size:18px">${state.run.invNote}</p>`:''}${dropActions((ev.chest.got||[]).filter(x=>x.k==='item').map(x=>x.it))}<div class="row"><button class="btn gold" data-a="cont">${last?'Head home':'Continue'}</button></div>`:ev.gov?`<div class="row govnote" style="gap:12px;align-items:flex-start;flex-wrap:nowrap">${state.gov?govPic(state.gov,3):''}<p>That’s the last of the three great beasts. The caves are finally quiet, and the reward we’ve been hunting for was hidden in this one all along. Open it up! We can always come back to the caves, but this cache won’t be waiting for us again.</p></div>`:'<p class="muted">Old iron bands, a heavy lid. Open it to see what spills out.</p>'}`;
+  if(ev.chest)return `<h2>${ev.chest.opened?'The chest is open':(CHEST_TIER[ev.chest.tier]||CHEST_TIER.map).n}</h2>${chestScene()}${ev.chest.opened?`<p>${ev.text}</p>${state.run.invNote?`<p class="gold" style="font-size:18px">${state.run.invNote}</p>`:''}${dropActions((ev.chest.got||[]).filter(x=>x.k==='item').map(x=>x.it))}<div class="row"><button class="btn gold" data-a="cont">${last?'Head home':'Continue'}</button></div>`:'<p class="muted">Old iron bands, a heavy lid. Open it to see what spills out.</p>'}`;
   return `<div class="row" style="gap:12px;flex-wrap:nowrap;align-items:flex-start">${ev.approach?`<span class="approach"><span class="afar">${foeArt({base:BIOMES[state.run.biome].boss,kind:'boss',type:BIOMES[state.run.biome].el,spr:'boss'},5,'bob')}</span><span class="portrait">${sprite('camp',null,5,'bob')}</span></span>`:ev.icon?`<span class="portrait">${sprite(ev.icon,null,5,'bob')}</span>`:''}<div class="stack" style="gap:6px"><h2>${ev.title}</h2><p class="${wf?'wheelres':''}">${ev.text}</p></div></div>${wheel}<div class="row">${ev.choices?ev.choices.map(c=>`<button class="btn ${c.x==='leave'?'':'gold'}" data-a="${c.myst?'myst':c.ev?'evPick':'gamble'}" data-x="${c.x}" ${c.off?'disabled':''}>${c.l}</button>`).join(''):`<button class="btn gold" data-a="cont">${ev.intro?'Press on':'Continue'}</button>`}</div>`;
 }
 function skillChip(h,id){const k=SKILLS[id];return `<span class="trait tk-skill" tabindex="0" data-tip="${esc(k.n+' · '+k.mp+' MP. '+skillStats(id)+'. '+k.d)}">${k.n}</span>`}
@@ -7830,6 +7858,7 @@ const ACT={
   stillUp:()=>{const nx=stillStep((state.still||0)+1);if(!nx||state.gold<nx.gold||!Object.entries(nx.need).every(([k,v])=>(state.mats[k]||0)+1e-9>=v))return;
     for(const [k,v] of Object.entries(nx.need))addMat(state.mats,k,-v);state.gold-=nx.gold;state.still=(state.still||0)+1},
   salvage:id=>{const it=state.bank.find(x=>x.id===id),o=it&&salvageOf(it);if(!o)return;state.bank=state.bank.filter(x=>x!==it);for(const [k,v] of Object.entries(o))addMat(state.mats,k,v)},
+  bountyClaim:x=>claimBounty(x),
   goUpg:x=>{state.tab=x;if(x==='heroes')state.sel.btab='upgrades';if(x==='witch')state.sel.wtab='up'},
   dismiss:()=>{state.summary=null},
   recruit:id=>{const c=state.candidates.find(x=>x.id===id),fee=recruitFee();if(!c||state.heroes.length>=slots()||state.gold<fee)return;darkHit('grim');
@@ -7987,8 +8016,6 @@ const ACT={
   attune:x=>{const [hid,el]=x.split('|'),b=state.run&&state.run.battle;if(b&&ELEMENTS.includes(el)){b.attune[hid]=el;const h=heroById(hid);if(h&&h.cls==='mage')h.attuneEl=el}},
   auto:()=>{const b=state.run.battle;b.auto=!b.auto;state.run.autoPref=b.auto},
   cont:()=>{const r=state.run;if(r.battle&&r.blessOffer){ui.hideResult=false;return}if(r.event&&r.event.intro){r.event=null;return}
-    // All three Cave beasts beaten: after the boss's own treasure, the hunters' cache turns up (once per town).
-    if(r.bonusChest&&!r.battle&&r.event&&r.event.chest&&r.event.chest.opened){r.bonusChest=false;r.event={title:CHEST_TIER.cave.n,icon:'chest',gov:true,chest:{opened:false,tier:'cave'}};return}
     if(r.battle&&r.battle.over==='win'&&r.pendingChest){const tier=r.pendingChest;r.pendingChest=null;r.battle=null;r.event={title:CHEST_TIER[tier].n,icon:'chest',chest:{opened:false,tier}};return}if(r.kingSlain){endRun('victory');return}nextStage()},
   fallen:()=>{ui.drawer=null;endRun('dead')},
   flee:()=>{if(!canFlee())return;if(set.confirmFlee)ui.flee=true;else ACT.fleeYes()},
@@ -8429,6 +8456,8 @@ function start(d){
   if(!state.items)state.items={};
   if(!state.mats)state.mats={};
   if(!state.farm)state.farm={lvl:0};
+  // Saves from before the bounty: a hunters' cache still waiting mid-adventure becomes an unclaimed Town Hall bounty.
+  if(state.run&&state.run.bonusChest){delete state.run.bonusChest;state.caveBonus=false}
   if(!state.mat2){state.mat2=true;const conv=o=>{if(!o)return;for(const [k,v] of Object.entries(OLD_MAT))if(o[k]){addMat(o,v,o[k]);delete o[k]}};conv(state.mats);if(state.run)conv(state.run.mats)}
   if(state.still==null)state.still=0;
   // Saves from before construction: buildings count as built only if the town had reached the week they used to open.
