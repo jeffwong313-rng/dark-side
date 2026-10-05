@@ -5222,6 +5222,7 @@ const CHEST_TIER={
   elite:{n:'An elite’s stash',gold:1.5,table:'elite',sure:0},
   boss:{n:'A boss’s hoard',gold:2.5,table:'boss',sure:1},
   final:{n:'The final boss’s treasure',gold:3,table:'final',sure:2},
+  bounty:{n:'The bounty chest',gold:2,table:'final',sure:0,epic:1}, // the Cave bounty's reward, opened in the Town Hall
 };
 // A guaranteed Epic piece (rerolled until the table gives one).
 function epicItem(table,cls,lv){let it;for(let k=0;k<400;k++){it=makeItem(table,lv||ilvl(),cls);if(it.rarity==='epic')return it}return it}
@@ -5229,6 +5230,7 @@ function rollChest(tier){
   const T=CHEST_TIER[tier]||CHEST_TIER.map,r=state.run,L=living(),F=eventBonus(),out=[chestGold(T.gold),chestConsumable()];
   const eq=()=>({k:'item',it:makeItem(T.table,ilvl(),pick(L).cls)});
   for(let i=0;i<T.sure;i++)out.push(eq());
+  if(T.epic)out.push({k:'item',it:epicItem(T.table,pick(L).cls)});
   if(!T.sure&&chance(Math.min(.95,(Math.min(90,80+r.stage*.5)+F/10)/100)))out.push(eq());
   // Bonus slots: 60% consumable, 25% equipment, 15% another gold pile.
   for(const p of CHEST_EXTRA){if(!chance(p))break;const x=Math.random();out.push(x<.6?chestConsumable():x<.85?eq():chestGold(.6))}
@@ -5903,29 +5905,54 @@ function storyView(){
     <div class="row" style="justify-content:center">${state.gov?govPic(state.gov,2):''}<button class="btn gold" data-a="storyOk" data-x="${c.id}">${ui.storyRe?'Close':'Continue'}</button></div></section></div>`;
 }
 // The Cave bounty, posted in the Town Hall: slay all three Cave beasts, then claim the reward here once per town.
-const BOUNTY={gold:150,
+const BOUNTY={
   story:'The beasts in the caves near town have grown bold. They have carried off children who strayed too close to the treeline, torn through the outer fences, wrecked the mill and gutted the grain stores. The town council has posted a bounty: kill all three and the town pays out.'};
-const bountyLv=()=>Math.max(1,Math.round(Math.min(LENGTHS.short.cap||99,lenLevel(LENGTHS.short,LENGTHS.short.max))+townPower()*.3));
 function bountyBlock(){
-  const all=Object.keys(CAVE_BEASTS),done=state.caveBeaten||[],n=all.filter(x=>done.includes(x)).length;
+  const all=Object.keys(CAVE_BEASTS),done=state.caveBeaten||[],n=all.filter(x=>done.includes(x)).length,C=state.bountyChest;
   let s=`<h3>Bounty board</h3><div class="bounty"><p class="hname">Wanted: The Beasts of the Cave</p><p>${BOUNTY.story}</p>`;
   s+=`<div class="row" style="flex-wrap:wrap;gap:12px">${all.map(x=>{const k=done.includes(x);return `<div class="item bwant ${k?'slain':''}" style="min-width:150px;flex:1">${foeArt({base:x,kind:'warden',type:'physical',spr:'boss'},3)}<span class="iname">${x}</span><span class="meta">${k?'<span class="ok">Slain</span>':'<span class="warn">Still at large</span>'}</span></div>`}).join('')}</div>`;
-  if(state.caveBonus){
-    const G=state.bountyGot;
-    s+=`<p class="ok">Bounty claimed. The caves are quiet and the town sleeps easier.</p>`;
-    if(G&&G.fresh){const it=state.bank.find(i=>i.id===G.id);s+=`<p class="gold">The council pays ${G.gold} gold${G.item?` and hands over <span class="r-epic">${esc(G.item)}</span>${it?' (in the vault)':''}`:''}.</p>`;if(it)s+=`<div class="items">${itemCard(it,'')}</div>`}
-  }else if(n>=all.length){
-    s+=`<p class="gold">All three beasts are dead. The council is ready to pay: ${BOUNTY.gold} gold and a piece of Epic gear from the town armory.</p><div class="row"><button class="btn gold" data-a="bountyClaim">Claim the bounty</button></div>`;
-  }else s+=`<p class="muted">${n}/${all.length} slain. Each trip to the Cave ends at the den of a beast still on the list. Reward: ${BOUNTY.gold} gold and a guaranteed piece of Epic gear.</p>`;
+  if(C)s+=`<p class="${C.opened?'ok':'gold'}">${C.opened?'Bounty paid. The caves are quiet and the town sleeps easier.':'All three beasts are dead. The council has brought out the bounty chest.'}</p>${bountyChestScene()}${C.opened?`<p>${C.text}</p>`:''}`;
+  else if(state.caveBonus)s+=`<p class="ok">Bounty claimed. The caves are quiet and the town sleeps easier.</p>`;
+  else if(n>=all.length)s+=`<p class="gold">All three beasts are dead. The council is ready to pay.</p><div class="row"><button class="btn gold" data-a="bountyClaim">Claim the bounty</button></div>`;
+  else s+=`<p class="muted">${n}/${all.length} slain. Each trip to the Cave ends at the den of a beast still on the list. Reward: a bounty chest with a guaranteed piece of Epic gear.</p>`;
   return s+`</div>`;
 }
 function claimBounty(){
   const all=Object.keys(CAVE_BEASTS);if(state.caveBonus||state.run||!all.every(x=>(state.caveBeaten||[]).includes(x)))return;
-  state.caveBonus=true;state.gold+=BOUNTY.gold;
-  // A random Epic piece: any slot, any class.
-  const it=epicItem('final',null,bountyLv());
-  const ln=[];addToBank(it,ln);
-  state.bountyGot={gold:BOUNTY.gold,item:it.name,id:it.id,fresh:true};
+  state.caveBonus=true;state.bountyChest={opened:false,biome:pick(LAND_PICK)};
+}
+// The bounty chest rolls like the chest a Cave final boss leaves (same gold, loot odds and bonus slots, plus one
+// guaranteed Epic piece), as if your heroes at home had just finished the Cave. Loot goes to the vault, supplies to storage.
+function openBountyChest(){
+  const C=state.bountyChest;if(!C||C.opened||state.run)return;
+  // Every hero at home counts as the party (at full health, only for this roll).
+  const H=state.heroes,hp0=H.map(h=>h.hp),L=LENGTHS.short;let got;
+  state.run={length:'short',stage:L.max,total:L.max,party:H.map(h=>h.id),biome:C.biome,pacts:[],bless:[],bag:{},loot:[],ground:[],mats:{},gold:0,scrolls:0};
+  try{H.forEach(h=>h.hp=Math.max(1,maxHp(h)));got=rollChest('bounty')}catch(e){console.error(e);got=null}
+  finally{state.run=null;H.forEach((h,i)=>h.hp=hp0[i])}
+  if(!got)got=[{k:'item',it:epicItem('final',null,Math.max(1,Math.round(lenLevel(LENGTHS.short,LENGTHS.short.max)+townPower()*.3)))}];
+  const lines=[];
+  for(const x of got){
+    if(x.k==='gold'){state.gold+=x.g;lines.push(`<b class="gold">${x.g} gold</b>${x.tier==='jackpot'?' <b class="gold">JACKPOT!</b>':x.tier==='big'?' <span class="gold">(a fat purse)</span>':''}`)}
+    else if(x.k==='scroll'){state.scrolls=(state.scrolls||0)+1;lines.push('A <b>Return Scroll</b>')}
+    else if(x.k==='cons'){state.items[x.id]=(state.items[x.id]||0)+1;lines.push(`<b>${CONSUMABLES[x.id].n}</b> <span class="muted">(storage)</span>`)}
+    else{const ln=[];const kept=addToBank(x.it,ln);lines.push(kept?`${itemName(x.it)} <span class="muted">(vault)</span>`:ln[0])}
+  }
+  const mats={};for(let k=0;k<2;k++)addMat(mats,rollMat(C.biome),rand(.15,.4));for(const [k,v] of Object.entries(mats))addMat(state.mats,k,v);
+  C.opened=true;C.fresh=true;C.got=got.map(x=>x.k==='item'?{k:'item',it:x.it}:x);
+  C.text=`${got.length} thing${got.length>1?'s tumble':' tumbles'} out:<br>${lines.join('<br>')}<br><span class="muted">Also inside: ${matsLine(mats)}</span>`;
+}
+function bountyChestScene(){
+  const C=state.bountyChest,B=BIOMES[C.biome]||BIOMES[LAND_PICK[0]],Ly=biomeLayers(BIOMES[C.biome]?C.biome:LAND_PICK[0]),n=C.opened?C.got.length:0;
+  const pops=C.opened?C.got.map((x,i)=>{const ang=n>1?(-70+140*i/(n-1)):0,rad=n>4?118:96,tx=(Math.sin(ang*Math.PI/180)*.9).toFixed(3),ty=Math.round(-Math.cos(ang*Math.PI/180)*rad*.75)-36;
+    const ic=x.k==='gold'?`<span class="ibox ${x.tier==='jackpot'?'jack':''}">${sprite('coin',null,x.tier?4:3)}</span>`:x.k==='item'?itemIcon(x.it,3):x.k==='scroll'?`<span class="ibox">${sprite('scroll',null,3)}</span>`:`<span class="ibox">${consIco(x.id,3)}</span>`;
+    const nm=x.k==='gold'?`<span class="gold">${x.g} gold${x.tier==='jackpot'?' · JACKPOT':''}</span>`:x.k==='item'?`<span class="r-${x.it.rarity}">${esc(x.it.name)}</span>`:x.k==='scroll'?'Return Scroll':CONSUMABLES[x.id].n;
+    return `<span class="lootpop ${C.fresh?'fresh':''} ${x.k==='item'?'eq r-'+x.it.rarity+'-bg':''}" style="--fx:${tx};--ty:${ty}px;animation-delay:${C.fresh?i*.28:0}s">${ic}<small>${nm}</small></span>`}).join(''):'';
+  const html=`<div class="scene chestscene wx-${C.biome}" style="--s1:${B.s[0]};--s2:${B.s[1]}"><div class="lay far" style="background-image:url(${Ly.far})"></div><div class="lay mid" style="background-image:url(${Ly.mid})"></div><div class="gnd" style="background-image:url(${Ly.gnd})"></div>
+    <span class="stage-label">${CHEST_TIER.bounty.n}</span>
+    ${C.opened?`<div class="chestbox open">${sprite('chestopen',null,8)}</div>`:`<button class="chestbox" data-a="openBountyChest" aria-label="Open the bounty chest">${sprite('chest',null,8,'bob')}<span class="chesthint">Tap to open</span></button>`}
+    <div class="lootfan">${pops}</div></div>`;
+  C.fresh=false;return html;
 }
 function chronicleBlock(){
   const seen=(state.story||[]);if(!state.gov||!seen.length)return '';
@@ -7856,7 +7883,7 @@ const ACT={
   stillUp:()=>{const nx=stillStep((state.still||0)+1);if(!nx||state.gold<nx.gold||!Object.entries(nx.need).every(([k,v])=>(state.mats[k]||0)+1e-9>=v))return;
     for(const [k,v] of Object.entries(nx.need))addMat(state.mats,k,-v);state.gold-=nx.gold;state.still=(state.still||0)+1},
   salvage:id=>{const it=state.bank.find(x=>x.id===id),o=it&&salvageOf(it);if(!o)return;state.bank=state.bank.filter(x=>x!==it);for(const [k,v] of Object.entries(o))addMat(state.mats,k,v)},
-  bountyClaim:()=>claimBounty(),
+  bountyClaim:()=>claimBounty(),openBountyChest:()=>openBountyChest(),
   goUpg:x=>{state.tab=x;if(x==='heroes')state.sel.btab='upgrades';if(x==='witch')state.sel.wtab='up'},
   dismiss:()=>{state.summary=null},
   recruit:id=>{const c=state.candidates.find(x=>x.id===id),fee=recruitFee();if(!c||state.heroes.length>=slots()||state.gold<fee)return;darkHit('grim');
