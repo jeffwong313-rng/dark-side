@@ -3623,12 +3623,11 @@ function growGuess(h){const B=h.baseStats||h,avg=k=>((B[k]||0)+(h[k]||0))/2,n=Ma
 // Starting bonus: a flat amount per class (warrior 25, archer 15, mage 10) plus the growth formula applied once
 // to the hero's rolled STR and END (the dice, before any points are spent).
 const startHp=h=>{const B=h.baseStats||h;return (C_(h).startHp||0)+GROW.hp.end*(B.end||0)+GROW.hp.str*(B.str||0)};
-// END, STR and INT that don't come from spent points (gear, elixirs, traits) count as if the hero had them at every level.
-const xStat=(h,k)=>stat(h,k)-(h[k]||0);
-const gearGrowHp=h=>(h.level||1)*(GROW.hp.end*xStat(h,'end')+GROW.hp.str*xStat(h,'str')),gearGrowMp=h=>(h.level||1)*GROW.mp.int*xStat(h,'int');
+// Health and mana growth come only from the hero's own rolled and spent points. END, STR and INT from gear, elixirs
+// or traits do not add health or mana.
 // Flat Health from gear is added as listed, after the hidden health scaling, so "+15 Health" really is +15.
-const maxHp=h=>Math.max(1,Math.floor(HERO_HP_SCALE*(C_(h).hp+startHp(h)+growOf(h).hp+gearGrowHp(h)+h.bonusHp*10)*(1+tr(h,'hpPct')/100)*HP_CUT*(FRAGILE[h.cls]||1))+Math.round(aff(h,'hp')));
-const maxMp=h=>Math.max(1,Math.round((C_(h).mp+growOf(h).mp+gearGrowMp(h)+h.bonusMp*4+aff(h,'mp'))*(1+tr(h,'mpPct')/100)*(injOf(h)==='head'?.75:1)));
+const maxHp=h=>Math.max(1,Math.floor(HERO_HP_SCALE*(C_(h).hp+startHp(h)+growOf(h).hp+h.bonusHp*10)*(1+tr(h,'hpPct')/100)*HP_CUT*(FRAGILE[h.cls]||1))+Math.round(aff(h,'hp')));
+const maxMp=h=>Math.max(1,Math.round((C_(h).mp+growOf(h).mp+h.bonusMp*4+aff(h,'mp'))*(1+tr(h,'mpPct')/100)*(injOf(h)==='head'?.75:1)));
 function armor(h){let a=0;for(const s of ['helmet','chest','pants'])if(h.gear[s])a+=baseVal(h.gear[s]);return Math.round(a*(1+tr(h,'armorPct')/100))}
 const weaponDmg=h=>h.gear.weapon?baseVal(h.gear.weapon):3;
 // Each level past 1 adds a little raw power, so experience matters on its own.
@@ -5557,12 +5556,12 @@ function bars(h){
 }
 function statTip(h,k){
   const C=C_(h),own=C.primary===k;
-  if(k==='str')return `Strength. ${own?'Warriors add 1 damage per point':'Adds 0.25 damage per point (Warriors get 1)'}. Each point also adds 0.75 max health every time the hero levels up.`;
+  if(k==='str')return `Strength. ${own?'Warriors add 1 damage per point':'Adds 0.25 damage per point (Warriors get 1)'}. Each point the hero has (not from gear or elixirs) also adds 0.75 max health every time they level up.`;
   if(k==='per')return `Perception. Accuracy +0.3% per point. Perception adds up across the whole party on the map and in battle: with 1–2 total every choice on the map is unknown; with 3–8 some choices are fogged; from 9 every choice is clear and you see 1 stage ahead, +1 more per 6 points (up to 6). At 6+ you see enemy health and damage numbers; at 10+ you see what each enemy will do next. The party’s best single Perception also fully reads unknown enemies at the start of a fight (${Math.round(fullScoutChance(stat(h,'per')))}%, adding them to the Moon Ledger), spots trapped chests (${Math.round(spotChance(stat(h,'per')))}%), and finds bonus gold or items after fights (${Math.round(findChance(stat(h,'per')))}%).`;
-  if(k==='end')return `Endurance. Each point adds 1.25 max health every time the hero levels up, +0.5% resistance to every element (${(stat(h,'end')*.5).toFixed(1)}% now), and faster recovery between fights: 2% + 0.8% per point, up to 30% (${Math.round(restPct(h))}% now).`;
+  if(k==='end')return `Endurance. Each point the hero has (not from gear or elixirs) adds 1.25 max health every time they level up, +0.5% resistance to every element (${(stat(h,'end')*.5).toFixed(1)}% now), and faster recovery between fights: 2% + 0.8% per point, up to 30% (${Math.round(restPct(h))}% now).`;
   if(k==='cha')return `Charisma. The whole party’s Charisma adds up for every non-battle event (chests, gold caches, shrines, strangers). Each point above the land’s baseline makes results 3% better, each point below 3% worse (Cave 8, Wilds 14, Wasteland 20, Summit 28). Also lowers the Witch’s brew and supply prices by 1.5% per point, up to 40% (${Math.round(chaDiscount(h))}% now). Treatments use this hero’s Charisma; supplies use your most charming hero.`;
   if(k==='agi')return `Agility. ${own?'Archers add 0.85 damage per point':'Adds 0.25 damage per point (Archers get 0.85)'}. Raises speed, so more turns, plus crit chance, evasion and accuracy.`;
-  if(k==='int')return `Intelligence. ${own?'Mages add 1 damage per point':'Adds 0.25 damage per point (Mages get 1)'}. Each point adds 0.5 max mana every time the hero levels up, and ${h.cls==='mage'?'0.3':'0.2'} mana regained each turn (${focusRegen(h)} now), and strengthens Mend.`;
+  if(k==='int')return `Intelligence. ${own?'Mages add 1 damage per point':'Adds 0.25 damage per point (Mages get 1)'}. Each point the hero has (not from gear or elixirs) adds 0.5 max mana every time they level up, and ${h.cls==='mage'?'0.3':'0.2'} mana regained each turn (${focusRegen(h)} now), and strengthens Mend.`;
   return `Luck. For this hero right now: +${luckRate(h,'crit').toFixed(1)}% crit chance, +${luckRate(h,'gold').toFixed(1)}% gold found, ${luckRate(h,'surge').toFixed(1)}% chance of a lucky surge on each ${h.cls==='mage'?'spell or attack':'skill'} (a random boon for the battle). ${C.name}s get 2.5× the ${{warrior:'gold',archer:'crit',mage:'surge'}[h.cls]} bonus. The whole party's Luck also adds up to make chance-based events kinder: each point above the land's baseline is 2% (Cave 6, Wilds 12, Wasteland 18, Summit 26).`;
 }
 function statPips(h,raw){
