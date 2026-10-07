@@ -3159,11 +3159,11 @@ const helpBtn=()=>`<button class="btn helpq ${ui.inspect?'on':''}" data-a="inspe
 const elTag=e=>`<span class="el" style="--c:${EL_COL[e||'physical']}" data-tip="${elTip(e)}">${elIco(e)}${cap(e||'physical')}</span>`;
 
 const CLASSES={
-  warrior:{name:'Warrior',primary:'str',hp:50,mp:10,tint:'#8a3030',var:[.95,1.05],crit:0,critDmg:150,spd:-1,elRes:-15,
+  warrior:{name:'Warrior',primary:'str',hp:50,startHp:25,mp:10,tint:'#8a3030',var:[.95,1.05],crit:0,critDmg:150,spd:-1,elRes:-15,
     style:'Heavy armor: the most health and the most armor of any class, built to stand in front. Consistent: every hit lands close to its expected damage. Weak spot: elements. Warriors have 15% less resistance to every element.'},
-  archer:{name:'Archer',primary:'agi',hp:35,mp:12,tint:'#3f6d38',var:[.6,1.4],crit:10,critDmg:165,spd:2,taken:10,
+  archer:{name:'Archer',primary:'agi',hp:35,startHp:15,mp:12,tint:'#3f6d38',var:[.6,1.4],crit:10,critDmg:165,spd:2,taken:10,
     style:'High risk, high reward. Medium armor that adds evasion with every piece, so many blows miss, but the ones that land hurt 10% more. Swingy damage, the most crits, the biggest crit damage, and extra turns from speed.'},
-  mage:{name:'Mage',primary:'int',hp:30,mp:25,tint:'#3d3c86',var:[.9,1.1],crit:0,critDmg:150,spd:0,elem:15,
+  mage:{name:'Mage',primary:'int',hp:30,startHp:10,mp:25,tint:'#3d3c86',var:[.9,1.1],crit:0,critDmg:150,spd:0,elem:15,
     style:'Light cloth: the most fragile class, with the least health and armor. Every attack is elemental (+15% damage), and weakness hits deal 1.75× instead of 1.5×. Attune to any element mid-battle.'},
 };
 // Basic attacks. acc = base hit chance before agility and enemy evasion.
@@ -3620,7 +3620,10 @@ const growOf=h=>h.grow||(h.grow=growGuess(h));
 function levelGrow(h){const g=growOf(h);g.hp+=GROW.hp.end*h.end+GROW.hp.str*h.str;g.mp+=GROW.mp.int*h.int}
 // Heroes from before this change: assume their stats rose evenly from their starting roll to now.
 function growGuess(h){const B=h.baseStats||h,avg=k=>((B[k]||0)+(h[k]||0))/2,n=Math.max(0,(h.level||1)-1);return {hp:n*(GROW.hp.end*avg('end')+GROW.hp.str*avg('str')),mp:n*GROW.mp.int*avg('int')}}
-const maxHp=h=>Math.max(1,Math.floor(HERO_HP_SCALE*(C_(h).hp+growOf(h).hp+h.bonusHp*10+aff(h,'hp'))*(1+tr(h,'hpPct')/100)*HP_CUT*(FRAGILE[h.cls]||1)));
+// Starting bonus: a flat amount per class (warrior 25, archer 15, mage 10) plus the growth formula applied once
+// to the hero's rolled STR and END (the dice, before any points are spent).
+const startHp=h=>{const B=h.baseStats||h;return (C_(h).startHp||0)+GROW.hp.end*(B.end||0)+GROW.hp.str*(B.str||0)};
+const maxHp=h=>Math.max(1,Math.floor(HERO_HP_SCALE*(C_(h).hp+startHp(h)+growOf(h).hp+h.bonusHp*10+aff(h,'hp'))*(1+tr(h,'hpPct')/100)*HP_CUT*(FRAGILE[h.cls]||1)));
 const maxMp=h=>Math.max(1,Math.round((C_(h).mp+growOf(h).mp+h.bonusMp*4+aff(h,'mp'))*(1+tr(h,'mpPct')/100)*(injOf(h)==='head'?.75:1)));
 function armor(h){let a=0;for(const s of ['helmet','chest','pants'])if(h.gear[s])a+=baseVal(h.gear[s]);return Math.round(a*(1+tr(h,'armorPct')/100))}
 const weaponDmg=h=>h.gear.weapon?baseVal(h.gear.weapon):3;
