@@ -3161,7 +3161,7 @@ const elTag=e=>`<span class="el" style="--c:${EL_COL[e||'physical']}" data-tip="
 const CLASSES={
   warrior:{name:'Warrior',primary:'str',hp:78,mp:10,tint:'#8a3030',var:[.95,1.05],crit:0,critDmg:150,spd:-1,elRes:-15,
     style:'Heavy armor: the most health and the most armor of any class, built to stand in front. Consistent: every hit lands close to its expected damage. Weak spot: elements. Warriors have 15% less resistance to every element.'},
-  archer:{name:'Archer',primary:'agi',hp:54,mp:15,tint:'#3f6d38',var:[.6,1.4],crit:10,critDmg:165,spd:2,taken:10,
+  archer:{name:'Archer',primary:'agi',hp:48.6,mp:12,tint:'#3f6d38',var:[.6,1.4],crit:10,critDmg:165,spd:2,taken:10,
     style:'High risk, high reward. Medium armor that adds evasion with every piece, so many blows miss, but the ones that land hurt 10% more. Swingy damage, the most crits, the biggest crit damage, and extra turns from speed.'},
   mage:{name:'Mage',primary:'int',hp:47,mp:25,tint:'#3d3c86',var:[.9,1.1],crit:0,critDmg:150,spd:0,elem:15,
     style:'Light cloth: the most fragile class, with the least health and armor. Every attack is elemental (+15% damage), and weakness hits deal 1.75× instead of 1.5×. Attune to any element mid-battle.'},
@@ -3194,7 +3194,7 @@ const SKILLS={
   feather:{cls:'archer',tier:1,n:'Featherweight',mp:16,tgt:'self',d:'Evasion rises to 90% for 2 turns, up to 4 with high AGI and Luck.'},
   sniper:{cls:'archer',tier:1,n:'Sniper',mp:16,tgt:'self',d:'Crit chance rises to 80% for the next 2 turns, up to 4 with high PER and Luck.'},
   circle:{cls:'mage',tier:1,n:'Circle of Mending',mp:26,tgt:'party',d:'Heals every ally for 27% of their max health plus 1.3× the caster’s INT.'},
-  chain:{cls:'mage',tier:1,n:'Chain Lightning',mp:22,tgt:'enemy',mult:1.6,acc:100,crit:5,el:'thunder',chain:3,d:'Thunder that leaps from the target to up to 2 more enemies, losing a quarter of its force each jump.'},
+  chain:{cls:'mage',tier:1,n:'Chain Elemental',mp:22,tgt:'enemy',mult:1.6,acc:100,crit:5,el:'attune',chain:[.8,.6,.4,.2],d:'A bolt in the attuned element that leaps between enemies, losing a quarter of its force each jump. After the first hit it has an 80% chance to jump, then 60%, then 40%, then 20% for every jump after that. It never jumps straight back to the enemy it just hit, but can come back to one later.'},
   bulwark:{cls:'warrior',tier:2,n:'Bulwark',mp:26,tgt:'party',d:'For 2 rounds the whole party takes 67% less damage, and every enemy must attack this hero.'},
   quake:{cls:'warrior',tier:2,n:'Earthshatter',mp:28,tgt:'all',mult:1.7,acc:100,crit:5,el:'physical',stun:'chance',d:'Slams every enemy. Each one hit may be stunned for 1 turn (67% plus STR and Luck, half against bosses).'},
   hail:{cls:'archer',tier:2,n:'Hail of Arrows',mp:26,tgt:'rand',mult:0.9,hits:6,acc:95,crit:10,el:'weapon',d:'Six arrows at random enemies. Each one rolls its own crit.'},
@@ -4646,7 +4646,10 @@ function heroAction(act,allyId){
     const F=b.fx.sk={id:act,h:h.id,c:o.el&&o.el!=='physical'&&EL_COL[o.el]?EL_COL[o.el]:null,tg:[],al:ally?[ally.id]:sk.tgt==='party'?partyAll().map(x=>x.id):sk.tgt==='self'?[h.id]:[]};
     if(sk.tgt==='all'){o.aoe=true;for(const e of meleeReach(h,act))for(let i=0;i<(sk.hits||1);i++)if(e.hp>0){const d=hitEnemy(h,e,o);afterHit(h,e,act,d)}}
     else if(sk.tgt==='rand'){for(let i=0;i<(sk.hits||1);i++){const t=pick(aliveFoes());if(!t)break;const d=hitEnemy(h,t,o);afterHit(h,t,act,d)}}
-    else if(sk.chain){let t=tgt,m=1;const done=[];for(let i=0;i<sk.chain&&t;i++){const d=hitEnemy(h,t,{...o,mult:o.mult*m});afterHit(h,t,act,d);done.push(t);m*=.75;t=aliveFoes().find(x=>!done.includes(x))}}
+    // Chain Elemental: hits the target, then keeps jumping to a random other living enemy while each jump roll succeeds
+    // (80%, 60%, 40%, then 20% for every later jump). Repeat hits on the same enemy are allowed, just never twice in a row.
+    else if(sk.chain){let t=tgt,m=1,j=0;while(t&&t.hp>0&&j<40){const d=hitEnemy(h,t,j?{...o,mult:o.mult*m,label:'arcs into'}:o);afterHit(h,t,act,d);
+      const p=sk.chain[Math.min(j,sk.chain.length-1)];j++;m*=.75;const nx=aliveFoes().filter(x=>x!==t);if(!nx.length||!chance(p))break;t=pick(nx)}}
     else if(sk.tgt==='enemy'&&sk.mult){for(let i=0;i<(sk.hits||1);i++){const t=i?fixTarget():tgt;if(t&&t.hp>0){const d=hitEnemy(h,t,o);afterHit(h,t,act,d)}}}
     else applyUtility(h,act,tgt,ally);
     if(!F.tg.length&&sk.tgt==='enemy'&&tgt)F.tg.push(b.enemies.indexOf(tgt));
@@ -6974,7 +6977,7 @@ function weaponFx(fx,unit){
   return ''}
 function skFx(fx,unit){
   const F=fx.sk;if(!F)return '';const fam=SK_FX[F.id];if(!fam)return '';
-  const col=F.id==='sniper'?'#e3b341':F.c&&!['heal','shield','shieldgold','shout','hex','drain','lightning'].includes(fam)?F.c:SK_COL[fam];
+  const col=F.id==='sniper'?'#e3b341':F.c&&!['heal','shield','shieldgold','shout','hex','drain'].includes(fam)?F.c:SK_COL[fam];
   const part=(cls)=>`<span class="skfx ${cls} v-${F.id}" style="--c:${col}" aria-hidden="true"><i></i><i></i><i></i><i></i></span>`;
   let s='';
   if(unit==='h:'+F.h)s+=part('c-'+SK_CASTER[fam]);
