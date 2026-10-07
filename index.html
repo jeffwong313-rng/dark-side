@@ -3864,9 +3864,11 @@ const enemyLevel=()=>{const r=state.run;return r.final?FINAL.base+(r.stage-1)*FI
 const lenLevel=(L,st)=>L.base+Math.min(st-1,20)*L.per+Math.max(0,st-21)*L.tail;
 const greenFor=(len,ids)=>{const L=LENGTHS[len];return L&&L.rec?ids.map(heroById).filter(h=>h&&h.level<L.rec):[]};
 const ilvl=()=>Math.max(1,Math.round(enemyLevel()));
+// The Cave pays 10% more gold from stage 8 on (not the bounty chest, which only borrows a Cave run to roll its loot).
+const caveGold=r=>r&&r.length==='short'&&!r.final&&!r.bounty&&(r.stage||1)>=8?1.1:1;
 function goldAmt(base){
   const r=state.run,L=living(),n=L.length||1;
-  return Math.round(base*LENGTHS[r.length].mult*(1+.25*(n-1))*rand(.8,1.2)*(1+L.reduce((s,h)=>s+aff(h,'goldfind')+luckRate(h,'gold'),0)/100)*runMod('gold')*(townEv()&&townEv().ev==='bard'?1.15:1));
+  return Math.round(base*caveGold(r)*LENGTHS[r.length].mult*(1+.25*(n-1))*rand(.8,1.2)*(1+L.reduce((s,h)=>s+aff(h,'goldfind')+luckRate(h,'gold'),0)/100)*runMod('gold')*(townEv()&&townEv().ev==='bard'?1.15:1));
 }
 // Just before the final boss: the party sees it coming and makes camp. Same as a campsite, no stop on the map.
 function finalApproach(){
@@ -4279,7 +4281,11 @@ function scoutRolls(when){
 }
 function makeEnemy(kind,add,forceSpr,opt){return addTeamSkill(modFoe(applySpecies(makeEnemy0(kind,add,forceSpr,opt))))}
 // Land conditions and pacts reshape every monster that appears.
-function modFoe(e){const M=1+MASTERY_STEP*((state&&state.mastery)||0),hp=runMod('foeHp')*M,at=runMod('foeAtk')*M,sp=runMod('foeSpd'),rs=runMod('foeRes');
+// Floor buffs: from stage 6 every monster (elites and bosses too) has +10% HP and +15% attack, and each 10th stage
+// (10, 20, 30...) stacks another +10% HP and +15% attack on top. Stages 1-5 of every map are untouched.
+const FLOOR_BUFF={from:6,hp:.10,atk:.15,every:10};
+const floorBuff=()=>{const st=(state&&state.run&&state.run.stage)||1;if(st<FLOOR_BUFF.from)return {hp:1,atk:1};const n=1+Math.floor(st/FLOOR_BUFF.every);return {hp:1+FLOOR_BUFF.hp*n,atk:1+FLOOR_BUFF.atk*n}};
+function modFoe(e){const FB=floorBuff(),M=1+MASTERY_STEP*((state&&state.mastery)||0),hp=runMod('foeHp')*M*FB.hp,at=runMod('foeAtk')*M*FB.atk,sp=runMod('foeSpd'),rs=runMod('foeRes');
   if(hp!==1){e.hp=e.maxHp=Math.max(1,Math.round(e.hp*hp))}e.atk*=at;e.spd*=sp;if(rs)for(const k in e.res)e.res[k]=Math.min(80,e.res[k]+rs);return e}
 // opt (raiders): {name, hp, atk, spd, skills}: a named human foe in place of a land monster, physical only, never mutated.
 function makeEnemy0(kind,add,forceSpr,opt){
@@ -5268,13 +5274,14 @@ const CHEST_TIER={
   elite:{n:'An elite’s stash',gold:1.5,table:'elite',sure:0},
   boss:{n:'A boss’s hoard',gold:2.5,table:'boss',sure:1},
   final:{n:'The final boss’s treasure',gold:3,table:'final',sure:2},
-  bounty:{n:'The bounty chest',gold:2,table:'final',sure:0,epic:1}, // the Cave bounty's reward, opened in the Town Hall
+  bounty:{n:'The bounty chest',gold:2,table:'final',sure:0,epic:1,flat:500}, // the Cave bounty's reward (plus a flat 500 gold), opened in the Town Hall
   raid:{n:'The raiders’ bounty chest',gold:2,table:'final',sure:0,epic:1,plus:1}, // the Wilds bounty's reward: its Epic piece comes already +1
 };
 // A guaranteed Epic piece (rerolled until the table gives one).
 function epicItem(table,cls,lv){let it;for(let k=0;k<400;k++){it=makeItem(table,lv||ilvl(),cls);if(it.rarity==='epic')return it}return it}
 function rollChest(tier){
   const T=CHEST_TIER[tier]||CHEST_TIER.map,r=state.run,L=living(),F=eventBonus(),out=[chestGold(T.gold),chestConsumable()];
+  if(T.flat)out.unshift({k:'gold',g:T.flat,tier:'bounty'});
   const eq=()=>({k:'item',it:makeItem(T.table,ilvl(),pick(L).cls)});
   for(let i=0;i<T.sure;i++)out.push(eq());
   if(T.epic){const it=epicItem(T.table,pick(L).cls);if(T.plus)it.plus=T.plus;out.push({k:'item',it})}
@@ -5339,7 +5346,7 @@ function chooseNode(i){
   }
 }
 // The stranger's blood price in gold, before the ±20% roll.
-function strangerPay(){const r=state.run,L=living(),n=L.length||1,O=strangerOdds();return Math.round((25+8*r.stage)*LENGTHS[r.length].mult*(1+.25*(n-1))*(1+L.reduce((s,h)=>s+aff(h,'goldfind')+luckRate(h,'gold'),0)/100)*O.pay)}
+function strangerPay(){const r=state.run,L=living(),n=L.length||1,O=strangerOdds();return Math.round((25+8*r.stage)*caveGold(r)*LENGTHS[r.length].mult*(1+.25*(n-1))*(1+L.reduce((s,h)=>s+aff(h,'goldfind')+luckRate(h,'gold'),0)/100)*O.pay)}
 function strangerOdds(){
   const F=eventBonus(),luck=partyTr('gamble')/100;
   const jack=clamp(.05+F/1000,.02,.1),win=clamp(.45+luck+F/200,.25,.6),item=clamp(.1+F/500,.04,.2),gold=clamp(.5+luck+F/200,.3,.7);
@@ -5972,7 +5979,7 @@ function bountyBlock(){
   if(C)s+=`<p class="${C.opened?'ok':'gold'}">${C.opened?'Bounty paid. The caves are quiet and the town sleeps easier.':'All three beasts are dead. The council has brought out the bounty chest.'}</p>${bountyChestScene('bounty')}${C.opened?`<p>${C.text}</p>`:''}`;
   else if(state.caveBonus)s+=`<p class="ok">Bounty claimed. The caves are quiet and the town sleeps easier.</p>`;
   else if(n>=all.length)s+=`<p class="gold">All three beasts are dead. The council is ready to pay.</p><div class="row"><button class="btn gold" data-a="bountyClaim" data-x="bounty">Claim the bounty</button></div>`;
-  else s+=`<p class="muted">${n}/${all.length} slain. Each trip to the Cave ends at the den of a beast still on the list. Reward: a bounty chest with a guaranteed piece of Epic gear.</p>`;
+  else s+=`<p class="muted">${n}/${all.length} slain. Each trip to the Cave ends at the den of a beast still on the list. Reward: a bounty chest with 500 gold and a guaranteed piece of Epic gear.</p>`;
   return s+`</div>`;
 }
 function raidBlock(){
@@ -5997,13 +6004,13 @@ function openBountyChest(tier){
   const K=BCHEST[tier]||BCHEST.bounty,C=state[K.key];if(!C||C.opened||state.run)return;
   // Every hero at home counts as the party (at full health, only for this roll).
   const H=state.heroes,hp0=H.map(h=>h.hp),L=LENGTHS[K.len];let got;
-  state.run={length:K.len,stage:L.max,total:L.max,party:H.map(h=>h.id),biome:C.biome,pacts:[],bless:[],bag:{},loot:[],ground:[],mats:{},gold:0,scrolls:0};
+  state.run={bounty:true,length:K.len,stage:L.max,total:L.max,party:H.map(h=>h.id),biome:C.biome,pacts:[],bless:[],bag:{},loot:[],ground:[],mats:{},gold:0,scrolls:0};
   try{H.forEach(h=>h.hp=Math.max(1,maxHp(h)));got=rollChest(tier in CHEST_TIER?tier:'bounty')}catch(e){console.error(e);got=null}
   finally{state.run=null;H.forEach((h,i)=>h.hp=hp0[i])}
   if(!got){const it=epicItem('final',null,Math.max(1,Math.round(lenLevel(L,L.max)+townPower()*.3)));if(CHEST_TIER[tier]&&CHEST_TIER[tier].plus)it.plus=CHEST_TIER[tier].plus;got=[{k:'item',it}]}
   const lines=[];
   for(const x of got){
-    if(x.k==='gold'){state.gold+=x.g;lines.push(`<b class="gold">${x.g} gold</b>${x.tier==='jackpot'?' <b class="gold">JACKPOT!</b>':x.tier==='big'?' <span class="gold">(a fat purse)</span>':''}`)}
+    if(x.k==='gold'){state.gold+=x.g;lines.push(`<b class="gold">${x.g} gold</b>${x.tier==='bounty'?' <span class="gold">(the council’s bounty)</span>':x.tier==='jackpot'?' <b class="gold">JACKPOT!</b>':x.tier==='big'?' <span class="gold">(a fat purse)</span>':''}`)}
     else if(x.k==='scroll'){state.scrolls=(state.scrolls||0)+1;lines.push('A <b>Return Scroll</b>')}
     else if(x.k==='cons'){state.items[x.id]=(state.items[x.id]||0)+1;lines.push(`<b>${CONSUMABLES[x.id].n}</b> <span class="muted">(storage)</span>`)}
     else{const ln=[];const kept=addToBank(x.it,ln);lines.push(kept?`${itemName(x.it)} <span class="muted">(vault)</span>`:ln[0])}
