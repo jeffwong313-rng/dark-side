@@ -3159,11 +3159,11 @@ const helpBtn=()=>`<button class="btn helpq ${ui.inspect?'on':''}" data-a="inspe
 const elTag=e=>`<span class="el" style="--c:${EL_COL[e||'physical']}" data-tip="${elTip(e)}">${elIco(e)}${cap(e||'physical')}</span>`;
 
 const CLASSES={
-  warrior:{name:'Warrior',primary:'str',hp:78,mp:10,tint:'#8a3030',var:[.95,1.05],crit:0,critDmg:150,spd:-1,elRes:-15,
+  warrior:{name:'Warrior',primary:'str',hp:50,mp:10,tint:'#8a3030',var:[.95,1.05],crit:0,critDmg:150,spd:-1,elRes:-15,
     style:'Heavy armor: the most health and the most armor of any class, built to stand in front. Consistent: every hit lands close to its expected damage. Weak spot: elements. Warriors have 15% less resistance to every element.'},
-  archer:{name:'Archer',primary:'agi',hp:48.6,mp:12,tint:'#3f6d38',var:[.6,1.4],crit:10,critDmg:165,spd:2,taken:10,
+  archer:{name:'Archer',primary:'agi',hp:35,mp:12,tint:'#3f6d38',var:[.6,1.4],crit:10,critDmg:165,spd:2,taken:10,
     style:'High risk, high reward. Medium armor that adds evasion with every piece, so many blows miss, but the ones that land hurt 10% more. Swingy damage, the most crits, the biggest crit damage, and extra turns from speed.'},
-  mage:{name:'Mage',primary:'int',hp:47,mp:25,tint:'#3d3c86',var:[.9,1.1],crit:0,critDmg:150,spd:0,elem:15,
+  mage:{name:'Mage',primary:'int',hp:30,mp:25,tint:'#3d3c86',var:[.9,1.1],crit:0,critDmg:150,spd:0,elem:15,
     style:'Light cloth: the most fragile class, with the least health and armor. Every attack is elemental (+15% damage), and weakness hits deal 1.75× instead of 1.5×. Attune to any element mid-battle.'},
 };
 // Basic attacks. acc = base hit chance before agility and enemy evasion.
@@ -3185,41 +3185,56 @@ const SKILLS={
   hex:{cls:'mage',n:'Hex',mp:12,tgt:'enemy',acc:100,d:'On hit, the target takes 33% more damage from everyone for 3 rounds.'},
   mend:{cls:'mage',n:'Mend',mp:18,tgt:'ally',d:'Heals one ally for 40% of their max health plus 2.7× the caster’s INT.'},
   drain:{cls:'mage',n:'Life Drain',mp:15,tgt:'enemy',mult:1.5,acc:100,crit:5,el:'dark',d:'Dark damage. Heals the caster for half the damage dealt.'},
-  imbue:{cls:'archer',tier:1,n:'Elemental Arrows',mp:14,tgt:'self',dur:3,d:'For the next 3 turns, arrows carry an element of your choice, so they can hit enemy weaknesses like a mage’s spells.'},
-  imbue2:{cls:'archer',tier:2,n:'Elemental Arrows',mp:18,tgt:'self',dur:5,d:'For the next 5 turns, arrows carry an element of your choice, so they can hit enemy weaknesses like a mage’s spells.'},
-  coup:{cls:'warrior',tier:3,n:'Coup de Grâce',mp:30,tgt:'enemy',mult:2.2,acc:100,crit:5,el:'physical',coup:true,d:'A finishing strike with a chance to kill outright: 8% plus STR and Luck (up to 33%), less against elites and bosses. Final bosses can’t be finished this way.'},
-  // Learned skills: at levels 8, 23 and 33 each hero picks one of two, fixed per class.
-  taunt:{cls:'warrior',tier:1,n:'Iron Challenge',mp:16,tgt:'self',d:'For 3 rounds every enemy must attack this hero, who takes 47% less damage (more with END, up to 75%).'},
-  stunblow:{cls:'warrior',tier:1,n:'Battle Stun',mp:16,tgt:'enemy',mult:1.6,acc:100,crit:5,el:'physical',stun:'roll',d:'Stuns the target for 1 turn. STR and Luck give a chance at 2 or even 3 turns. Bosses shake it off after 1.'},
-  feather:{cls:'archer',tier:1,n:'Featherweight',mp:16,tgt:'self',d:'Evasion rises to 90% for 2 turns, up to 4 with high AGI and Luck.'},
-  sniper:{cls:'archer',tier:1,n:'Sniper',mp:16,tgt:'self',d:'Crit chance rises to 80% for the next 2 turns, up to 4 with high PER and Luck.'},
-  circle:{cls:'mage',tier:1,n:'Circle of Mending',mp:26,tgt:'party',d:'Heals every ally for 27% of their max health plus 1.3× the caster’s INT.'},
-  chain:{cls:'mage',tier:1,n:'Chain Elemental',mp:22,tgt:'enemy',mult:1.6,acc:100,crit:5,el:'attune',chain:[.8,.6,.4,.2],d:'A bolt in the attuned element that leaps between enemies, losing a quarter of its force each jump. After the first hit it has an 80% chance to jump, then 60%, then 40%, then 20% for every jump after that. It never jumps straight back to the enemy it just hit, but can come back to one later.'},
-  bulwark:{cls:'warrior',tier:2,n:'Bulwark',mp:26,tgt:'party',d:'For 2 rounds the whole party takes 67% less damage, and every enemy must attack this hero.'},
-  quake:{cls:'warrior',tier:2,n:'Earthshatter',mp:28,tgt:'all',mult:1.7,acc:100,crit:5,el:'physical',stun:'chance',d:'Slams every enemy. Each one hit may be stunned for 1 turn (67% plus STR and Luck, half against bosses).'},
-  hail:{cls:'archer',tier:2,n:'Hail of Arrows',mp:26,tgt:'rand',mult:0.9,hits:6,acc:95,crit:10,el:'weapon',d:'Six arrows at random enemies. Each one rolls its own crit.'},
-  assassin:{cls:'archer',tier:2,n:'Assassinate',mp:26,tgt:'enemy',mult:2.9,acc:100,crit:30,cdmg:25,el:'weapon',exec:.3,d:'A lethal shot. Finishes off any non-boss enemy it leaves under 30% health.'},
-  revive:{cls:'mage',tier:2,n:'Revive',mp:40,tgt:'dead',d:'Brings a fallen ally back into the fight with 53% health.'},
-  combo:{cls:'mage',tier:2,n:'Arcane Combo',mp:34,tgt:'enemy',mult:3,acc:100,crit:5,el:'attune',stun:1,d:'Major damage in the attuned element, then stuns the target for 1 turn.'},
-  titan:{cls:'warrior',tier:3,n:'Titan’s Wrath',mp:38,tgt:'enemy',mult:5,acc:100,crit:10,el:'physical',pierce:true,stun:2,d:'A blow that ignores armor and stuns the target for 2 turns (1 for bosses).'},
-  undying:{cls:'warrior',tier:3,n:'Undying Vow',mp:36,tgt:'self',d:'For 3 rounds every enemy must attack this hero, who takes 67% less damage and cannot fall below 1 health.'},
-  thousand:{cls:'archer',tier:3,n:'Thousand Arrows',mp:40,tgt:'all',mult:0.9,hits:3,acc:95,crit:10,el:'weapon',d:'Three arrows into every enemy. Each one rolls its own crit.'},
-  killshot:{cls:'archer',tier:3,n:'Killshot',mp:38,tgt:'enemy',mult:5,sure:true,forceCrit:true,cdmg:50,el:'weapon',d:'Never misses and always crits.'},
-  resurrect:{cls:'mage',tier:3,n:'Resurrection',mp:60,tgt:'party',d:'Every fallen ally rises with 80% health, and the whole party heals 53%.'},
-  cataclysm:{cls:'mage',tier:3,n:'Cataclysm',mp:55,tgt:'all',mult:2.5,acc:100,crit:5,el:'attune',stun:1,d:'Engulfs every enemy in the attuned element and stuns them all for 1 turn.'},
+  /* Learned skills: at levels 8, 18 and 28 each hero picks one of three. Every class has three lines, and each line's
+     level 18 skill outdoes its level 8 skill, and its level 28 skill outdoes both.
+     Warrior: stunner (Battle Stun > Earthshatter > Titan's Wrath), buffer (Rallying Cry > Bulwark > Warlord's Banner),
+       damage (Sunder > Executioner > Coup de Grâce).
+     Archer: elemental (Elemental Arrows > Prism Hail > Prism Storm), critical (Sniper > Assassinate > Killshot),
+       evasion (Featherweight > Shadowstep > Phantom Veil).
+     Mage: area (Chain Elemental > Elemental Nova > Cataclysm), pinpoint (Arcane Lance > Arcane Combo > Starfall: each costs
+       half of max MP and weakness hits deal 2×), healing (Circle of Mending > Renewal > Resurrection). */
+  stunblow:{cls:'warrior',tier:1,line:'stun',n:'Battle Stun',mp:16,tgt:'enemy',mult:1.6,acc:100,crit:5,el:'physical',stun:'roll',d:'Stuns the target for 1 turn. STR and Luck give a chance at 2 or even 3 turns. Bosses shake it off after 1.'},
+  quake:{cls:'warrior',tier:2,line:'stun',n:'Earthshatter',mp:28,tgt:'all',mult:1.7,acc:100,crit:5,el:'physical',stun:'chance',d:'Slams every enemy. Each one hit may be stunned for 1 turn (67% plus STR and Luck, half against bosses).'},
+  titan:{cls:'warrior',tier:3,line:'stun',n:'Titan’s Wrath',mp:38,tgt:'enemy',mult:5,acc:100,crit:10,el:'physical',pierce:true,stun:2,d:'A blow that ignores armor and stuns the target for 2 turns (1 for bosses).'},
+  rally:{cls:'warrior',tier:1,line:'buff',n:'Rallying Cry',mp:18,tgt:'party',rally:{n:3,dmg:25,def:20,crit:0},d:'For 3 rounds the whole party deals 25% more damage and takes 20% less.'},
+  bulwark:{cls:'warrior',tier:2,line:'buff',n:'Bulwark',mp:28,tgt:'party',rally:{n:3,dmg:35,def:45,crit:0,taunt:true},d:'For 3 rounds the whole party deals 35% more damage and takes 45% less, and every enemy must attack this hero.'},
+  warlord:{cls:'warrior',tier:3,line:'buff',n:'Warlord’s Banner',mp:40,tgt:'party',rally:{n:4,dmg:50,def:60,crit:15,taunt:true,undying:true},d:'For 4 rounds the whole party deals 50% more damage, takes 60% less and has +15% crit chance. Every enemy must attack this hero, who cannot fall below 1 health while the banner stands.'},
+  sunder:{cls:'warrior',tier:1,line:'dmg',n:'Sunder',mp:16,tgt:'enemy',mult:3,acc:100,crit:10,cdmg:25,el:'physical',pierce:true,d:'A heavy blow that ignores armor.'},
+  execute:{cls:'warrior',tier:2,line:'dmg',n:'Executioner',mp:28,tgt:'enemy',mult:4,acc:100,crit:15,cdmg:25,el:'physical',pierce:true,low:1.5,d:'Ignores armor, and deals 50% more to an enemy below half health.'},
+  coup:{cls:'warrior',tier:3,line:'dmg',n:'Coup de Grâce',mp:38,tgt:'enemy',mult:5.5,acc:100,crit:15,cdmg:25,el:'physical',pierce:true,low:1.5,coup:true,d:'Ignores armor, deals 50% more to an enemy below half health, and has a chance to kill outright: 8% plus STR and Luck (up to 33%), less against elites and bosses. Final bosses can’t be finished this way.'},
+  imbue:{cls:'archer',tier:1,line:'el',n:'Elemental Arrows',mp:14,tgt:'self',dur:3,d:'For the next 3 turns, arrows carry an element of your choice, so they can hit enemy weaknesses like a mage’s spells.'},
+  hail:{cls:'archer',tier:2,line:'el',n:'Prism Hail',mp:26,tgt:'rand',mult:1,hits:6,acc:95,crit:10,el:'prism',d:'Six arrows at random enemies. Each one takes on the element that hurts its target most and rolls its own crit.'},
+  thousand:{cls:'archer',tier:3,line:'el',n:'Prism Storm',mp:40,tgt:'all',mult:1,hits:3,acc:95,crit:10,el:'prism',weak:1.75,d:'Three arrows into every enemy, each in the element that hurts its target most. Weakness hits deal 1.75× like a mage’s. Each arrow rolls its own crit.'},
+  sniper:{cls:'archer',tier:1,line:'crit',n:'Sniper',mp:16,tgt:'self',d:'Crit chance rises to 80% for the next 2 turns, up to 4 with high PER and Luck.'},
+  assassin:{cls:'archer',tier:2,line:'crit',n:'Assassinate',mp:26,tgt:'enemy',mult:2.9,acc:100,crit:30,cdmg:25,el:'weapon',exec:.3,d:'A lethal shot. Finishes off any non-boss enemy it leaves under 30% health.'},
+  killshot:{cls:'archer',tier:3,line:'crit',n:'Killshot',mp:38,tgt:'enemy',mult:5,sure:true,forceCrit:true,cdmg:50,el:'weapon',d:'Never misses and always crits.'},
+  feather:{cls:'archer',tier:1,line:'eva',n:'Featherweight',mp:16,tgt:'self',eva:{v:90,n:2,max:4},d:'Evasion rises to 90% for 2 turns, up to 4 with high AGI and Luck.'},
+  shadow:{cls:'archer',tier:2,line:'eva',n:'Shadowstep',mp:24,tgt:'self',eva:{v:90,n:4,max:6,dmg:25},d:'Evasion rises to 90% for 4 turns, up to 6 with high AGI and Luck, and this hero deals 25% more damage while it lasts.'},
+  phantom:{cls:'archer',tier:3,line:'eva',n:'Phantom Veil',mp:36,tgt:'self',eva:{v:95,n:6,max:8,dmg:35,party:50},d:'Evasion rises to 95% for 6 turns, up to 8 with high AGI and Luck, with 35% more damage while it lasts. The rest of the party gets 50% evasion for 3 turns.'},
+  chain:{cls:'mage',tier:1,line:'aoe',n:'Chain Elemental',mp:22,tgt:'enemy',mult:1.6,acc:100,crit:5,el:'attune',chain:[.8,.6,.4,.2],d:'A bolt in the attuned element that leaps between enemies, losing a quarter of its force each jump. After the first hit it has an 80% chance to jump, then 60%, then 40%, then 20% for every jump after that. It never jumps straight back to the enemy it just hit, but can come back to one later.'},
+  nova:{cls:'mage',tier:2,line:'aoe',n:'Elemental Nova',mp:32,tgt:'all',mult:1.9,acc:100,crit:5,el:'attune',d:'A burst of the attuned element that hits every enemy hard.'},
+  cataclysm:{cls:'mage',tier:3,line:'aoe',n:'Cataclysm',mp:55,tgt:'all',mult:2.5,acc:100,crit:5,el:'attune',stun:1,d:'Engulfs every enemy in the attuned element and stuns them all for 1 turn.'},
+  lance:{cls:'mage',tier:1,line:'pin',n:'Arcane Lance',mp:20,mpPct:.5,tgt:'enemy',mult:4,acc:100,crit:5,el:'attune',weak:2,d:'A focused lance in the attuned element. Costs half of max MP. Weakness hits deal 2× instead of 1.75×.'},
+  combo:{cls:'mage',tier:2,line:'pin',n:'Arcane Combo',mp:30,mpPct:.5,tgt:'enemy',mult:6,acc:100,crit:5,el:'attune',weak:2,stun:1,d:'Massive damage in the attuned element, then stuns the target for 1 turn. Costs half of max MP. Weakness hits deal 2× instead of 1.75×.'},
+  meteor:{cls:'mage',tier:3,line:'pin',n:'Starfall',mp:45,mpPct:.5,tgt:'enemy',mult:9,acc:100,crit:10,el:'attune',weak:2,noRes:true,d:'A falling star in the attuned element that ignores resistance. Costs half of max MP. Weakness hits deal 2× instead of 1.75×.'},
+  circle:{cls:'mage',tier:1,line:'heal',n:'Circle of Mending',mp:26,tgt:'party',d:'Heals every ally for 27% of their max health plus 1.3× the caster’s INT.'},
+  revive:{cls:'mage',tier:2,line:'heal',n:'Renewal',mp:40,tgt:'party',d:'Heals every ally for 40% of their max health plus 2× the caster’s INT, and brings one fallen ally back with 50% health.'},
+  resurrect:{cls:'mage',tier:3,line:'heal',n:'Resurrection',mp:60,tgt:'party',d:'Every fallen ally rises with 80% health, and the whole party heals 60% plus 2.7× the caster’s INT.'},
 };
-const SKILL_LV={1:8,2:23,3:33};
+const SKILL_LV={1:8,2:18,3:28};
+// Retired skills (from before the three-line rework) and what heroes who knew them now have instead.
+const SKILL_RETIRED={taunt:'rally',undying:'warlord',imbue2:'hail'};
 const tierOpts=(cls,t)=>Object.keys(SKILLS).filter(k=>SKILLS[k].cls===cls&&SKILLS[k].tier===t);
 const hasTier=(h,t)=>h.skills.some(id=>SKILLS[id]&&SKILLS[id].tier===t);
 // The first skill tier this hero has reached but not chosen yet, or 0.
 const pendingTier=h=>[1,2,3].find(t=>h.level>=SKILL_LV[t]&&!hasTier(h,t))||0;
-// At levels 8, 23 and 33 a hero learns one of their class's two skills for that level, picked at random.
-const learnOpts=(h,t)=>tierOpts(h.cls,t).filter(id=>!(id==='imbue2'&&h.skills.includes('imbue'))&&!(id==='imbue'&&h.skills.includes('imbue2')));
+// At levels 8, 18 and 28 a hero learns one of their class's three skills for that level.
+const learnOpts=(h,t)=>tierOpts(h.cls,t);
 // The Witch can reroll a learned skill. 15% of the time fate lands on the same skill again (less with Luck).
 const REROLL_COST={1:300,2:1500,3:4000};
 const skillRerollCost=(h,t)=>REROLL_COST[t]*Math.pow(2,((h.rerolls||{})[t])||0);
 const rerollSame=h=>Math.max(5,15-stat(h,'lck')*.4);
-/* Level-up choices. At levels 8, 23 and 33 a hero picks one of their class's skills for that level. At 10, 20 and 30 (and
+/* Level-up choices. At levels 8, 18 and 28 a hero picks one of their class's skills for that level. At 10, 20 and 30 (and
    every 10th level after) they pick a new trait from 2, 3 or 4 offers (4 from level 30 on). The hero's Charisma and Luck
    tilt the offers toward positive traits, and at least one offer is always positive. Choices wait until the player decides. */
 const traitOfferN=h=>Math.min(4,Math.max(2,(h.traits||[]).length));
@@ -3249,14 +3264,15 @@ function levelPickModal(){
   return modalShell(`<span class="gold">${esc(h.name)}: ${h.pickSkill?'choose a skill':'choose a trait'}</span>`,body+`<div class="row" style="margin-top:8px"><button class="btn small" data-a="pickLater">Decide later</button></div>`,'pickLater','pickmodal');
 }
 function autoLearn(h){const got=[];let t;while((t=pendingTier(h))){const id=pick(learnOpts(h,t));h.skills.push(id);got.push(id)}return got}
-const skillIco=id=>{const k=SKILLS[id];if(['mend','wind','circle','revive','resurrect'].includes(id))return ico('heart');if(['wall','taunt','bulwark','undying'].includes(id))return ico('shield','#8fa8c8');if(id==='feather')return ico('eye','#cfc6b0');if(id==='imbue'||id==='imbue2')return ico('bolt','#e3b341');if(id==='sniper')return ico('star','#e3b341');if(id==='warcry')return ico('fist','#e3b341');if(id==='hex')return ico('crescent','#b56fe3');
+const skillIco=id=>{const k=SKILLS[id];if(['mend','wind','circle','revive','resurrect'].includes(id))return ico('heart');if(['wall','taunt','bulwark','undying'].includes(id))return ico('shield','#8fa8c8');if(['rally','warlord'].includes(id))return ico('fist','#e3b341');if(['feather','shadow','phantom'].includes(id))return ico('eye','#cfc6b0');if(id==='hail'||id==='thousand')return ico('bolt','#b9a8ff');if(id==='imbue'||id==='imbue2')return ico('bolt','#e3b341');if(id==='sniper')return ico('star','#e3b341');if(id==='warcry')return ico('fist','#e3b341');if(id==='hex')return ico('crescent','#b56fe3');
   if(k.el&&k.el!=='weapon'&&k.el!=='attune')return elIco(k.el);return ico(({warrior:'sword',archer:'bow',mage:'staff'})[k.cls],CLASSES[k.cls].tint)};
 const classSkills=cls=>Object.keys(SKILLS).filter(k=>SKILLS[k].cls===cls&&!SKILLS[k].tier);
 function skillStats(id){const k=SKILLS[id];const p=[];
   if(k.mult)p.push(`${k.mult}× dmg${k.hits?` ×${k.hits}`:''}`);if(k.acc)p.push(`${k.acc}% acc`);
   if(k.forceCrit)p.push('always crits');else if(k.crit)p.push(`${k.crit>0?'+':''}${k.crit}% crit`);
   if(k.cdmg)p.push(`+${k.cdmg}% crit dmg`);
-  const el={fighting:'Fighting',weapon:'weapon element',attune:'attuned element',dark:'Dark'}[k.el];if(el)p.push(el);
+  const el={fighting:'Fighting',weapon:'weapon element',attune:'attuned element',dark:'Dark',prism:'best element per target'}[k.el];if(el)p.push(el);
+  if(k.mpPct)p.push('costs '+Math.round(k.mpPct*100)+'% of max MP');if(k.weak)p.push(`weakness ${k.weak}×`);if(k.pierce)p.push('ignores armor');if(k.noRes)p.push('ignores resistance');if(k.low)p.push('+50% vs wounded');
   if(k.stun)p.push('stuns');if(k.coup)p.push('may kill outright');if(k.dur)p.push(k.dur+' turns');p.push(k.cls==='warrior'&&k.tgt==='all'&&id!=='quake'?'front 2 enemies':{enemy:'one enemy',all:'all enemies',self:'self',ally:'one ally',party:'party',rand:'random enemies',dead:'a fallen ally'}[k.tgt]);
   return p.join(' · ');}
 const STATN={str:'STR',per:'PER',end:'END',cha:'CHA',int:'INT',agi:'AGI',lck:'LCK'};
@@ -3597,8 +3613,15 @@ function fatBar(h){const f=fatOf(h),j=injOf(h),tip=fatTip(h);
 // Everyone has 15% less health than before; archers and mages lose another 10% on top (fragile on purpose). Always rounded down.
 // (Today's HERO_HP_SCALE / FOE_HP_SCALE halving applies on top of this.)
 const HP_CUT=.85,FRAGILE={archer:.9,mage:.9};
-const maxHp=h=>Math.max(1,Math.floor(HERO_HP_SCALE*(C_(h).hp+stat(h,'end')*5+stat(h,'str')*4+(h.level-1)*({warrior:14,archer:11,mage:9}[h.cls]||12)+h.bonusHp*10+aff(h,'hp'))*(1+tr(h,'hpPct')/100)*HP_CUT*(FRAGILE[h.cls]||1)));
-const maxMp=h=>Math.max(1,Math.round((C_(h).mp+stat(h,'int')*3+(h.level-1)*3+h.bonusMp*4+aff(h,'mp'))*(1+tr(h,'mpPct')/100)*(injOf(h)==='head'?.75:1)));
+/* Growth: heroes start at their class's base health and mana. Every level-up adds 1.25 health per END point and 0.75 per
+   STR point, and 0.5 mana per INT point, using the points the hero has at that moment, so stats build health over levels. */
+const GROW={hp:{end:1.25,str:.75},mp:{int:.5}};
+const growOf=h=>h.grow||(h.grow=growGuess(h));
+function levelGrow(h){const g=growOf(h);g.hp+=GROW.hp.end*h.end+GROW.hp.str*h.str;g.mp+=GROW.mp.int*h.int}
+// Heroes from before this change: assume their stats rose evenly from their starting roll to now.
+function growGuess(h){const B=h.baseStats||h,avg=k=>((B[k]||0)+(h[k]||0))/2,n=Math.max(0,(h.level||1)-1);return {hp:n*(GROW.hp.end*avg('end')+GROW.hp.str*avg('str')),mp:n*GROW.mp.int*avg('int')}}
+const maxHp=h=>Math.max(1,Math.floor(HERO_HP_SCALE*(C_(h).hp+growOf(h).hp+h.bonusHp*10+aff(h,'hp'))*(1+tr(h,'hpPct')/100)*HP_CUT*(FRAGILE[h.cls]||1)));
+const maxMp=h=>Math.max(1,Math.round((C_(h).mp+growOf(h).mp+h.bonusMp*4+aff(h,'mp'))*(1+tr(h,'mpPct')/100)*(injOf(h)==='head'?.75:1)));
 function armor(h){let a=0;for(const s of ['helmet','chest','pants'])if(h.gear[s])a+=baseVal(h.gear[s]);return Math.round(a*(1+tr(h,'armorPct')/100))}
 const weaponDmg=h=>h.gear.weapon?baseVal(h.gear.weapon):3;
 // Each level past 1 adds a little raw power, so experience matters on its own.
@@ -3614,7 +3637,7 @@ const EVA_CAP=30;
 const evasion=h=>clamp((h.cls==='archer'?Math.min(22,stat(h,'agi')*.45):Math.min(15,stat(h,'agi')*.25))+armorEva(h)+tr(h,'eva'),0,EVA_CAP);
 const speed=h=>Math.max(4,(8+stat(h,'agi')*.6+C_(h).spd+tr(h,'spd'))*(1+tr(h,'spdPct')/100)*fatSpd(h));
 // Warrior skills cost 80% of their listed MP (2/3 before, raised 20%).
-const skillMp=(h,id)=>Math.max(1,Math.round(SKILLS[id].mp*(SKILLS[id].cls==='warrior'?.8:1)*(1+tr(h,'skillCost')/100)*(1+posV(h,'mp')/100)));
+const skillMp=(h,id)=>Math.max(1,Math.round((SKILLS[id].mpPct?Math.max(SKILLS[id].mp,maxMp(h)*SKILLS[id].mpPct):SKILLS[id].mp*(SKILLS[id].cls==='warrior'?.8:1))*(1+tr(h,'skillCost')/100)*(1+posV(h,'mp')/100)));
 // Percent traits multiply the damage a hero takes from one element (or every non-physical one); they stack on top of resistance.
 const elTaken=(h,e)=>e==='physical'?1:Math.max(.1,1+(tr(h,'tk_'+e)+tr(h,'tkAll'))/100);
 // Resistance as shown on the hero sheet: flat resistance and the percent traits combined.
@@ -3758,7 +3781,7 @@ function allItems(){
 function gainXp(h,x,lines){
   if(state.run&&townEv()&&townEv().ev==='festival')x=Math.round(x*1.15);
   h.xp+=x;let ups=0;
-  let gained=0;while(h.xp>=xpNeed(h.level)){h.xp-=xpNeed(h.level);h.level++;const pp=pointsFor(h.level);h.points+=pp;gained+=pp;ups++}
+  let gained=0;while(h.xp>=xpNeed(h.level)){h.xp-=xpNeed(h.level);levelGrow(h);h.level++;const pp=pointsFor(h.level);h.points+=pp;gained+=pp;ups++}
   if(ups){sfx('levelup',null,.9);lines.push(`<b class="gold">${esc(h.name)} reached level ${h.level}!</b> +${gained} attribute points, fully restored`);
     queueLevelPicks(h);
     if(h.pickSkill)lines.push(`<b class="gold">${esc(h.name)} can learn a new skill.</b> Choose it when the fight is over.`);
@@ -4532,10 +4555,10 @@ function queueHero(act,allyId){
 const focusRegen=h=>Math.round((1+stat(h,'int')*.2)*(h.cls==='mage'?1.5:1));
 // Timed hero buffs from learned skills, counted down at the start of that hero's own turn.
 const heroBuff=(h,k)=>{const b=state.run&&state.run.battle,x=b&&b.hb&&b.hb[h.id];return x&&x[k]&&x[k].n>0?x[k]:null};
-const heroEva=h=>Math.max(heroBuff(h,'eva')?90:0,stanceOf(h)==='archer'?rollDodge(h):0,evasion(h));
-const heroDef=h=>{const b=state.run.battle,x=heroBuff(h,'def'),m=Math.max(x?x.v:0,b.bulwark&&b.bulwark.n>0?67:0),p=posV(h,'def'),q=bulwarkCut(h);let v=p?100-(100-m)*(1-p/100):m;return q?100-(100-v)*(1-q/100):v};
-function setBuff(h,k,n,v){const b=state.run.battle;b.hb=b.hb||{};const x=b.hb[h.id]=b.hb[h.id]||{};x[k]={n,v}}
-const BUFF_N={def:'guard',eva:'Featherweight',crit:'Sniper',undying:'Undying Vow',focus:'Starsight'};
+const heroEva=h=>Math.max(heroBuff(h,'eva')?heroBuff(h,'eva').v||90:0,stanceOf(h)==='archer'?rollDodge(h):0,evasion(h));
+const heroDef=h=>{const b=state.run.battle,x=heroBuff(h,'def'),m=Math.max(x?x.v:0,b.bulwark&&b.bulwark.n>0?67:0,b.rally&&b.rally.n>0?b.rally.def:0),p=posV(h,'def'),q=bulwarkCut(h);let v=p?100-(100-m)*(1-p/100):m;return q?100-(100-v)*(1-q/100):v};
+function setBuff(h,k,n,v,more){const b=state.run.battle;b.hb=b.hb||{};const x=b.hb[h.id]=b.hb[h.id]||{};x[k]={n,v,...(more||{})}}
+const BUFF_N={def:'guard',eva:'evasion',crit:'Sniper',undying:'Undying Vow',focus:'Starsight'};
 // Food and mana items restore a slice at the start of each of the hero's next 3 turns.
 function regenAmt(h,x,n){if(x.k==='fat')return x.p*n;const mx=x.k==='hp'?maxHp(h):maxMp(h);return Math.max(1,Math.round(mx*x.p*n*(x.k==='hp'?healMult(h):manaMult())))}
 function tickRegen(h,b){if(!h.regen||!h.regen.length||h.hp<=0)return;let hp=0,mp=0;
@@ -4564,6 +4587,7 @@ function startHeroTurn(h){
   if(b.tauntN&&b.taunt===h.id){b.tauntN--;if(b.tauntN<=0){b.taunt=null;b.tauntN=0;blog(`Enemies are free to choose their targets again.`)}}
   if(b.bulwark&&b.bulwark.by===h.id){b.bulwark.n--;if(b.bulwark.n<=0){b.bulwark=null;blog('The Bulwark falls.')}}
   {const x=b.hb&&b.hb[h.id];if(x)for(const k of ['def','eva','undying','focus'])if(x[k]&&x[k].n>0){x[k].n--;if(!x[k].n&&k!=='def')blog(`${esc(h.name)}’s ${BUFF_N[k]} fades.`)}}
+  if(b.rally&&b.rally.by===h.id){b.rally.n--;if(b.rally.n<=0){blog(`${esc(h.name)}’s ${b.rally.name} fades.`);b.rally=null}}
   if(b.warcry&&b.warcry.by===h.id){b.warcry.n--;if(b.warcry.n<=0){b.warcry=null;blog('The War Cry fades.')}}
   const dt=b.dot&&b.dot[h.id];
   if(dt){h.hp=Math.max(0,h.hp-dt.dmg);b.pops.push({s:'h',hid:h.id,t:dt.dmg});blog(`${esc(h.name)} bleeds for ${dt.dmg}.`);if(--dt.n<=0)delete b.dot[h.id];if(h.hp<=0){heroDown(h);if(h.hp<=0)return}}
@@ -4582,11 +4606,12 @@ function atkEl(h,spec){
   if(h.cls==='warrior')return 'physical';
   if(spec==='weapon'&&h.cls==='archer'&&heroBuff(h,'imbue'))return attuned(h);
   if(spec==='attune')return attuned(h);
+  if(spec==='prism')return 'prism';
   if(spec==='weapon')return (h.gear.weapon&&h.gear.weapon.el)||'physical';
   return spec;
 }
 const hitChance=(h,e,acc,sure)=>sure?100:clamp(acc+stat(h,'per')*.3+stat(h,'agi')*.1-(e.eva||0)-(injOf(h)==='dizzy'?15:0)+posV(h,'acc'),5,100);
-const critFor=(h,o)=>{if(o.forceCrit)return 100;const f=heroBuff(h,'focus'),c=clamp((critChance(h)+(o.crit||0)+(f?f.v:0)+posV(h,'crit'))*(o.critMul||1),0,95);return heroBuff(h,'crit')?Math.max(80,c):c};
+const critFor=(h,o)=>{if(o.forceCrit)return 100;const f=heroBuff(h,'focus'),rb=state.run&&state.run.battle&&state.run.battle.rally,c=clamp((critChance(h)+(o.crit||0)+(f?f.v:0)+(rb&&rb.n>0?rb.crit||0:0)+posV(h,'crit'))*(o.critMul||1),0,95);return heroBuff(h,'crit')?Math.max(80,c):c};
 /* Three basic attacks, no mana. Their numbers come from a weighted mix of the hero's stats,
    always leaning toward the class's main attribute (STR warrior, AGI archer, INT mage). */
 function statMix(h,base){const w={...base},p=C_(h).primary;w[p]=(w[p]||0)+.5;let t=0,v=0;for(const k in w){t+=w[k];v+=w[k]*stat(h,k)}return v/t}
@@ -4742,15 +4767,21 @@ function applyUtility(h,act,tgt,ally){
   const turns=(a,c,base)=>Math.min(4,base+Math.floor((stat(h,a)+stat(h,c))/20));
   if(act==='taunt'){const v=Math.min(75,47+Math.round(stat(h,'end')*.5));b.taunt=h.id;b.tauntN=3;setBuff(h,'def',3,v);blog(`${n} bellows an Iron Challenge! Every enemy must attack ${n} for 3 rounds, and ${n} takes ${v}% less damage.`);return}
   if(act==='imbue'||act==='imbue2'){const t=SKILLS[act].dur,tg=fixTarget();let best=attuned(h),bv=-1;if(tg&&isScouted(tg))for(const el of ELEMENTS){const v=matchup(el,tg.type)*(1-(tg.res[el]||0)/100);if(v>bv){bv=v;best=el}}b.attune[h.id]=best;setBuff(h,'imbue',t);blog(`${n} nocks Elemental Arrows: ${elTag(best)} for the next ${t} turns. Change the element any time.`);return}
-  if(act==='feather'){const t=turns('agi','lck',2);setBuff(h,'eva',t);blog(`${n} turns Featherweight: 90% evasion for ${t} turns.`);return}
+  {const E=SKILLS[act]&&SKILLS[act].eva;if(E){const t=Math.min(E.max,E.n+Math.floor((stat(h,'agi')+stat(h,'lck'))/20));setBuff(h,'eva',t,E.v,{dmg:E.dmg||0});
+    let extra='';if(E.party){const o=living().filter(x=>x!==h);for(const x of o)if(!(heroBuff(x,'eva')&&(heroBuff(x,'eva').v||90)>E.party))setBuff(x,'eva',3,E.party);if(o.length)extra=` The rest of the party gets ${E.party}% evasion for 3 turns.`}
+    blog(`${n} uses ${SKILLS[act].n}: ${E.v}% evasion for ${t} turns${E.dmg?` and +${E.dmg}% damage`:''}.${extra}`);return}}
+  {const R=SKILLS[act]&&SKILLS[act].rally;if(R){b.rally={by:h.id,n:R.n,dmg:R.dmg,def:R.def,crit:R.crit||0,name:SKILLS[act].n};if(R.taunt){b.taunt=h.id;b.tauntN=R.n}if(R.undying)setBuff(h,'undying',R.n);
+    blog(`<b class="gold">${n} raises ${SKILLS[act].n}!</b> For ${R.n} rounds the party deals ${R.dmg}% more damage and takes ${R.def}% less${R.crit?`, with +${R.crit}% crit chance`:''}.${R.taunt?` Every enemy must face ${n}.`:''}${R.undying?` ${n} cannot fall while it stands.`:''}`);return}}
   if(act==='sniper'){const t=turns('per','lck',2);setBuff(h,'crit',t);blog(`${n} settles into a Sniper’s stance: 80% crit chance for the next ${t} turns.`);return}
   if(act==='circle'){const parts=(darkIs('selfish')?[h]:living()).map(x=>{const v=Math.round((maxHp(x)*.27+stat(h,'int')*1.33)*healMult(x));x.hp=Math.min(maxHp(x),x.hp+v);b.pops.push({s:'h',hid:x.id,t:'+'+v});return `${esc(x.name)} +${v}`});blog(`${n} draws a Circle of Mending: ${parts.join(', ')} HP.`);return}
   if(act==='bulwark'){b.bulwark={by:h.id,n:2};b.taunt=h.id;b.tauntN=2;blog(`${n} raises a Bulwark! The party takes 67% less damage for 2 rounds, and every enemy must face ${n}.`);return}
   if(act==='undying'){b.taunt=h.id;b.tauntN=3;setBuff(h,'def',3,67);setBuff(h,'undying',3);blog(`<b class="gold">${n} swears an Undying Vow!</b> For 3 rounds every enemy must face ${n}, who takes 67% less damage and cannot fall.`);return}
-  if(act==='revive'){reviveHero(ally,.53,b);blog(`<b class="gold">${n} revives ${esc(ally.name)}!</b> They rise with ${ally.hp} HP.`);return}
+  if(act==='revive'){const parts=(darkIs('selfish')?[h]:living()).map(x=>{const v=Math.round((maxHp(x)*.4+stat(h,'int')*2)*healMult(x));x.hp=Math.min(maxHp(x),x.hp+v);b.pops.push({s:'h',hid:x.id,t:'+'+v});return `${esc(x.name)} +${v}`});
+    const up=darkIs('selfish')?null:(ally&&ally.hp<=0&&partyAll().includes(ally)?ally:partyAll().find(x=>x.hp<=0));if(up)reviveHero(up,.5,b);
+    blog(`<b class="gold">${n} casts Renewal:</b> ${parts.join(', ')} HP.${up?` <b class="gold">${esc(up.name)} rises with ${up.hp} HP!</b>`:''}`);return}
   if(act==='resurrect'){const up=partyAll().filter(x=>x.hp<=0);for(const x of up)reviveHero(x,.8,b);
-    for(const x of living())if(!up.includes(x)){const v=Math.round(maxHp(x)*.53*healMult(x));x.hp=Math.min(maxHp(x),x.hp+v);b.pops.push({s:'h',hid:x.id,t:'+'+v})}
-    blog(`<b class="gold">${n} calls down Resurrection!</b>${up.length?' '+esc(listNames(up.map(x=>x.name)))+' rise again, and':''} the party heals 53%.`);return}
+    for(const x of living())if(!up.includes(x)){const v=Math.round((maxHp(x)*.6+stat(h,'int')*2.7)*healMult(x));x.hp=Math.min(maxHp(x),x.hp+v);b.pops.push({s:'h',hid:x.id,t:'+'+v})}
+    blog(`<b class="gold">${n} calls down Resurrection!</b>${up.length?' '+esc(listNames(up.map(x=>x.name)))+' rise again, and':''} the party heals 60%.`);return}
   if(act==='wall'){b.guard[h.id]=true;b.taunt=h.id;blog(`${n} raises a Shield Wall and draws every enemy’s eye until their next turn.`)}
   else if(act==='warcry'){b.warcry={by:h.id,n:3};blog(`${n} lets out a War Cry. The party deals +33% damage until ${n}’s third turn from now.`)}
   else if(act==='wind'){const v=Math.round(maxHp(h)*.4*healMult(h));h.hp=Math.min(maxHp(h),h.hp+v);b.pops.push({s:'h',hid:h.id,t:'+'+v});blog(`${n} catches a Second Wind: +${v} HP.`)}
@@ -4830,8 +4861,10 @@ function useConsumable(id,ally,user){
   return true;
 }
 // o: {mult, el, acc, crit, cdmg, forceCrit, label}. Returns damage dealt (0 on a miss).
+// Prism skills: the element that hurts this enemy most (weakness, resistance and the hero's own element bonuses).
+const bestEl=(h,e)=>{let best=ELEMENTS[0],bv=-1;for(const x of ELEMENTS){const v=matchup(x,e.type)*(1-Math.min(80,e.res[x]||0)/100)*(1+aff(h,'dmg_'+x)/100);if(v>bv){bv=v;best=x}}return best};
 function hitEnemy(h,e,o){
-  const b=state.run.battle,C=C_(h),idx=b.enemies.indexOf(e),hpPct=h.hp/maxHp(h),alive=aliveFoes().length,el=o.el;
+  const b=state.run.battle,C=C_(h),idx=b.enemies.indexOf(e),hpPct=h.hp/maxHp(h),alive=aliveFoes().length,el=o.el==='prism'?bestEl(h,e):o.el;
   if(b.fx.sk&&b.fx.sk.h===h.id)b.fx.sk.tg.push(idx);
   if(!chance(hitChance(h,e,o.acc,o.sure)/100)){b.pops.push({s:'e',i:idx,t:'miss'});blog(`${esc(h.name)} ${o.label} ${e.name} and misses.`);return 0}
   let bonus=tr(h,'power')+(el==='physical'?tr(h,'physDmg'):0)+(el!=='physical'&&C.elem?C.elem:0)
@@ -4840,6 +4873,9 @@ function hitEnemy(h,e,o){
   const cbn=cbStacks(h);if(cbn){if(h.cls==='warrior')bonus+=cbn*8;else if(h.cls==='mage'&&el!=='physical')bonus+=cbn*4}
   let d=power(h)*o.mult*Math.max(.1,1+bonus/100)*rand(C.var[0],C.var[1])*HERO_DMG_SCALE*fatDmg(h)*(b.planDmg?1+b.planDmg/100:1);
   if(b.warcry)d*=1.33;
+  if(b.rally&&b.rally.n>0)d*=1+b.rally.dmg/100;
+  {const x=heroBuff(h,'eva');if(x&&x.dmg)d*=1+x.dmg/100}
+  if(o.low&&e.hp<e.maxHp*.5)d*=o.low;
   if(e.hex)d*=1.33;
   d*=arcaneSight();
   if(h.cls==='mage'&&isVoid(e))d*=1.1;
@@ -4850,10 +4886,10 @@ function hitEnemy(h,e,o){
   if(e.kind==='king'&&state.run.battle.enemies.some(x=>x!==e&&x.hp>0))d*=KNIGHT_GUARD;
   if(e.hardened)d*=.6;
   if(e.guardBy!=null){const gd=state.run.battle.enemies[e.guardBy];if(gd&&gd.hp>0)d*=.5;else e.guardBy=null}
-  const sp=archSplit(h,el);
+  const sp=o.el!=='prism'&&archSplit(h,el);
   {const S=spOf(e);if(S&&S[0]==='thick'&&(el==='physical'||sp))d*=1-S[1]/100*(sp?ARCH_PHYS:1);if(S&&S[0]==='skin'&&el!=='physical')d*=1-S[1]/100*(sp?1-ARCH_PHYS:1)}
   if(b.curse&&b.curse[h.id]!=null)d*=.75;
-  const m=heroMatch(h,el,e.type),res=el==='physical'?0:Math.min(80,e.res[el]||0);
+  const m=o.weak&&matchup(el,e.type)>1?o.weak:heroMatch(h,el,e.type),res=el==='physical'||o.noRes?0:Math.min(80,e.res[el]||0);
   {const fe=m*(1-res/100)*(el!=='physical'?1+aff(h,'dmg_'+el)/100:1);d*=sp?ARCH_PHYS*heroMatch(h,'physical',e.type)+(1-ARCH_PHYS)*fe:fe}
   if(!o.pierce)d*=100/(100+e.armor);
   const crit=(tr(h,'openCrit')&&!b.opened.includes(h.id))||chance(critFor(h,o)/100);
@@ -4919,7 +4955,7 @@ function bloom(user,ally,v){
 function heroDown(h){
   const r=state.run;
   if(h.hp<=0)h.regen=[];
-  if(heroBuff(h,'undying')){h.hp=1;blog(`<b class="gold">${esc(h.name)} will not fall!</b> The Undying Vow holds.`);return}
+  if(heroBuff(h,'undying')){h.hp=1;blog(`<b class="gold">${esc(h.name)} will not fall!</b> The vow holds.`);return}
   if(tr(h,'lastStand')&&!r.lastStand[h.id]){r.lastStand[h.id]=true;h.hp=1;blog(`<b class="gold">${esc(h.name)} refuses to fall!</b> Last Stand leaves them at 1 health.`);return}
   blog(`<span class="warn">${esc(h.name)} has fallen.</span>`);sfx('fall',null,.15);
   seizeGear(h);
@@ -5514,12 +5550,12 @@ function bars(h){
 }
 function statTip(h,k){
   const C=C_(h),own=C.primary===k;
-  if(k==='str')return `Strength. ${own?'Warriors add 1 damage per point':'Adds 0.25 damage per point (Warriors get 1)'}. Each point also adds 4 max health.`;
+  if(k==='str')return `Strength. ${own?'Warriors add 1 damage per point':'Adds 0.25 damage per point (Warriors get 1)'}. Each point also adds 0.75 max health every time the hero levels up.`;
   if(k==='per')return `Perception. Accuracy +0.3% per point. Perception adds up across the whole party on the map and in battle: with 1–2 total every choice on the map is unknown; with 3–8 some choices are fogged; from 9 every choice is clear and you see 1 stage ahead, +1 more per 6 points (up to 6). At 6+ you see enemy health and damage numbers; at 10+ you see what each enemy will do next. The party’s best single Perception also fully reads unknown enemies at the start of a fight (${Math.round(fullScoutChance(stat(h,'per')))}%, adding them to the Moon Ledger), spots trapped chests (${Math.round(spotChance(stat(h,'per')))}%), and finds bonus gold or items after fights (${Math.round(findChance(stat(h,'per')))}%).`;
-  if(k==='end')return `Endurance. Each point adds 5 max health, +0.5% resistance to every element (${(stat(h,'end')*.5).toFixed(1)}% now), and faster recovery between fights: 2% + 0.8% per point, up to 30% (${Math.round(restPct(h))}% now).`;
+  if(k==='end')return `Endurance. Each point adds 1.25 max health every time the hero levels up, +0.5% resistance to every element (${(stat(h,'end')*.5).toFixed(1)}% now), and faster recovery between fights: 2% + 0.8% per point, up to 30% (${Math.round(restPct(h))}% now).`;
   if(k==='cha')return `Charisma. The whole party’s Charisma adds up for every non-battle event (chests, gold caches, shrines, strangers). Each point above the land’s baseline makes results 3% better, each point below 3% worse (Cave 8, Wilds 14, Wasteland 20, Summit 28). Also lowers the Witch’s brew and supply prices by 1.5% per point, up to 40% (${Math.round(chaDiscount(h))}% now). Treatments use this hero’s Charisma; supplies use your most charming hero.`;
   if(k==='agi')return `Agility. ${own?'Archers add 0.85 damage per point':'Adds 0.25 damage per point (Archers get 0.85)'}. Raises speed, so more turns, plus crit chance, evasion and accuracy.`;
-  if(k==='int')return `Intelligence. ${own?'Mages add 1 damage per point':'Adds 0.25 damage per point (Mages get 1)'}. Each point adds 3 max mana and ${h.cls==='mage'?'0.3':'0.2'} mana regained each turn (${focusRegen(h)} now), and strengthens Mend.`;
+  if(k==='int')return `Intelligence. ${own?'Mages add 1 damage per point':'Adds 0.25 damage per point (Mages get 1)'}. Each point adds 0.5 max mana every time the hero levels up, and ${h.cls==='mage'?'0.3':'0.2'} mana regained each turn (${focusRegen(h)} now), and strengthens Mend.`;
   return `Luck. For this hero right now: +${luckRate(h,'crit').toFixed(1)}% crit chance, +${luckRate(h,'gold').toFixed(1)}% gold found, ${luckRate(h,'surge').toFixed(1)}% chance of a lucky surge on each ${h.cls==='mage'?'spell or attack':'skill'} (a random boon for the battle). ${C.name}s get 2.5× the ${{warrior:'gold',archer:'crit',mage:'surge'}[h.cls]} bonus. The whole party's Luck also adds up to make chance-based events kinder: each point above the land's baseline is 2% (Cave 6, Wilds 12, Wasteland 18, Summit 26).`;
 }
 function statPips(h,raw){
@@ -5548,7 +5584,7 @@ const TUT_B=[
   ['top',h=>`${esc(h.name)} is a ${C_(h).name}. ${h.cls==='warrior'?'Warriors wear heavy armor, have the most health and belong in front, where most blows land.':h.cls==='archer'?'Archers hit hard and dodge a lot, but can’t take many hits.':'Mages wield the elements but are fragile.'} The letter by the name is their grade, from S (best) to D: how well their natural stats suit the class.`],
   ['vit',h=>`<b class="hpc">HP</b> is health. If it hits 0 in a fight they fall, and a fallen hero is gone for good, along with their gear. <b class="mpc">MP</b> is mana: skills spend it, and it refills a little every turn. Both refill fully in town.`],
   ['traits',h=>`Traits are quirks they were born with. <span class="tk-good">Green</span> ones help, <span class="tk-neutral">yellow</span> ones are a mixed bag, <span class="tk-bad">red</span> ones hurt. Hover or tap a trait to read it. Another trait shows up every 10 levels.`],
-  ['skills',h=>`They start with two skills. Skills cost MP but hit harder than a plain attack. New skills arrive at levels 8, 23 and 33.`],
+  ['skills',h=>`They start with two skills. Skills cost MP but hit harder than a plain attack. New skills arrive at levels 8, 18 and 28.`],
   ['xp',h=>`Fights earn experience. Every level-up restores them fully and brings attribute points to spend.`],
   ['stats',h=>`Seven attributes shape everything. STR: power. PER: accuracy and spotting what enemies plan. END: health and resistances. CHA: better prices and events. INT: mana. AGI: speed and dodging. LCK: crits and good fortune. The ${C_(h).name}’s main one is outlined. Tap any of them to learn more.`],
   ['el',h=>`Everyone is born a little different against the elements. This shows what they resist, what they’re weak to, and any elemental damage bonus.`],
@@ -6876,7 +6912,8 @@ function heroInfo(h){
   if(b.warcry&&b.warcry.by===h.id)tags.push('<span class="utag gold" data-tip="War Cry: the whole party deals 33% more damage until it fades.">War Cry</span>');
   if(b.tauntN&&b.taunt===h.id)tags.push(`<span class="utag" style="color:#8fa8c8" data-tip="Taunting: every enemy must attack this hero for ${b.tauntN} more round${b.tauntN>1?'s':''}.">Taunting</span>`);
   if(b.bulwark&&b.bulwark.n>0)tags.push('<span class="utag" style="color:#8fa8c8" data-tip="Bulwark: the whole party takes 67% less damage while it lasts.">Bulwark</span>');
-  if(heroBuff(h,'eva'))tags.push(`<span class="utag" style="color:#cfc6b0" data-tip="Featherweight: 90% chance to dodge every attack for ${heroBuff(h,'eva').n} more turn${heroBuff(h,'eva').n>1?'s':''}.">90% evade ×${heroBuff(h,'eva').n}</span>`);
+  {const E=heroBuff(h,'eva');if(E)tags.push(`<span class="utag" style="color:#cfc6b0" data-tip="Evasion: ${E.v||90}% chance to dodge every attack${E.dmg?` and +${E.dmg}% damage`:''} for ${E.n} more turn${E.n>1?'s':''}.">${E.v||90}% evade ×${E.n}</span>`)}
+  if(b.rally&&b.rally.n>0&&b.rally.by===h.id)tags.push(`<span class="utag gold" data-tip="${esc(b.rally.name)}: the whole party deals ${b.rally.dmg}% more damage and takes ${b.rally.def}% less${b.rally.crit?`, +${b.rally.crit}% crit chance`:''} for ${b.rally.n} more round${b.rally.n>1?'s':''}.">${esc(b.rally.name)} ×${b.rally.n}</span>`);
   if(heroBuff(h,'imbue'))tags.push(`<span class="utag" style="color:${EL_COL[attuned(h)]}" data-tip="Elemental Arrows: arrows deal ${cap(attuned(h))} damage for ${heroBuff(h,'imbue').n} more turn${heroBuff(h,'imbue').n>1?'s':''}. Pick another element under the skills.">${cap(attuned(h))} arrows ×${heroBuff(h,'imbue').n}</span>`);
   if(b.hpois&&b.hpois[h.id])tags.push(`<span class="utag" style="color:#6fb35a" data-tip="Poisoned: loses ${b.hpois[h.id].dmg} health at the start of each of their next ${b.hpois[h.id].n} turns.">Poisoned</span>`);
   if(b.chill&&b.chill[h.id])tags.push('<span class="utag" style="color:#8fd0ea" data-tip="Chilled: their next turn was pushed back.">Chilled</span>');
@@ -6886,7 +6923,7 @@ function heroInfo(h){
   if(heroBuff(h,'crit'))tags.push(`<span class="utag gold" data-tip="Sniper: at least 80% crit chance for ${heroBuff(h,'crit').n} more turn${heroBuff(h,'crit').n>1?'s':''}.">Sniper ×${heroBuff(h,'crit').n}</span>`);
   if(heroBuff(h,'focus'))tags.push(`<span class="utag gold" data-tip="Starsight Elixir: +${heroBuff(h,'focus').v}% crit chance for ${heroBuff(h,'focus').n} more turn${heroBuff(h,'focus').n>1?'s':''}.">Starsight ×${heroBuff(h,'focus').n}</span>`);
   if(b.wards&&b.wards[h.id]&&b.wards[h.id].all)tags.push(`<span class="utag" style="color:#c9d4e8" data-tip="Moonveil: +${b.wards[h.id].all}% resistance to every element until this battle ends.">Moonveil</span>`);
-  if(heroBuff(h,'undying'))tags.push('<span class="utag gold" data-tip="Undying Vow: cannot drop below 1 health, takes 50% less damage and taunts until it fades.">Undying</span>');
+  if(heroBuff(h,'undying'))tags.push('<span class="utag gold" data-tip="Undying: cannot drop below 1 health until it fades.">Undying</span>');
   const inc=b.over||!seeIntent()?0:aliveFoes().filter(e=>e.intent&&(aoeAct(e.intent.act)||intentTarget(e)===h)).length;
   if(inc&&h.hp>0)tags.push(`<span class="utag tgtd" data-tip="${inc} enem${inc>1?'ies are':'y is'} aiming at this hero next.">Targeted${inc>1?' ×'+inc:''}</span>`);
   if(h.regen&&h.regen.length){const hp=h.regen.filter(x=>x.k==='hp'),mp=h.regen.filter(x=>x.k==='mp'),fa=h.regen.filter(x=>x.k==='fat'),t=Math.max(...h.regen.map(x=>x.n));tags.push(`<span class="utag" style="color:#8fe08a" data-tip="${esc(`Recovering: ${listNames([hp.length?'+'+Math.round(hp.reduce((a,x)=>a+x.p,0)*100)+'% health':'',mp.length?'+'+Math.round(mp.reduce((a,x)=>a+x.p,0)*100)+'% mana':'',fa.length?'−'+(+fa.reduce((a,x)=>a+x.p,0).toFixed(1))+'% fatigue':''].filter(Boolean))} at the start of each turn, ${t} turn${t>1?'s':''} left. Whatever is left when the fight is won lands right away.`)}">Regen ×${t}</span>`)}
@@ -6955,7 +6992,8 @@ const SK_FX={cleave:'slash',crush:'smash',coup:'smash',stunblow:'smash',titan:'t
   wall:'shield',taunt:'shield',bulwark:'shield',undying:'shieldgold',warcry:'shout',
   wind:'heal',mend:'heal',circle:'heal',revive:'heal',resurrect:'heal',
   pierce:'shot',double:'shot',cripple:'shot',deadeye:'snipe',assassin:'snipe',killshot:'snipe',
-  volley:'rain',hail:'rain',thousand:'rain',feather:'aura',sniper:'aura',imbue:'aura',imbue2:'aura',
+  volley:'rain',hail:'rain',thousand:'rain',feather:'aura',shadow:'aura',phantom:'aura',sniper:'aura',imbue:'aura',imbue2:'aura',
+  rally:'shout',warlord:'shout',sunder:'smash',execute:'smash',nova:'storm',lance:'blast',meteor:'blast',
   bolt:'blast',combo:'blast',storm:'storm',cataclysm:'storm',chain:'lightning',hex:'hex',drain:'drain'};
 const SK_CASTER={slash:'melee',smash:'melee',titan:'melee',quake:'melee',shot:'bow',snipe:'bow',rain:'bow',
   blast:'cast',storm:'cast',lightning:'cast',hex:'cast',drain:'cast',heal:'heal',shield:'shield',shieldgold:'shield',shout:'shout',aura:'aura'};
@@ -7513,7 +7551,7 @@ function witchView(){
       <h3>${WITCH_HERO.respec.n} · <span class="gold">${fmt(rc)} gold</span></h3><p class="muted">${WITCH_HERO.respec.d} ${h.spent?`${h.spent} point${h.spent>1?'s':''} would come back.`:'Nothing spent to undo yet.'}</p>
       <div class="row"><button class="btn" data-a="witchRespec" data-x="${h.id}" ${state.gold<rc||!h.spent?'disabled':''}>Rebalance ${esc(h.name)}</button></div>`;
     {const learned=h.skills.filter(id=>SKILLS[id]&&SKILLS[id].tier);
-     s+=`<h3>Reroll a learned skill</h3><p class="muted">Skills learned at levels 8, 23 and 33 come down to fate. The Witch can roll the dice again. There is a ${Math.round(rerollSame(h))}% chance (less with Luck) it lands on the same skill. Each reroll of the same skill doubles the price.</p>`;
+     s+=`<h3>Reroll a learned skill</h3><p class="muted">Skills learned at levels 8, 18 and 28 come down to fate. The Witch can roll the dice again. There is a ${Math.round(rerollSame(h))}% chance (less with Luck) it lands on the same skill. Each reroll of the same skill doubles the price.</p>`;
      s+=learned.length?`<div class="stack" style="gap:6px">${learned.map(id=>{const t=SKILLS[id].tier,c=skillRerollCost(h,t),others=learnOpts(h,t).filter(x=>x!==id).map(x=>SKILLS[x].n);
        return `<div class="row" style="gap:8px;justify-content:space-between;flex-wrap:nowrap"><span><b>${SKILLS[id].n}</b> <span class="muted" style="font-size:18px">Lv ${SKILL_LV[t]} skill · could become ${others.join(' or ')}</span></span><button class="btn small" data-a="witchReroll" data-x="${h.id}|${id}" ${state.gold<c||onRun(h)||!others.length?'disabled':''}>Reroll · ${fmt(c)}g</button></div>`}).join('')}</div>`:'<p class="muted">No learned skills yet. The first comes at level 8.</p>'}
     return s;
@@ -8303,13 +8341,16 @@ function autoStep(){
   else if(dead.length&&can('resurrect'))act='resurrect';
   else if(dead.length&&can('revive')){act='revive';ally=dead[0].id}
   else if(can('circle')&&L.length>1&&avg<.55)act='circle';
-  else if(L.length>1&&!b.taunt&&h.hp/maxHp(h)>.5&&(can('undying')||can('bulwark')||can('taunt'))&&n>1)act=can('undying')?'undying':can('bulwark')?'bulwark':'taunt';
+  else if(can('revive')&&L.length>1&&avg<.5)act='revive';
+  else if(!(b.rally&&b.rally.n>0)&&(n>1||bigFoe(e))&&['warlord','bulwark','rally'].some(can))act=['warlord','bulwark','rally'].find(can);
+  else if(!heroBuff(h,'eva')&&h.hp/maxHp(h)<.7&&['phantom','shadow'].some(can))act=['phantom','shadow'].find(can);
   else if(can('feather')&&h.hp/maxHp(h)<.5&&!heroBuff(h,'eva'))act='feather';
+  else if((bigFoe(e)||e.kind==='elite')&&e.hp>e.maxHp*.3&&['meteor','combo','lance'].some(can))act=['meteor','combo','lance'].find(can);
   else if(can('sniper')&&!heroBuff(h,'crit'))act='sniper';
   else if((can('imbue')||can('imbue2'))&&!heroBuff(h,'imbue')&&isScouted(e)&&ELEMENTS.some(el=>matchup(el,e.type)>1))act=can('imbue2')?'imbue2':'imbue';
   else if(can('coup')&&e.kind!=='warden'&&e.kind!=='king'&&e.hp>e.maxHp*.4)act='coup';
-  else if(n>1&&['cataclysm','thousand','quake','hail','chain'].some(can))act=['cataclysm','thousand','quake','hail','chain'].find(can);
-  else if(['titan','coup','killshot','combo','assassin','stunblow'].some(can))act=['titan','coup','killshot','combo','assassin','stunblow'].find(can);
+  else if(n>1&&['cataclysm','thousand','nova','quake','hail','chain'].some(can))act=['cataclysm','thousand','nova','quake','hail','chain'].find(can);
+  else if(['titan','coup','killshot','execute','assassin','sunder','stunblow'].some(can))act=['titan','coup','killshot','execute','assassin','sunder','stunblow'].find(can);
   else if(can('mend')&&(darkIs('selfish')?h:hurt).hp/maxHp(darkIs('selfish')?h:hurt)<.45){act='mend';ally=darkIs('selfish')?h.id:hurt.id}
   else if(can('wind')&&h.hp/maxHp(h)<.4)act='wind';
   else if(n>1&&can('cleave'))act='cleave';else if(n>1&&can('storm'))act='storm';else if(n>2&&can('volley'))act='volley';
@@ -8317,7 +8358,7 @@ function autoStep(){
   else for(const id of ['crush','bolt','pierce','double','drain','deadeye','cripple'])if(can(id)){act=id;break}
   if(jammed(h,act))act=['atk','atk:aim','atk:power'].find(x=>!jammed(h,x));
   // Stuck at the back as a Warrior: lift the party if possible, otherwise step forward.
-  if(!act&&benched(h)){act=['warcry','bulwark','undying','taunt','wind','wall'].find(id=>can(id)&&!(id==='warcry'&&b.warcry)&&!(id==='wind'&&h.hp>=maxHp(h)*.7))||'move:f'}
+  if(!act&&benched(h)){act=['warcry','warlord','bulwark','rally','wind','wall'].find(id=>can(id)&&!(id==='warcry'&&b.warcry)&&!(['warlord','bulwark','rally'].includes(id)&&b.rally&&b.rally.n>0)&&!(id==='wind'&&h.hp>=maxHp(h)*.7))||'move:f'}
   queueHero(act,ally);
   render();
 }
@@ -8580,6 +8621,11 @@ function start(d){
   for(const h of [...state.heroes,...state.candidates])if(h.bonusHp||h.bonusMp){const n=(h.bonusHp||0)+(h.bonusMp||0);h.points=(h.points||0)+n;h.spent=Math.max(0,(h.spent||0)-n);h.bonusHp=0;h.bonusMp=0;if(h.baseBonus)h.baseBonus={hp:0,mp:0};h.hp=Math.min(h.hp,maxHp(h));h.mp=Math.min(h.mp,maxMp(h))}
   for(const h of [...state.heroes,...state.candidates])if(!h.baseStats){h.baseStats=Object.fromEntries(STATS.map(k=>[k,h[k]]));h.baseBonus={hp:h.bonusHp||0,mp:h.bonusMp||0};h.spent=0}
   if(!state.recruit1){state.recruit1=true;state.candidates=state.candidates.slice(0,recruitCount())}
+  // Growth v1: health and mana now come from class base plus per-level growth.
+  if(!state.grow1){state.grow1=true;for(const h of [...state.heroes,...(state.candidates||[])]){h.grow=growGuess(h);h.hp=Math.min(h.hp,maxHp(h));h.mp=Math.min(h.mp,maxMp(h))}}
+  // Skills v3 (three lines, learned at 8, 18 and 28): swap retired skills for their replacements, then offer any picks now due.
+  if(!state.skills3){state.skills3=true;for(const h of [...state.heroes,...(state.candidates||[])]){h.skills=[...new Set((h.skills||[]).map(id=>SKILL_RETIRED[id]||id).filter(id=>SKILLS[id]))];
+    if(h.pickSkill)h.pickSkill=null}}
   if(!state.pts2){state.pts2=true;for(const h of state.heroes){let add=0;for(let L=2;L<=h.level;L++)add+=pointsFor(L)-oldPointsFor(L);if(add>0)h.points+=add}}
   // Gear v3: capes and shoes are gone (sold automatically); chest and pants are now class-locked.
   if(!state.gear3){state.gear3=true;let refund=0,n=0;const gone=it=>it&&(it.slot==='shoes'||it.slot==='cape');
@@ -8604,7 +8650,8 @@ function start(d){
   if(b&&!b.enemies){b.enemies=[b.enemy];b.target=0}
   for(const h of [...state.heroes,...state.candidates]){
     if(!h.skills||!h.skills.length)h.skills=classSkills(h.cls).sort(()=>Math.random()-.5).slice(0,2);
-    if(state.heroes.includes(h))autoLearn(h);
+    // A skill tier the hero has reached but not learned (old saves, or tiers that moved earlier) is offered as a choice.
+    if(state.heroes.includes(h))queueLevelPicks(h);
     if(!h.affinity)h.affinity=pick(ELEMENTS);
     for(const k of STATS)if(h[k]==null)h[k]=rollStat(3);
   }
