@@ -3626,7 +3626,9 @@ const startHp=h=>{const B=h.baseStats||h;return (C_(h).startHp||0)+GROW.hp.end*(
 // Health and mana growth come only from the hero's own rolled and spent points. END, STR and INT from gear, elixirs
 // or traits do not add health or mana.
 // Flat Health from gear is added as listed, after the hidden health scaling, so "+15 Health" really is +15.
-const maxHp=h=>Math.max(1,Math.floor(HERO_HP_SCALE*(C_(h).hp+startHp(h)+growOf(h).hp+h.bonusHp*10)*(1+tr(h,'hpPct')/100)*HP_CUT*(FRAGILE[h.cls]||1))+Math.round(aff(h,'hp')));
+// BASE_HP_BUFF: an early-game buff, a flat +10 max Health for every hero, also added after the scaling (does not grow with level).
+const BASE_HP_BUFF=10;
+const maxHp=h=>Math.max(1,Math.floor(HERO_HP_SCALE*(C_(h).hp+startHp(h)+growOf(h).hp+h.bonusHp*10)*(1+tr(h,'hpPct')/100)*HP_CUT*(FRAGILE[h.cls]||1))+BASE_HP_BUFF+Math.round(aff(h,'hp')));
 const maxMp=h=>Math.max(1,Math.round((C_(h).mp+growOf(h).mp+h.bonusMp*4+aff(h,'mp'))*(1+tr(h,'mpPct')/100)*(injOf(h)==='head'?.75:1)));
 function armor(h){let a=0;for(const s of ['helmet','chest','pants'])if(h.gear[s])a+=baseVal(h.gear[s]);return Math.round(a*(1+tr(h,'armorPct')/100))}
 const weaponDmg=h=>h.gear.weapon?baseVal(h.gear.weapon):3;
@@ -3893,11 +3895,14 @@ const enemyLevel=()=>{const r=state.run;return r.final?FINAL.base+(r.stage-1)*FI
 const lenLevel=(L,st)=>L.base+Math.min(st-1,20)*L.per+Math.max(0,st-21)*L.tail;
 const greenFor=(len,ids)=>{const L=LENGTHS[len];return L&&L.rec?ids.map(heroById).filter(h=>h&&h.level<L.rec):[]};
 const ilvl=()=>Math.max(1,Math.round(enemyLevel()));
-// The Cave pays 10% more gold from stage 8 on (not the bounty chest, which only borrows a Cave run to roll its loot).
-const caveGold=r=>r&&r.length==='short'&&!r.final&&!r.bounty&&(r.stage||1)>=8?1.1:1;
-function goldAmt(base){
+// Gold found grows the deeper the party goes, compounding: +10% for every 5 stages cleared in the Cave
+// (stages 6-10 x1.1, 11+ x1.21) and +10% for every 10 stages cleared on every other map (stages 11-20 x1.1, 21-30 x1.21, ...).
+// Not the bounty chest, which only borrows a Cave run to roll its loot.
+const caveGold=r=>{if(!r||r.bounty)return 1;const every=r.length==='short'&&!r.final?5:10;return Math.pow(1.1,Math.floor(Math.max(0,(r.stage||1)-1)/every))};
+// noDepth: a price the party pays, not gold it finds, so the depth bonus is left out.
+function goldAmt(base,noDepth){
   const r=state.run,L=living(),n=L.length||1;
-  return Math.round(base*caveGold(r)*LENGTHS[r.length].mult*(1+.25*(n-1))*rand(.8,1.2)*(1+L.reduce((s,h)=>s+aff(h,'goldfind')+luckRate(h,'gold'),0)/100)*runMod('gold')*(townEv()&&townEv().ev==='bard'?1.15:1));
+  return Math.round(base*(noDepth?1:caveGold(r))*LENGTHS[r.length].mult*(1+.25*(n-1))*rand(.8,1.2)*(1+L.reduce((s,h)=>s+aff(h,'goldfind')+luckRate(h,'gold'),0)/100)*runMod('gold')*(townEv()&&townEv().ev==='bard'?1.15:1));
 }
 // Just before the final boss: the party sees it coming and makes camp. Same as a campsite, no stop on the map.
 function finalApproach(){
@@ -7853,7 +7858,7 @@ function startMystery(){
   if(k==='spring')return ev('Moonlit Spring','drop','Cold, silver water bubbles from the rocks. It smells faintly of iron.',[{l:`Drink (${esc(h.name)})`,x:'drink'},{l:'Fill the waterskins (all heal 20%)',x:'fill'},{l:'Leave it',x:'leave'}]);
   if(k==='idol')return ev('The Golden Idol','crown','A golden idol rests on a pressure plate. The ceiling above is cracked.',[{l:'Grab it (rare+ item, maybe a trap)',x:'grab'},{l:'Leave it',x:'leave'}]);
   if(k==='ooze'){return ev('Scrap Ooze','slime','A sluggish ooze has swallowed something shiny. You could reach in… it stings.',[{l:'Reach in (lose 8% HP each try)',x:'reach'},{l:'Leave it',x:'leave'}])}
-  if(k==='trainer'){const cost=Math.round(goldAmt(6+2*s)*(1-F/200));return ev('Wandering Swordmaster','sword',`An old fighter offers to drill your party for <b class="gold">${cost} gold</b>.`,[{l:`Train (${cost}g, everyone +40% of a level in XP)`,x:'train',off:r.gold<cost,cost},{l:'Spar for free (XP, but it hurts)',x:'spar'},{l:'Decline',x:'leave'}])}
+  if(k==='trainer'){const cost=Math.round(goldAmt(6+2*s,true)*(1-F/200));return ev('Wandering Swordmaster','sword',`An old fighter offers to drill your party for <b class="gold">${cost} gold</b>.`,[{l:`Train (${cost}g, everyone +40% of a level in XP)`,x:'train',off:r.gold<cost,cost},{l:'Spar for free (XP, but it hurts)',x:'spar'},{l:'Decline',x:'leave'}])}
   if(k==='tome')return ev('The Whispering Tome','tome','A book bound in pale leather lies open. Its pages pull at the eye.',[{l:`Read 1 page (${esc(h.name)}: +XP, −10% HP)`,x:'read1'},{l:'Read 3 pages (+lots of XP, −30% HP)',x:'read3'},{l:'Close it',x:'leave'}]);
   if(k==='traveler')return ev('Lost Traveler','heart',`A frightened traveler begs for directions home.${chaNote()}`,[{l:'Help them',x:'help'},{l:'Rob them',x:'rob'},{l:'Ignore them',x:'leave'}]);
   if(k==='altar')return ev('Blood Altar','skull','An altar slick with old blood. Something here rewards sacrifice.',[{l:`Offer blood (${esc(h.name)} −30% HP, +1 permanent stat)`,x:'offer',off:h.hp<=maxHp(h)*.3},{l:'Pray instead (heal 15%)',x:'pray'},{l:'Leave',x:'leave'}]);
