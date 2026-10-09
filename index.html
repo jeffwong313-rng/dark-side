@@ -3697,6 +3697,7 @@ const TOWN_BASE={smith:250,alch:250,academy:300,barracks:250,bank:150,bag:500,pa
 const TOWN_STEPS={smith:4,alch:4,academy:4,barracks:4,bank:4,bag:4,pack:4,potency:3,feed:3,war:2};
 const TOWN_CLIMB=[1,2,6,18];
 const TOWN_PRICE=Object.fromEntries(Object.entries(TOWN_BASE).map(([k,v])=>[k,TOWN_CLIMB.slice(0,TOWN_STEPS[k]).map(m=>v*m)]));
+TOWN_PRICE.war=[3000,20000]; // the War Table keeps its own prices: 2 heroes at 3,000, 3 heroes at 20,000
 const townPrice=k=>L=>TOWN_PRICE[k][L-1];
 const BUILD={
   smith:{name:'Forge',at:'smith',icon:['anvil',null],max:5,cost:townPrice('smith'),eff:L=>`Items can be upgraded to +${forgeMax(L)}`+(L>3?`; +${(L-3)*10}% success on risky upgrades`:'')},
