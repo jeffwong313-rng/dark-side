@@ -4565,8 +4565,8 @@ function queueHero(act,allyId){
     b.windup=null;b.busy=false;heroAction(act,allyId);render();
   },pace().wind);
 }
-// Every hero regains a little mana each turn from INT; Mages channel it 1.5× as well.
-const focusRegen=h=>Math.round((1+stat(h,'int')*.2)*(h.cls==='mage'?1.5:1));
+// Every hero regains a little mana each turn from INT: 0.34 per point, rounded down; Mages channel it 1.5× as well.
+const focusRegen=h=>Math.floor(stat(h,'int')*.34*(h.cls==='mage'?1.5:1));
 // Timed hero buffs from learned skills, counted down at the start of that hero's own turn.
 const heroBuff=(h,k)=>{const b=state.run&&state.run.battle,x=b&&b.hb&&b.hb[h.id];return x&&x[k]&&x[k].n>0?x[k]:null};
 const heroEva=h=>Math.max(heroBuff(h,'eva')?heroBuff(h,'eva').v||90:0,stanceOf(h)==='archer'?rollDodge(h):0,evasion(h));
@@ -5598,7 +5598,7 @@ function statTip(h,k){
   if(k==='end')return `Endurance. Each point the hero has (not from gear or elixirs) adds 1.25 max health every time they level up, +0.5% resistance to every element (${(stat(h,'end')*.5).toFixed(1)}% now), and health recovered between fights: 0.5% per point, up to 30% (${Math.round(restPct(h))}% now).`;
   if(k==='cha')return `Charisma. The whole party’s Charisma adds up for every non-battle event (chests, gold caches, shrines, strangers). Each point above the land’s baseline makes results 3% better, each point below 3% worse (Cave 8, Wilds 14, Wasteland 20, Summit 28). Also lowers the Witch’s brew and supply prices by 1.5% per point, up to 40% (${Math.round(chaDiscount(h))}% now). Treatments use this hero’s Charisma; supplies use your most charming hero.`;
   if(k==='agi')return `Agility. ${own?'Archers add 0.85 damage per point':'Adds 0.25 damage per point (Archers get 0.85)'}. Raises speed, so more turns, plus crit chance, evasion and accuracy.`;
-  if(k==='int')return `Intelligence. ${own?'Mages add 1 damage per point':'Adds 0.25 damage per point (Mages get 1)'}. Each point the hero has (not from gear or elixirs) adds 0.5 max mana every time they level up, and ${h.cls==='mage'?'0.3':'0.2'} mana regained each turn (${focusRegen(h)} now), 0.5% mana recovered between fights (${Math.round(restMpPct(h))}% now), and strengthens Mend.`;
+  if(k==='int')return `Intelligence. ${own?'Mages add 1 damage per point':'Adds 0.25 damage per point (Mages get 1)'}. Each point the hero has (not from gear or elixirs) adds 0.5 max mana every time they level up, and ${h.cls==='mage'?'0.51':'0.34'} mana regained each turn, rounded down (${focusRegen(h)} now), 0.5% mana recovered between fights (${Math.round(restMpPct(h))}% now), and strengthens Mend.`;
   return `Luck. For this hero right now: +${luckRate(h,'crit').toFixed(1)}% crit chance, +${luckRate(h,'gold').toFixed(1)}% gold found, ${luckRate(h,'surge').toFixed(1)}% chance of a lucky surge on each ${h.cls==='mage'?'spell or attack':'skill'} (a random boon for the battle). ${C.name}s get 2.5× the ${{warrior:'gold',archer:'crit',mage:'surge'}[h.cls]} bonus. The whole party's Luck also adds up to make chance-based events kinder: each point above the land's baseline is 2% (Cave 6, Wilds 12, Wasteland 18, Summit 26).`;
 }
 function statPips(h,raw){
