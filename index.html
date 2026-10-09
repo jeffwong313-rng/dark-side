@@ -3691,10 +3691,12 @@ const noEscape=()=>{const b=state.run&&state.run.battle;return !!(b&&!b.over&&b.
 const foundThisRun=()=>{const r=state.run,out=[];for(const it of r.loot)out.push({it});for(const h of partyAll())for(const sl of SLOTS){const it=h.gear[sl];if(it&&it.found===r.id)out.push({it,h,sl})}return out};
 const canFlee=()=>{const r=state.run;return !!r&&r.length==='short'&&!r.final&&living().length>0&&!(r.battle&&r.battle.over==='lose')&&!noEscape()};
 const NAMES=['Aldric','Brenna','Cael','Dorin','Edda','Fenn','Garrick','Hesta','Ivo','Joren','Kest','Liora','Maren','Nils','Orla','Pell','Quill','Rhosyn','Sabel','Tamsin','Ulric','Vesna','Wren','Yorick','Zora','Ansel','Bryn','Corvin','Dagny','Elric','Mirelle','Oswin','Tova','Hollis','Isolde','Rook','Sten','Ysolde'];
-// Upgrade prices climb steeply: each step costs about 2.5–3× the one before, so the last levels are long-term goals.
-// TOWN_PRICE[k][i] is the gold to go from level i+1 to i+2. Edit these to retune.
-const TOWN_PRICE={smith:[250,750,2000,5000],alch:[250,750,2000,5000],academy:[300,1000,3000,8000],barracks:[250,800,2200,6000],
-  bank:[150,500,1400,3500],bag:[500,1000,2000,4000],pack:[300,900,2200,5000],potency:[400,1500,5000],feed:[350,1200,4000],war:[3000,20000]};
+// Upgrade prices climb steeply: the first step is TOWN_BASE, the second 2× that, then each later step 3× the one before
+// (so a, 2a, 6a, 18a). TOWN_PRICE[k][i] is the gold to go from level i+1 to i+2. Edit TOWN_BASE to retune.
+const TOWN_BASE={smith:250,alch:250,academy:300,barracks:250,bank:150,bag:500,pack:300,potency:400,feed:350,war:3000};
+const TOWN_STEPS={smith:4,alch:4,academy:4,barracks:4,bank:4,bag:4,pack:4,potency:3,feed:3,war:2};
+const TOWN_CLIMB=[1,2,6,18];
+const TOWN_PRICE=Object.fromEntries(Object.entries(TOWN_BASE).map(([k,v])=>[k,TOWN_CLIMB.slice(0,TOWN_STEPS[k]).map(m=>v*m)]));
 const townPrice=k=>L=>TOWN_PRICE[k][L-1];
 const BUILD={
   smith:{name:'Forge',at:'smith',icon:['anvil',null],max:5,cost:townPrice('smith'),eff:L=>`Items can be upgraded to +${forgeMax(L)}`+(L>3?`; +${(L-3)*10}% success on risky upgrades`:'')},
