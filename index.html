@@ -467,6 +467,7 @@ button[data-tip]{cursor:pointer}
 .summary.dead{box-shadow:0 0 0 2px #060509,inset 0 0 0 2px var(--blood)}
 .cmp{display:flex;flex-wrap:wrap;gap:3px 8px;margin-top:6px;padding-top:6px;border-top:1px dashed var(--edge);font-size:16px}
 .cmphead{width:100%;color:var(--ash);font-size:15px}
+.cmpbtn{width:100%;display:flex;margin-top:2px}
 .cmpup{color:#8fe08a}
 .upstone .matchip{font-size:15px;padding:0 3px;background:none;box-shadow:none}
 .tdead{opacity:.55;text-decoration:line-through;text-decoration-thickness:1px}.cmpdn{color:#ff7a70}.cmpel{color:var(--gold)}.cmpsame{color:var(--dim)}
@@ -5188,12 +5189,18 @@ const KILL_MULT={normal:1,elite:2,warden:8,boss:5,mimic:1.5,king:20};
 const SCROLL_DROP={elite:.25,warden:.4,boss:.6};
 function buryFallen(lines){
   const r=state.run;
+  // A fallen hero's gear drops where they fell: Perfect items still go home to the vault, everything else lands on the
+  // ground, where the survivors can equip it or pack it before moving on.
+  const b=r.battle;
   for(const h of partyAll())if(h.hp<=0){
-    for(const sl of SLOTS)if(h.gear[sl]&&rescuePerfect(h.gear[sl],lines))h.gear[sl]=null;
+    const dropped=[];
+    for(const sl of SLOTS){const it=h.gear[sl];if(!it)continue;h.gear[sl]=null;if(rescuePerfect(it,lines))continue;r.ground=r.ground||[];r.ground.push(it);dropped.push(it)}
+    if(b&&dropped.length)(b.fallenGear=b.fallenGear||[]).push(...dropped);
     state.heroes=state.heroes.filter(x=>x.id!==h.id);
     state.graveyard.unshift({name:h.name,cls:h.cls,level:h.level,week:state.week,stage:r.stage,biome:BIOMES[r.biome].name});
     r.fallen.push(h.name);
-    lines&&lines.push(`<span class="warn">${esc(h.name)} is dead. Their gear is lost with them${state.run.battle&&state.run.battle.enemies.some(e=>e.hp>0&&(e.carry||[]).some(c=>c.owner===h.name))?', except what a monster took':''}.</span>`);
+    const took=b&&b.enemies.some(e=>e.hp>0&&(e.carry||[]).some(c=>c.owner===h.name));
+    lines&&lines.push(`<span class="warn">${esc(h.name)} is dead.${dropped.length?` Their gear falls to the ground: ${dropped.map(itemName).join(', ')}.`:''}${took?' A monster carried off the rest.':''}</span>`);
   }
   r.party=r.party.filter(id=>heroById(id));
 }
@@ -5531,7 +5538,30 @@ function itemStatMap(it){const m={};if(!it)return m;
   if(it.slot==='weapon')m.dmg=baseVal(it);
   else if(ARMOR_BASE[it.slot]){m.arm=baseVal(it);if(it.cls==='archer')m.eva=2+it.ilvl*.05}
   for(const a of it.affixes)m[a.k]=(m[a.k]||0)+affVal(it,a);return m}
-function itemCompare(it,h,slot){
+// Every exact place an item could go: each living hero who can wear it and, for rings, each open ring slot.
+function equipTargets(it,heroes){const out=[];for(const h of heroes){if(h.hp<=0||(it.cls&&it.cls!==h.cls))continue;
+  const sls=it.slot==='ring'?['ring1','ring2'].filter(s=>!ringLocked(s)):SLOTS.includes(it.slot)?[it.slot]:[];
+  for(const sl of sls)if(h.gear[sl]!==it)out.push({h,sl})}return out}
+// One comparison per target with its own button, so the player picks the exact piece to replace (which hero, which ring).
+// key is "pack|<id>", "ground|<id>" or "inv|" (the item selected in the inventory).
+function equipChoices(it,heroes,key){
+  const T=equipTargets(it,heroes);if(!T.length)return '';const many=new Set(T.map(t=>t.h)).size>1;
+  return `<div class="stack eqchoices" style="gap:4px">${T.map(({h,sl})=>{const cur=h.gear[sl],up=itemScore(it)>itemScore(cur),ring=it.slot==='ring'?(sl==='ring1'?' · left ring':' · right ring'):'';
+    return itemCompare(it,h,sl,`<button class="btn small ${up?'gold':''}" data-a="equipTo" data-x="${key}|${h.id}|${sl}">${cur?'Swap':'Equip'}${many?' on '+esc(h.name):''}${ring}${up?' ▲':''}</button>`)}).join('')}</div>`}
+// Put an item into one exact slot. Whatever it replaces goes to the backpack if there is room, otherwise onto the ground.
+function equipInto(S,h,sl){
+  const r=state.run,it=S&&S.it;if(!r||!it||!h||h.hp<=0||!SLOTS.includes(sl)||slotType(sl)!==it.slot||(it.cls&&it.cls!==h.cls))return false;
+  if(ringLocked(sl)){darkHit('greed');return false}if(it.slot==='ring')darkHit('greed');
+  if(S.k==='gear'&&S.h===h&&S.sl===sl)return false;
+  const mh=maxHp(h),mm=maxMp(h),old=h.gear[sl];
+  if(S.k==='pack')r.loot=r.loot.filter(x=>x!==it);else if(S.k==='ground')r.ground=(r.ground||[]).filter(x=>x!==it);
+  else if(S.k==='gear'){S.h.gear[S.sl]=null;S.h.hp=Math.min(S.h.hp,maxHp(S.h));S.h.mp=Math.min(S.h.mp,maxMp(S.h))}
+  h.gear[sl]=it;
+  if(old){if(r.loot.length<bagCap()||old.rarity==='perfect')r.loot.push(old);else{r.ground=r.ground||[];r.ground.push(old)}}
+  h.hp=clamp(h.hp+Math.max(0,maxHp(h)-mh),1,maxHp(h));h.mp=clamp(h.mp+Math.max(0,maxMp(h)-mm),0,maxMp(h));
+  return {old};
+}
+function itemCompare(it,h,slot,btn){
   if(!it||!h||(it.cls&&it.cls!==h.cls))return '';
   const sl=slot||equipSlotFor(it,h),cur=h.gear[sl];if(cur===it)return '';
   const A=itemStatMap(it),B=itemStatMap(cur),parts=[];
@@ -5542,7 +5572,7 @@ function itemCompare(it,h,slot){
   if(it.slot==='weapon'){const e1=(cur&&cur.el)||'physical',e2=it.el||'physical';if(cur&&e1!==e2)parts.push(`<span class="cmpel">${cap(e1)} → ${cap(e2)}</span>`)}
   if(it.pid&&(!cur||cur.pid!==it.pid))parts.push(`<span class="cmpup">+ ${PERF[it.pid].fxn}</span>`);
   if(cur&&cur.pid&&cur.pid!==it.pid)parts.push(`<span class="cmpdn">− ${PERF[cur.pid].fxn}</span>`);
-  return `<div class="cmp"><span class="cmphead">vs ${esc(h.name)}’s ${cur?itemName(cur):'empty '+SLOTN[sl].toLowerCase()+' slot'}</span>${parts.join('')||'<span class="cmpsame">No change</span>'}</div>`;
+  return `<div class="cmp"><span class="cmphead">vs ${esc(h.name)}’s ${cur?itemName(cur):'empty '+SLOTN[sl].toLowerCase()+' slot'}</span>${parts.join('')||'<span class="cmpsame">No change</span>'}${btn?`<span class="cmpbtn">${btn}</span>`:''}</div>`;
 }
 // Heroes in the party this item looks like an upgrade for (a quick guess from rarity, level, upgrades and bonuses).
 const runStat=h=>{const r=state.run;r.stats=r.stats||{};return r.stats[h.id]=r.stats[h.id]||{dealt:0,taken:0,kills:0,crits:0,big:0}};
@@ -6396,11 +6426,11 @@ function backpackBlock(){
     return it?`<button class="dslot full ${ui.bsel===it.id?'cur':''}" style="--rc:${getRarCol(it.rarity)}" data-a="bpSel" data-x="${it.id}" data-drag="pack:${it.id}" data-drop="pack:${it.id}" data-tip="${esc(it.name+' ('+RAR[it.rarity].l+' '+SLOTN[it.slot]+')')}" aria-label="${esc(it.name)}">${sprite(it.slot==='weapon'?({warrior:'sword',archer:'bow',mage:'staff'})[it.cls]:SLOT_SPR[it.slot==='ring'?'ring1':it.slot],getRarCol(it.rarity),3)}</button>`
       :'<span class="dslot empty" aria-label="Empty backpack slot"></span>'}).join('')}</div>`;
   if(sel){const who=living().filter(h=>!sel.cls||sel.cls===h.cls),up=upgradeFor(sel);
-    s+=itemCard(sel,`<div class="row">${up.map(h=>`<button class="btn small gold" data-a="packEquip" data-x="${sel.id}|${h.id}">Equip${many?' on '+esc(h.name):''} ▲</button>`).join('')}${who.length&&!up.length?'<span class="meta">Not an upgrade for anyone.</span><button class="btn small" data-a="inv">Inventory…</button>':''}<button class="btn small" data-a="bpDrop" data-x="${sel.id}">Drop</button></div>${(up.length?up:who).map(h=>itemCompare(sel,h)).join("")}${who.length?'':'<span class="meta">No one here can use it. Worth '+sellVal(sel)+' gold in town.</span>'}`)}
+    s+=itemCard(sel,`<div class="row">${who.length&&!up.length?'<span class="meta">Not an upgrade for anyone.</span>':''}${sel.rarity==='perfect'?'':`<button class="btn small" data-a="bpDrop" data-x="${sel.id}">Drop</button>`}</div>${equipChoices(sel,living(),'pack|'+sel.id)}${who.length?'':'<span class="meta">No one here can use it. Worth '+sellVal(sel)+' gold in town.</span>'}`)}
   else s+=`<p class="muted" style="font-size:18px">${r.loot.length?'Tap an item to equip or drop it, or drag it onto a hero’s gear slot.':'Loot you find goes here and comes home with you.'} Bigger backpack: Bank.</p>`;
   const G=r.ground||[];
   if(ui.invMsg)s+=`<p class="warn" style="font-size:18px">${ui.invMsg}</p>`;
-  if(G.length)s+=`<h3 class="warn">On the ground · ${G.length}</h3><p class="muted" style="font-size:18px">${r.loot.length>=cap?'Your backpack is full. Drag one of these onto a backpack item to swap them, or onto a hero’s slot to wear it.':'Take what you want, or drag it onto a hero’s slot or the backpack.'} Anything left here is lost when you move on.</p><div class="stack dropzone" data-drop="ground" style="gap:6px">${G.map(it=>itemCard(it,`<div class="row"><button class="btn small gold" data-a="bpTake" data-x="${it.id}" ${r.loot.length>=cap?'disabled':''}>Take</button><span class="meta">Worth ${sellVal(it)} gold</span></div>${living().map(h=>itemCompare(it,h)).join('')}`,`data-drag="ground:${it.id}" data-drop="ground:${it.id}"`)).join('')}</div>`;
+  if(G.length)s+=`<h3 class="warn">On the ground · ${G.length}</h3><p class="muted" style="font-size:18px">${r.loot.length>=cap?'Your backpack is full. Equip one straight from here, or drag it onto a backpack item to swap them.':'Take what you want, or equip it straight from here.'} Anything left here is lost when you move on.</p><div class="stack dropzone" data-drop="ground" style="gap:6px">${G.map(it=>itemCard(it,`<div class="row"><button class="btn small gold" data-a="bpTake" data-x="${it.id}" ${r.loot.length>=cap?'disabled':''}>Take</button><span class="meta">Worth ${sellVal(it)} gold</span></div>${equipChoices(it,living(),'ground|'+it.id)}`,`data-drag="ground:${it.id}" data-drop="ground:${it.id}"`)).join('')}</div>`;
   return s;
 }
 function pslotDetail(h){
@@ -7089,14 +7119,14 @@ function dropActions(items){
   const H=living(),many=H.length>1;
   return `<div class="stack dropacts" style="gap:6px">${L.map(it=>{const ground=G.includes(it),who=H.filter(h=>!it.cls||it.cls===h.cls),up=upgradeFor(it);
     // Only heroes it would actually improve get a one-tap button; anything else goes through the inventory.
-    const eq=up.map(h=>`<button class="btn small gold" data-a="lootEquip" data-x="${it.id}|${h.id}">Equip${many?' on '+esc(h.name):''} ▲</button>`).join('')+(who.length&&!up.length?`<span class="meta">Not an upgrade for anyone.</span><button class="btn small" data-a="inv">Inventory…</button>`:'');
+    const eq=who.length&&!up.length?`<span class="meta">Not an upgrade for anyone.</span>`:'';
     const keep=ground?`<button class="btn small" data-a="bpTake" data-x="${it.id}" ${r.loot.length>=cap?'disabled':''}>Take${r.loot.length>=cap?' (pack full)':''}</button>`:it.rarity==='perfect'?'':`<button class="btn small" data-a="bpDrop" data-x="${it.id}">Drop</button>`;
     return `<div class="dropact r-${it.rarity}-b">
       <div class="row" style="gap:8px;flex-wrap:nowrap;align-items:center">${itemIcon(it,2)}<span class="stack" style="gap:0;min-width:0"><span class="iname">${itemName(it)}</span><span class="meta">${RAR[it.rarity].l} ${SLOTN[it.slot]}${it.cls?' · '+C_({cls:it.cls}).name:''}${ground?' · <span class="warn">on the ground</span>':' · in backpack'}</span></span></div>
-      ${(up.length?up:who).map(h=>itemCompare(it,h)).join('')}${who.length?'':`<span class="meta">No one in the party can wear this. Worth ${sellVal(it)} gold in town.</span>`}
+      ${equipChoices(it,H,(ground?'ground|':'pack|')+it.id)}${who.length?'':`<span class="meta">No one in the party can wear this. Worth ${sellVal(it)} gold in town.</span>`}
       <div class="row" style="gap:6px">${eq}${keep}</div></div>`}).join('')}</div>`;
 }
-const battleDrops=()=>{const b=state.run&&state.run.battle;if(!b)return [];return [...b.enemies.flatMap(e=>e.drop||[]),...(b.extraDrops||[])].filter(x=>x.k==='item').map(x=>x.it)};
+const battleDrops=()=>{const b=state.run&&state.run.battle;if(!b)return [];return [...[...b.enemies.flatMap(e=>e.drop||[]),...(b.extraDrops||[])].filter(x=>x.k==='item').map(x=>x.it),...(b.fallenGear||[])]};
 function resultModal(){
   const r=state.run,b=r.battle,P=partyAll();
   if(b.over==='win')return modalShell(`<span class="gold">${r.kingSlain?'The King is dead':'Victory'}</span>`,`${r.blessOffer?`<div class="blessbox"><h3 class="gold">✦ Choose a blessing</h3><p class="muted" style="font-size:18px">The boss’s power settles on the party. Pick one; it lasts the rest of this adventure. Blessings stack, up to ${BLESS_MAX} per adventure (${(r.bless||[]).length} so far).</p><div class="blessopts">${r.blessOffer.map(id=>{const B=BLESSINGS[id];return `<button class="btn blessopt ${B.cost?'cost':''}" data-a="bless" data-x="${id}"><b>${B.n}</b><span>${B.d}</span></button>`}).join('')}</div></div>`:''}${r.invNote?`<p class="gold" style="font-size:18px">${r.invNote}</p>`:''}<h3>Loot</h3>${lootStrip()}${(()=>{const d=dropActions(battleDrops());return d?`<h3>Gear</h3>${d}`:''})()}<details class="rewards"><summary class="muted">Full report (XP, levels, materials)</summary><div class="stack" style="gap:3px">${b.rewards.map(l=>`<p>${l}</p>`).join('')}</div></details>
@@ -7695,14 +7725,13 @@ function invSelItem(){
 }
 function invActions(S){
   const r=state.run,cap=bagCap(),room=r.loot.length<cap,P=partyAll(),it=S.it;
-  const eq=P.filter(h=>invFits(it,h)&&!(S.k==='gear'&&S.h===h)).map(h=>{const old=h.gear[equipSlotFor(it,h)];
-    return `<button class="btn small gold" data-a="invEquip" data-x="${h.id}">${old?'Swap onto':'Equip on'} ${esc(h.name)}</button>${old?`<span class="meta">replaces ${itemName(old)}${S.k==='pack'||room||old.rarity==='perfect'?'':' (to the ground)'}</span>`:''}`});
+  const eq=[];
   let a='';
   if(S.k==='pack')a=`${eq.join('')}${it.rarity==='perfect'?'':`<button class="btn small" data-a="invDrop">Drop</button>`}`;
   else if(S.k==='ground')a=`<button class="btn small gold" data-a="invTake" ${room?'':'disabled'}>Take</button>${room?'':'<span class="meta">Backpack full</span>'}${eq.join('')}`;
   else a=`${S.h.hp>0?`<button class="btn small" data-a="gearToPack" data-x="${S.h.id}|${S.sl}" ${room?'':'disabled'}>Move to backpack</button>`:''}${S.h.hp>0&&it.rarity!=='perfect'?`<button class="btn small" data-a="invGearDrop">Drop</button>`:''}${eq.join('')}`;
   const none=!P.some(h=>invFits(it,h))&&S.k!=='gear'?`<span class="meta">No one here can use it. Worth ${sellVal(it)} gold in town.</span>`:`<span class="meta">Worth ${sellVal(it)} gold</span>`;
-  const cmp=P.filter(h=>invFits(it,h)&&!(S.k==='gear'&&S.h===h)).map(h=>itemCompare(it,h)).join('');
+  const cmp=equipChoices(it,P.filter(h=>!(S.k==='gear'&&S.h===h)),'inv|');
   return itemCard(it,`<div class="row invact">${a}</div>${none}${cmp}`);
 }
 function invRow(it,src,S){
@@ -8245,6 +8274,10 @@ const ACT={
     if(old){if(r.loot.length<bagCap()||old.rarity==='perfect')r.loot.push(old);else r.ground.push(old)}
     h.hp=clamp(h.hp+Math.max(0,maxHp(h)-mh),1,maxHp(h));h.mp=clamp(h.mp+Math.max(0,maxMp(h)-mm),0,maxMp(h));
     r.invNote=`${esc(h.name)} equips ${itemName(it)}${old?`. ${itemName(old)} goes ${r.loot.includes(old)?'into the backpack':'on the ground (backpack full)'}`:''}.`},
+  equipTo:x=>{const [k,id,hid,sl]=x.split('|'),r=state.run,h=heroById(hid);if(!r||!h)return;
+    let S=null;if(k==='inv')S=invSelItem();else{const it=(k==='pack'?r.loot:(r.ground||[])).find(y=>y.id===id);if(it)S={k,it}}
+    const res=equipInto(S,h,sl);if(!res)return;const old=res.old;ui.invSel=null;ui.bsel=null;ui.invMsg=null;
+    r.invNote=`${esc(h.name)} equips ${itemName(S.it)}${old?`. ${itemName(old)} goes ${r.loot.includes(old)?'into the backpack':'on the ground (backpack full)'}`:''}.`},
   packEquip:x=>{const [id,hid]=x.split('|'),r=state.run,h=heroById(hid),it=r.loot.find(y=>y.id===id);if(!h||h.hp<=0||!it||(it.cls&&it.cls!==h.cls))return;
     let sl=it.slot;if(sl==='ring')sl=!h.gear.ring1||darkIs('greed')?'ring1':!h.gear.ring2?'ring2':'ring1';if(it.slot==='ring')darkHit('greed');
     const mh=maxHp(h),mm=maxMp(h);r.loot=r.loot.filter(x=>x.id!==id);if(h.gear[sl])r.loot.push(h.gear[sl]);h.gear[sl]=it;ui.bsel=null;
