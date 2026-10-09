@@ -4159,8 +4159,10 @@ const PACK_SCALE=.8;
 // normal < mimic < elite < major boss < final boss. The Unlit King is tuned separately.
 const FOE_RANK={normal:{hp:3.4,atk:.43},mimic:{hp:3.8,atk:.55},elite:{hp:4.5,atk:.66},boss:{hp:6.1,atk:.84},warden:{hp:7.6,atk:.98}}; // health raised ~12% when skills got stronger
 const ENEMY_ATK_K=.72; // tuned so fresh heroes usually need to run home before the warden of a Short adventure
-// Between fights heroes recover health based on Endurance: 2% + 0.8% per END point, capped at 30%.
-const restPct=h=>Math.min(30,2+stat(h,'end')*.8)+tr(h,'rest')+tr(h,'recup'); // stats of the extra pack members relative to the leader
+// Between fights heroes recover health from Endurance (0.5% per END point, capped at 30%) and mana from
+// Intelligence (0.5% per INT point). Traits, blessings and Recuperation add on top.
+const restPct=h=>Math.min(30,stat(h,'end')*.5)+tr(h,'rest')+tr(h,'recup');
+const restMpPct=h=>stat(h,'int')*.5+tr(h,'recup'); // stats of the extra pack members relative to the leader
 /* monster tiers, skills and the Moon Ledger */
 const TIER_N={easy:'Easy',medium:'Medium',hard:'Hard'};
 const TIER_COL={easy:'#8fcf6f',medium:'#e3b341',hard:'#e0736c'};
@@ -5245,7 +5247,7 @@ function win(){
     if(chance(.3)){const it=makeItem('chest',ilvl(),pick(L).cls);addLoot(it,lines,`${esc(spotter.name)} spots something half-buried: `);b.extraDrops.push({k:'item',it,ground:(r.ground||[]).includes(it)})}
     else{const g2=goldAmt(4+1.2*s);r.gold+=g2;b.extraDrops.push({k:'gold',g:g2});lines.push(`${esc(spotter.name)} spots a hidden purse: <b class="gold">+${g2} gold</b>`)}}}
   for(const h of L){
-    const hh=Math.round(maxHp(h)*restPct(h)/100*healMult(h)*depthsMult()),mm=Math.round(maxMp(h)*(.25+tr(h,'recup')/100)*manaMult()*depthsMult());
+    const hh=Math.round(maxHp(h)*restPct(h)/100*healMult(h)*depthsMult()),mm=Math.round(maxMp(h)*restMpPct(h)/100*manaMult()*depthsMult());
     h.hp=Math.min(maxHp(h),h.hp+hh);h.mp=Math.min(maxMp(h),h.mp+mm);
   }
   {const got={};
@@ -5255,7 +5257,7 @@ function win(){
       addMat(got,'stone',rand(.15,.3)*Math.sqrt(m)*(1+s*.03))}
     for(const [k,v] of Object.entries(got))addMat(r.mats,k,v);
     if(Object.keys(got).length)lines.push('Gathered '+matsLine(got))}
-  lines.push(`<span class="muted">Catching breath (Endurance): ${L.map(h=>`${esc(h.name)} +${Math.round(restPct(h)*depthsMult())}% HP`).join(', ')}, +${Math.round((25+govMod('recup'))*manaMult()*depthsMult())}% MP</span>`);
+  lines.push(`<span class="muted">Catching breath (END and INT): ${L.map(h=>`${esc(h.name)} +${Math.round(restPct(h)*depthsMult())}% HP, +${Math.round(restMpPct(h)*manaMult()*depthsMult())}% MP`).join(', ')}</span>`);
   lines.push(...regenLines);
   // Fights wear heroes out once they're over: 2% after a battle, 5% after an elite, 10% after a major boss. Final bosses end the trip, so none.
   {const K=b.enemies.map(e=>e.kind),fx=K.includes('warden')||K.includes('king')?0:K.includes('boss')?10:K.includes('elite')?5:2;
@@ -5593,10 +5595,10 @@ function statTip(h,k){
   const C=C_(h),own=C.primary===k;
   if(k==='str')return `Strength. ${own?'Warriors add 1 damage per point':'Adds 0.25 damage per point (Warriors get 1)'}. Each point the hero has (not from gear or elixirs) also adds 0.75 max health every time they level up.`;
   if(k==='per')return `Perception. Accuracy +0.3% per point. Perception adds up across the whole party on the map and in battle: with 1–2 total every choice on the map is unknown; with 3–8 some choices are fogged; from 9 every choice is clear and you see 1 stage ahead, +1 more per 6 points (up to 6). At 6+ you see enemy health and damage numbers; at 10+ you see what each enemy will do next. The party’s best single Perception also fully reads unknown enemies at the start of a fight (${Math.round(fullScoutChance(stat(h,'per')))}%, adding them to the Moon Ledger), spots trapped chests (${Math.round(spotChance(stat(h,'per')))}%), and finds bonus gold or items after fights (${Math.round(findChance(stat(h,'per')))}%).`;
-  if(k==='end')return `Endurance. Each point the hero has (not from gear or elixirs) adds 1.25 max health every time they level up, +0.5% resistance to every element (${(stat(h,'end')*.5).toFixed(1)}% now), and faster recovery between fights: 2% + 0.8% per point, up to 30% (${Math.round(restPct(h))}% now).`;
+  if(k==='end')return `Endurance. Each point the hero has (not from gear or elixirs) adds 1.25 max health every time they level up, +0.5% resistance to every element (${(stat(h,'end')*.5).toFixed(1)}% now), and health recovered between fights: 0.5% per point, up to 30% (${Math.round(restPct(h))}% now).`;
   if(k==='cha')return `Charisma. The whole party’s Charisma adds up for every non-battle event (chests, gold caches, shrines, strangers). Each point above the land’s baseline makes results 3% better, each point below 3% worse (Cave 8, Wilds 14, Wasteland 20, Summit 28). Also lowers the Witch’s brew and supply prices by 1.5% per point, up to 40% (${Math.round(chaDiscount(h))}% now). Treatments use this hero’s Charisma; supplies use your most charming hero.`;
   if(k==='agi')return `Agility. ${own?'Archers add 0.85 damage per point':'Adds 0.25 damage per point (Archers get 0.85)'}. Raises speed, so more turns, plus crit chance, evasion and accuracy.`;
-  if(k==='int')return `Intelligence. ${own?'Mages add 1 damage per point':'Adds 0.25 damage per point (Mages get 1)'}. Each point the hero has (not from gear or elixirs) adds 0.5 max mana every time they level up, and ${h.cls==='mage'?'0.3':'0.2'} mana regained each turn (${focusRegen(h)} now), and strengthens Mend.`;
+  if(k==='int')return `Intelligence. ${own?'Mages add 1 damage per point':'Adds 0.25 damage per point (Mages get 1)'}. Each point the hero has (not from gear or elixirs) adds 0.5 max mana every time they level up, and ${h.cls==='mage'?'0.3':'0.2'} mana regained each turn (${focusRegen(h)} now), 0.5% mana recovered between fights (${Math.round(restMpPct(h))}% now), and strengthens Mend.`;
   return `Luck. For this hero right now: +${luckRate(h,'crit').toFixed(1)}% crit chance, +${luckRate(h,'gold').toFixed(1)}% gold found, ${luckRate(h,'surge').toFixed(1)}% chance of a lucky surge on each ${h.cls==='mage'?'spell or attack':'skill'} (a random boon for the battle). ${C.name}s get 2.5× the ${{warrior:'gold',archer:'crit',mage:'surge'}[h.cls]} bonus. The whole party's Luck also adds up to make chance-based events kinder: each point above the land's baseline is 2% (Cave 6, Wilds 12, Wasteland 18, Summit 26).`;
 }
 function statPips(h,raw){
@@ -6381,7 +6383,7 @@ function statTable(h){
     ${row('Evasion',evasion(h).toFixed(1)+'%','Chance to dodge an enemy attack completely. Archers get more from AGI. Capped at '+EVA_CAP+'%.')}
     ${row('Speed',Math.round(speed(h)),`How often this hero acts. Twice an enemy’s speed means two turns for each of theirs. 8 + 0.6 × AGI${C.spd?` ${C.spd>0?'+':''}${C.spd} (${C.name})`:''}.`)}
     ${row('Damage range',`${Math.round(C.var[0]*100)}–${Math.round(C.var[1]*100)}%`,`${C.name} hits roll between these percents of expected damage. ${C.style}`)}
-    ${row('Recovery',Math.round(restPct(h))+'%','Health regained after each won battle. 2% + 0.8% per END point (max 30%), plus traits.')}
+    ${row('Recovery',Math.round(restPct(h))+'% HP · '+Math.round(restMpPct(h))+'% MP','Regained after each won battle. Health: 0.5% per END point (max 30%). Mana: 0.5% per INT point. Plus traits.')}
     ${row('Gold find','+'+Math.round(aff(h,'goldfind')+luckRate(h,'gold'))+'%','Extra gold from fights, chests and caches. From Luck, gear and traits.')}
     ${row('Lucky surge',luckRate(h,'surge').toFixed(1)+'%',`Chance on each ${h.cls==='mage'?'spell or attack':'skill'} to gain a random boon for the rest of the battle.`)}
     ${aff(h,'lifesteal')?row('Lifesteal',Math.round(aff(h,'lifesteal'))+'%','Heals for this percent of damage dealt.'):''}
