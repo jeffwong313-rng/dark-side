@@ -3691,18 +3691,23 @@ const noEscape=()=>{const b=state.run&&state.run.battle;return !!(b&&!b.over&&b.
 const foundThisRun=()=>{const r=state.run,out=[];for(const it of r.loot)out.push({it});for(const h of partyAll())for(const sl of SLOTS){const it=h.gear[sl];if(it&&it.found===r.id)out.push({it,h,sl})}return out};
 const canFlee=()=>{const r=state.run;return !!r&&r.length==='short'&&!r.final&&living().length>0&&!(r.battle&&r.battle.over==='lose')&&!noEscape()};
 const NAMES=['Aldric','Brenna','Cael','Dorin','Edda','Fenn','Garrick','Hesta','Ivo','Joren','Kest','Liora','Maren','Nils','Orla','Pell','Quill','Rhosyn','Sabel','Tamsin','Ulric','Vesna','Wren','Yorick','Zora','Ansel','Bryn','Corvin','Dagny','Elric','Mirelle','Oswin','Tova','Hollis','Isolde','Rook','Sten','Ysolde'];
+// Upgrade prices climb steeply: each step costs about 2.5–3× the one before, so the last levels are long-term goals.
+// TOWN_PRICE[k][i] is the gold to go from level i+1 to i+2. Edit these to retune.
+const TOWN_PRICE={smith:[250,750,2000,5000],alch:[250,750,2000,5000],academy:[300,1000,3000,8000],barracks:[250,800,2200,6000],
+  bank:[150,500,1400,3500],bag:[500,1000,2000,4000],pack:[300,900,2200,5000],potency:[400,1500,5000],feed:[350,1200,4000],war:[3000,20000]};
+const townPrice=k=>L=>TOWN_PRICE[k][L-1];
 const BUILD={
-  smith:{name:'Forge',at:'smith',icon:['anvil',null],max:5,cost:L=>Math.round(120*Math.pow(L,1.7)),eff:L=>`Items can be upgraded to +${forgeMax(L)}`+(L>3?`; +${(L-3)*10}% success on risky upgrades`:'')},
-  alch:{name:'Cauldron',at:'witch',icon:['flask','#4f9a6a'],max:5,cost:L=>Math.round(120*Math.pow(L,1.7)),eff:L=>`Stat elixirs give +${ELIXIR_V[L-1]}`+(L>=2?`; ${L} permanent tonic${L>1?'s':''} per hero`:'')+(L>=3?'; resistance draughts':'')},
-  academy:{name:'Recruiting',at:'heroes',icon:['book','#5a3f7a'],max:5,cost:L=>Math.round(200*Math.pow(L,1.8)),eff:L=>`${L} recruit${L>1?'s':''} offered each week`+(L>1?`, each with +${L-1} bonus stat point${L>2?'s':''}`:'')},
-  barracks:{name:'Bunks',at:'heroes',icon:['tent','#6a4a3a'],max:5,cost:L=>Math.round(150*Math.pow(L,1.7)),eff:L=>`Room for ${3+L*2} heroes`},
-  bank:{name:'Vault',at:'bank',icon:['chest',null],max:5,cost:L=>Math.round(80*Math.pow(L,1.6)),eff:L=>`Stash holds ${20+L*10} pieces of new loot (gear you unequip always fits)`},
-  bag:{name:'Backpack',at:'bank',icon:['chest','#8c6a3c'],max:5,cost:L=>Math.round(90*Math.pow(L,1.6)),eff:L=>`Carry ${2*L} pieces of loot on an adventure`},
-  pack:{name:'Supply Pack',at:'bank',icon:['flask','#b83a3a'],max:5,cost:L=>Math.round(100*Math.pow(L,1.6)),eff:L=>`${1+L} supply slots on an adventure (up to 6 of one supply in each)`},
-  potency:{name:'Potency',at:'witch',icon:['flask','#b83a3a'],max:3,cost:L=>[300,900,2400][L],eff:L=>L?`Every healing potion heals ${Math.round(HEAL_UP[L]*100)}% more (Small ${(35*(1+HEAL_UP[L])).toFixed(1)}%, Medium ${(55*(1+HEAL_UP[L])).toFixed(1)}%, Large ${(75*(1+HEAL_UP[L])).toFixed(1)}%)`:'Healing potions at normal strength'},
-  feed:{name:'Better Feed',at:'farm',icon:['wheat',null],max:3,cost:L=>[250,750,2000][L],eff:L=>L?`All farm food heals ${Math.round(HEAL_UP[L]*100)}% more (Beef ${(28*(1+HEAL_UP[L])).toFixed(1)}% of max health)`:'Farm food at normal strength'},
+  smith:{name:'Forge',at:'smith',icon:['anvil',null],max:5,cost:townPrice('smith'),eff:L=>`Items can be upgraded to +${forgeMax(L)}`+(L>3?`; +${(L-3)*10}% success on risky upgrades`:'')},
+  alch:{name:'Cauldron',at:'witch',icon:['flask','#4f9a6a'],max:5,cost:townPrice('alch'),eff:L=>`Stat elixirs give +${ELIXIR_V[L-1]}`+(L>=2?`; ${L} permanent tonic${L>1?'s':''} per hero`:'')+(L>=3?'; resistance draughts':'')},
+  academy:{name:'Recruiting',at:'heroes',icon:['book','#5a3f7a'],max:5,cost:townPrice('academy'),eff:L=>`${L} recruit${L>1?'s':''} offered each week`+(L>1?`, each with +${L-1} bonus stat point${L>2?'s':''}`:'')},
+  barracks:{name:'Bunks',at:'heroes',icon:['tent','#6a4a3a'],max:5,cost:townPrice('barracks'),eff:L=>`Room for ${3+L*2} heroes`},
+  bank:{name:'Vault',at:'bank',icon:['chest',null],max:5,cost:townPrice('bank'),eff:L=>`Stash holds ${20+L*10} pieces of new loot (gear you unequip always fits)`},
+  bag:{name:'Backpack',at:'bank',icon:['chest','#8c6a3c'],max:5,cost:townPrice('bag'),eff:L=>`Carry ${2*L} pieces of loot on an adventure`},
+  pack:{name:'Supply Pack',at:'bank',icon:['flask','#b83a3a'],max:5,cost:townPrice('pack'),eff:L=>`${1+L} supply slots on an adventure (up to 6 of one supply in each)`},
+  potency:{name:'Potency',at:'witch',icon:['flask','#b83a3a'],max:3,cost:L=>TOWN_PRICE.potency[L],eff:L=>L?`Every healing potion heals ${Math.round(HEAL_UP[L]*100)}% more (Small ${(35*(1+HEAL_UP[L])).toFixed(1)}%, Medium ${(55*(1+HEAL_UP[L])).toFixed(1)}%, Large ${(75*(1+HEAL_UP[L])).toFixed(1)}%)`:'Healing potions at normal strength'},
+  feed:{name:'Better Feed',at:'farm',icon:['wheat',null],max:3,cost:L=>TOWN_PRICE.feed[L],eff:L=>L?`All farm food heals ${Math.round(HEAL_UP[L]*100)}% more (Beef ${(28*(1+HEAL_UP[L])).toFixed(1)}% of max health)`:'Farm food at normal strength'},
   // Party size is the game's biggest investment: 2 heroes mid-game, 3 heroes late-game.
-  war:{name:'War Table',at:'hall',icon:['sword',null],max:2,major:true,cost:L=>[3000,20000][L],eff:L=>L?`Parties of up to ${1+L} heroes`:'Solo adventures only'},
+  war:{name:'War Table',at:'hall',icon:['sword',null],max:2,major:true,cost:L=>TOWN_PRICE.war[L],eff:L=>L?`Parties of up to ${1+L} heroes`:'Solo adventures only'},
 };
 // Stone for the town's own buildings: Bank vault, backpack and supply pack, Barracks bunks, and the Forge.
 const STONE_UP={bank:L=>2*(L+1),bag:L=>2*(L+1),pack:L=>2*(L+1),barracks:L=>2*(L+1),smith:L=>3*(L+1)};
@@ -5208,7 +5213,8 @@ function buryFallen(lines){
     for(const sl of SLOTS){const it=h.gear[sl];if(!it)continue;h.gear[sl]=null;if(rescuePerfect(it,lines))continue;r.ground=r.ground||[];r.ground.push(it);dropped.push(it)}
     if(b&&dropped.length)(b.fallenGear=b.fallenGear||[]).push(...dropped);
     state.heroes=state.heroes.filter(x=>x.id!==h.id);
-    state.graveyard.unshift({name:h.name,cls:h.cls,level:h.level,week:state.week,stage:r.stage,biome:BIOMES[r.biome].name});
+    h.regen=[];
+    state.graveyard.unshift({name:h.name,cls:h.cls,level:h.level,week:state.week,stage:r.stage,biome:BIOMES[r.biome].name,hero:JSON.parse(JSON.stringify(h))});
     r.fallen.push(h.name);
     const took=b&&b.enemies.some(e=>e.hp>0&&(e.carry||[]).some(c=>c.owner===h.name));
     lines&&lines.push(`<span class="warn">${esc(h.name)} is dead.${dropped.length?` Their gear falls to the ground: ${dropped.map(itemName).join(', ')}.`:''}${took?' A monster carried off the rest.':''}</span>`);
@@ -6501,7 +6507,9 @@ function smithView(){
     <label class="invsort"><span class="muted">Sort</span><select title="Sort by tier or value" data-smithsort aria-label="Sort your items">${BANK_SORT.map(([k,l])=>`<option value="${k}" ${srt===k?'selected':''}>${l}</option>`).join('')}</select></label></div>${clsRow(items.filter(x=>bankCat(x.it,f)).map(x=>x.it),fc,'smithC')}${shown.length?'':'<p class="muted">Nothing of this type.</p>'}<div class="items">${shown.map(({it,h})=>`<button class="item r-${it.rarity}-b ${state.sel.item===it.id?'sel':''}" data-a="selItem" data-x="${it.id}"><span class="ihead">${itemIcon(it,3)}<span class="stack" style="gap:1px"><span class="iname">${itemName(it)}</span><span class="meta">${h?esc(h.name):'Bank'}</span></span></span></button>`).join('')}</div>`;
   return s;
 }
-const upCost=it=>Math.round(25*Math.pow(it.plus+1,1.6)*(1+RAR[it.rarity].i*.5));
+// Item upgrades at the Forge: +1 to +5 for a common item; rarer items cost more (rare ×1.5, epic ×2, godlike ×2.5, perfect ×3).
+const UP_GOLD=[40,120,350,900,2200];
+const upCost=it=>Math.round(UP_GOLD[it.plus]*(1+RAR[it.rarity].i*.5));
 // Whetstones (Stone) for each upgrade attempt: +1 and +2 take 1, then 2, 3 and 4. Used up even when an attempt fails.
 const WHET=[1,1,2,3,4],whetNeed=it=>({stone:WHET[it.plus]||4});
 const forgeMax=L=>Math.min(UP_MAX,L+2);
@@ -6580,7 +6588,7 @@ const FARM_MAX=24;
 const lvlCost=L=>(1+.35*(L-1))*Math.pow(1.07,L-1);
 const farmStep=L=>{if(L<1||L>FARM_MAX)return null;const t=Math.floor((L-1)/4),q=(L-1)%4+1,g=lvlCost(L);
   const need={};for(const [k,v] of Object.entries(FARM_MIX[t]))need[k]=Math.max(1,Math.round(v*g));
-  return {t,q,food:FOODS[t][0],bld:FARM_BLD[t],newBld:q===1,need,gold:Math.round(30*g)}};
+  return {t,q,food:FOODS[t][0],bld:FARM_BLD[t],newBld:q===1,need,gold:Math.round(35*Math.pow(L,1.5))}};
 // What each stage of the farm is built from, so better food means scrap from more lands.
 const FARM_MIX=[{wood:4,metal:2,hide:1},{wood:4,metal:1,hide:2},{wood:3,hide:2,metal:2},{wood:2,hide:3,metal:2},{wood:2,hide:3,metal:2},{wood:2,hide:2,metal:2,void:1}];
 // Old saves: the 3-level farm maps onto the new one.
@@ -7583,16 +7591,35 @@ const resRerollCost=(h,el)=>Math.round(WITCH_BASE*.8*(1+.15*(h.level-1))*Math.po
 const rollHeroRes=()=>chance(.25)?-ri(5,15):ri(5,30);
 const heroWitchCost=(h,k)=>Math.round(WITCH_BASE*WITCH_HERO[k].m*(1+.15*(h.level-1))*Math.pow(1.6,h.witch||0));
 const itemWitchCost=(it,k)=>Math.round(WITCH_BASE*WITCH_ITEM[k].m*WITCH_RAR[it.rarity]*Math.pow(1.6,it.witch||0));
+/* Raising the dead. The Witch owed the governor's father a favor, so the first one is free. After that she names her price,
+   and it climbs: 1,000 gold, +15% per hero level, and every paid raising makes the next one 60% dearer.
+   The hero comes back with their level, stats, traits and skills, but nothing they wore (that fell where they died). */
+const RAISE_BASE=1000;
+const raiseCost=g=>!state.witchFavor?0:Math.round(RAISE_BASE*(1+.15*((g.level||1)-1))*Math.pow(1.6,state.raised||0));
+function raiseView(){
+  const G=state.graveyard||[],fav=!state.witchFavor;
+  let s=`<div class="card"><p>${fav?`“Your father pulled me out of the river the winter the smoke came. I swore I’d repay him, and he never let me. So I’ll repay you instead. <b class="gold">One soul, free.</b> Choose well. After that, the dead cost what the dead cost.”`:`“The favor is spent. The dead still listen, if you pay. Each one I drag back makes the next harder.”`}</p>
+    <p class="muted" style="font-size:18px">${fav?'Your first raising is free.':`Next raising: ${fmt(RAISE_BASE)} gold base, +15% per hero level, ×${Math.pow(1.6,state.raised||0).toFixed(2)} for the ${state.raised||0} you’ve already paid for.`} The hero returns with their level, stats, traits and skills, at full health, carrying only a worn weapon. Barracks ${state.heroes.length}/${slots()}.</p></div>`;
+  if(!G.length)return s+'<p class="muted">The graveyard is empty. Long may it stay that way.</p>';
+  const full=state.heroes.length>=slots();
+  s+=`<div class="stack" style="gap:6px">${G.map((g,i)=>{const c=raiseCost(g),can=!!g.hero;
+    return `<div class="row" style="gap:8px;justify-content:space-between;flex-wrap:nowrap"><span>${sprite('tomb',null,2)} <b>${esc(g.name)}</b> <span class="muted" style="font-size:18px">Lv ${g.level} ${CLASSES[g.cls].name} · fell in ${g.biome}, stage ${g.stage}, week ${g.week}</span></span>${can?`<button class="btn small ${c?'':'gold'}" data-a="witchRaise" data-x="${i}" ${state.run||full||state.gold<c?'disabled':''}>${c?`Raise · ${fmt(c)}g`:'Raise · free'}</button>`:'<span class="meta">Too long gone</span>'}</div>`}).join('')}</div>`;
+  if(full)s+='<p class="warn" style="font-size:18px">The Barracks are full. Make room before raising anyone.</p>';
+  if(state.run)s+='<p class="muted" style="font-size:18px">The Witch won’t work while a party is out.</p>';
+  if(G.some(g=>!g.hero))s+='<p class="muted" style="font-size:18px">Heroes buried before the Witch came to town are too long gone to bring back.</p>';
+  return s;
+}
 function witchView(){
   const wt=state.sel.wtab||'heroes';
   let s=bHead('crescent','#b56fe3','The Witch','Rerolls, brews, supplies and crafting. Never cheap.','Every service starts at the same base price. Rarer items and higher-level heroes cost more to start, and each visit makes the next one on that same hero or item 60% more expensive.',headUp('alch'));
-  s+=`<div class="subtabs">${[['heroes','Heroes'],['mana','Free Mana'],['items','Equipment'],['brews','Brews'],['shop','Supplies'],['craft','Workshop'],['up','Upgrades']].map(([k,l])=>`<button class="subtab ${wt===k?'cur':''} ${k==='mana'&&wt!=='mana'&&coachOn('mana')?'guide':''}" data-a="wtab" data-x="${k}">${l}</button>`).join('')}</div>`;
+  s+=`<div class="subtabs">${[['heroes','Heroes'],['dead','Raise the Dead'],['mana','Free Mana'],['items','Equipment'],['brews','Brews'],['shop','Supplies'],['craft','Workshop'],['up','Upgrades']].map(([k,l])=>`<button class="subtab ${wt===k?'cur':''} ${k==='mana'&&wt!=='mana'&&coachOn('mana')?'guide':''}" data-a="wtab" data-x="${k}">${l}</button>`).join('')}</div>`;
   if(wt==='mana')return s+brewView();
   if(wt==='brews')return s+alchView();
   if(wt==='shop')return s+alchShop();
   if(wt==='craft')return s+craftView();
   if(wt==='up')return s+upgradeBlock(['potency']);
   if(state.sel.witchMsg)s+=`<p class="gold">${state.sel.witchMsg}</p>`;
+  if(wt==='dead')return s+raiseView();
   if(wt==='heroes'){
     if(!state.heroes.length)return s+'<p class="muted">No heroes yet.</p>';
     let h=heroById(state.sel.whero);if(!h){h=state.heroes[0];state.sel.whero=h.id}
@@ -8244,6 +8271,11 @@ const ACT={
   witchRes:x=>{const [hid,el]=x.split('|'),h=heroById(hid);if(!h||onRun(h)||!ELEMENTS.includes(el)||!(h.res||{})[el])return;const c=resRerollCost(h,el);if(state.gold<c)return;
     state.gold-=c;h.resRolls=h.resRolls||{};h.resRolls[el]=(h.resRolls[el]||0)+1;const old=h.res[el],nv=rollHeroRes();h.res[el]=nv;
     const f=v=>(v>0?'+':v<0?'−':'')+Math.abs(v)+'%';state.sel.witchMsg=`${esc(h.name)}’s ${cap(el)} ${old<0?'weakness':'resistance'} ${f(old)} → ${nv<0?'weakness':'resistance'} ${f(nv)}.`},
+  witchRaise:x=>{const G=state.graveyard||[],g=G[+x];if(!g||!g.hero||state.run||state.heroes.length>=slots())return;const c=raiseCost(g);if(state.gold<c)return;
+    state.gold-=c;if(!state.witchFavor)state.witchFavor=true;else state.raised=(state.raised||0)+1;
+    const h=g.hero;h.gear={weapon:starterWeapon(h.cls)};h.regen=[];h.fat=0;h.injury=null;h.elixir=null;h.hp=maxHp(h);h.mp=maxMp(h);
+    state.graveyard.splice(+x,1);state.heroes.push(h);
+    state.sel.witchMsg=`${esc(h.name)} gasps awake on the Witch’s floor${c?`. ${fmt(c)} gold well spent`:'. The favor is repaid'}.`},
   witchTrait:x=>{const [hid,tid]=x.split('|'),h=heroById(hid);if(!h||state.run)return;const i=(h.traits||[]).indexOf(tid),c=heroWitchCost(h,'trait');if(i<0||state.gold<c)return;
     state.gold-=c;h.witch=(h.witch||0)+1;const nid=rollTrait(h.traits,null,h.cls);h.traits[i]=nid;state.sel.witchMsg=`${TRAITS[tid].n} is gone. ${esc(h.name)} is now ${TRAITS[nid].n}: ${traitDesc(TRAITS[nid])}`},
   witchReroll:x=>{const [hid,id]=x.split('|'),h=heroById(hid),sk=SKILLS[id];if(!h||!sk||!sk.tier||!h.skills.includes(id)||onRun(h))return;
