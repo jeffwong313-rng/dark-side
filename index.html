@@ -1635,6 +1635,9 @@ body.nomotion .px.anim{object-position:0 0}
 .unit.mut-regen{--mc:#6fdc6a}.unit.mut-thorns{--mc:#d8d8e8}.unit.mut-frenzy{--mc:#ff6a2a}.unit.mut-warded{--mc:#7aa8ff}.unit.mut-colossal{--mc:#e3b341}
 .mutbadge{position:absolute;top:0;right:4%;z-index:3;display:inline-flex;padding:2px;background:#0a0810e0;box-shadow:0 0 0 1px var(--mc),0 0 6px var(--mc)}
 .mutbadge .ico{margin:0}
+.reflb{position:absolute;top:0;left:4%;z-index:3;display:inline-flex;align-items:center;gap:2px;padding:1px 4px 1px 2px;background:#0a0810e0;color:#e8e8f4;font-size:15px;line-height:1;box-shadow:0 0 0 1px #c8c8d4,0 0 6px #c8c8d4}
+.reflb .ico{margin:0}
+.utag.refl{color:#e8e8f4;box-shadow:inset 0 0 0 1px #c8c8d4}
 .unit.voidt .fo img.px{filter:drop-shadow(0 0 3px #a070ff) saturate(.75)}
 .unit.grief .fo img.px{filter:drop-shadow(0 0 3px #ff3a2a) drop-shadow(0 0 1px #ff3a2a)}
 
@@ -3325,7 +3328,7 @@ const NODE={
   king:{s:'King',n:'The Unlit King',icon:'king',d:'He has found you. There is no other path.'},
 };
 const MUT={
-  regen:{n:'Regenerating',d:'heals 5% each turn'},thorns:{n:'Thorned',d:'reflects 15% of damage'},
+  regen:{n:'Regenerating',d:'heals 5% each turn'},thorns:{n:'Thorned',d:'reflects 10% of the health it loses to each attack'},
   frenzy:{n:'Frenzied',d:'+35% attack'},warded:{n:'Warded',d:'+25% all resistances'},colossal:{n:'Colossal',d:'+60% health'},
 };
 
@@ -4238,19 +4241,19 @@ function srng(str){let h=2166136261;for(const c of str)h=Math.imul(h^c.charCodeA
 const SPECIES={
   'Frost Wolf':['pack',12,'weak','Pack Hunter'],'Rime Slime':['thick',25,'front','Frozen Shell'],'Ice Wraith':['skin',25,'back','Cold Veil'],'Glacier Brute':['crusher',2.2,'front','Avalanche Fist'],
   'Rime Bat':['slippery',10,'back','Snowblind Flutter'],'Snow Weaver':['opener',50,'weak','Ambush from the Drifts'],'Ice Serpent':['keen',15,'fixate','Glacial Fang'],'Frozen Dead':['gasp',80,'front','Shatter'],
-  'Cinder Hound':['frenzy',35,'weak','Smoldering Rage'],'Magma Ooze':['spikes',20,'front','Molten Skin'],'Flame Wisp':['swift',25,'back','Flicker'],'Obsidian Brute':['thick',30,'front','Obsidian Hide'],
+  'Cinder Hound':['frenzy',35,'weak','Smoldering Rage'],'Magma Ooze':['spikes',15,'front','Molten Skin'],'Flame Wisp':['swift',25,'back','Flicker'],'Obsidian Brute':['thick',30,'front','Obsidian Hide'],
   'Cinder Bat':['leech',30,'back','Ember Drink'],'Lava Crawler':['execute',35,'weak','Scent of Burns'],'Magma Wyrm':['crusher',2.2,'fixate','Eruption Coil'],'Charred Bones':['gasp',100,'front','Cinder Burst'],
-  'Static Hound':['swift',25,'weak','Static Dash'],'Volt Jelly':['spikes',25,'front','Charged Membrane'],'Thunder Harpy':['keen',15,'back','Diving Talon'],'Stormbound Golem':['skin',30,'front','Grounded'],
+  'Static Hound':['swift',25,'weak','Static Dash'],'Volt Jelly':['spikes',20,'front','Charged Membrane'],'Thunder Harpy':['keen',15,'back','Diving Talon'],'Stormbound Golem':['skin',30,'front','Grounded'],
   'Storm Bat':['slippery',12,'back','Erratic Flight'],'Sky Weaver':['opener',60,'back','Lightning Snare'],'Cloud Serpent':['pack',15,'fixate','Thunderhead'],'Lightning-Struck Dead':['frenzy',40,'front','Overcharged'],
-  'Thornback':['spikes',20,'front','Thornhide'],'Moss Slime':['regen',5,'front','Overgrowth'],'Spore Wisp':['leech',35,'back','Spore Feast'],'Bark Brute':['thick',25,'front','Bark Armor'],
+  'Thornback':['spikes',15,'front','Thornhide'],'Moss Slime':['regen',5,'front','Overgrowth'],'Spore Wisp':['leech',35,'back','Spore Feast'],'Bark Brute':['thick',25,'front','Bark Armor'],
   'Rot Bat':['execute',30,'weak','Carrion Sense'],'Web Mother':['pack',15,'back','Brood Mother'],'Vine Serpent':['keen',12,'fixate','Strangling Coil'],'Rooted Dead':['regen',4,'front','Rerooting'],
   'Scav Jackal':['execute',40,'weak','Scavenger'],'Grit Slime':['thick',30,'front','Grit Coat'],'Dust Shade':['slippery',15,'back','Dust Veil'],'Bandit Brute':['frenzy',35,'fixate','Last Brawl'],
   'Carrion Bat':['leech',30,'weak','Blood Drinker'],'Sand Stalker':['opener',60,'back','Burrow Strike'],'Dune Serpent':['swift',20,'weak','Sidewinder'],'Bandit Bones':['pack',12,'front','Gang Up'],
   'Gloom Hound':['pack',15,'weak','Shadow Pack'],'Void Ooze':['regen',6,'front','Endless'],'Hollow Shade':['skin',30,'back','Hollow'],'Abyssal Knight':['crusher',2.3,'fixate','Oathbreaker'],
   'Shade Bat':['slippery',15,'back','Shade Wing'],'Void Weaver':['execute',40,'weak','Unravel'],'Abyssal Eel':['leech',30,'fixate','Void Bite'],'Unlit Dead':['gasp',120,'front','Grave Burst'],
-  'The Pale Jarl':['frenzy',30,'fixate','Jarl’s Fury'],'Mother of Ash':['regen',4,'weak','Ash Rebirth'],'The Tempest Crown':['keen',20,'back','Crown of Storms'],'The Rotting Oak':['spikes',25,'front','Bramble Crown'],
+  'The Pale Jarl':['frenzy',30,'fixate','Jarl’s Fury'],'Mother of Ash':['regen',4,'weak','Ash Rebirth'],'The Tempest Crown':['keen',20,'back','Crown of Storms'],'The Rotting Oak':['spikes',20,'front','Bramble Crown'],
   'Warlord Vask':['execute',35,'weak','No Mercy'],'The Abyssal Tyrant':['leech',25,'fixate','Tyrant’s Hunger'],
-  'Warden of Frozen Tundra':['thick',25,'front','Glacier Plate'],'Warden of Ember Isles':['spikes',20,'front','Blazing Aegis'],'Warden of Storm Spires':['swift',20,'back','Storm Step'],
+  'Warden of Frozen Tundra':['thick',25,'front','Glacier Plate'],'Warden of Ember Isles':['spikes',15,'front','Blazing Aegis'],'Warden of Storm Spires':['swift',20,'back','Storm Step'],
   'Warden of Rotwood':['regen',3,'weak','Heartwood'],'Warden of Bone Badlands':['keen',20,'fixate','Duelist’s Eye'],'Warden of Abyss':['skin',25,'back','Void Mantle'],
   'Mimic':['opener',60,'weak','Snap Shut'],'The Unlit King':['pack',10,'front','Lord of the Unlit'],
   ...Object.fromEntries(VOID_BOSSES.map(v=>[v.n,v.sp])),
@@ -4267,7 +4270,7 @@ const ABIL={
   slippery:v=>`${v}% extra evasion: attacks miss it more often.`,
   swift:v=>`${v}% faster than others of its kind, so it acts more often.`,
   regen:v=>`Heals ${v}% of its max health at the start of each of its turns.`,
-  spikes:v=>`Reflects ${v}% of the damage it takes back at the attacker.`,
+  spikes:v=>`Reflects ${v}% of the health it loses back at the attacker, once per attack. With the Thorned mutation the total never passes ${REFLECT_CAP}%.`,
   gasp:v=>`When slain, it lashes out at a random hero for ${v}% of its attack.`,
   keen:v=>`${v}% extra chance to land a critical hit (1.5× damage).`,
   leech:v=>`Heals for ${v}% of the damage it deals.`,
@@ -4276,6 +4279,9 @@ const ABIL={
 };
 const HABIT={front:'Mostly attacks whoever stands in front.',weak:'Hunts the hero with the lowest health.',back:'Goes after the back line.',fixate:'Keeps attacking the same hero once it has drawn blood.'};
 const spOf=e=>SPECIES[e&&e.base];
+// Reflected damage: Thorned elites 10%, Spikes monsters 15–20%, never more than 25% combined.
+const REFLECT_CAP=25;
+const reflectPct=e=>{if(!e)return 0;const S=spOf(e);return Math.min(REFLECT_CAP,(e.mutation==='thorns'?10:0)+(S&&S[0]==='spikes'?S[1]:0))};
 // Each species leans a little on health, attack and speed (the same every time it appears).
 // Centered a little below 1 so the signature abilities don't make monsters stronger overall, only different.
 const spStats=base=>{const g=srng('species|'+base);return {hp:+(0.83+g()*.2).toFixed(2),atk:+(0.83+g()*.2).toFixed(2),spd:Math.round(g()*4-2)}};
@@ -4657,7 +4663,7 @@ function heroAction(act,allyId){
   // Food and mana drinks are quick: they don't use the turn.
   if(act.startsWith('item:')&&CONSUMABLES[act.slice(5)]&&CONSUMABLES[act.slice(5)].quick){b.pending=null;useConsumable(act.slice(5),heroById(allyId)||h,h);return}
   const tgt=fixTarget();
-  b.pending=null;b.critThisAction=false;b.fx.act='h:'+h.id;
+  b.pending=null;b.critThisAction=false;b.reflDone={};b.fx.act='h:'+h.id;
   // Marks from before the previous move fade out; everything since then stays visible.
   b.gen=(b.gen||0)+1;for(const k in b.marks||{})b.marks[k]=b.marks[k].filter(m=>(m.g||0)>=b.gen-1);
   if(jammed(h,act))return;
@@ -4910,7 +4916,7 @@ function hitEnemy(h,e,o){
   if(crit)d*=(critDmg(h)+(o.cdmg||0)+(h.cls==='archer'?cbStacks(h)*4:0))/100;
   {const vp=vanityPen(h);if(vp){d*=1-vp/100;darkHit('vanity')}}
   d=Math.max(1,Math.round(d));
-  {const was=e.hp;e.hp=Math.max(0,e.hp-d);const S=runStat(h);S.dealt+=Math.min(d,was);if(d>S.big)S.big=d;if(crit)S.crits++;if(was>0&&e.hp<=0)S.kills++}
+  let lost=0;{const was=e.hp;e.hp=Math.max(0,e.hp-d);lost=Math.min(d,was);const S=runStat(h);S.dealt+=Math.min(d,was);if(d>S.big)S.big=d;if(crit)S.crits++;if(was>0&&e.hp<=0)S.kills++}
   b.fx['e'+idx]=1;b.pops.push({s:'e',i:idx,t:d,crit,el,m:m>1?1:(m<1||res>=40)?-1:0});
   if(crit){if(!b.critThisAction&&h.hp>0)critBuff(h);b.fx.shake=1;b.fx.crit=1;b.fx['stop'+idx]=1;b.critThisAction=true}
   // Reckless Fury: every crit tears at the hero's own scars.
@@ -4921,7 +4927,6 @@ function hitEnemy(h,e,o){
   if(e.hp<=0&&b.enemies.length>1)blog(`${e.name} falls.`);
   const ls=aff(h,'lifesteal');
   if(ls>0){const x=Math.round(d*ls/100);if(x>0)h.hp=Math.min(maxHp(h),h.hp+x)}
-  if(e.mutation==='thorns'){const x=Math.max(1,Math.round(d*.15));h.hp=Math.max(0,h.hp-x);blog(`Thorns reflect ${x} damage to ${esc(h.name)}.`);if(h.hp<=0)heroDown(h)}
   if(e.kind==='king'&&!e.summoned&&e.hp>0&&e.hp<e.maxHp*.5){
     e.summoned=true;e.atk*=1.25;
     b.enemies.forEach((x,i)=>{if(x.hp<=0){const k=makeEnemy('normal',true,'brute');k.name=x.name;b.enemies[i]=k;planIntent(k);b.ct['e:'+i]=(b.ct['h:'+h.id]||0)+delayOf('e:'+i)}});
@@ -4929,7 +4934,11 @@ function hitEnemy(h,e,o){
   }
   if(!o.proc)weaponProc(h,e,d,o);
   {const S=spOf(e);
-   if(S&&S[0]==='spikes'&&h.hp>0){const x=Math.max(1,Math.round(d*S[1]/100));h.hp=Math.max(0,h.hp-x);b.pops.push({s:'h',hid:h.id,t:x});blog(`${e.name}’s ${S[3]} returns ${x} damage to ${esc(h.name)}.`);if(h.hp<=0)heroDown(h)}
+   // Thorns and spikes: once per enemy per action (not per arrow, bounce or bonus hit), from the health the hit actually took.
+   const rp=reflectPct(e);
+   if(rp>0&&!o.proc&&h.hp>0&&lost>0){b.reflDone=b.reflDone||{};if(!b.reflDone[idx]){b.reflDone[idx]=1;
+     const x=Math.max(1,Math.round(lost*rp/100));h.hp=Math.max(0,h.hp-x);b.pops.push({s:'h',hid:h.id,t:x});b.fx['refl'+idx]=1;
+     blog(`${e.name}’s ${S&&S[0]==='spikes'?S[3]:'Thorns'} return${S&&S[0]==='spikes'?'s':''} ${x} damage to ${esc(h.name)}.`);if(h.hp<=0)heroDown(h)}}
    if(S&&S[0]==='gasp'&&e.hp<=0&&!e.gasped){e.gasped=true;const t=pick(living());if(t){blog(`<span class="warn">${e.name}’s ${S[3]}!</span>`);foeStrike(e,idx,t,S[1]/100,{name:S[3],verb:'lashes out at'})}}}
   return d;
 }
@@ -6989,6 +6998,8 @@ function nameTip(e){const lv=scoutLv(e),S=spOf(e),w=e.type!=='dark'&&e.type!=='p
   else if(S&&lv>=4)t+=` Signature ability, ${S[3]}: ${ABIL[S[0]](S[1])} Habit: ${HABIT[S[2]]}`;
   else t+=` Knowledge ${lv}/4: its signature ability and habit are still unknown.`;
   return t}
+const reflectTip=e=>{const S=spOf(e),src=[e.mutation==='thorns'?'Thorned (10%)':'',S&&S[0]==='spikes'?`${S[3]} (${S[1]}%)`:''].filter(Boolean).join(' + ');
+  return `Reflects ${reflectPct(e)}% of the health it loses back at the attacker: ${src}${e.mutation==='thorns'&&S&&S[0]==='spikes'?`, capped at ${REFLECT_CAP}%`:''}. Once per attack, so multi-hit skills and bonus hits don’t multiply it. Ignores armor and resistances.`};
 function foeInfo(e){
   // 1 name, level, element · 2 health · 3 crushing-blow charge and conditions · 4 what it will do next · 5 what kind of monster it is
   const dead=e.hp<=0,ch=(e.tc||0)%3,tags=[],cond=[];
@@ -6999,6 +7010,7 @@ function foeInfo(e){
   if(e.kind!=='normal')tags.push(`<span class="utag" style="color:${e.kind==='elite'||e.kind==='mimic'?'#b56fe3':'#e0736c'}" data-tip="${esc(KIND_TIP[e.kind]||'')}">${e.kind}</span>`);
   if(e.carry&&e.carry.length)tags.push(`<span class="utag" style="color:#f2a83a" data-tip="${esc(`Carrying ${listNames(e.carry.map(c=>c.owner+'’s '+c.it.name))}. Kill it to get ${e.carry.length>1?'them':'it'} back.`)}">carrying loot</span>`);
   if(e.mutation)tags.push(`<span class="utag" style="color:#b56fe3" data-tip="${esc(MUT[e.mutation].n+': '+MUT[e.mutation].d+'.')}">${MUT[e.mutation].n.toLowerCase()}</span>`);
+  if(!dead&&isScouted(e)&&reflectPct(e))tags.push(`<span class="utag refl" data-tip="${esc(reflectTip(e))}">↩ reflects ${reflectPct(e)}%</span>`);
   if(e.bossType&&!bossRule(e))tags.push(`<span class="utag" style="color:#e3b341" data-tip="${esc(BOSS_STYLE[e.bossType].d)}">${BOSS_STYLE[e.bossType].n.toLowerCase()}</span>`);
   {const R=bossRule(e);if(R){const w=foeWeakEl(e),lab=e.ward==='up'?`ward −50%${w?' · break: '+cap(w):''}`:e.ward==='open'?`exposed +25% ×${e.wardT}`:e.kind==='king'?(state.run.battle.enemies.some(x=>x!==e&&x.hp>0)?'guarded −40%':'unguarded'):e.voidPhys!=null&&e.voidEl&&ELEMENTS.find(x=>BEATS[x]===e.voidEl)?`weak now: ${cap(ELEMENTS.find(x=>BEATS[x]===e.voidEl))}`:R.n.toLowerCase();
     tags.push(`<span class="utag rule" data-tip="${esc('Rule · '+R.n+': '+R.d)}">${lab}</span>`)}}
@@ -7090,9 +7102,11 @@ function foeUnit(e,i,fx,pops){
   const combo=bonusDmg.length?`<span class="combob" data-tip="${esc(bonusDmg.map(x=>x[1]).join(' '))}">${bonusDmg.map(x=>x[0]).join(' ')} dmg</span>`:'';
   const MUT_ICO={regen:['heart','#8fe08a'],thorns:['blade','#c8c8d4'],frenzy:['flame','#ff7a2a'],warded:['shield','#8fa8c8'],colossal:['fist','#e3b341']};
   const mutB=e.mutation&&!dead?`<span class="mutbadge" style="--mc:${(MUT_ICO[e.mutation]||[])[1]||'#b56fe3'}" data-tip="${esc('Elite · '+MUT[e.mutation].n+': '+MUT[e.mutation].d+'.')}">${ico(...(MUT_ICO[e.mutation]||['star',null]),2)}</span>`:'';
+  const rp=!dead&&isScouted(e)?reflectPct(e):0;
+  const reflB=rp?`<span class="reflb" data-tip="${esc(reflectTip(e))}">${ico('blade','#e8e8f4',2)}↩${rp}%</span>`:'';
   const ks=e.kind==='king'?`style="--ks:${(1.25-kph(e)*.09).toFixed(2)}"`:'';
   return `<div class="unit foe ${big?'big':''} ${e.kind==='king'?'kingv':''} ${dead?'down':''} ${tgt?'tgt':''} ${e.mutation?'mut mut-'+e.mutation:''} ${/^Void /.test(e.name)?'voidt':''} ${e.grief?'grief':''} ${e.carry&&e.carry.length&&!dead?'carrier':''} ${noreach} ${wuCls('e'+i)}" data-u="e${i}" ${foeTargetAttrs(e,i)} ${ks} aria-label="${esc(e.name)}${tgt?' (targeted)':''}" data-tip="${esc(foeTip(e)+(noreach?' Out of reach: warriors can only strike the front enemy.':''))}">
-    ${mutB}${combo}<div class="fo ${dead?(fx['die'+i]?'dead dying':'dead'):''} ${fx.act==='e:'+i?'lunge-foe':''} ${fx['stop'+i]?'hitstop':''} ${e.poison?'poisoned':''}">${fx['die'+i]?shards(EL_COL[e.type]||'#d8cfc0'):''}${foeArt(e,5,fx['e'+i]&&!dead?'hit':!dead?'bob':'')}${fx['burst'+i]?`<span class="burst" style="--c:${fx['burst'+i]}"></span>`:''}${fx['frz'+i]?'<span class="burst frz" style="--c:#bfe9ff"></span>':''}${skFx(fx,'e:'+i)}${weaponFx(fx,'e:'+i)}${marksHtml('e'+i)}</div>${b.over==='win'&&e.drop&&e.drop.length?`<span class="dropfan ${b.lootFresh?'fresh':''}">${e.drop.map((x,j)=>`<span style="animation-delay:${j*.18}s">${lootTile(x,true)}</span>`).join('')}</span>`:''}
+    ${mutB}${reflB}${combo}<div class="fo ${dead?(fx['die'+i]?'dead dying':'dead'):''} ${fx.act==='e:'+i?'lunge-foe':''} ${fx['stop'+i]?'hitstop':''} ${e.poison?'poisoned':''}">${fx['die'+i]?shards(EL_COL[e.type]||'#d8cfc0'):''}${foeArt(e,5,fx['e'+i]&&!dead?'hit':!dead?'bob':'')}${fx['burst'+i]?`<span class="burst" style="--c:${fx['burst'+i]}"></span>`:''}${fx['frz'+i]?'<span class="burst frz" style="--c:#bfe9ff"></span>':''}${fx['refl'+i]?'<span class="burst refl" style="--c:#e8e8f4"></span>':''}${skFx(fx,'e:'+i)}${weaponFx(fx,'e:'+i)}${marksHtml('e'+i)}</div>${b.over==='win'&&e.drop&&e.drop.length?`<span class="dropfan ${b.lootFresh?'fresh':''}">${e.drop.map((x,j)=>`<span style="animation-delay:${j*.18}s">${lootTile(x,true)}</span>`).join('')}</span>`:''}
     <div class="uinfo">${foeInfo(e)}</div></div>`;
 }
 // On small screens the fighters stand across the top as pixel art, and their labeled bars sit in this roster beneath them.
