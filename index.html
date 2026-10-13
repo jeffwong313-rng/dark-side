@@ -1617,6 +1617,7 @@ body.nomotion .shards{display:none}
 /* ======== unit art: four frames in one strip (idle, breath, attack, hurt) ======== */
 .px.anim{object-fit:cover;object-position:0 0;height:auto}
 .px.anim.smooth{image-rendering:auto}
+html[data-look="pulp"] .px,html[data-look="alpine"] .px,html[data-look="pulp"] .endscene img.px,html[data-look="alpine"] .endscene img.px,html[data-look="pulp"] .endtown,html[data-look="alpine"] .endtown,html[data-look="pulp"] .lay,html[data-look="alpine"] .lay,html[data-look="pulp"] .scene .gnd,html[data-look="alpine"] .scene .gnd{image-rendering:auto}
 .px.anim.bob{animation:bob 1.2s steps(2) infinite,idlef 1.2s steps(1) infinite}
 @keyframes idlef{0%{object-position:0 0}50%{object-position:33.333% 0}}
 .px.anim.hit{animation:hit .35s steps(3),hurtf .45s steps(1)}
@@ -1739,6 +1740,92 @@ const hexRgb=h=>{h=h.replace('#','');if(h.length===3)h=[...h].map(c=>c+c).join('
 const lit=(c,f)=>f>=0?c.map(v=>v+(255-v)*f):c.map(v=>v*(1+f));
 const mixc=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
 const hsh=(x,y)=>{let n=(x|0)*374761393+(y|0)*668265263;n=Math.imul(n^(n>>>13),1274126177);return ((n^(n>>>16))>>>0)/4294967295};
+/* ---------- looks: everything the game draws passes through here on its way to the screen ----------
+   The art is still drawn as pixel art in code. A look restyles each finished picture: "pixel" leaves it alone,
+   "pulp" turns it into faded newsprint with ink lines and printed dots, "alpine" into flat bold color with clean outlines.
+   No image files: it is all done in the browser, once per picture, then cached like the pixel art was. */
+const LOOKS={
+  pulp:{n:'Pulp Newsprint',d:'Faded paper, ink lines and printed dots, like an old comic. The default.'},
+  alpine:{n:'Alpine Flat',d:'Clean thick outlines, flat bold color and simple shading.'},
+  pixel:{n:'Pixel art',d:'The original pixel look.'},
+};
+const LOOK=(()=>{
+  let cur='pulp';try{const o=JSON.parse(localStorage.getItem('dsotm-settings')||'{}');if(o.look&&LOOKS[o.look])cur=o.look}catch(e){}
+  document.documentElement.dataset.look=cur;
+  const cl=(v,a,b)=>v<a?a:v>b?b:v;
+  const hash=(x,y)=>{let h=(Math.imul(x,374761393)+Math.imul(y,668265263))|0;h=Math.imul(h^(h>>>13),1274126177);return((h^(h>>>16))>>>0)/4294967295};
+  // Box blur: wraps sideways (so tiled backdrops stay seamless), clamps top and bottom.
+  function blur(a,W,H,R,t){
+    const n=2*R+1;
+    for(let y=0;y<H;y++){const o=y*W;let s=0;for(let k=-R;k<=R;k++)s+=a[o+(((k%W)+W)%W)];
+      for(let x=0;x<W;x++){t[o+x]=s/n;s+=a[o+((x+R+1)%W)]-a[o+((((x-R)%W)+W)%W)]}}
+    for(let x=0;x<W;x++){let s=0;for(let k=-R;k<=R;k++)s+=t[cl(k,0,H-1)*W+x];
+      for(let y=0;y<H;y++){a[y*W+x]=s/n;s+=t[cl(y+R+1,0,H-1)*W+x]-t[cl(y-R,0,H-1)*W+x]}}
+  }
+  function rgb2hsl(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2;let h=0,s=0;
+    if(mx!==mn){const d=mx-mn;s=l>.5?d/(2-mx-mn):d/(mx+mn);h=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4;h/=6}return[h,s,l]}
+  function hsl2rgb(h,s,l){const f=(p,q,t)=>{if(t<0)t+=1;if(t>1)t-=1;return t<1/6?p+(q-p)*6*t:t<1/2?q:t<2/3?p+(q-p)*(2/3-t)*6:p};
+    if(!s){const v=l*255;return[v,v,v]}const q=l<.5?l*(1+s):l+s-l*s,p=2*l-q;return[f(p,q,h+1/3)*255,f(p,q,h)*255,f(p,q,h-1/3)*255]}
+  function process(cv,look){
+    const w=cv.width,h=cv.height,src=cv.getContext('2d').getImageData(0,0,w,h).data;
+    const area=w*h,f=area<=6000?6:area<=60000?4:3,W=w*f,H=h*f,N=W*H,tiny=area<=300;
+    const pr=new Float32Array(N),pg=new Float32Array(N),pb=new Float32Array(N),pa=new Float32Array(N),tmp=new Float32Array(N);
+    for(let y=0;y<H;y++){const sy=(y/f)|0;for(let x=0;x<W;x++){const si=(sy*w+((x/f)|0))*4,a=src[si+3]/255,i=y*W+x;pr[i]=src[si]*a;pg[i]=src[si+1]*a;pb[i]=src[si+2]*a;pa[i]=a}}
+    // Round off the pixel steps: blur, then cut the silhouette back to a clean edge.
+    const R0=Math.max(1,Math.round(f*.45));
+    for(const a of [pr,pg,pb,pa]){blur(a,W,H,R0,tmp);blur(a,W,H,R0,tmp)}
+    const cr=new Float32Array(N),cg=new Float32Array(N),cb=new Float32Array(N),ca=new Float32Array(N),L=new Float32Array(N);
+    let sumA=0;
+    for(let i=0;i<N;i++){const a=pa[i];sumA+=a;if(a>.001){cr[i]=pr[i]/a;cg[i]=pg[i]/a;cb[i]=pb[i]/a}
+      const t=cl((a-.3)/.4,0,1);ca[i]=t*t*(3-2*t);L[i]=(.299*cr[i]+.587*cg[i]+.114*cb[i])/255}
+    const opaque=sumA/N>.995;
+    // Silhouette outline: grow the cut-out shape outward.
+    const ink=new Float32Array(N);
+    const T=Math.max(1,Math.round(f*(look==='alpine'?.8:.55)));
+    if(!opaque&&!tiny){const m=new Float32Array(N);for(let i=0;i<N;i++)m[i]=ca[i]>.5?1:0;blur(m,W,H,T,tmp);
+      for(let i=0;i<N;i++){if(ca[i]<=.5)ink[i]=cl(m[i]*(look==='alpine'?5:7),0,1)}}
+    const out=new Uint8ClampedArray(N*4);
+    if(look==='pulp'){
+      const cell=f*1.15,co=Math.cos(.52),si=Math.sin(.52),dx=tiny?0:Math.round(f*.45),dy=tiny?0:Math.round(f*.3);
+      // colour layer: faded, slightly grey, warmed toward old paper
+      const col=new Uint8ClampedArray(N*4);
+      for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=y*W+x,o=i*4,g=L[i]*255;
+        let r=g+(cr[i]-g)*.62,gg=g+(cg[i]-g)*.62,b=g+(cb[i]-g)*.62;
+        r=r*.97*.88+232*.12;gg=gg*.97*.88+217*.12;b=b*.97*.88+168*.12;
+        if(opaque){const n=(hash(x>>1,y>>1)-.5)*10;r+=n;gg+=n;b+=n}
+        col[o]=r;col[o+1]=gg;col[o+2]=b;col[o+3]=ca[i]*255}
+      // ink layer: very dark pixels, sharp edges of a scene, and printed dots in the shadows
+      for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=y*W+x;let k=ink[i];
+        if(ca[i]>.5){const l=L[i];
+          if(l<.2)k=Math.max(k,cl((.24-l)/.07,0,1));
+          if(!tiny&&l<(opaque?.34:.5)){const u=(x*co+y*si)/cell,v=(-x*si+y*co)/cell,fu=u-Math.floor(u)-.5,fv=v-Math.floor(v)-.5,d=Math.sqrt(fu*fu+fv*fv),r=cl(((opaque?.34:.5)-l)/(opaque?.34:.5),0,1)*(opaque?.38:.66);
+            if(r>0)k=Math.max(k,.5*cl((r-d)/.1,0,1))}
+          if(opaque&&x>f&&y>f&&x<W-f&&y<H-f){const gx=L[i+f]-L[i-f],gy=L[i+f*W]-L[i-f*W],g=Math.sqrt(gx*gx+gy*gy);if(g>.16)k=Math.max(k,cl((g-.16)/.12,0,1)*.8)}}
+        ink[i]=k}
+      for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=y*W+x,o=i*4,sx=cl(x-dx,0,W-1),sy=cl(y-dy,0,H-1),so=(sy*W+sx)*4,ca2=col[so+3]/255,k=ink[i];
+        const A=1-(1-ca2)*(1-k);if(A<=.003)continue;
+        out[o]=(col[so]*ca2*(1-k)+42*k)/A;out[o+1]=(col[so+1]*ca2*(1-k)+33*k)/A;out[o+2]=(col[so+2]*ca2*(1-k)+24*k)/A;out[o+3]=A*255}
+    }else{ // alpine
+      const bands=[.3,.5,.68,.86];
+      for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=y*W+x,o=i*4,ca_=ca[i],k=ink[i];
+        let r=0,g=0,b=0,a=ca_;
+        if(ca_>.003){const l=L[i];
+          if(l<.17){r=20;g=48;b=60}
+          else{const[hh,ss,ll]=rgb2hsl(cr[i],cg[i],cb[i]);const q=ll<.36?0:ll<.55?1:ll<.74?2:3;const rgb=hsl2rgb(hh,Math.min(1,ss*1.1),bands[q]);
+            r=rgb[0];g=rgb[1];b=rgb[2];if(q===0){r=r*.75+15*.25;g=g*.75+74*.25;b=b*.75+106*.25}}}
+        const A=1-(1-a)*(1-k);if(A<=.003)continue;
+        out[o]=(r*a*(1-k)+20*k)/A;out[o+1]=(g*a*(1-k)+48*k)/A;out[o+2]=(b*a*(1-k)+60*k)/A;out[o+3]=A*255}
+    }
+    const c=document.createElement('canvas');c.width=W;c.height=H;c.getContext('2d').putImageData(new ImageData(out,W,H),0,0);
+    return c.toDataURL();
+  }
+  return{
+    get cur(){return cur},
+    use(k){if(!LOOKS[k])return;cur=k;document.documentElement.dataset.look=k},
+    // canvas in, data URL out; the old pixel look is just the canvas as it was
+    url(cv){if(cur==='pixel')return cv.toDataURL();try{return process(cv,cur)}catch(e){console.error(e);return cv.toDataURL()}},
+  };
+})();
 function Raster(w,h){this.w=w;this.h=h;this.d=new Uint8ClampedArray(w*h*4)}
 Raster.prototype.set=function(x,y,c,a){x=Math.floor(x);y=Math.floor(y);if(x<0||y<0||x>=this.w||y>=this.h)return;const i=(y*this.w+x)*4;this.d[i]=c[0];this.d[i+1]=c[1];this.d[i+2]=c[2];this.d[i+3]=a==null?255:a};
 Raster.prototype.get=function(x,y){const i=(y*this.w+x)*4;return this.d[i+3]?[this.d[i],this.d[i+1],this.d[i+2]]:null};
@@ -1755,7 +1842,7 @@ Raster.prototype.glow=function(cx,cy,r,c,s){
     const i=(y*this.w+x)*4;if(!this.d[i+3])continue;const t=s*(1-d)*(1-d);
     this.d[i]+=(c[0]-this.d[i])*t;this.d[i+1]+=(c[1]-this.d[i+1])*t;this.d[i+2]+=(c[2]-this.d[i+2])*t}
 };
-Raster.prototype.url=function(){const c=document.createElement('canvas');c.width=this.w;c.height=this.h;const x=c.getContext('2d'),im=x.createImageData(this.w,this.h);im.data.set(this.d);x.putImageData(im,0,0);return c.toDataURL()};
+Raster.prototype.url=function(){const c=document.createElement('canvas');c.width=this.w;c.height=this.h;const x=c.getContext('2d'),im=x.createImageData(this.w,this.h);im.data.set(this.d);x.putImageData(im,0,0);return LOOK.url(c)};
 // Copies a palette sprite into a raster at 1:1.
 function blit(R,name,tint,x0,y0){const rows=SPR[name];rows.forEach((row,y)=>[...row].forEach((ch,x)=>{if(ch!=='.')R.set(x0+x,y0+y,ch==='A'?hexRgb(tint||'#888'):hexRgb(PAL[ch]))}))}
 const texWall=(base,f)=>(x,y)=>{let c=lit(base,f);const n=hsh(x,y);if(y%3===0)c=lit(c,-.18);else if((x+(Math.floor(y/3)%2)*2)%5===0)c=lit(c,-.1);if(n<.08)c=lit(c,-.15);else if(n>.95)c=lit(c,.12);return c};
@@ -1917,13 +2004,13 @@ const ART=(()=>{
   function strip(frames,pal,opt){
     opt=opt||{};const W=frames[0].w,Hh=frames[0].h,n=frames.length,cv=document.createElement('canvas');cv.width=W*n;cv.height=Hh;const x=cv.getContext('2d');
     frames.forEach((g,k)=>{const d=shade(g,pal,opt.flash&&opt.flash[k]),im=x.createImageData(W,Hh);im.data.set(d);x.putImageData(im,k*W,0)});
-    if(!opt.crop)return cv.toDataURL();
+    if(!opt.crop)return LOOK.url(cv);
     // Portrait: a square around the figure in the first frame (upper part for tall figures), same window on every frame.
     const g0=frames[0];let x0=W,y0=Hh,x1=0,y1=0;for(let y=0;y<Hh;y++)for(let xx=0;xx<W;xx++)if(g0.m[y*W+xx]){x0=Math.min(x0,xx);x1=Math.max(x1,xx);y0=Math.min(y0,y);y1=Math.max(y1,y)}
     const side=Math.min(Math.max(x1-x0,Math.min(y1-y0,Math.round((x1-x0)*1.1)))+3,W),cx=(x0+x1)/2,sx=Math.round(Math.min(Math.max(cx-side/2,0),W-side)),sy=Math.max(0,Math.min(y0-1,Hh-side));
     const c2=document.createElement('canvas');c2.width=side*n;c2.height=side;const x2=c2.getContext('2d');
     for(let k=0;k<n;k++)x2.drawImage(cv,k*W+sx,sy,side,side,k*side,0,side,side);
-    return {url:c2.toDataURL(),side};
+    return {url:LOOK.url(c2),side};
   }
   return {Grid,strip,hx,sh,mx};
 })();
@@ -2824,13 +2911,13 @@ function chunkRaster(G,pal){
 function chunkStrip(Gs,pal,crop){
   const Rs=Gs.map(G=>chunkRaster(G,pal)),W=Rs[0].w,Hh=Rs[0].h,n=Rs.length,cv=document.createElement('canvas');cv.width=W*n;cv.height=Hh;const x=cv.getContext('2d');
   Rs.forEach((R,k)=>x.putImageData(new ImageData(R.d,W,Hh),k*W,0));
-  if(!crop)return cv.toDataURL();
+  if(!crop)return LOOK.url(cv);
   const G=Gs[0];let x0=99,y0=99,x1=0,y1=0;G.forEach((r,y)=>r.forEach((c,xx)=>{if(c!=='.'){x0=Math.min(x0,xx);x1=Math.max(x1,xx);y0=Math.min(y0,y);y1=Math.max(y1,y)}}));
   x0*=2;y0*=2;x1=x1*2+1;y1=y1*2+1;
   const side=Math.min(Math.max(x1-x0,Math.min(y1-y0,Math.round((x1-x0)*1.1)))+3,W),cx=(x0+x1)/2,sx=Math.round(Math.min(Math.max(cx-side/2,0),W-side)),sy=Math.max(0,Math.min(y0-1,Hh-side));
   const c2=document.createElement('canvas');c2.width=side*n;c2.height=side;const x2=c2.getContext('2d');
   for(let k=0;k<n;k++)x2.drawImage(cv,k*W+sx,sy,side,side,k*side,0,side,side);
-  return {url:c2.toDataURL(),side};
+  return {url:LOOK.url(c2),side};
 }
 function heroArt(h,scale,cls){
   const w=h.gear&&h.gear.weapon,wr=w?w.rarity:null;
@@ -3888,7 +3975,7 @@ function moonImg(p,scale,cls){
       x.fillStyle=lit?(crater?'#b8ad96':'#e6dcc4'):(vein?'#8a1f2e':crater?'#1c1424':'#2a1f33');
       x.fillRect(px,py,1,1);
     }
-    moonCache[key]=c.toDataURL();
+    moonCache[key]=LOOK.url(c);
   }
   return `<img class="px ${cls||''}" src="${moonCache[key]}" width="${24*scale}" height="${24*scale}" alt="Moon, ${q}% dark">`;
 }
@@ -5952,7 +6039,7 @@ function govImg(g,scale,back){
   // outline
   const out=new Raster(W,H);for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=(y*W+x)*4;if(R.d[i+3]){out.d.set(R.d.subarray(i,i+4),i)}else{for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const X=x+dx,Y=y+dy;if(X>=0&&Y>=0&&X<W&&Y<H&&R.d[(Y*W+X)*4+3]){out.d[i]=10;out.d[i+1]=8;out.d[i+2]=16;out.d[i+3]=255;break}}}}
   const c=document.createElement('canvas');c.width=W*scale;c.height=H*scale;const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=false;const t=document.createElement('canvas');t.width=W;t.height=H;t.getContext('2d').putImageData(new ImageData(out.d,W,H),0,0);ctx.drawImage(t,0,0,W*scale,H*scale);
-  return govCache[key]=c.toDataURL();
+  return govCache[key]=LOOK.url(t);
 }
 const govPic=(g,scale,cls,back)=>`<img class="px ${cls||''}" src="${govImg(g,scale,back)}" width="${20*scale}" height="${30*scale}" alt="">`;
 /* intro scenes, drawn as small pixel pictures */
@@ -7412,8 +7499,9 @@ function ledgerView(){
 /* ---------- settings ---------- */
 const SET_KEY='dsotm-settings';
 const PAD_GUIDE=[['Left stick / D-pad','Move between buttons'],['✕','Press the highlighted button'],['○','Back: close a window, cancel a skill, or return to town'],['□','Auto-battle on/off · add or remove a hero from the party'],['△','Inventory on an adventure · the Bank in town'],['L1 / R1','Previous / next building, enemy target, or hero (on a hero sheet)'],['L2','Jump to the menu on the left (buildings, or attacks in battle)'],['Hold R2','Hero menu (let go to return)'],['OPTIONS or PS','Settings'],['SHARE','Moon Ledger'],['Right stick','Scroll']];
-const set={profile:'auto',speed:'normal',motion:true,autoDefault:false,confirmFlee:true,tips:true,govTips:true,sfx:2,music:2,pad:true};
+const set={look:'pulp',profile:'auto',speed:'normal',motion:true,autoDefault:false,confirmFlee:true,tips:true,govTips:true,sfx:2,music:2,pad:true};
 try{Object.assign(set,JSON.parse(localStorage.getItem(SET_KEY)||'{}'))}catch(e){}
+if(!LOOKS[set.look])set.look='pulp';
 const saveSet=()=>{try{localStorage.setItem(SET_KEY,JSON.stringify(set))}catch(e){}};
 /* Collapsible sections. A section the player hides stays hidden on every hero and screen until they show it again.
    Keys are per place: 'sheet.*' is the town hero sheet, 'run.*' the hero panel on adventures, 'bat.*' the combat screen. */
@@ -7564,6 +7652,8 @@ function settingsModal(){
     <p class="muted" style="font-size:18px">Applies to new towns you start. Each level: the governor carries one more dark side (the 5th question takes ${1+(set.mastery||0)} answer${(set.mastery||0)?'s':''}), and monsters deal 3% more damage with 3% more health (now +${3*(set.mastery||0)}%). Beat the Unlit King at your highest level to unlock the next, up to Mastery 8, full ascension.${state&&state.mastery?` This town: Mastery ${state.mastery}.`:''}</p>`:''}
     <h3>Zoom</h3><div class="row">${zoomCtl()}<button class="btn small" data-a="zoomReset">Reset to ${Math.round(((PROFILES[set.profile]||{}).zoom||1)*100)}%</button></div>
     <p class="muted" style="font-size:18px">Pinch-to-zoom works too.</p>
+    <h3>Appearance</h3><div class="optgrid">${Object.entries(LOOKS).map(([k,P])=>`<button class="opt ${set.look===k?'cur':''}" data-a="setArtStyle" data-x="${k}" aria-pressed="${set.look===k}"><b>${P.n}</b><span>${P.d}</span></button>`).join('')}</div>
+    <p class="muted" style="font-size:18px">Changes how everything is drawn. Your saves are not affected.</p>
     <h3>Battle</h3>
     <div class="row" style="gap:6px"><span class="muted">Battle pace</span>${Object.entries(SPEED).map(([k,S])=>`<button class="btn small ${set.speed===k?'on':''}" data-a="setSpeed" data-x="${k}">${S.n}</button>`).join('')}</div>
     <div class="row" style="gap:6px">${tog('autoDefault','Start battles on Auto')}${tog('confirmFlee','Ask before running home')}</div>
@@ -8251,6 +8341,7 @@ const ACT={
   lbiome:x=>{state.sel.lbiome=x;state.sel.lent=null},
   lent:x=>{state.sel.lent=x||null;if(x&&state.ledgerNew)delete state.ledgerNew[x]},
   settings:x=>{ui.settings=!!x;state.sel.reset=false},
+  setArtStyle:k=>{if(!LOOKS[k])return;set.look=k;saveSet();LOOK.use(k);for(const c of [sprCache,artCache,townCache,thumbCache,layerCache,moonCache,govCache,sceneCache])for(const key in c)delete c[key];lastView=null},
   setProfile:k=>{if(!PROFILES[k])return;set.profile=k;saveSet();if(PROFILES[k].zoom)applyZoom(PROFILES[k].zoom)},
   setSpeed:k=>{if(SPEED[k]){set.speed=k;saveSet()}},
   setToggle:k=>{if(k in set&&typeof set[k]==='boolean'){set[k]=!set[k];saveSet();if(k==='pad'){if(set.pad)PAD.start();else document.body.classList.remove('padmode')}}},
