@@ -539,6 +539,20 @@ body.nomotion .unit.foe.carrier .fo img.px{animation:none}
 .spot:hover .plaque{color:var(--gold)}
 .spot .alert{left:auto;right:10%;top:8%}
 .bld .bready{left:auto;right:14%;top:0;font-size:15px}
+.d3iso{aspect-ratio:16/10;background:#0a0814}
+.d3iso .d3slot{position:absolute;inset:0}
+.d3b{position:absolute;font:inherit;background:none;border:0;cursor:pointer;padding:0;display:flex;align-items:flex-end;justify-content:center}
+.d3b .soon{display:none}
+.d3b:hover .soon,.d3b:focus-visible .soon{display:inline}
+.d3b .plaque{font-size:12px;position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);white-space:nowrap}
+.d3b:hover,.d3b:focus-visible{outline:2px solid #ffd76a88;outline-offset:-2px}
+.d3b.mystery{opacity:.9}
+.d3h{position:absolute;font:inherit;background:none;border:0;cursor:pointer;padding:0}
+.d3h:hover{outline:2px solid #ffd76a88}
+.d3h .alert{position:absolute;left:60%}
+.d3g{position:absolute;width:22px;height:22px;transform:translate(-50%,-100%);cursor:help}
+.d3moon{position:absolute;font:inherit;background:none;border:0;cursor:pointer;transform:translate(-50%,-50%);width:70px;height:70px;border-radius:50%;display:flex;align-items:flex-end;justify-content:center}
+.d3moon .moonpct{transform:translateY(60%);white-space:nowrap;text-shadow:2px 2px 0 #000}
 .isohero{position:absolute;transform:translate(-50%,-94%);font:inherit;background:none;border:0;cursor:pointer;padding:0;width:4.4%;line-height:0}
 .isohero img{width:100%;height:auto;filter:drop-shadow(0 2px 0 #0009)}
 .isohero::after{content:"";position:absolute;left:10%;right:10%;bottom:-3%;height:12%;background:radial-gradient(ellipse,#000a,transparent 70%);z-index:-1}
@@ -1689,6 +1703,49 @@ body:not(.padmode) .padfocus{outline:none}
 .padmap{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:18px;margin-top:6px}
 .padmap .pk{color:var(--gold);white-space:nowrap}
 
+/* ---------- 3D mode (loaded only when switched on in Settings) ---------- */
+.d3canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.d3slot{position:absolute;inset:0;overflow:hidden}
+.d3off{display:none!important}
+.d3note{font-size:18px;color:var(--dim)}
+.scene.stage.d3st{display:block;padding:0;background:#0a0810}
+.scene.stage.d3st::before{display:none}
+.d3st .side{position:absolute;inset:0;display:block;gap:0;pointer-events:none;z-index:2}
+.d3st .unit{position:absolute;left:0;top:0;width:var(--uw,120px);margin:0;pointer-events:none;will-change:transform}
+.d3st .unit .fo{pointer-events:auto;width:var(--fw,60px);height:var(--fh,80px);margin:0 auto;line-height:0}
+.d3st .unit .fo img.px{opacity:0;width:100%;height:100%}
+.d3st .unit .fo::after{display:none}
+.d3st .unit .uinfo{pointer-events:auto;margin-top:2px}
+.d3st .unit.foe .fo{cursor:pointer}
+.d3st .unit.down{opacity:1}
+.d3st .unit.down .uinfo{opacity:.55}
+.d3st .unit.act .fo img.px{filter:none}
+.d3st .unit.act .uinfo{box-shadow:0 0 0 2px #000,inset 0 0 0 2px var(--gold),0 0 14px #e3b34188}
+.d3st .gnd,.d3st .lay{display:none}
+.d3st .intentarrows{z-index:3}
+
+.d3run{position:fixed;left:0;top:0;width:calc(100vw / var(--z,1));height:calc(100dvh / var(--z,1));z-index:12;background:#0a0810;overflow:hidden}
+.d3slotwrap{position:absolute;inset:0}
+.d3run .runhdr{position:absolute;left:6px;right:6px;top:6px;z-index:5;margin:0}
+.d3hud{position:absolute;left:0;right:0;bottom:12px;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;z-index:4;padding:0 10px}
+.d3hud>*{pointer-events:auto}
+.d3title{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;background:#0a0810d8;box-shadow:0 0 0 2px #060509,inset 0 0 0 2px var(--edge);padding:4px 12px}
+.d3title h3{margin:0}
+.d3msg{margin:0;background:#0a0810d8;padding:3px 10px;font-size:18px;color:var(--dim)}
+.d3evt{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:min(760px,calc(100% - 16px));max-height:calc(100% - 130px);overflow-y:auto;z-index:4}
+.d3n{position:absolute;left:0;top:0;visibility:hidden;display:flex;flex-direction:column;align-items:center;gap:1px;pointer-events:none;font-family:inherit;color:var(--bone)}
+.d3n .mlab{font-family:'DsHead',monospace;font-size:18px;text-shadow:2px 2px 0 #000;white-space:nowrap}
+.d3n.can{pointer-events:auto;cursor:pointer;background:#0a0810d8;border:0;padding:3px 9px 4px;box-shadow:0 0 0 2px #060509,inset 0 0 0 2px var(--gold),0 0 16px #e3b34166}
+.d3n.can:hover,.d3n.can:focus-visible{background:#2a2030f0;box-shadow:0 0 0 2px #060509,inset 0 0 0 2px #fff,0 0 22px #e3b341aa}
+.d3n.can.trap{box-shadow:0 0 0 2px #060509,inset 0 0 0 2px #e0736c}
+.d3n.can .alert{position:absolute;right:-6px;top:-8px;background:#e0736c;color:#fff;font-weight:bold;padding:0 6px}
+.d3n.off,.d3n.far{opacity:.0}
+.d3n.far{opacity:.85}
+.d3n.far:not(.big) .mlab{font-size:15px;opacity:.8}
+.d3n.far .ico,.d3n.far canvas,.d3n.far img{opacity:.7}
+.d3n.far:empty{display:none}
+body.d3mapmode{overflow:hidden}
+
 </style>
 
 </head>
@@ -2737,11 +2794,15 @@ function unitStrip(key,make){if(!(key in artCache)){try{artCache[key]=make()}cat
 // Small pictures (turn order, rosters, ledger cards) use a close crop around the figure so it fills its box.
 function portraitOf(key,frames,pal){return unitStrip('P|'+key,()=>{const r=ART.strip(frames(),pal,{crop:1});return {url:r.url,w:r.side,h:r.side,crop:1}})}
 const frames4=draw=>[0,1,2,3].map(draw);
-function foeStripFor(base,kind,type,small,ph){
+function foeSpec(base,kind,type,ph){
   let key,fr,pal,sz=40;
   if(kind==='warden'&&!CAVE_BEASTS[base]&&base!==GATEKEEPER){key='W|'+type;fr=()=>frames4(f=>{const g=new ART.Grid(40,40);BOSS_DRAW.warden(g,f,type);return g});pal=wardenPal(type)}
   else if(BOSSES[base]){const S=BOSSES[base];key='B|'+base+(ph?'|'+ph:'');fr=()=>frames4(f=>{const g=new ART.Grid(40,40);BOSS_DRAW[S.d](g,f,ph);return g});pal=S.pal}
   else{const U=UNIT_ART[base];if(!U)return null;key='U|'+base;fr=()=>frames4(f=>DRAW[U.fam](U.S,f));pal=U.S.pal;sz=32}
+  return {key,fr,pal,sz};
+}
+function foeStripFor(base,kind,type,small,ph){
+  const S=foeSpec(base,kind,type,ph);if(!S)return null;const {key,fr,pal,sz}=S;
   return small?portraitOf(key,fr,pal):unitStrip(key,()=>({url:ART.strip(fr(),pal),w:sz,h:sz}));
 }
 // One animated unit picture: four frames in a strip, showing one at a time. Small sizes are smoothed into thumbnails.
@@ -2833,6 +2894,8 @@ function chunkStrip(Gs,pal,crop){
   return {url:c2.toDataURL(),side};
 }
 function heroArt(h,scale,cls){
+  if(D3on()&&d3st==='ready'&&DS3D.heroThumb){let u=null;try{u=DS3D.heroThumb(h,true)}catch(e){}
+    if(u)return `<img class="px d3hero ${cls||''}" src="${u}" alt="" style="width:${scale*9}px;height:${scale*9}px">`}
   const w=h.gear&&h.gear.weapon,wr=w?w.rarity:null;
   const LK=h.look||h.id?heroLook(h):{cw:COLORWAYS[CW_DEFAULT[h.cls]||0],skin:H_SKIN[strHash(h.name)%H_SKIN.length],hair:H_HAIR[0]};
   const rows=CHIBI[h.cls];if(!rows)return sprite(h.cls,LK.cw.A,scale,cls);
@@ -5537,9 +5600,12 @@ function afxIco(k){
 }
 function afxLine(it,a){const A=AFX[a.k],v=affVal(it,a),dead=a.k.startsWith('dmg_')&&!it.cls;return `<span class="afx" data-tip="${esc(A.l+(dead?'. No effect for warriors: they only deal physical damage.':''))}">${afxIco(a.k)}+${v<10?+v.toFixed(1):Math.round(v)}${A.p?'%':''} ${A.e?`<span class="el" style="--c:${EL_COL[A.e]}">${A.l}</span>`:A.l}${dead?' <small class="muted">(not warriors)</small>':''}</span>`}
 function itemIcon(it,sc=4){
+  if(D3on()&&d3st==='ready'&&DS3D.itemThumb){let u=null;try{u=DS3D.itemThumb(it)}catch(e){}
+    if(u)return `<span class="ibox r-${it.rarity}-bg d3ico"><img class="px" src="${u}" alt="" style="width:${sc*9}px;height:${sc*9}px"></span>`}
   const col=getRarCol(it.rarity),nm=it.slot==='weapon'?({warrior:'sword',archer:'bow',mage:'staff'})[it.cls]||'sword':({helmet:'helmet',chest:'chestplate',pants:'pants',ring:'ring',amulet:'amulet'})[it.slot];
   return `<span class="ibox r-${it.rarity}-bg">${sprite(nm,col,sc)}</span>`;
 }
+const itemArt=(it,spr,col,sc)=>{if(it&&D3on()&&DS3D.itemThumb){let u=null;try{u=DS3D.itemThumb(it)}catch(e){}if(u)return `<img class="px d3ico" src="${u}" alt="" style="width:${sc*9}px;height:${sc*9}px">`}return sprite(spr,col,sc)};
 const getRarCol=r=>({common:'#b9b1a3',rare:'#5f97e3',epic:'#b56fe3',godlike:'#f2a83a',perfect:'#ff5c7a'})[r];
 function itemBody(it){
   if(it.pid){const P=PERF[it.pid];
@@ -6436,14 +6502,14 @@ function gearDoll(h,act,selSl,small){
   const worn=SLOTS.map(s=>h.gear[s]).filter(Boolean),cnt={};for(const it of worn)cnt[it.rarity]=(cnt[it.rarity]||0)+1;
   return `<div class="doll ${small?'sm':''}"><div class="dgrid">${DOLL.map(sl=>{if(!sl)return '<span class="dslot gap" aria-hidden="true"></span>';
       if(ringLocked(sl)){const seen=state.gov.darkSeen;return `<button class="dslot empty sealed" data-a="greedSlot" data-tip="${esc(seen?'Sealed by my Mercenary Greed: one ring is all anyone gets.':'Something won’t let anyone wear a second ring here.')}" aria-label="Sealed ring slot">${sprite('ring','#241e2c',3)}</button>`}const it=h.gear[sl],spr=sl==='weapon'?({warrior:'sword',archer:'bow',mage:'staff'})[h.cls]:SLOT_SPR[sl],col=it?getRarCol(it.rarity):null;
-      return `<button class="dslot ${it?'full':'empty'} ${selSl===sl?'cur':''}" style="--rc:${col||'#3a3245'}" data-a="${act}" data-drop="gear:${h.id}|${sl}" ${it?`data-drag="gear:${h.id}|${sl}"`:''} data-x="${act==='selSlot'?sl:h.id+'|'+sl}" data-tip="${esc(SLOTN[sl]+': '+(it?it.name+(it.plus?' +'+it.plus:'')+' ('+RAR[it.rarity].l+')':'empty'))}" aria-label="${esc(SLOTN[sl]+': '+(it?it.name:'empty'))}">${sprite(spr,col||'#2e2838',3)}${it&&it.plus?`<small>+${it.plus}</small>`:''}</button>`}).join('')}</div>
+      return `<button class="dslot ${it?'full':'empty'} ${selSl===sl?'cur':''}" style="--rc:${col||'#3a3245'}" data-a="${act}" data-drop="gear:${h.id}|${sl}" ${it?`data-drag="gear:${h.id}|${sl}"`:''} data-x="${act==='selSlot'?sl:h.id+'|'+sl}" data-tip="${esc(SLOTN[sl]+': '+(it?it.name+(it.plus?' +'+it.plus:'')+' ('+RAR[it.rarity].l+')':'empty'))}" aria-label="${esc(SLOTN[sl]+': '+(it?it.name:'empty'))}">${it?itemArt(it,spr,col,3):sprite(spr,col||'#2e2838',3)}${it&&it.plus?`<small>+${it.plus}</small>`:''}</button>`}).join('')}</div>
     <span class="dsum">${worn.length}/${SLOTS.length} ${RAR_ORDER.filter(r=>cnt[r]).map(r=>`<i style="color:${getRarCol(r)}" title="${RAR[r].l}">${cnt[r]}</i>`).join('')}</span></div>`;
 }
 function backpackBlock(){
   const r=state.run,cap=bagCap(),sel=r.loot.find(x=>x.id===ui.bsel),many=partyAll().length>1;
   const L=invSorted(r.loot,true);
   let s=`<div class="row" style="justify-content:space-between;gap:6px"><h3>Backpack · ${r.loot.length}/${cap}</h3><button class="btn small gold" data-a="inv">Open inventory</button></div><div class="bpack dropzone" data-drop="pack">${Array.from({length:Math.max(cap,r.loot.length)},(_,i)=>{const it=L[i];
-    return it?`<button class="dslot full ${ui.bsel===it.id?'cur':''}" style="--rc:${getRarCol(it.rarity)}" data-a="bpSel" data-x="${it.id}" data-drag="pack:${it.id}" data-drop="pack:${it.id}" data-tip="${esc(it.name+' ('+RAR[it.rarity].l+' '+SLOTN[it.slot]+')')}" aria-label="${esc(it.name)}">${sprite(it.slot==='weapon'?({warrior:'sword',archer:'bow',mage:'staff'})[it.cls]:SLOT_SPR[it.slot==='ring'?'ring1':it.slot],getRarCol(it.rarity),3)}</button>`
+    return it?`<button class="dslot full ${ui.bsel===it.id?'cur':''}" style="--rc:${getRarCol(it.rarity)}" data-a="bpSel" data-x="${it.id}" data-drag="pack:${it.id}" data-drop="pack:${it.id}" data-tip="${esc(it.name+' ('+RAR[it.rarity].l+' '+SLOTN[it.slot]+')')}" aria-label="${esc(it.name)}">${itemArt(it,it.slot==='weapon'?({warrior:'sword',archer:'bow',mage:'staff'})[it.cls]:SLOT_SPR[it.slot==='ring'?'ring1':it.slot],getRarCol(it.rarity),3)}</button>`
       :'<span class="dslot empty" aria-label="Empty backpack slot"></span>'}).join('')}</div>`;
   if(sel){const who=living().filter(h=>!sel.cls||sel.cls===h.cls),up=upgradeFor(sel);
     s+=itemCard(sel,`<div class="row">${who.length&&!up.length?'<span class="meta">Not an upgrade for anyone.</span>':''}${sel.rarity==='perfect'?'':`<button class="btn small" data-a="bpDrop" data-x="${sel.id}">Drop</button>`}</div>${equipChoices(sel,living(),'pack|'+sel.id)}${who.length?'':'<span class="meta">No one here can use it. Worth '+sellVal(sel)+' gold in town.</span>'}`)}
@@ -6843,6 +6909,18 @@ function homeView(){
   const heroes=state.heroes.slice(0,HERO_SPOTS.length).map((h,i)=>{const [gx,gy]=HERO_SPOTS[i],p=isoPt(ISO.ox,ISO.oy,gx+.5,gy+.5);
     return `<button class="isohero" style="left:${pct(p[0],ISO.W)};top:${pct(p[1],ISO.Hh)}" data-a="openHero" data-x="${h.id}" data-tip="${esc(`${h.name} · Lv ${h.level} ${C_(h).name} · ${maxHp(h)} HP`)}">${heroArt(h,4,'bob')}${h.points?'<span class="alert">!</span>':''}</button>`}).join('');
   const graves=graveSpots(Math.min(10,state.graveyard.length)).map(([x,y],i)=>{const G=state.graveyard[i];return `<span class="tomb" style="left:${pct(x,ISO.W)};top:${pct(y,ISO.Hh)}" data-tip="${esc(`Here lies ${G.name}, Lv ${G.level} ${CLASSES[G.cls].name}. Fell in ${G.biome} on stage ${G.stage}, week ${G.week}.`)}">${sprite('tomb',null,2)}</span>`}).join('');
+  if(D3on()){
+    const TI=townInfo(),bl=Object.entries(T.spots).map(([k])=>{const open=k==='adventure'||bldOpen(k),known=bldKnown(k);
+      return `<button class="d3b ${k==='adventure'?'gatespot':''} ${open?'':'building'} ${known?'':'mystery'} ${guideAt()===k?'guide':''}" data-nb="${k}" ${known?`data-a="tab" data-x="${k}"`:'disabled'} aria-label="${known?NAMES[k]:'Unknown building'}${open?'':': under construction'}" ${known?'':'data-tip="The builders are waiting to hear what this lot is for."'}><span class="plaque ${k==='adventure'?'gold':''}">${!known?'?':NAMES[k]+(open?(lv[k]?` <span class="lvpill">${lv[k]}</span>`:''):` <span class="soon">${hasMats(BLD_NEED[k])?'ready to build!':`needs ${Object.entries(BLD_NEED[k]).map(([m,v])=>v+' '+MATS[m].n).join(', ')}`}</span>`)}</span>${open&&alert[k]?'<span class="alert">!</span>':''}</button>`}).join('');
+    const hs=state.heroes.slice(0,HERO_SPOTS.length).map(h=>`<button class="d3h" data-nh="${h.id}" data-a="openHero" data-x="${h.id}" data-tip="${esc(`${h.name} · Lv ${h.level} ${C_(h).name} · ${maxHp(h)} HP`)}" aria-label="${esc(h.name)}">${h.points?'<span class="alert">!</span>':''}</button>`).join('');
+    const gv=state.graveyard.slice(0,TI.graves.length).map((G,i)=>`<span class="d3g" data-ng="${i}" data-tip="${esc(`Here lies ${G.name}, Lv ${G.level} ${CLASSES[G.cls].name}. Fell in ${G.biome} on stage ${G.stage}, week ${G.week}.`)}"></span>`).join('');
+    return `<div class="iso d3iso"><div class="d3slot" data-d3="town"></div>
+      <div class="iso-title"><span class="hname">Week ${state.week}</span><span class="muted">Your town</span></div>
+      <button class="d3moon" data-nmoon data-tip="${esc(moonTip())}" data-a="tab" data-x="ledger" aria-label="Open the Moon Ledger"><span class="moonpct">${moonKnown()?`${Math.round(m.shown)}% dark · `:''}Ledger</span>${ledgerNewCount()?`<span class="alert">${ledgerNewCount()}</span>`:''}</button>
+      ${gv}${bl}${hs}</div>
+    ${townEventBlock()}
+    <button class="nextstep ${guidePts()?'guide':''}" data-a="${n.a}" data-x="${n.x}">${n.i}<span><small>Next step</small><b>${esc(n.t)}</b></span><span class="arrow">→</span></button>`;
+  }
   let s=`<div class="iso">
     <img class="px isoimg" src="${T.url}" alt="Your town at night">
     <div class="iso-title"><span class="hname">Week ${state.week}</span><span class="muted">Your town</span></div>
@@ -6890,6 +6968,42 @@ function partyPanel(){
     ${backpackBlock()}`;
 }
 const stageText=r=>r.final?(r.stage>finStages(r)?`Stage <b class="num">${r.stage}</b> · <span class="bossmark">the King stirs</span>`:`Stage <b class="num">${r.stage}/${finStages(r)}+</b>`):`Stage <b class="num">${r.stage}</b>`;
+/* ---------- 3D road map: the data and the overlay the 3D scene needs ---------- */
+function mapInfo(){
+  const r=state.run;if(!r||!r.plan)return null;
+  const pp=effPer(),sight=sightRange(pp),bot=r.plan[r.stage-1]?r.stage-1:r.stage,top=r.stage+MAP_SHOW,rows=[];
+  const vis=k=>{const P=r.plan[k];return !!P&&(k<=r.stage+sight||k<=r.stage||k<=(r.scoutTo||0))};
+  for(let k=bot;k<=top;k++){const P=r.plan[k];
+    if(!P){rows.push({k,none:true});continue}
+    const v=vis(k),cur=k===r.stage;
+    rows.push({k,nc:ncOf(P),vis:v,cols:P.cols,next:P.next,
+      nodes:P.nodes.map((t,i)=>({i,t:v?t:null,col:P.cols[i],can:cur&&(r.reach||[]).includes(i),here:k===r.stage-1&&i===r.pos,trap:!!(cur&&P.spotted&&P.spotted[i]),fog:!!(cur&&P.fog&&P.fog[i])}))})}
+  return {id:r.id,biome:r.biome,stage:r.stage,pos:r.pos,reach:r.reach||[],evt:!!r.event,rows};
+}
+// The clickable labels over the 3D nodes. The 3D scene moves each one to its node every frame.
+function mapOverlay3d(){
+  const r=state.run,I=mapInfo(),pp=effPer(),sight=sightRange(pp);if(!I)return '';let h='';
+  for(const row of I.rows){if(row.none)continue;
+    if(row.k===r.stage){
+      for(const n of row.nodes){const t=n.t,fog=n.fog,big=['boss','warden','king'].includes(t);
+        const tip=fog?'Unknown. Your party’s Perception is too low to make this out. Could be anything: a fight, an elite, a chest, a rest…':`${NODE[t].n}: ${NODE[t].d}${n.trap?' Your Perception spotted a trap: it is a Mimic.':''}`;
+        const inner=fog?'<span class="qfog">≋</span>':nodeIco(t,big?4:3);
+        if(n.can)h+=`<button class="d3n can ${big?'big':''} ${n.trap?'trap':''}" data-nk="${row.k}:${n.i}" data-h="${big?7.2:4.6}" data-a="d3node" data-x="${n.i}" data-tip="${esc(tip)}" aria-label="${esc(fog?'Unknown':NODE[t].n)}">${inner}<span class="mlab">${fog?'Unknown':NODE[t].s}</span>${n.trap&&!fog?'<span class="alert">!</span>':''}</button>`;
+        else h+=`<span class="d3n off" data-nk="${row.k}:${n.i}" data-h="${big?7.2:4.6}" data-tip="${esc(tip)}">${inner}</span>`}
+    }else if(row.k>r.stage){
+      for(const n of row.nodes){if(!row.vis){h+=`<span class="d3n far" data-nk="${row.k}:${n.i}" data-h="3.4" data-tip="${esc(`Stage ${row.k}: you can see where the paths go, but not what waits on them. The party’s combined Perception (${pp}) ${sight?`reads ${sight} stage${sight>1?'s':''} past your choices`:'only reads the choices right in front of you'}; it reads 1 stage further at 9 and 2 at 21.`)}">?</span>`;continue}
+        const big=['boss','warden','king'].includes(n.t);
+        h+=`<span class="d3n far ${big?'big':''}" data-nk="${row.k}:${n.i}" data-h="${big?7.2:4.6}" data-tip="${esc(`${NODE[n.t].n}: ${NODE[n.t].d}`)}">${nodeIco(n.t,2)}<span class="mlab">${NODE[n.t].s}</span></span>`}
+    }
+  }
+  return h;
+}
+function mapHud3d(){
+  const r=state.run,pp=effPer();
+  return `<div class="d3hud"><div class="d3title"><h3>${r.nodes[0]==='king'?'There is no other path':'Choose your path'}</h3>
+    <span class="chip mstat" data-tip="${esc(perNow(pp))}">${ico('eye','#9fd6ff',2)}Perception <b>${partyPer()}</b>${lenBase().per?` <span class="muted">/ ${lenBase().per}</span>`:''}</span><span class="chip mstat" data-tip="${esc(chaNow())}">${ico('crown','#e3b341',2)}Charisma <b>${partyCha()}</b> <span class="${partyChaEvent()>0?'ok':partyChaEvent()<0?'warn':'muted'}">${partyChaEvent()>0?'+':''}${partyChaEvent()}%</span></span><span class="chip mstat" data-tip="${esc(lckNow())}">${ico('clover','#78ab60',2)}Luck <b>${partyLck()}</b> <span class="${partyLckEvent()>0?'ok':partyLckEvent()<0?'warn':'muted'}">${partyLckEvent()>0?'+':''}${partyLckEvent()}%</span></span></div>
+    ${r.fatMsg?`<p class="d3msg">${r.fatMsg}</p>`:''}</div>`;
+}
 function runView(){
   const r=state.run,B=BIOMES[r.biome];
   if(r.battle)return battleScreen();
@@ -6901,7 +7015,8 @@ function runView(){
     <div class="rh-scrap">${scrapStrip(r.mats,'Scrap gathered this trip. It comes home if the party returns or flees, and is lost if everyone falls.').replace('class="scrapline"','class="scrapline rhs"')}</div>
     <div class="res"><span class="chip" data-tip="Gold carried">${sprite('coin',null,2)}<b class="num">${r.gold}</b></span><span class="chip" data-tip="Backpack">${sprite('chest',null,2)}<b class="num">${r.loot.length}/${bagCap()}</b></span><span class="chip" data-tip="Return Scrolls">${sprite('scroll',null,2)}<b class="num">${r.scrolls}</b></span><button class="btn small ${(r.ground||[]).length?'guide':''}" data-a="inv" data-tip="Gear, backpack and anything on the ground">Inventory</button><button class="btn small partybtn ${partyAll().some(x=>x.hp>0&&x.points)&&ui.drawer!=='party'?'guide':''}" data-a="drawer" data-x="party" ${partyAll().some(x=>x.hp>0&&x.points)?'data-tip="Level up! Open the party to spend attribute points."':''}>Party</button>${fleeBtn('small red')}</div></div>
     ${r.final?`<div class="prog" title="Red marks are bosses">${prog}</div>`:''}</section>`;
-  s+=`<div class="runlay"><section class="panel">${r.event?eventView():nodesView()}</section><aside class="panel partycol">${partyPanel()}</aside></div>`;
+  if(D3on()&&!ui.menu)s=`<div class="d3run"><div class="d3slotwrap"><div class="d3slot" data-d3="map"></div>${r.event?'':mapOverlay3d()}</div>${s}${r.event?`<div class="d3evt"><section class="panel">${eventView()}</section></div>`:mapHud3d()}</div>`;
+  else s+=`<div class="runlay"><section class="panel">${r.event?eventView():nodesView()}</section><aside class="panel partycol">${partyPanel()}</aside></div>`;
   if(ui.drawer==='party')s+=`<div class="drawer fx"><div class="drawer-top"><h2>Party</h2><button class="xbtn" data-a="drawer" data-x="" aria-label="Close">×</button></div><div class="drawgrid">${partyPanel()}</div></div>`;
   return s+fleeModal();
 }
@@ -7217,7 +7332,8 @@ function kingMorph(){const b=state.run&&state.run.battle;if(!b)return;
 function battleScreen(){kingMorph();
   collectMarks();
   const r=state.run,b=r.battle,B=BIOMES[r.biome],P=partyAll(),cur=!b.over?currentActor():null,fx=b.fx||{},pops=b.pops||[];
-  const Ly=biomeLayers(r.biome);
+  const d3=D3on(),Ly=d3?null:biomeLayers(r.biome);
+  if(d3&&DS3D.battleFx)DS3D.battleFx(fx,b);
   const tstrip=!b.over?`<div class="tstrip" aria-label="Turn order"><span class="lbl">Next</span>${turnOrder(8).map((k,i)=>{const id=k.slice(2);
     if(k[0]==='h'){const h=heroById(id);return `<div class="tb ${i===0?'now':''}">${heroArt(h,2)}<span>${esc(h.name)}</span></div>`}
     const e=b.enemies[+id];return `<div class="tb foe ${i===0?'now':''}">${foeArt(e,2)}<span>${esc(e.name)}</span></div>`}).join('')}</div>`:'<div class="tstrip"></div>';
@@ -7227,8 +7343,8 @@ function battleScreen(){kingMorph();
       <span class="chip">${sprite('coin',null,2)}<b class="num">${r.gold}</b></span><span class="chip packchip">${sprite('chest',null,2)}<b class="num">${r.loot.length}/${bagCap()}</b></span>
       <button class="btn" data-a="drawer" data-x="party">Party</button><button class="btn ${(r.ground||[]).length?'guide':''}" data-a="inv">Inventory</button>${fleeBtn('red')}${helpBtn()}<button class="btn" data-a="settings" data-x="1" aria-label="Settings">Settings</button></div>
     ${tstrip}
-    <div class="scene stage wx-${r.biome} ${fx.shake?'shake':''} ${fx.crit?'critfx':''}" style="--s1:${B.s[0]};--s2:${B.s[1]}">
-      <div class="lay far" style="background-image:url(${Ly.far});animation-delay:${panDelay(480)}"></div><div class="lay mid" style="background-image:url(${Ly.mid});animation-delay:${panDelay(240)}"></div><div class="gnd" style="background-image:url(${Ly.gnd})"></div>
+    <div class="scene stage wx-${r.biome} ${fx.shake&&!d3?'shake':''} ${fx.crit?'critfx':''} ${d3?'d3st':''}" style="--s1:${B.s[0]};--s2:${B.s[1]}">
+      ${d3?'<div class="d3slot" data-d3="battle"></div>':`<div class="lay far" style="background-image:url(${Ly.far});animation-delay:${panDelay(480)}"></div><div class="lay mid" style="background-image:url(${Ly.mid});animation-delay:${panDelay(240)}"></div><div class="gnd" style="background-image:url(${Ly.gnd})"></div>`}
       ${label?`<span class="stage-label">${label}</span>`:''}
       ${b.windup?`<div class="wbanner ${b.windup.foe?'foe':''}" role="status">${b.windup.txt}</div>`:''}
       <div class="side heroes">${lineup(P).map(({h})=>heroUnit(h,cur,fx,pops)).join('')}</div>
@@ -7412,9 +7528,66 @@ function ledgerView(){
 /* ---------- settings ---------- */
 const SET_KEY='dsotm-settings';
 const PAD_GUIDE=[['Left stick / D-pad','Move between buttons'],['✕','Press the highlighted button'],['○','Back: close a window, cancel a skill, or return to town'],['□','Auto-battle on/off · add or remove a hero from the party'],['△','Inventory on an adventure · the Bank in town'],['L1 / R1','Previous / next building, enemy target, or hero (on a hero sheet)'],['L2','Jump to the menu on the left (buildings, or attacks in battle)'],['Hold R2','Hero menu (let go to return)'],['OPTIONS or PS','Settings'],['SHARE','Moon Ledger'],['Right stick','Scroll']];
-const set={profile:'auto',speed:'normal',motion:true,autoDefault:false,confirmFlee:true,tips:true,govTips:true,sfx:2,music:2,pad:true};
+const set={profile:'auto',gfx3d:false,gfxq:'high',speed:'normal',motion:true,autoDefault:false,confirmFlee:true,tips:true,govTips:true,sfx:2,music:2,pad:true};
 try{Object.assign(set,JSON.parse(localStorage.getItem(SET_KEY)||'{}'))}catch(e){}
 const saveSet=()=>{try{localStorage.setItem(SET_KEY,JSON.stringify(set))}catch(e){}};
+
+/* ---------- 3D mode glue ----------
+   The 3D scripts load only when the player turns 3D mode on, so the normal game stays small and fast.
+   If anything about 3D fails (no WebGL, a script that will not load, a render error) the game drops back to the 2D mode. */
+let d3st='idle'; // idle | loading | ready | failed
+const D3_FILES=['lib/three.min.js','d3/core.js','d3/hero.js','d3/foes.js','d3/props.js','d3/town.js','d3/map.js','d3/battle.js'];
+const D3on=()=>!!set.gfx3d&&d3st==='ready';
+function d3fail(why){console.warn('3D mode off:',why);set.gfx3d=false;d3st='failed';saveSet();ui.d3msg='3D mode could not start on this device, so the game is back in pixel mode.';try{window.DS3D&&DS3D.unmount&&DS3D.unmount()}catch(e){}document.body.classList.remove('d3on','d3mapmode');render()}
+function d3load(){
+  if(d3st==='loading'||d3st==='ready')return;
+  d3st='loading';
+  const probe=document.createElement('canvas');let ok=false;try{ok=!!(probe.getContext('webgl2')||probe.getContext('webgl'))}catch(e){}
+  if(!ok){d3fail('no WebGL');return}
+  const next=i=>{
+    if(i>=D3_FILES.length){
+      try{
+        window.DS3D.G=d3bridge();
+        if(!DS3D.init()){d3fail('init');return}
+        d3st='ready';document.body.classList.add('d3on');render();
+      }catch(e){d3fail(e)}
+      return}
+    const sc=document.createElement('script');sc.src=D3_FILES[i]+'?v=1';sc.onload=()=>next(i+1);sc.onerror=()=>d3fail('could not load '+D3_FILES[i]);document.head.appendChild(sc)};
+  next(0);
+}
+// Everything the 3D town needs, in grid tiles. Screen pixels of the pixel town are turned back into grid positions.
+function townInfo(){
+  const inv=(x,y)=>[((x-ISO.ox)/ISO.T+(y-ISO.oy)/ISO.H)/2,((y-ISO.oy)/ISO.H-(x-ISO.ox)/ISO.T)/2];
+  const sq=inv(TOWN_SQUARE[0],TOWN_SQUARE[1]),ev=townEv(),gr=state.graveyard||[];
+  const gs=graveSpots(Math.min(10,gr.length)).map(([x,y])=>inv(x,y)),gc=inv(GRAVE_BOX[0]+30,GRAVE_BOX[1]+8);
+  const lamps=[[100,105],[238,114],[102,180],[260,156],[34,128],[201,92],[178,150]].map(([x,y])=>isoAt(x,y));
+  const open=k=>k==='adventure'||bldOpen(k);
+  return {sig:Object.keys(BLD_DEF).map(k=>(open(k)?'o':'c')+bldStage(k)).join('')+'|'+gr.length+'|'+(ev?ev.ev:'')+'|'+Math.round(moonState().shown/5),
+    center:isoAt(TOWN_SQUARE[0],TOWN_SQUARE[1]),layout:TOWN_LAYOUT,def:BLD_DEF,open,stage:k=>bldStage(k),tiles:townTiles(),lamps,square:sq,
+    heroSpots:HERO_SPOTS.map(([gx,gy])=>[gx+.5,gy+.5]).map(p=>p),graves:gs,graveBox:{x:gc[0]-3,y:gc[1]-2,w:6,d:4},
+    moon:moonState().shown,event:ev?ev.ev:null};
+}
+// What the 3D scenes may read from the game. Getters, so they always see the current save.
+function d3bridge(){
+  return {
+    get state(){return state},get set(){return set},get ui(){return ui},ACT,render,BIOMES,EL_COL,NODE,
+    foeSpec:e=>foeSpec(e.base||e.name,e.kind,e.type,kph(e)),
+    heroLook:h=>heroLook(h),perfLook:id=>PERF_LOOK[id],perfBase:id=>PERF[id]&&PERF[id].base,
+    partyAll,lineup,living,currentActor,heroById,aliveFoes,sfx,esc,
+    fail3d:d3fail,mapInfo,
+    townInfo,
+    moonPct:()=>(typeof moonPct==='function'?moonPct():null)
+  };
+}
+// After every redraw: move the one 3D canvas into the slot the new screen made, or park it when no screen wants it.
+function d3after(){
+  if(!D3on()||DS3D.failed)return;
+  const slot=document.querySelector('[data-d3]');
+  if(slot){if(!DS3D.mount(slot,slot.dataset.d3)){d3fail('mount')}}
+  else if(DS3D.cur)DS3D.unmount();
+  document.body.classList.toggle('d3mapmode',!!(slot&&slot.dataset.d3==='map'));
+  if(slot&&DS3D.after&&DS3D.after[slot.dataset.d3])try{DS3D.after[slot.dataset.d3](slot)}catch(e){console.error(e)}
+}
 /* Collapsible sections. A section the player hides stays hidden on every hero and screen until they show it again.
    Keys are per place: 'sheet.*' is the town hero sheet, 'run.*' the hero panel on adventures, 'bat.*' the combat screen. */
 const czShut=k=>!!(set.cz&&set.cz[k]);
@@ -7560,6 +7733,8 @@ function settingsModal(){
     <div class="mhead"><h2>Settings</h2><button class="xbtn" data-a="settings" data-x="" aria-label="Close">×</button></div>
     <h3>Screen</h3><div class="optgrid">${Object.entries(PROFILES).map(([k,P])=>`<button class="opt ${set.profile===k?'cur':''}" data-a="setProfile" data-x="${k}" aria-pressed="${set.profile===k}"><b>${P.n}</b><span>${P.d}</span></button>`).join('')}</div>
     <p class="muted" style="font-size:18px">Now using the ${LAY_N[layMode()]} layout. The game is played in landscape.</p>
+    <h3>Graphics</h3><div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn small ${set.gfx3d?'on':''}" data-a="gfx3d" aria-pressed="${!!set.gfx3d}">3D mode: ${set.gfx3d?(d3st==='loading'?'Loading…':'On'):'Off'}</button>${set.gfx3d?['low','med','high'].map(q=>`<button class="btn small ${set.gfxq===q?'on':''}" data-a="gfxq" data-x="${q}" aria-pressed="${set.gfxq===q}">${({low:'Battery saver',med:'Balanced',high:'Best'})[q]}</button>`).join(''):''}</div>
+    <p class="muted" style="font-size:18px">3D mode turns the town, the road map, battles and all equipment into 3D scenes. It runs on your device’s graphics chip; Battery saver draws fewer frames and a sharper-than-needed picture is not forced. Your save is the same in both modes.${ui.d3msg?` <b class="warn">${ui.d3msg}</b>`:''}</p>
     ${set.masteryMax?`<h3>Mastery Level</h3><div class="row" style="gap:6px;flex-wrap:wrap">${Array.from({length:set.masteryMax+1},(_,m)=>`<button class="btn small ${(set.mastery||0)===m?'on':''}" data-a="setMastery" data-x="${m}" aria-pressed="${(set.mastery||0)===m}">${m?'Mastery '+m:'Off'}</button>`).join('')}</div>
     <p class="muted" style="font-size:18px">Applies to new towns you start. Each level: the governor carries one more dark side (the 5th question takes ${1+(set.mastery||0)} answer${(set.mastery||0)?'s':''}), and monsters deal 3% more damage with 3% more health (now +${3*(set.mastery||0)}%). Beat the Unlit King at your highest level to unlock the next, up to Mastery 8, full ascension.${state&&state.mastery?` This town: Mastery ${state.mastery}.`:''}</p>`:''}
     <h3>Zoom</h3><div class="row">${zoomCtl()}<button class="btn small" data-a="zoomReset">Reset to ${Math.round(((PROFILES[set.profile]||{}).zoom||1)*100)}%</button></div>
@@ -8251,6 +8426,9 @@ const ACT={
   lbiome:x=>{state.sel.lbiome=x;state.sel.lent=null},
   lent:x=>{state.sel.lent=x||null;if(x&&state.ledgerNew)delete state.ledgerNew[x]},
   settings:x=>{ui.settings=!!x;state.sel.reset=false},
+  d3node:x=>{if(window.DS3D&&DS3D.mapGo)DS3D.mapGo(+x)},
+  gfx3d:()=>{ui.d3msg=null;if(set.gfx3d){set.gfx3d=false;saveSet();document.body.classList.remove('d3on','d3mapmode');try{DS3D.unmount()}catch(e){}}else{set.gfx3d=true;saveSet();if(d3st==='failed')d3st='idle';d3load()}},
+  gfxq:q=>{if(['low','med','high'].includes(q)){set.gfxq=q;saveSet();try{DS3D.resize()}catch(e){}}},
   setProfile:k=>{if(!PROFILES[k])return;set.profile=k;saveSet();if(PROFILES[k].zoom)applyZoom(PROFILES[k].zoom)},
   setSpeed:k=>{if(SPEED[k]){set.speed=k;saveSet()}},
   setToggle:k=>{if(k in set&&typeof set[k]==='boolean'){set[k]=!set[k];saveSet();if(k==='pad'){if(set.pad)PAD.start();else document.body.classList.remove('padmode')}}},
@@ -8416,6 +8594,7 @@ function render(){
   if(key===lastView){window.scrollTo(0,y);keepScroll(kept);if(!inBattle)holdAnchor()}else if(!inBattle)window.scrollTo(0,0);ui.anchor=null;
   if(inBattle){requestAnimationFrame(drawIntentArrows);if(flyNow)requestAnimationFrame(flyLoot)}
   lastView=key;
+  d3after();
   save();
   clearTimeout(autoTimer);
   const b=state.run&&state.run.battle;
@@ -8757,6 +8936,26 @@ function start(d){
     if(!b.over&&!b.cur){b.busy=false;advance()}else b.busy=false}
   render();
 }
+
+// Test hook for scripted screenshots: only exists when the page is opened with ?d3dev
+if(/[?&]d3dev/.test(location.search))window.DS_DEV={
+  get state(){return state},ACT,render,
+  setup(opt){opt=opt||{};
+    newGame();state.govSetup=null;state.tutorial=false;state.guide=false;state.hideBld=false;state.gold=2500;state.week=opt.week||6;state.b.war=opt.war==null?2:opt.war;state.b.smith=3;state.b.pack=3;state.b.bag=3;state.b.barracks=3;
+    state.gov={sex:'m',hair:3,hc:1,shirt:2,pants:3,name:'Jeff',picks:[0,1,2,3,4],dark:[]};
+    state.heroes=[];state.candidates=[];
+    const classes=opt.classes||['warrior','archer','mage'];
+    for(const c of classes){const h=makeHero(c);h.level=opt.level||8;
+      const tbl=opt.rarity||['common','rare','epic','godlike'][state.heroes.length%4];
+      for(const sl of ['weapon','helmet','chest','pants','ring1','ring2','amulet']){let it=null;for(let k=0;k<60&&!it;k++){const x=makeItem('battle',opt.ilvl||12,0);if(!x)continue;const xs=x.slot;if((sl==='weapon'?xs==='weapon':sl.startsWith('ring')?xs==='ring':xs===sl)&&(!x.cls||x.cls===c)&&(opt.any||x.rarity===tbl||k>40))it=x}
+        if(it){h.gear[sl]=it}}
+      h.hp=maxHp(h);h.mp=maxMp(h);state.heroes.push(h)}
+    state.sel.party=state.heroes.map(h=>h.id);
+    state.sel.biome=opt.biome||'forest';
+    if(opt.run){startRun();if(opt.battle)startBattle(opt.battle===true?'normal':opt.battle)}
+    ui.menu=false;lastView=null;render()}
+};
+if(set.gfx3d)d3load();
 try{window.claude&&window.claude.hot&&window.claude.hot.snapshot&&window.claude.hot.snapshot(()=>({state}))}catch(e){}
 if(window.claude&&window.claude.hot&&window.claude.hot.ready)window.claude.hot.ready(start);
 else start(window.claude&&window.claude.hot&&window.claude.hot.data||{});

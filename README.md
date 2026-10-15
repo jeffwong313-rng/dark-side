@@ -29,3 +29,6 @@ Each browser and the installed app keep their own saves, so export/import is als
 ## Updating the game later
 
 Replace `index.html` and `sw.js` in the repository with new versions (**Add file → Upload files**, then commit). The installed app picks up the update the next time it opens with an internet connection.
+
+## 3D mode (optional)
+**Settings → Graphics → 3D mode** switches the whole game to a voxel 3D look: a full-screen road map where the party walks up, left or right to the next node, Pokémon-style 3D battles (heroes bottom left, monsters top right), a 3D town, and 3D versions of every piece of equipment. Switch it off at any time to go back to the pixel art; saves are shared by both modes. A quality option (Battery saver / Balanced / Best quality) is next to it. The 3D engine (`lib/three.min.js` and the `d3/` folder) only downloads when 3D mode is on, and if anything goes wrong the game falls back to 2D by itself.
