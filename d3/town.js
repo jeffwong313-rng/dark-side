@@ -199,7 +199,7 @@ function buildTown(info){
   // moon
   S.moonM&&S.scene.remove(S.moonM);
   const mt=D3.moonTex(info.moon),mm=new T.Mesh(new T.PlaneGeometry(34,34),new T.MeshBasicMaterial({map:mt,transparent:true,fog:false,depthWrite:false}));
-  S.moonM=mm;S.scene.add(mm);const mh=D3.halo('#d9cfb8',90,.35);S.moonM.add(mh);mh.position.z=-1;
+  mm.material.depthTest=false;mm.renderOrder=999;S.moonM=mm;S.scene.add(mm);const mh=D3.halo('#d9cfb8',90,.35);mh.material.depthTest=false;mh.renderOrder=998;S.moonM.add(mh);mh.position.z=-1;
   S.moonPct=info.moon;
   // festival lanterns, merchant wagon and so on
   const ev=info.event;
@@ -216,7 +216,7 @@ function syncHeroes(info){
     seen.add(h.id);let m=S.heroM.get(h.id);
     const sig=D3.heroGearKey(h)+'|'+JSON.stringify(h.look);
     if(m&&m.sig!==sig){S.world.remove(m.H.root);S.heroM.delete(h.id);m=null}
-    if(!m){const H=D3.buildHero(h,{scale:.2*.56});S.world.add(H.root);m={H,sig,h:2.9};S.heroM.set(h.id,m)}
+    if(!m){const H=D3.buildHero(h,{scale:.2*1.7});S.world.add(H.root);m={H,sig,h:8.8};S.heroM.set(h.id,m)}
     const [gx,gy]=info.heroSpots[i];m.H.root.position.set((gx+.5)*TS,0,(gy+.5)*TS);m.spot=i;
     m.H.root.rotation.y=Math.PI*.25+.2*Math.sin(i*2.3);m.hero=h;
   });
@@ -263,8 +263,8 @@ function update(dt,t){
   cam.position.set(S.cx+Math.sin(yaw)*Math.cos(pitch)*dist,Math.sin(pitch)*dist,S.cz+Math.cos(yaw)*Math.cos(pitch)*dist);
   cam.lookAt(S.cx,2,S.cz);
   // the moon hangs behind the town, up and to the right on screen
-  if(S.moonM){const f=new T.Vector3().subVectors(new T.Vector3(S.cx,0,S.cz),cam.position).setY(0).normalize(),r=new T.Vector3(-f.z,0,f.x).multiplyScalar(-1);r.set(f.z*-1,0,f.x);
-    S.moonM.position.set(S.cx+f.x*210+r.x*70,92,S.cz+f.z*210+r.z*70);S.moonM.quaternion.copy(cam.quaternion)}
+  if(S.moonM){cam.updateMatrixWorld();const fw=new T.Vector3(0,0,-1).applyQuaternion(cam.quaternion),up=new T.Vector3(0,1,0).applyQuaternion(cam.quaternion),rt=new T.Vector3(1,0,0).applyQuaternion(cam.quaternion),D=330,hv=Math.tan(fov/2)*D;
+    S.moonM.position.copy(cam.position).addScaledVector(fw,D).addScaledVector(up,hv*.68).addScaledVector(rt,hv*asp*.8);S.moonM.quaternion.copy(cam.quaternion);S.moonM.scale.setScalar(.6)}
   if(S.stars)S.stars.rotation.y=t*.003;
 }
 const pv=new T.Vector3(),box=new T.Box3();
