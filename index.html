@@ -3261,7 +3261,7 @@ const SKILLS={
   wave:{cls:'monk',n:'Shockwave',mp:15,tgt:'all',mult:1.1,acc:100,crit:3,el:'physical',d:'A ripple of force through every enemy.'},
   channel:{cls:'monk',n:'Channel',mp:12,tgt:'self',chan:true,d:'Spend the turn gathering chi into an element (pick it below). The next attack or damaging skill is infused with that element and deals 1.75× damage. Lasts 3 turns.'},
   mark:{cls:'monk',tier:2,line:'mark',n:'Mark of Weakness',mp:12,tgt:'enemy',acc:100,mark:{n:5},d:'On hit, marks the target for 5 turns. Heroes deal 1.5× damage to a marked enemy, and archers deal 3×.'},
-  cleanse:{cls:'monk',tier:1,line:'core',n:'Cleansing Breath',mp:18,tgt:'ally',bless:{fat:25},d:'Eases 25% of one ally’s fatigue.'},
+  cleanse:{cls:'monk',tier:1,line:'core',n:'Cleansing Breath',mp:18,tgt:'ally',bless:{fatStat:{base:5,per:.25,lck:.1}},d:'Eases 5% of one ally’s fatigue, plus 0.25% for every point of the monk’s Perception and 0.1% for every point of Luck (rounded down).'},
   focus:{cls:'monk',n:'Inner Focus',mp:12,tgt:'ally',buff:{dmg:30,crit:12,n:3},d:'For 3 turns the monk or any other hero deals 30% more damage and has +12% crit chance.'},
   ward:{cls:'monk',n:'Ward of Stone',mp:14,tgt:'ally',buff:{def:30,n:3},d:'One ally takes 30% less damage for 3 turns.'},
   fleet:{cls:'monk',tier:1,line:'speed',n:'Wind Step',mp:12,tgt:'ally',buff:{eva:55,n:3,quick:true},d:'One ally gains 55% evasion for 3 turns and acts sooner.'},
@@ -4967,6 +4967,8 @@ function applyMark(h,t,sk){
   const b=state.run.battle,M=sk.mark,n=Math.round(M.n*chiMult(h));t.mark=Math.max(t.mark||0,n);if(M.weak)t.weak=Math.max(t.weak||0,n);
   b.pops.push({s:'e',i:b.enemies.indexOf(t),t:'MARKED',skill:1});
   blog(`${esc(h.name)} marks ${t.name} for ${n} turns: heroes deal 1.5× damage to it (archers 3×)${M.weak?', and it deals 30% less damage':''}.`)}
+// Fatigue eased by a stat-scaled blessing (Cleansing Breath): base + a little per Perception and Luck, rounded down to whole percent. A Chi action doubles it.
+const fatAmt=(h,B)=>Math.floor(B.fatStat.base+B.fatStat.per*stat(h,'per')+B.fatStat.lck*stat(h,'lck'))*chiMult(h);
 // Monk blessings and buffs (fatigue relief, healing, mana, damage, defense, evasion). A Chi action doubles every number.
 function monkSupport(h,K,ally){
   const b=state.run.battle,n=esc(h.name),X=chiMult(h)*monkAmp(h);
@@ -4974,6 +4976,7 @@ function monkSupport(h,K,ally){
   const out=[];
   for(const x of T){const bits=[];
     if(K.bless){const B=K.bless;
+      if(B.fatStat){const F=fatAmt(h,B),was=fatOf(x);x.fat=Math.max(0,(x.fat||0)-F);if(was>fatOf(x)){bits.push(`fatigue ${was}% → ${fatOf(x)}%`);b.pops.push({s:'h',hid:x.id,t:'-'+(was-fatOf(x))+'%'})}else bits.push('already rested')}
       if(B.fat){const was=fatOf(x);x.fat=Math.max(0,(x.fat||0)-B.fat*X);if(was>fatOf(x)){bits.push(`fatigue ${was}% → ${fatOf(x)}%`);b.pops.push({s:'h',hid:x.id,t:'-'+(was-fatOf(x))+'%'})}else bits.push('already rested')}
       if(B.hp){const v=Math.round(maxHp(x)*B.hp*X*healMult(x));x.hp=Math.min(maxHp(x),x.hp+v);b.pops.push({s:'h',hid:x.id,t:'+'+v});bits.push(`+${v} HP`)}
       if(B.mp){const v=Math.round(maxMp(x)*B.mp*X*manaMult());x.mp=Math.min(maxMp(x),x.mp+v);bits.push(`+${v} MP`)}
@@ -7614,6 +7617,7 @@ function skillCard(h,id,rank){const k=SKILLS[id],own=state.heroes.includes(h),in
   return `<div class="skcard ${own&&inKit?'on':'off'} ${bad?'skbad':''}"><div class="skhead"><span class="skname">${skillIco(id)} ${skN(id)} <span class="muted">· ${skillMp(h,id)} MP</span></span>${sw}</div>
     <div class="skrk">${rankDots(id,rank)}<span class="muted">${skillNeedsTxt(id)}</span></div>
     ${bad?`<span class="warn" style="font-size:17px">Not usable from the starting ${RANK_N[rank].toLowerCase()} rank. Reorder the party or move in battle.</span>`:''}
+    ${k.bless&&k.bless.fatStat?`<span class="afx">Right now for ${esc(h.name)}: eases ${fatAmt(h,k.bless)}% fatigue</span>`:''}
     <span class="afx">${skillStats(id).replace(/ · (front or middle rank|middle or back rank|any rank)$/,'')}</span><span class="meta">${k.d}</span></div>`}
 const rankLegend=`<p class="muted" style="font-size:17px;margin:0">Under each name: <span class="rk"><i></i><i class="on"></i><i class="on"></i><span class="bar"></span></span><span class="rk tgt"><i class="on"></i><s class="ln on"></s><i class="on"></i><s class="ln"></s><i></i></span> the left three dots are your hero's ranks (back, middle, front): lit means the skill works from there. The right three are the enemy's ranks (front, middle, back): lit means it can hit them, and a line joining the dots means it hits all of them at once. A skill can be equipped but out of reach if the hero gets pushed to the wrong rank.</p>`;
 function skillChip(h,id){const k=SKILLS[id],own=state.heroes.includes(h),inKit=kit(h).includes(id),tg=own&&!kitLocked(h)&&h.skills.length>1;
