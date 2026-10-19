@@ -3669,10 +3669,17 @@ const bestStat=(list,k)=>list.reduce((m,h)=>Math.max(m,stat(h,k)),0);
 const scoutChance=(per,depth)=>Math.min(depth===1?90:60,per*(depth===1?4:2));
 const spotChance=per=>Math.min(90,per*3);
 const findChance=per=>Math.min(40,per*1);
-// Charisma: haggling with the Witch. Max 40% off.
+// Charisma (one hero): what a merchant pays above the usual for loot, up to 40%.
 const chaDiscount=h=>h?Math.min(40,stat(h,'cha')*1.5):0;
+// Everything bought (supplies, potions, brews, treatments, traveling merchants) lists at double the base price.
+// The whole roster's Charisma added together takes 2% off per point, down to 40% of the list price at most (a 60% discount).
+const PRICE_X=2,CHA_OFF=2,CHA_OFF_MAX=60;
+const teamCha=()=>Math.round(state.heroes.reduce((a,h)=>a+stat(h,'cha'),0));
+const teamDiscount=()=>Math.min(CHA_OFF_MAX,teamCha()*CHA_OFF);
+// Charisma also speeds up learning: +2% experience per point of the hero's own Charisma.
+const chaXp=h=>1+stat(h,'cha')*.02;
 const bestHaggler=()=>state.heroes.reduce((a,h)=>!a||stat(h,'cha')>stat(a,'cha')?h:a,null);
-const priced=(cost,h)=>Math.max(1,Math.round(cost*(1-chaDiscount(h)/100)));
+const priced=(cost,h)=>Math.max(1,Math.round(cost*PRICE_X*(1-teamDiscount()/100)));
 const luckRate=(h,k)=>stat(h,'lck')*LUCK[k].base*(h.cls===LUCK[k].cls?2.5:1);
 function stat(h,k){return Math.max(1,(h[k]+aff(h,k)+(h.elixir&&h.elixir.stat===k?h.elixir.v:0))*(1+tr(h,k+'Pct')/100))}
 const C_=h=>CLASSES[h.cls];
@@ -4773,7 +4780,7 @@ function atkEl(h,spec){
   if(spec==='weapon')return (h.gear.weapon&&h.gear.weapon.el)||'physical';
   return spec;
 }
-const hitChance=(h,e,acc,sure)=>sure?100:clamp(acc+stat(h,'per')*.3+stat(h,'agi')*.1-(e.eva||0)-(injOf(h)==='dizzy'?15:0)+posV(h,'acc'),5,100);
+const hitChance=(h,e,acc,sure)=>sure?100:clamp(acc+stat(h,'per')*.3+stat(h,'agi')*.1+stat(h,'lck')*.25-(e.eva||0)-(injOf(h)==='dizzy'?15:0)+posV(h,'acc'),5,100);
 const critFor=(h,o)=>{if(o.forceCrit)return 100;const f=heroBuff(h,'focus'),rb=state.run&&state.run.battle&&state.run.battle.rally,c=clamp((critChance(h)+(o.crit||0)+(f?f.v:0)+(heroBuff(h,'might')?heroBuff(h,'might').crit||0:0)+(rb&&rb.n>0?rb.crit||0:0)+posV(h,'crit'))*(o.critMul||1),0,95);return heroBuff(h,'crit')?Math.max(80,c):c};
 /* Three basic attacks, no mana. Their numbers come from a weighted mix of the hero's stats,
    always leaning toward the class's main attribute (STR warrior, AGI archer, INT mage). */
@@ -5484,7 +5491,7 @@ function win(){
   b.extraDrops=[];
   r.gold+=g;
   const lines=[`<b class="gold">+${g} gold</b>`,...(b.recov||[])];b.recov=null;
-  for(const h of L){const hx=Math.round(xp*runMod('xp')*(1+aff(h,'xp')/100));h.kills+=b.enemies.length;lines.push(`${esc(h.name)} +${hx} XP`);gainXp(h,hx,lines)}
+  for(const h of L){const hx=Math.round(xp*runMod('xp')*(1+aff(h,'xp')/100)*chaXp(h));h.kills+=b.enemies.length;lines.push(`${esc(h.name)} +${hx} XP`);gainXp(h,hx,lines)}
   for(const [t,e] of drops){const it=makeItem(t,ilvl(),pick(L).cls);addLoot(it,lines,t==='king'?'The King’s crown-chest: ':t==='boss'?'Boss chest: ':'Dropped ');e.drop.push({k:'item',it,ground:(r.ground||[]).includes(it)})}
   if(eliteBits){r.bag.potion=(r.bag.potion||0)+eliteBits;lines.push(`The elite dropped ${eliteBits>1?eliteBits+' ':'a '}<b>Small Healing Potion${eliteBits>1?'s':''}</b> (bag)`)}
   if(b.bountyHit){const n=state.caveBeaten.length,T=Object.keys(CAVE_BEASTS).length;lines.push(`<b class="gold">Bounty: ${esc(b.bountyHit)} slain (${n}/${T}).</b>${n>=T?' Every beast is dead. Claim the reward at the Town Hall.':''}`);b.bountyHit=null}
@@ -5846,10 +5853,10 @@ function statTip(h,k){
   if(k==='str')return `Strength. ${own?'Warriors add 1 damage per point':'Adds 0.25 damage per point (Warriors get 1)'}. Each point the hero has (not from gear or elixirs) also adds 0.75 max health every time they level up.`;
   if(k==='per')return `Perception. Accuracy +0.3% per point.${h.cls==='monk'?' It is the Monk’s class stat: it adds to their damage and the strength of their blessings and buffs, and Luck adds half as much.':''} Perception adds up across the whole party on the map and in battle: with 1–2 total every choice on the map is unknown; with 3–8 some choices are fogged; from 9 every choice is clear and you see 1 stage ahead, +1 more per 6 points (up to 6). At 6+ you see enemy health and damage numbers; at 10+ you see what each enemy will do next. The party’s best single Perception also fully reads unknown enemies at the start of a fight (${Math.round(fullScoutChance(stat(h,'per')))}%, adding them to the Moon Ledger), spots trapped chests (${Math.round(spotChance(stat(h,'per')))}%), and finds bonus gold or items after fights (${Math.round(findChance(stat(h,'per')))}%).`;
   if(k==='end')return `Endurance. Each point the hero has (not from gear or elixirs) adds 1.25 max health every time they level up, +0.5% resistance to every element (${(stat(h,'end')*.5).toFixed(1)}% now), and health recovered between fights: 0.5% per point, up to 30% (${Math.round(restPct(h))}% now).`;
-  if(k==='cha')return `Charisma. The whole party’s Charisma adds up for every non-battle event (chests, gold caches, shrines, strangers). Each point above the land’s baseline makes results 3% better, each point below 3% worse (Cave 8, Wilds 14, Wasteland 20, Summit 28). Also lowers the Witch’s brew and supply prices by 1.5% per point, up to 40% (${Math.round(chaDiscount(h))}% now). Treatments use this hero’s Charisma; supplies use your most charming hero.`;
+  if(k==='cha')return `Charisma. The whole party’s Charisma adds up for every non-battle event (chests, gold caches, shrines, strangers). Each point above the land’s baseline makes results 3% better, each point below 3% worse (Cave 8, Wilds 14, Wasteland 20, Summit 28). Each point also adds 2% to the experience this hero earns (+${Math.round(stat(h,'cha')*2)}% now). And every hero’s Charisma added together (${teamCha()} now) takes 2% off the price of everything you buy, up to 60% off (${teamDiscount()}% now). Prices start at double, so a bigger, more charming roster is how they come down.`;
   if(k==='agi')return `Agility. ${own?'Archers add 0.85 damage per point':'Adds 0.25 damage per point (Archers get 0.85)'}. Raises speed, so more turns, plus crit chance, evasion and accuracy.`;
   if(k==='int')return `Intelligence. ${own?'Mages add 1 damage per point':'Adds 0.25 damage per point (Mages get 1)'}. Each point the hero has (not from gear or elixirs) adds 0.5 max mana every time they level up, and ${h.cls==='mage'?'0.51':'0.34'} mana regained each turn, rounded down (${focusRegen(h)} now), 0.5% mana recovered between fights (${Math.round(restMpPct(h))}% now), and strengthens Mend.`;
-  return `Luck. For this hero right now: +${luckRate(h,'crit').toFixed(1)}% crit chance, +${luckRate(h,'gold').toFixed(1)}% gold found, ${luckRate(h,'surge').toFixed(1)}% chance of a lucky surge on each ${h.cls==='mage'?'spell or attack':'skill'} (a random boon for the battle). ${C.name}s get 2.5× the ${{warrior:'gold',archer:'crit',mage:'surge'}[h.cls]} bonus. The whole party's Luck also adds up to make chance-based events kinder: each point above the land's baseline is 2% (Cave 6, Wilds 12, Wasteland 18, Summit 26).`;
+  return `Luck. For this hero right now: +${(stat(h,'lck')*.25).toFixed(1)}% accuracy, +${luckRate(h,'crit').toFixed(1)}% crit chance, +${luckRate(h,'gold').toFixed(1)}% gold found, ${luckRate(h,'surge').toFixed(1)}% chance of a lucky surge on each ${h.cls==='mage'?'spell or attack':'skill'} (a random boon for the battle). ${C.name}s get 2.5× the ${{warrior:'gold',archer:'crit',mage:'surge'}[h.cls]} bonus. The whole party's Luck also adds up to make chance-based events kinder: each point above the land's baseline is 2% (Cave 6, Wilds 12, Wasteland 18, Summit 26).`;
 }
 function statPips(h,raw){
   const p=C_(h).primary;
@@ -5879,7 +5886,7 @@ const TUT_B=[
   ['traits',h=>`Traits are quirks they were born with. <span class="tk-good">Green</span> ones help, <span class="tk-neutral">yellow</span> ones are a mixed bag, <span class="tk-bad">red</span> ones hurt. Hover or tap a trait to read it. Another trait shows up every 10 levels.`],
   ['skills',h=>`They start with two skills. Skills cost MP but hit harder than a plain attack. New skills arrive at levels 4, 11, 18, 25 and 32, and a hero can bring up to four on each adventure.`],
   ['xp',h=>`Fights earn experience. Every level-up restores them fully and brings attribute points to spend.`],
-  ['stats',h=>`Seven attributes shape everything. STR: power. PER: accuracy and spotting what enemies plan. END: health and resistances. CHA: better prices and events. INT: mana. AGI: speed and dodging. LCK: crits and good fortune. The ${C_(h).name}’s main one is outlined. Tap any of them to learn more.`],
+  ['stats',h=>`Seven attributes shape everything. STR: power. PER: accuracy and spotting what enemies plan. END: health and resistances. CHA: experience, lower prices and better events. INT: mana. AGI: speed and dodging. LCK: crits, accuracy and good fortune. The ${C_(h).name}’s main one is outlined. Tap any of them to learn more.`],
   ['el',h=>`Everyone is born a little different against the elements. This shows what they resist, what they’re weak to, and any elemental damage bonus.`],
   ['go',h=>`Recruiting this first one is free. Let’s sign ${esc(h.name)} up.`],
 ];
@@ -6637,7 +6644,7 @@ function statTable(h){
     ${row('Gold find','+'+Math.round(aff(h,'goldfind')+luckRate(h,'gold'))+'%','Extra gold from fights, chests and caches. From Luck, gear and traits.')}
     ${row('Lucky surge',luckRate(h,'surge').toFixed(1)+'%',`Chance on each ${h.cls==='mage'?'spell or attack':'skill'} to gain a random boon for the rest of the battle.`)}
     ${aff(h,'lifesteal')?row('Lifesteal',Math.round(aff(h,'lifesteal'))+'%','Heals for this percent of damage dealt.'):''}
-    ${aff(h,'xp')?row('XP gain','+'+Math.round(aff(h,'xp'))+'%','Extra experience from fights.'):''}
+    ${aff(h,'xp')||stat(h,'cha')?row('XP gain','+'+Math.round(aff(h,'xp')+stat(h,'cha')*2)+'%','Extra experience: 2% per point of Charisma, plus gear and traits.'):''}
   </dl>`;
 }
 // Pending point plan for one hero: + and − change it, Confirm spends it. Nothing changes until Confirm.
@@ -6757,7 +6764,7 @@ function alchView(){
   if(!state.heroes.length)return s+'<p class="muted">Recruit a hero first.</p>';
   let h=heroById(state.sel.alch);if(!h){h=state.heroes[0];state.sel.alch=h.id}
   const hg=bestHaggler(),ev=ELIXIR_V[L-1],ec=priced(30+L*15,h),tc=priced(200*(h.tonics+1),h),dc=priced(60,h);
-  s+=`<p class="muted" data-tip="Charisma lowers the Witch’s brew and supply prices by 1.5% per point, up to 40%. Hero treatments use that hero’s Charisma. Supplies use your most charming hero.">Charisma discounts: ${esc(h.name)} gets ${Math.round(chaDiscount(h))}% off treatments. ${hg?`${esc(hg.name)} haggles ${Math.round(chaDiscount(hg))}% off supplies.`:''}</p>`;
+  s+=`<p class="muted" data-tip="Everything you buy lists at double the base price. Every hero’s Charisma added together takes 2% off per point, up to 60% off.">Prices: list price is double. Your roster’s Charisma is ${teamCha()}, which takes ${teamDiscount()}% off everything you buy (up to ${CHA_OFF_MAX}%).</p>`;
   s+=heroChips('alchHero',h.id);
   s+=`<p>${esc(h.name)}: ${STATS.map(k=>`${STATN[k]} ${h[k]}`).join(' · ')}${h.elixir?` · <span class="gold">active elixir +${h.elixir.v} ${STATN[h.elixir.stat]}</span>`:''}</p>
   <div class="cards">
@@ -6771,7 +6778,7 @@ function alchShop(){
   const L=state.b.alch,hg=bestHaggler();let s='';
   s+=`<h3>Supplies</h3><p class="muted">Consumables for the road. Heroes use them in battle like any action. Potions and ethers also work between fights.</p><div class="items">${Object.entries(CONSUMABLES).filter(([,C])=>!C.noShop).map(([id,C])=>{const lock=L<C.lvl||!consOpen(id);
     const pc=priced(C.cost,hg);
-    return `<div class="item"><span class="iname">${C.n} <span class="muted">· ${pc} gold${pc<C.cost?` <s>${C.cost}</s>`:''}</span></span><span class="meta">${C.d}</span><span class="meta">Owned: ${state.items[id]||0}</span>
+    return `<div class="item"><span class="iname">${C.n} <span class="muted">· ${pc} gold${pc<C.cost*PRICE_X?` <s>${C.cost*PRICE_X}</s>`:''}</span></span><span class="meta">${C.d}</span><span class="meta">Owned: ${state.items[id]||0}</span>
       ${lock?`<span class="meta">${consOpen(id)?'Needs Cauldron level '+C.lvl:consOpenNote(id)}</span>`:`<div class="row"><button class="btn small" data-a="buy" data-x="${id}|1" ${state.gold<pc?'disabled':''}>Buy 1</button><button class="btn small" data-a="buy" data-x="${id}|5" ${state.gold<pc*5?'disabled':''}>Buy 5 · ${pc*5}</button></div>`}</div>`}).join('')}
     <div class="item r-epic-b"><span class="iname">Return Scroll <span class="muted">· ${priced(SCROLL_PRICE,hg)} gold</span></span><span class="meta">Brings the whole party home safely with everything they carry. Rarely found on the road, costly to buy.</span><span class="meta">Owned: ${state.scrolls}</span>
       <div class="row"><button class="btn small gold" data-a="buyScroll" ${state.gold<priced(SCROLL_PRICE,hg)?'disabled':''}>Buy</button></div></div></div>`;
@@ -7041,7 +7048,7 @@ function advView(){
   s+='</div><div class="stack">';
   // outfitter: supplies
   const stock=Object.values(state.items||{}).reduce((a,x)=>a+x,0),plan=packPlan(),bringN=Object.values(plan).reduce((a,x)=>a+x,0),bring=planSlots(plan);
-  s+=`<h3 class="${coachMark('gate','out')}">Outfitter · supplies ${help(`Choose how many of each to bring with − and +. Each slot holds a stack of up to 6 of one supply. The rest stays stored in town, and unused supplies come home if the party survives.${hg&&chaDiscount(hg)?` ${hg.name} haggles ${Math.round(chaDiscount(hg))}% off.`:''}`)}</h3><div class="bar xp" data-tip="Your Supply Pack (upgrade it at the Bank). Use − and + to choose what goes along; the rest stays stored in town."><i style="width:${clamp(bring/packCap()*100,0,100)}%"></i><span>Slots ${bring} / ${packCap()} · ${bringN} supplies${stock>bringN?` · ${stock-bringN} stay stored`:''}</span></div>
+  s+=`<h3 class="${coachMark('gate','out')}">Outfitter · supplies ${help(`Choose how many of each to bring with − and +. Each slot holds a stack of up to 6 of one supply. The rest stays stored in town, and unused supplies come home if the party survives.${state.heroes.length?` Prices are double, less ${teamDiscount()}% for your roster’s combined Charisma (${teamCha()}).`:''}`)}</h3><div class="bar xp" data-tip="Your Supply Pack (upgrade it at the Bank). Use − and + to choose what goes along; the rest stays stored in town."><i style="width:${clamp(bring/packCap()*100,0,100)}%"></i><span>Slots ${bring} / ${packCap()} · ${bringN} supplies${stock>bringN?` · ${stock-bringN} stay stored`:''}</span></div>
   <div class="shoprow ${coachMark('gate','out')}">${(()=>{const c=state.sel.carry&&state.scrolls?1:0,pc=priced(SCROLL_PRICE,hg);return `<div class="shopitem" data-tip="Brings the whole party home safely with everything they carry. Takes no supply slot; one can go along per adventure.">${ico('scroll',null,3)}<span>Return Scroll</span><span class="muted">${pc}g · have ${state.scrolls}</span><button class="btn small gold" data-a="buyScroll" ${state.gold<pc?'disabled':''}>Buy</button><span class="bringrow"><span class="muted">Bring</span><button class="btn small pm" data-a="carryAdj" data-x="0" ${c?'':'disabled'} aria-label="Leave the Return Scroll at home">−</button><b class="num pc">${c}</b><button class="btn small pm" data-a="carryAdj" data-x="1" ${c||!state.scrolls?'disabled':''} aria-label="Bring a Return Scroll">+</button></span></div>`})()}${Object.entries(CONSUMABLES).filter(([id,C])=>!C.noShop&&state.b.alch>=C.lvl&&(consOpen(id)||state.items[id]>0)).map(([id,C])=>{const pc=priced(C.cost,hg),n=state.items[id]||0,open=consOpen(id);
     const k=plan[id]||0;
     return `<div class="shopitem" data-tip="${esc(C.d)}">${consIco(id)}<span>${C.n}</span><span class="muted">${open?pc+'g · ':''}have ${n}</span>${open?`<button class="btn small" data-a="buy" data-x="${id}|1" ${state.gold<pc?'disabled':''}>Buy</button>`:'<span></span>'}
@@ -7542,7 +7549,7 @@ const DRILL_BATTLES=2/3;
 function avgBattleXp(){const r=state.run;if(!r)return 0;const s=r.stage||1,o=packOdds(r.length,s),n=(o.one+2*o.two+3*o.three)/100,
   M=TIER_MIX[r.length]||{easy:1},W=Object.values(M).reduce((a,b)=>a+b,0),t=Object.entries(M).reduce((a,[k,w])=>a+(TIER_XP[k]||1)*w,0)/W;
   return (10+4*s)*(LENGTHS[r.length]||LENGTHS.short).mult*t*n}
-const drillXp=(h,pts=1)=>Math.max(1,Math.round(avgBattleXp()*DRILL_BATTLES*pts*runMod('xp')*(1+aff(h,'xp')/100)));
+const drillXp=(h,pts=1)=>Math.max(1,Math.round(avgBattleXp()*DRILL_BATTLES*pts*runMod('xp')*(1+aff(h,'xp')/100)*chaXp(h)));
 const drillTxt=()=>{const L=living();if(!L.length)return 'Every hero gains experience.';const xs=L.map(h=>drillXp(h)),pc=L.map((h,i)=>xs[i]/xpNeed(h.level)*100),avg=pc.reduce((a,b)=>a+b,0)/pc.length,
   sp=v=>v<1?'<1':Math.round(v);
   return L.length>1?`Every hero gains ~${fmt(xs.reduce((a,b)=>a+b,0)/xs.length)} XP per point (~${sp(avg)}% of a level on average). Three points match two battles here.`
@@ -8208,7 +8215,7 @@ const WHEEL=[['gold',25,'#e3b341','Gold'],['xp',22,'#6ab0e0','Experience'],['ite
 const pctHp=(h,p)=>{const v=Math.round(maxHp(h)*p);return v};
 const hurtAll=(p,lines)=>{for(const h of living()){const v=Math.min(h.hp-1,pctHp(h,p));h.hp-=Math.max(0,v);lines.push(`${esc(h.name)} −${v} HP`)}};
 const healAll=(p,lines)=>{for(const h of living()){const v=Math.round(maxHp(h)*p*healMult(h));h.hp=Math.min(maxHp(h),h.hp+v);lines.push(`${esc(h.name)} +${v} HP`)}};
-const xpTo=(h,frac,lines)=>{const x=Math.max(1,Math.round(xpNeed(h.level)*frac));lines.push(`${esc(h.name)} +${x} XP`);gainXp(h,x,lines)};
+const xpTo=(h,frac,lines)=>{const x=Math.max(1,Math.round(xpNeed(h.level)*frac*chaXp(h)));lines.push(`${esc(h.name)} +${x} XP`);gainXp(h,x,lines)};
 const levelUp=(h,lines)=>{lines.push(`<b class="gold">${esc(h.name)} is filled with moonlight.</b>`);gainXp(h,xpNeed(h.level)-h.xp,lines)};
 const statUp=(h,lines,n)=>{const k=pick(STATS);h[k]+=n||1;if(h.baseStats)h.baseStats[k]+=n||1;lines.push(`<b class="gold">${esc(h.name)} +${n||1} ${STATN[k]} permanently.</b>`)};
 const freeItem=(table,lines,pre)=>{const it=makeItem(table,ilvl(),pick(living()).cls);addLoot(it,lines,pre||'Found: ');return it};
@@ -8331,8 +8338,8 @@ function makeShop(mult){
   return stock;
 }
 function shopView(ev){
-  const r=state.run,T=talker(),d=Math.round(chaDiscount(T));
-  return `<div class="shopwrap"><p class="muted" style="font-size:18px">You carry <b class="gold">${r.gold} gold</b>.${d?` ${esc(T.name)} haggles ${d}% off.`:''} Return Scrolls here cost less than in town (${priced(SCROLL_PRICE,bestHaggler())}g).</p>
+  const r=state.run,d=teamDiscount();
+  return `<div class="shopwrap"><p class="muted" style="font-size:18px">You carry <b class="gold">${r.gold} gold</b>.Prices are double, less ${d}% for your roster’s combined Charisma (${teamCha()}). Return Scrolls here cost less than in town (${priced(SCROLL_PRICE,bestHaggler())}g).</p>
     <div class="shopgrid">${ev.shop.map((x,i)=>{const sold=x.n<=0;
       const ic=x.k==='item'?itemIcon(x.it,3):x.k==='scroll'?`<span class="ibox">${sprite('scroll',null,3)}</span>`:`<span class="ibox">${consIco(x.id,3)}</span>`;
       const nm=x.k==='item'?itemName(x.it):x.k==='scroll'?'Return Scroll':CONSUMABLES[x.id].n;
