@@ -138,14 +138,14 @@ function heroOf(id){return S.heroes.get(id)||S.heroes.get(String(id))||[...S.her
 function foeAt(i){const e=G().state.run.battle.enemies[i];return e&&S.foes.get(e)}
 function poseFor(cls,sk){
   if(sk){const f=String(sk.id);if(/slash|cleave|crush|titan|coup|execute|assassin|sunder|stunblow|killshot|combo|quake|double|cripple/.test(f)&&cls==='warrior')return 'attack'}
-  return cls==='warrior'?'attack':cls==='archer'?'shoot':'cast'}
+  return cls==='warrior'||cls==='monk'?'attack':cls==='archer'?'shoot':'cast'}
 function runOne(fx,b){
   const col=fx.sk&&fx.sk.c?fx.sk.c:null;
   // who acts
   if(fx.act&&fx.act[0]==='h'){
     const m=heroOf(fx.act.slice(2));
     if(m&&!m.dead){
-      const cls=m.hero.cls,tg=(fx.atk?fx.atk.tg:fx.sk?fx.sk.tg:[]).map(foeAt).filter(Boolean),pose=poseFor(cls,fx.sk),c=col||(cls==='mage'?elCol(b.attune&&b.attune[m.hero.id])||'#a8d8ff':cls==='archer'?'#ffe9a0':'#ffffff');
+      const cls=m.hero.cls,tg=(fx.atk?fx.atk.tg:fx.sk?fx.sk.tg:[]).map(foeAt).filter(Boolean),pose=poseFor(cls,fx.sk),c=col||(cls==='mage'||(cls==='monk'&&m.hero.buffs&&0)?elCol(b.attune&&b.attune[m.hero.id])||'#a8d8ff':cls==='monk'?'#f2d36b':cls==='archer'?'#ffe9a0':'#ffffff');
       const crit=!!fx.crit;
       D3.setPose(m.H,pose,.6);
       const t0=tg[0];

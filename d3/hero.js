@@ -189,6 +189,9 @@ function buildParts(h){
       head.ell(0,15.4,-1,5.2,4.1,5.2,A);for(let x=-6;x<=6;x++)for(let y=10;y<=22;y++)for(let z=1;z<=7;z++){const dx=x/3.5,dy=(y-14.2)/3.6;if(dx*dx+dy*dy<1)head.del(x,y,z)}
       for(let x=-6;x<=6;x++)for(let z=-6;z<=6;z++){head.del(x,10,z);head.del(x,9,z)}
       head.cone(0,-5,19,23,3,0,A);head.set(0,24,-7,Ad);head.box(-4,17,4,4,17,4,Al);head.set(-3,14,fz(-3)+1,skin);head.set(3,14,fz(3)+1,skin)} }
+  else if(cls==='monk'){ if(!hasHelm){ // shaved head, headband and a short knot
+      head.ell(0,15.6,-1.2,4.6,2.6,4.8,hair);for(let x=-5;x<=5;x++)for(let y=11;y<=15;y++)for(let z=-5;z<=5;z++)head.del(x,y,z);
+      head.box(-5,16,-5,5,17,5,A);head.set(0,17,-6,0xe3b341,FLAT);head.ell(0,15.2,-5.4,1.6,1.4,1.4,hair)} }
   else{ if(!hasHelm||true){ // wizard hat
       head.ell(0,15.8,-1.2,4.9,3.4,5,hair);for(let x=-5;x<=5;x++)for(let y=11;y<=14;y++)for(let z=2;z<=5;z++)head.del(x,y,z);
       head.ell(0,18.5,0,7.6,.9,7.6,Ad);head.cyl(0,0,19,20,4.2,4.2,A);head.cone(0,0,21,24,3.6,2.2,A);head.cone(-1,-1,25,27,2,1,A);head.cone(-2,-2,28,29,1,0,A);head.set(-3,29,-3,A);
