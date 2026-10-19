@@ -3262,7 +3262,7 @@ const SKILLS={
   channel:{cls:'monk',n:'Channel',mp:12,tgt:'self',chan:true,d:'Spend the turn gathering chi into an element (pick it below). The next attack or damaging skill is infused with that element and deals 1.75× damage. Lasts 3 turns.'},
   mark:{cls:'monk',tier:2,line:'mark',n:'Mark of Weakness',mp:12,tgt:'enemy',acc:100,mark:{n:5},d:'On hit, marks the target for 5 turns. Heroes deal 1.5× damage to a marked enemy, and archers deal 3×.'},
   cleanse:{cls:'monk',tier:1,line:'core',n:'Cleansing Breath',mp:18,tgt:'ally',bless:{fat:25},d:'Eases 25% of one ally’s fatigue.'},
-  focus:{cls:'monk',n:'Inner Focus',mp:12,tgt:'self',buff:{dmg:30,crit:12,n:3},d:'For 3 turns this monk deals 30% more damage and has +12% crit chance.'},
+  focus:{cls:'monk',n:'Inner Focus',mp:12,tgt:'ally',buff:{dmg:30,crit:12,n:3},d:'For 3 turns the monk or any other hero deals 30% more damage and has +12% crit chance.'},
   ward:{cls:'monk',n:'Ward of Stone',mp:14,tgt:'ally',buff:{def:30,n:3},d:'One ally takes 30% less damage for 3 turns.'},
   fleet:{cls:'monk',tier:1,line:'speed',n:'Wind Step',mp:12,tgt:'ally',buff:{eva:55,n:3,quick:true},d:'One ally gains 55% evasion for 3 turns and acts sooner.'},
   ironfist:{cls:'monk',tier:1,line:'force',n:'Iron Fist',mp:16,tgt:'enemy',mult:3,acc:100,crit:10,cdmg:25,el:'physical',pierce:true,d:'A hardened fist that ignores armor.'},
@@ -8727,7 +8727,7 @@ function monkAuto(h,e,L,n,avg,hurt,can){
   if(can('calm')&&(avg<.7||tired))return ['calm'];
   if(!(e.mark>0)&&(bigFoe(e)||e.kind==='elite'||n>1)){if(can('mark'))return ['mark']}
   if(can('avatar')&&!heroBuff(h,'chan'))return ['avatar'];
-  if(can('focus')&&!heroBuff(h,'might')&&(bigFoe(e)||n>1))return ['focus'];
+  if(can('focus')&&(bigFoe(e)||n>1)){const t=[...L].filter(x=>!heroBuff(x,'might')).sort((a,c)=>power(c)-power(a))[0];if(t)return ['focus',t.id]}
   if(can('ward')&&b.fx&&hurt.hp/maxHp(hurt)<.5)return ['ward',hurt.id];
   const S=n>1?['wave']:[];
   const act=[...S,'heaven','hundred','shatter','fiveel','ironfist','palm'].find(can);
