@@ -3262,19 +3262,14 @@ const SKILLS={
   channel:{cls:'monk',n:'Channel',mp:12,tgt:'self',chan:true,d:'Spend the turn gathering chi into an element (pick it below). The next attack or damaging skill is infused with that element and deals 1.75× damage. Lasts 3 turns.'},
   mark:{cls:'monk',n:'Mark of Weakness',mp:8,tgt:'enemy',acc:100,mark:{n:4},d:'On hit, marks the target for 4 turns. Heroes deal 1.5× damage to a marked enemy, and archers deal 3×.'},
   cleanse:{cls:'monk',n:'Cleansing Breath',mp:14,tgt:'ally',bless:{fat:10},d:'Eases 10% fatigue on one ally.'},
-  blessing:{cls:'monk',n:'Blessing of Rest',mp:12,tgt:'ally',bless:{fat:18},d:'Eases 18% fatigue on one ally.'},
   focus:{cls:'monk',n:'Inner Focus',mp:12,tgt:'self',buff:{dmg:30,crit:12,n:3},d:'For 3 turns this monk deals 30% more damage and has +12% crit chance.'},
-  ward:{cls:'monk',n:'Ward of Stone',mp:14,tgt:'ally',buff:{def:30,n:3},d:'One ally takes 30% less damage for 3 turns.'},
-  fleet:{cls:'monk',n:'Wind Step',mp:12,tgt:'ally',buff:{eva:55,n:3,quick:true},d:'One ally gains 55% evasion for 3 turns and acts sooner.'},
+  fleet:{cls:'monk',tier:1,line:'speed',n:'Wind Step',mp:12,tgt:'ally',buff:{eva:55,n:3,quick:true},d:'One ally gains 55% evasion for 3 turns and acts sooner.'},
   ironfist:{cls:'monk',tier:1,line:'force',n:'Iron Fist',mp:16,tgt:'enemy',mult:3,acc:100,crit:10,cdmg:25,el:'physical',pierce:true,d:'A hardened fist that ignores armor.'},
   shatter:{cls:'monk',tier:2,line:'force',n:'Shattering Palm',mp:28,tgt:'enemy',mult:4.2,acc:100,crit:12,cdmg:25,el:'physical',pierce:true,stun:1,d:'Ignores armor and stuns the target for 1 turn.'},
-  heaven:{cls:'monk',tier:3,line:'force',n:'Heaven-Splitting Fist',mp:40,tgt:'enemy',mult:6.5,sure:true,crit:15,cdmg:40,el:'physical',pierce:true,d:'Never misses and ignores armor.'},
-  brand:{cls:'monk',tier:1,line:'mark',n:'Branding Palm',mp:14,tgt:'enemy',mult:1.6,acc:100,crit:5,el:'physical',mark:{n:5},d:'A strike that also marks the target for 5 turns: heroes deal 1.5× damage to it, archers 3×.'},
-  seal:{cls:'monk',tier:2,line:'mark',n:'Seal of Ruin',mp:24,tgt:'all',mark:{n:4},d:'Marks every enemy for 4 turns. Heroes deal 1.5× damage to marked enemies, archers 3×.'},
+  heaven:{cls:'monk',tier:3,line:'force',n:'Heaven-Splitting Fist',mp:40,tgt:'enemy',mult:6.5,sure:true,crit:15,cdmg:40,el:'physical',pierce:true,slow:.4,d:'A single blow that never misses and ignores armor. The monk needs a moment to recover: their next turn comes 40% later.'},
   doom:{cls:'monk',tier:3,line:'mark',n:'Sign of Doom',mp:36,tgt:'all',mult:2.2,acc:100,crit:8,el:'physical',mark:{n:5,weak:true},d:'Strikes every enemy and marks them for 5 turns. Marked enemies take 1.5× damage (3× from archers) and deal 30% less damage.'},
   calm:{cls:'monk',tier:1,line:'bless',n:'Circle of Calm',mp:24,tgt:'party',bless:{fat:12,hp:.08},d:'Eases 12% fatigue and heals 8% of max health for every ally.'},
   mantra:{cls:'monk',tier:2,line:'bless',n:'Mantra of Fortitude',mp:32,tgt:'party',bless:{fat:15},buff:{def:25,dmg:20,n:3},d:'Eases 15% fatigue for every ally, who also take 25% less damage and deal 20% more for 3 turns.'},
-  nirvana:{cls:'monk',tier:3,line:'bless',n:'Enlightenment',mp:44,tgt:'party',bless:{fat:30,hp:.15,mp:.15},buff:{def:35,dmg:30,crit:12,eva:25,n:4},d:'Eases 30% fatigue, heals 15% health and restores 15% mana for every ally, who also take 35% less damage, deal 30% more, gain +12% crit and 25% evasion for 4 turns.'},
   /* ---- Tier 4 (level 30) and the two new lines. Tier 4 is a bit stronger than tier 3 but never a strict upgrade: it trades
      something away (a heavier cost, a recovery turn, a narrower job), so earlier skills are still worth bringing. ----
      Warrior: Fault Line (stun) locks down two enemies, Fortress (buffer) is a one-hero wall, Worldbreaker (damage) is the biggest hit.
@@ -3297,12 +3292,10 @@ const SKILLS={
   singularity:{cls:'mage',tier:4,line:'pin',n:'Singularity',mp:55,mpPct:.8,tgt:'enemy',mult:13,acc:100,crit:10,el:'attune',weak:2,noRes:true,d:'Collapses a point of pure force onto one enemy in the attuned element and ignores resistance. Costs 80% of max MP. Weakness hits deal 2×.'},
   sanctuary:{cls:'mage',tier:4,line:'heal',n:'Sanctuary',mp:50,tgt:'party',sanct:{hp:.35,int:2,def:35,n:3},d:'Heals every ally for 35% of max health plus 2× the caster’s INT, cleanses poison, bleeding and curses, and wards the party: 35% less damage for 3 rounds. Heals less than Resurrection, but needs no fallen ally and protects afterwards.'},
   hundred:{cls:'monk',tier:4,line:'force',n:'Hundred Fists',mp:36,tgt:'enemy',mult:1,hits:6,acc:95,crit:12,el:'physical',pierce:true,d:'Six rapid strikes at one enemy, each ignoring armor and rolling its own crit. Heaven-Splitting Fist hits harder once; this one scales with crits and marks.'},
-  ruin:{cls:'monk',tier:4,line:'mark',n:'Sentence of Ruin',mp:34,tgt:'enemy',mult:3.2,acc:100,crit:8,el:'physical',mark:{n:6,weak:true},d:'A heavy strike that marks one enemy for 6 turns: heroes deal 1.5× damage to it (archers 3×) and it deals 30% less damage.'},
-  ground:{cls:'monk',tier:4,line:'bless',n:'Sanctified Ground',mp:40,tgt:'party',bless:{fat:20,hp:.12},buff:{def:25,dmg:20,eva:20,n:5},d:'Eases 20% fatigue and heals 12% of max health for every ally, who also take 25% less damage, deal 20% more and gain 20% evasion for 5 turns. Gentler than Enlightenment, but it lasts.'},
-  elpalm:{cls:'monk',tier:1,line:'elem',n:'Elemental Palm',mp:16,tgt:'enemy',mult:2.4,acc:100,crit:8,el:'attune',d:'A palm strike in your chosen element (pick it below), so it can hit weaknesses like a mage’s spell.'},
   fiveel:{cls:'monk',tier:2,line:'elem',n:'Five-Element Strike',mp:28,tgt:'enemy',mult:3.4,acc:100,crit:8,el:'prism',weak:1.75,d:'A strike in the element that hurts the target most. Weakness hits deal 1.75×.'},
-  tempestk:{cls:'monk',tier:3,line:'elem',n:'Elemental Tempest',mp:38,tgt:'all',mult:2.1,acc:100,crit:6,el:'attune',weak:1.75,d:'A whirlwind of your chosen element through every enemy. Weakness hits deal 1.75×.'},
   avatar:{cls:'monk',tier:4,line:'elem',n:'Elemental Avatar',mp:44,tgt:'self',avatar:{n:4,m:1.5},d:'For 4 turns every strike is infused with the element that hurts its target most and deals 1.5× damage. Lasts through several blows, unlike Channel.'},
+  meridian:{cls:'monk',tier:3,line:'bless',n:'Meridian Flow',mp:30,tgt:'party',bless:{fat:15,mp:.2},d:'Eases 15% fatigue and restores 20% mana for every ally. How a monk keeps a party’s casters going.'},
+  spring:{cls:'monk',tier:4,line:'bless',n:'Unhurried Spring',mp:38,tgt:'party',bless:{regen:{hp:.06,fat:4,n:5}},d:'For 5 turns every ally recovers 6% of max health and eases 4% fatigue at the start of each of their turns.'},
 };
 // Tier 0 is a pick from the starting pool (the class skills a hero didn't start with); tiers 1-4 are the newer skills.
 const SKILL_LV={0:4,1:11,2:18,3:25,4:32};
@@ -3311,10 +3304,10 @@ const CHAN_MULT=1.75;
 /* Cleansing: what a skill clears from the heroes it helps. 1 poison and bleeding; 2 also curses; 3 also burns;
    4 everything, including a chill (their turn comes back sooner) and a jolt (locked actions are freed). */
 const CLEAN_TXT={1:'Cleanses poison and bleeding.',2:'Cleanses poison, bleeding and curses.',3:'Cleanses poison, bleeding, curses and burns.',4:'Cleanses every status: poison, bleeding, curses, burns, chills and jolts.'};
-const CLEANSE={mend:1,purify:4,circle:2,revive:3,resurrect:4,sanctuary:4,cleanse:4,blessing:1,calm:2,mantra:3,nirvana:4,ground:4};
+const CLEANSE={mend:1,purify:4,circle:2,revive:3,resurrect:4,sanctuary:4,cleanse:4,calm:2,mantra:3,meridian:4};
 for(const [id,n] of Object.entries(CLEANSE)){const K=SKILLS[id];K.clean=n;K.d+=' '+CLEAN_TXT[n]}
 // Retired skills (from before the three-line rework) and what heroes who knew them now have instead.
-const SKILL_RETIRED={taunt:'rally',undying:'warlord',imbue2:'hail'};
+const SKILL_RETIRED={taunt:'rally',undying:'warlord',imbue2:'hail',blessing:'cleanse',ward:'focus',brand:'ironfist',elpalm:'ironfist',seal:'shatter',nirvana:'meridian',tempestk:'heaven',ruin:'hundred',ground:'spring'};
 const tierOpts=(cls,t)=>Object.keys(SKILLS).filter(k=>SKILLS[k].cls===cls&&SKILLS[k].tier===t);
 const hasTier=(h,t)=>t===0?h.skills.filter(id=>SKILLS[id]&&!SKILLS[id].tier).length>=3:h.skills.some(id=>SKILLS[id]&&SKILLS[id].tier===t);
 // The first skill tier this hero has reached but not chosen yet, or 0.
@@ -3360,7 +3353,7 @@ const SKILL_RAR=['common','rare','epic','godlike','perfect'];
 const skClass=id=>'r-'+SKILL_RAR[(SKILLS[id]&&SKILLS[id].tier)||0];
 const skN=id=>`<span class="${skClass(id)}">${SKILLS[id].n}</span>`;
 const skillKey=`<p class="muted" style="font-size:17px;margin:0">Name colour shows the tier: <span class="r-common">starting pool</span> · <span class="r-rare">Lv ${SKILL_LV[1]}</span> · <span class="r-epic">Lv ${SKILL_LV[2]}</span> · <span class="r-godlike">Lv ${SKILL_LV[3]}</span> · <span class="r-perfect">Lv ${SKILL_LV[4]}</span>.</p>`;
-const skillIco=id=>{const k=SKILLS[id];if(['mend','wind','circle','revive','resurrect'].includes(id))return ico('heart');if(['wall','taunt','bulwark','undying'].includes(id))return ico('shield','#8fa8c8');if(['rally','warlord'].includes(id))return ico('fist','#e3b341');if(['feather','shadow','phantom'].includes(id))return ico('eye','#cfc6b0');if(['blessing','calm','mantra','nirvana'].includes(id))return ico('heart','#f2d36b');if(['mark','seal','doom','brand'].includes(id))return ico('crescent','#e0736c');if(id==='channel')return ico('bolt','#9fd6ff');if(['focus','ward','fleet'].includes(id))return ico(id==='ward'?'shield':id==='fleet'?'feather':'eye','#f2d36b');if(id==='hail'||id==='thousand')return ico('bolt','#b9a8ff');if(id==='imbue'||id==='imbue2')return ico('bolt','#e3b341');if(id==='sniper')return ico('star','#e3b341');if(id==='warcry')return ico('fist','#e3b341');if(id==='hex')return ico('crescent','#b56fe3');
+const skillIco=id=>{const k=SKILLS[id];if(['mend','wind','circle','revive','resurrect'].includes(id))return ico('heart');if(['wall','taunt','bulwark','undying'].includes(id))return ico('shield','#8fa8c8');if(['rally','warlord'].includes(id))return ico('fist','#e3b341');if(['feather','shadow','phantom'].includes(id))return ico('eye','#cfc6b0');if(['calm','mantra','meridian','spring'].includes(id))return ico('heart','#f2d36b');if(['mark','seal','doom','brand'].includes(id))return ico('crescent','#e0736c');if(id==='channel')return ico('bolt','#9fd6ff');if(['focus','ward','fleet'].includes(id))return ico(id==='ward'?'shield':id==='fleet'?'feather':'eye','#f2d36b');if(id==='hail'||id==='thousand')return ico('bolt','#b9a8ff');if(id==='imbue'||id==='imbue2')return ico('bolt','#e3b341');if(id==='sniper')return ico('star','#e3b341');if(id==='warcry')return ico('fist','#e3b341');if(id==='hex')return ico('crescent','#b56fe3');
   if(k.el==='prism')return ico('star','#9fd6ff');if(k.el&&k.el!=='weapon'&&k.el!=='attune')return elIco(k.el);return ico(({warrior:'sword',archer:'bow',mage:'staff',monk:'fist'})[k.cls],CLASSES[k.cls].tint)};
 /* The skills a hero brings: at most KIT_MAX of the ones they know. Choose them at the Gate or on the hero sheet, in town. */
 const kit=h=>{const have=h.skills||[];if(!h.kit)return have.slice(-KIT_MAX);return [...new Set(h.kit)].filter(id=>have.includes(id)).slice(0,KIT_MAX)};
@@ -4984,7 +4977,8 @@ function monkSupport(h,K,ally){
     if(K.bless){const B=K.bless;
       if(B.fat){const was=fatOf(x);x.fat=Math.max(0,(x.fat||0)-B.fat*X);if(was>fatOf(x)){bits.push(`fatigue ${was}% → ${fatOf(x)}%`);b.pops.push({s:'h',hid:x.id,t:'-'+(was-fatOf(x))+'%'})}else bits.push('already rested')}
       if(B.hp){const v=Math.round(maxHp(x)*B.hp*X*healMult(x));x.hp=Math.min(maxHp(x),x.hp+v);b.pops.push({s:'h',hid:x.id,t:'+'+v});bits.push(`+${v} HP`)}
-      if(B.mp){const v=Math.round(maxMp(x)*B.mp*X*manaMult());x.mp=Math.min(maxMp(x),x.mp+v);bits.push(`+${v} MP`)}}
+      if(B.mp){const v=Math.round(maxMp(x)*B.mp*X*manaMult());x.mp=Math.min(maxMp(x),x.mp+v);bits.push(`+${v} MP`)}
+      if(B.regen){const R=B.regen;x.regen=x.regen||[];x.regen.push({k:'hp',p:R.hp*X,n:R.n},{k:'fat',p:R.fat*X,n:R.n});bits.push(`recovers ${Math.round(R.hp*100*X)}% health and ${Math.round(R.fat*X)}% fatigue each turn for ${R.n} turns`)}}
     if(K.buff){const B=K.buff;
       if(B.def){const v=Math.min(80,Math.round(B.def*X)),c=heroBuff(x,'def');if(!c||c.v<v)setBuff(x,'def',B.n,v);bits.push(`${v}% less damage`)}
       if(B.eva){const v=Math.min(95,Math.round(B.eva*X)),c=heroBuff(x,'eva');if(!c||(c.v||90)<v)setBuff(x,'eva',B.n,v);bits.push(`${v}% evasion`)}
@@ -7311,7 +7305,7 @@ const wuCls=id=>{const w=state.run.battle.windup;if(!w)return '';return w.u===id
 /* ---------- skill animations ----------
    Every skill belongs to an animation family. Similar skills share one (all heals and revives glow from the hands).
    The caster plays one part, and each enemy or ally it touches plays another. */
-const SK_FX={palm:'smash',wave:'quake',channel:'aura',mark:'hex',blessing:'heal',focus:'aura',ward:'shield',fleet:'aura',ironfist:'smash',shatter:'smash',heaven:'titan',brand:'smash',seal:'hex',doom:'quake',calm:'heal',mantra:'shout',nirvana:'heal',cleave:'slash',crush:'smash',coup:'smash',stunblow:'smash',titan:'titan',quake:'quake',
+const SK_FX={palm:'smash',wave:'quake',channel:'aura',mark:'hex',blessing:'heal',focus:'aura',ward:'shield',fleet:'aura',ironfist:'smash',shatter:'smash',heaven:'titan',brand:'smash',seal:'hex',doom:'quake',calm:'heal',meridian:'aura',spring:'heal',mantra:'shout',nirvana:'heal',cleave:'slash',crush:'smash',coup:'smash',stunblow:'smash',titan:'titan',quake:'quake',
   wall:'shield',taunt:'shield',bulwark:'shield',undying:'shieldgold',warcry:'shout',
   wind:'heal',mend:'heal',circle:'heal',revive:'heal',resurrect:'heal',
   pierce:'shot',double:'shot',cripple:'shot',deadeye:'snipe',assassin:'snipe',killshot:'snipe',
@@ -8729,18 +8723,15 @@ const mpOk=h=>h.mp>=maxMp(h)*.45;
 function monkAuto(h,e,L,n,avg,hurt,can){
   const b=state.run.battle,tired=L.some(x=>fatOf(x)>=40),sick=L.find(statusOf);
   if(sick&&can('cleanse'))return ['cleanse',sick.id];
-  if(sick&&can('blessing'))return ['blessing',sick.id];
-  if(can('ground')&&!heroBuff(h,'might')&&(avg<.7||tired))return ['ground'];
-  if(can('nirvana')&&(avg<.55||(tired&&L.length>1)))return ['nirvana'];
+  if(can('spring')&&!L.some(x=>x.regen&&x.regen.length)&&(avg<.7||tired))return ['spring'];
+  if(can('meridian')&&L.some(x=>maxMp(x)>0&&x.mp/maxMp(x)<.35))return ['meridian'];
   if(can('mantra')&&L.length>1&&!heroBuff(L[0],'might'))return ['mantra'];
   if(can('calm')&&(avg<.7||tired))return ['calm'];
-  if(can('blessing')&&tired){const w=L.reduce((a,x)=>fatOf(x)>fatOf(a)?x:a,L[0]);return ['blessing',w.id]}
-  if(!(e.mark>0)&&(bigFoe(e)||e.kind==='elite'||n>1)){const m=['doom','seal','ruin','brand','mark'].find(can);if(m)return [m]}
+  if(!(e.mark>0)&&(bigFoe(e)||e.kind==='elite'||n>1)){const m=['doom','mark'].find(can);if(m)return [m]}
   if(can('avatar')&&!heroBuff(h,'chan'))return ['avatar'];
   if(can('focus')&&!heroBuff(h,'might')&&(bigFoe(e)||n>1))return ['focus'];
-  if(can('ward')&&b.fx&&hurt.hp/maxHp(hurt)<.5)return ['ward',hurt.id];
-  const S=n>1?['tempestk','doom','wave']:[];
-  const act=[...S,'heaven','ruin','hundred','shatter','fiveel','ironfist','brand','elpalm','palm'].find(can);
+  const S=n>1?['doom','wave']:[];
+  const act=[...S,'heaven','hundred','shatter','fiveel','ironfist','palm'].find(can);
   return [act||'atk'];
 }
 function autoStep(){
@@ -9050,6 +9041,8 @@ function start(d){
   // Skills v3 (three lines): swap retired skills for their replacements, then offer any picks now due.
   if(!state.skills3){state.skills3=true;for(const h of [...state.heroes,...(state.candidates||[])]){h.skills=[...new Set((h.skills||[]).map(id=>SKILL_RETIRED[id]||id).filter(id=>SKILLS[id]))];
     if(h.pickSkill)h.pickSkill=null}}
+  // Monk rework: fewer skills, one skill per idea. Retired monk skills become their nearest replacement.
+  if(!state.monk6){state.monk6=true;for(const h of [...state.heroes,...(state.candidates||[])]){h.skills=[...new Set((h.skills||[]).map(id=>SKILL_RETIRED[id]||id).filter(id=>SKILLS[id]))];if(h.kit)h.kit=[...new Set(h.kit.map(id=>SKILL_RETIRED[id]||id))].filter(id=>h.skills.includes(id));h.pickSkill=null}}
   // Skills v5: levels 4, 11, 18, 25, 32; anything waiting is recomputed.
   if(!state.skills5){state.skills5=true;for(const h of [...state.heroes,...(state.candidates||[])])h.pickSkill=null}
   // Skills v4: four tiers (6, 13, 21, 30) and a four-skill loadout. Heroes bring their newest four to start.
