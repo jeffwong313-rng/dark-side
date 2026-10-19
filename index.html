@@ -3257,15 +3257,15 @@ const SKILLS={
      Learned lines: force (Iron Fist > Shattering Palm > Heaven-Splitting Fist), mark (Branding Palm > Seal of Ruin > Sign of Doom),
      blessing (Circle of Calm > Mantra of Fortitude > Enlightenment). On a Chi action (every 8th) damage, fatigue relief, healing,
      buff strength, mark length and Channel power all double. */
-  palm:{cls:'monk',n:'Force Palm',mp:10,tgt:'enemy',mult:1.8,acc:100,crit:8,el:'physical',d:'A palm strike of focused chi. A monk can hit any enemy from any rank.'},
-  wave:{cls:'monk',n:'Shockwave',mp:15,tgt:'all',mult:1.1,acc:100,crit:3,el:'physical',d:'A ripple of force through every enemy.'},
+  palm:{cls:'monk',n:'Force Palm',mp:10,tgt:'enemy',mult:1.8,acc:100,crit:8,el:'physical',pure:true,d:'A palm strike of focused chi. It ignores tough hides, and thorns or spikes never hurt the monk. A monk can hit any enemy from any rank.'},
+  wave:{cls:'monk',n:'Shockwave',mp:15,tgt:'all',mult:1.1,acc:100,crit:3,el:'physical',pure:true,d:'A ripple of force through every enemy. It ignores tough hides, and thorns or spikes never hurt the monk.'},
   channel:{cls:'monk',n:'Channel',mp:12,tgt:'self',chan:true,d:'Spend the turn gathering chi into an element (pick it below). The next attack or damaging skill is infused with that element and deals 1.75× damage. Lasts 3 turns.'},
   mark:{cls:'monk',tier:2,line:'mark',n:'Mark of Weakness',mp:12,tgt:'enemy',acc:100,mark:{n:5},d:'On hit, marks the target for 5 turns. Heroes deal 1.5× damage to a marked enemy, and archers deal 3×.'},
   cleanse:{cls:'monk',tier:1,line:'core',n:'Cleansing Breath',mp:18,tgt:'ally',bless:{fatStat:{base:5,per:.25,lck:.1}},d:'Eases 5% of one ally’s fatigue, plus 0.25% for every point of the monk’s Perception and 0.1% for every point of Luck (rounded down).'},
   focus:{cls:'monk',n:'Inner Focus',mp:12,tgt:'ally',buff:{dmg:30,crit:12,n:3},d:'For 3 turns the monk or any other hero deals 30% more damage and has +12% crit chance.'},
   ward:{cls:'monk',n:'Ward of Stone',mp:14,tgt:'ally',buff:{def:30,n:3},d:'One ally takes 30% less damage for 3 turns.'},
   fleet:{cls:'monk',tier:1,line:'speed',n:'Wind Step',mp:12,tgt:'ally',buff:{eva:55,n:3,quick:true},d:'One ally gains 55% evasion for 3 turns and acts sooner.'},
-  ironfist:{cls:'monk',tier:1,line:'force',n:'Iron Fist',mp:16,tgt:'enemy',mult:3,acc:100,crit:10,cdmg:25,el:'physical',pierce:true,d:'A hardened fist that ignores armor.'},
+  ironfist:{cls:'monk',tier:1,line:'force',n:'Iron Fist',mp:16,tgt:'enemy',mult:3,acc:100,crit:10,cdmg:25,el:'physical',pierce:true,pure:true,d:'A hardened fist that ignores armor, tough hides and reflected damage. Thorns, spikes and the like never hurt the monk.'},
   shatter:{cls:'monk',tier:2,line:'force',n:'Shattering Palm',mp:28,tgt:'enemy',mult:4.2,acc:100,crit:12,cdmg:25,el:'physical',pierce:true,stun:1,d:'Ignores armor and stuns the target for 1 turn.'},
   heaven:{cls:'monk',tier:3,line:'force',n:'Heaven-Splitting Fist',mp:40,tgt:'enemy',mult:6.5,sure:true,crit:15,cdmg:40,el:'physical',pierce:true,slow:.4,d:'A single blow that never misses and ignores armor. The monk needs a moment to recover: their next turn comes 40% later.'},
   calm:{cls:'monk',tier:3,line:'bless',n:'Circle of Calm',mp:34,tgt:'party',bless:{fat:30,hp:.08},d:'Eases 30% fatigue and heals 8% of max health for every ally.'},
@@ -3365,7 +3365,7 @@ function skillStats(id){const k=SKILLS[id];const p=[];
   if(k.forceCrit)p.push('always crits');else if(k.crit)p.push(`${k.crit>0?'+':''}${k.crit}% crit`);
   if(k.cdmg)p.push(`+${k.cdmg}% crit dmg`);
   const el={fighting:'Fighting',weapon:'weapon element',attune:'attuned element',dark:'Dark',prism:'best element per target'}[k.el];if(el)p.push(el);
-  if(k.haste)p.push('haste '+k.haste.n+' actions');if(k.clean)p.push(['','cleanses poison/bleed','cleanses to curses','cleanses to burns','cleanses all'][k.clean]);if(k.slow)p.push('next turn '+Math.round(k.slow*100)+'% later');if(k.mpPct)p.push('costs '+Math.round(k.mpPct*100)+'% of max MP');if(k.weak)p.push(`weakness ${k.weak}×`);if(k.pierce)p.push('ignores armor');if(k.noRes)p.push('ignores resistance');if(k.low)p.push('+50% vs wounded');
+  if(k.haste)p.push('haste '+k.haste.n+' actions');if(k.clean)p.push(['','cleanses poison/bleed','cleanses to curses','cleanses to burns','cleanses all'][k.clean]);if(k.slow)p.push('next turn '+Math.round(k.slow*100)+'% later');if(k.mpPct)p.push('costs '+Math.round(k.mpPct*100)+'% of max MP');if(k.weak)p.push(`weakness ${k.weak}×`);if(k.pure)p.push('ignores armor, hides and reflect');else if(k.pierce)p.push('ignores armor');if(k.noRes)p.push('ignores resistance');if(k.low)p.push('+50% vs wounded');
   if(k.stun)p.push('stuns');if(k.coup)p.push('may kill outright');if(k.dur)p.push(k.dur+' turns');p.push(k.cls==='warrior'&&k.tgt==='all'&&id!=='quake'?'front 2 enemies':{enemy:'one enemy',all:'all enemies',self:'self',ally:'one ally',party:'party',rand:'random enemies',dead:'a fallen ally'}[k.tgt]);
   if(k.cls==='warrior'&&k.mult)p.push('front or middle rank');
   else if(k.cls==='archer'&&!ARCHER_FRONT_OK.includes(id))p.push('middle or back rank');
@@ -5129,7 +5129,7 @@ function hitEnemy(h,e,o){
   if(e.hardened)d*=.6;
   if(e.guardBy!=null){const gd=state.run.battle.enemies[e.guardBy];if(gd&&gd.hp>0)d*=.5;else e.guardBy=null}
   const sp=o.el!=='prism'&&archSplit(h,el);
-  {const S=spOf(e);if(S&&S[0]==='thick'&&(el==='physical'||sp))d*=1-S[1]/100*(sp?ARCH_PHYS:1);if(S&&S[0]==='skin'&&el!=='physical')d*=1-S[1]/100*(sp?1-ARCH_PHYS:1)}
+  {const S=spOf(e);if(!o.pure&&S&&S[0]==='thick'&&(el==='physical'||sp))d*=1-S[1]/100*(sp?ARCH_PHYS:1);if(!o.pure&&S&&S[0]==='skin'&&el!=='physical')d*=1-S[1]/100*(sp?1-ARCH_PHYS:1)}
   if(b.curse&&b.curse[h.id]!=null)d*=.75;
   const m=o.weak&&matchup(el,e.type)>1?o.weak:heroMatch(h,el,e.type),res=el==='physical'||o.noRes?0:Math.min(80,e.res[el]||0);
   {const fe=m*(1-res/100)*(el!=='physical'?1+aff(h,'dmg_'+el)/100:1);d*=sp?ARCH_PHYS*heroMatch(h,'physical',e.type)+(1-ARCH_PHYS)*fe:fe}
@@ -5158,7 +5158,7 @@ function hitEnemy(h,e,o){
   {const S=spOf(e);
    // Thorns and spikes: once per enemy per action (not per arrow, bounce or bonus hit), from the health the hit actually took.
    const rp=reflectPct(e);
-   if(rp>0&&!o.proc&&h.hp>0&&lost>0){b.reflDone=b.reflDone||{};if(!b.reflDone[idx]){b.reflDone[idx]=1;
+   if(rp>0&&!o.proc&&!o.pure&&h.hp>0&&lost>0){b.reflDone=b.reflDone||{};if(!b.reflDone[idx]){b.reflDone[idx]=1;
      const x=Math.max(1,Math.round(lost*rp/100));h.hp=Math.max(0,h.hp-x);b.pops.push({s:'h',hid:h.id,t:x});b.fx['refl'+idx]=1;
      blog(`${e.name}’s ${S&&S[0]==='spikes'?S[3]:'Thorns'} return${S&&S[0]==='spikes'?'s':''} ${x} damage to ${esc(h.name)}.`);if(h.hp<=0)heroDown(h)}}
    if(S&&S[0]==='gasp'&&e.hp<=0&&!e.gasped){e.gasped=true;const t=pick(living());if(t){blog(`<span class="warn">${e.name}’s ${S[3]}!</span>`);foeStrike(e,idx,t,S[1]/100,{name:S[3],verb:'lashes out at'})}}}
