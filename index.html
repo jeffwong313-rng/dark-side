@@ -3370,11 +3370,11 @@ const BIOMES={
 };
 const LENGTHS={
   // The exact length is rolled at the start and kept hidden; the party only knows it has reached the end when it meets the final boss.
-  short:{name:'Cave',min:8,max:12,mult:1,diff:0,base:1,per:.6,tail:.35,rec:1,cap:10,feel:'a short journey through the caves near town, where something big has made its den'},
-  medium:{name:'Wilds',min:15,max:25,mult:1.25,diff:.5,base:5,per:.4,tail:.3,rec:6,cap:16,feel:'days out in the untamed wilds, past the last farms and the last roads'},
-  long:{name:'Wasteland',min:32,max:48,mult:1.6,diff:1,base:8,per:.35,tail:.2,rec:10,cap:22,feel:'a long haul across the wastes the smoke has burned dead'},
-  expedition:{name:'Summit',min:60,max:72,mult:2.2,diff:1.5,base:17,per:.35,tail:.2,rec:25,cap:42,feel:'the climb to the highest point in the land, where everyone can sense a dark force waiting'},
-  descent:{name:'The Dark Side',min:100,max:100,mult:2.5,diff:0,final:true},
+  short:{name:'Cave',maxParty:1,maxLv:8,min:8,max:12,mult:1,diff:0,base:1,per:.6,tail:.35,rec:1,cap:10,feel:'a short journey through the caves near town, where something big has made its den'},
+  medium:{name:'Wilds',maxParty:2,maxLv:14,min:15,max:25,mult:1.25,diff:.5,base:5,per:.4,tail:.3,rec:6,cap:16,feel:'days out in the untamed wilds, past the last farms and the last roads'},
+  long:{name:'Wasteland',maxParty:3,maxLv:20,min:32,max:48,mult:1.6,diff:1,base:8,per:.35,tail:.2,rec:10,cap:22,feel:'a long haul across the wastes the smoke has burned dead'},
+  expedition:{name:'Summit',maxParty:3,min:60,max:72,mult:2.2,diff:1.5,base:17,per:.35,tail:.2,rec:25,cap:42,feel:'the climb to the highest point in the land, where everyone can sense a dark force waiting'},
+  descent:{name:'The Dark Side',maxParty:3,min:100,max:100,mult:2.5,diff:0,final:true},
 };
 const NODE_W={battle:74,gold:5,gamble:4,mystery:17,merchant:5};
 const NODE={
@@ -3876,6 +3876,12 @@ function gainXp(h,x,lines){
 
 /* ---------- run ---------- */
 const partySize=()=>1+(state.b.war||0);
+/* Each adventure limits how many heroes fit (the Cave mouth is too narrow for more than 1, the Wilds trail takes 2, and so on),
+   and heroes who have outgrown a land won't go back: they've done it too many times and want a real challenge. */
+const lenParty=k=>{const L=LENGTHS[k];return L&&L.maxParty||99};
+const partyMax=()=>Math.min(partySize(),lenParty(state.sel&&state.sel.len));
+const PARTY_WHY={short:'The cave mouth is a narrow crack in the rock. Only one hero can squeeze through at a time.',medium:'The trail through the Wilds narrows to a gap only two can walk side by side.',long:'The wastes are open, but supply lines stretch thin: no more than three can go.',expedition:'The Summit path is too steep and thin for more than three.',descent:'The Dark Side takes exactly three.'};
+const tooHighFor=(len,ids)=>{const L=LENGTHS[len];return L&&L.maxLv?ids.map(heroById).filter(h=>h&&h.level>L.maxLv):[]};
 const DESCENT_ORDER=['tundra','island','sky','forest','badlands'];
 // Lands the party can choose at the Gate. The Abyss only lies on the Dark Side.
 const LAND_PICK=['island','forest','badlands','sky','tundra']; // listed in element order: Fire, Grass, Fighting, Thunder, Ice
@@ -4181,8 +4187,9 @@ function mapView(){
 function startRun(){
   if(state.guide)state.guide=false; // the first-trip guide ends once the first party sets out
   const len=state.sel.len,final=len==='descent';
-  const ids=(state.sel.party||[]).filter(id=>heroById(id)).slice(0,partySize());
+  const ids=(state.sel.party||[]).filter(id=>heroById(id)).slice(0,Math.min(partySize(),lenParty(len)));
   if(!ids.length||!LENGTHS[len])return;
+  if(tooHighFor(len,ids).length)return;
   if(final&&(ids.length<3||!descentUnlocked()))return;
   if(['long','expedition','descent'].includes(len))state.reachedLong=true;
   const L=LENGTHS[len];
@@ -4289,6 +4296,8 @@ const strongAlly=e=>allyOf(e,A=>A.reduce((a,x)=>x.atk>a.atk?x:a,A[0]));
 FOE_SKILLS.flurry={n:'Flurry',d:'Two quick blows on one hero.'};
 FOE_SKILLS.windup={n:'Charging',d:'Spends this turn gathering power. Its next move is a devastating blow. Brace for it.'};
 const UNLEASH_MULT=1.5;
+// Enemy crushing blows hit twice as hard as they used to (1.6× became 3.2×; a Crusher's 2.2× became 4.4×).
+const HEAVY_BONUS=2;
 FOE_SKILLS.unleash={n:'Unleash',d:'The blow it was charging: 1.5× damage on every hero.'};
 const aoeAct=a=>a==='sweep'||a==='unleash';
 const BOSS_STYLE={charge:{n:'Charger',d:'Charger: two flurries, then a full turn charging, then a devastating Unleash that hits the whole party. Watch its intent and brace for it.'},scale:{n:'Relentless',d:'Relentless: now and then it spends a turn working itself into a fury, +12% damage each time (up to +60%). Kill it before it stacks up.'}};
@@ -4345,7 +4354,7 @@ const ABIL={
   gasp:v=>`When slain, it lashes out at a random hero for ${v}% of its attack.`,
   keen:v=>`${v}% extra chance to land a critical hit (1.5× damage).`,
   leech:v=>`Heals for ${v}% of the damage it deals.`,
-  crusher:v=>`Its crushing blows hit for ${v}× damage instead of 1.6×.`,
+  crusher:v=>`Its crushing blows hit for ${+(v*HEAVY_BONUS).toFixed(2)}× damage instead of ${+(1.6*HEAVY_BONUS).toFixed(2)}×.`,
   opener:v=>`Its first attack of each fight deals ${v}% more damage.`,
 };
 const HABIT={front:'Mostly attacks whoever stands in front.',weak:'Hunts the hero with the lowest health.',back:'Goes after the back line.',fixate:'Keeps attacking the same hero once it has drawn blood.'};
@@ -4365,7 +4374,7 @@ function spDmg(e,h){const S=spOf(e);if(!S)return 1;const [k,v]=S;
   if(k==='frenzy')return e.hp<e.maxHp*.4?1+v/100:1;
   if(k==='execute')return h&&h.hp<maxHp(h)*.4?1+v/100:1;
   if(k==='opener')return e.struck?1:1+v/100;return 1}
-const heavyMult=e=>{const S=spOf(e);return S&&S[0]==='crusher'?S[1]:1.6};
+const heavyMult=e=>{const S=spOf(e);return HEAVY_BONUS*(S&&S[0]==='crusher'?S[1]:1.6)};
 const ledgerKey=e=>e.base+'|'+e.tier;
 const isScouted=e=>!!(e&&state.ledger&&state.ledger[ledgerKey(e)]);
 // Knowledge comes in four stages. Entries from older saves already showed resistances and skills, so they start at 3.
@@ -5118,7 +5127,7 @@ function enemyTurn(){
 }
 /* enemy intents: every enemy decides its next move in advance, and the battle screen shows it */
 const SELF_SKILLS=['howl','harden','ooze','windup','mend','rally','guard','relentless'];
-const INTENT_MULT={flurry:1.3,unleash:1.5,attack:1,heavy:1.6,sweep:.6,web:.6,drain:.9,curse:.9,rend:1,whirl:.8,jolt:.8,hook:.8,blast:.8,charge:.8,grasp:.8};
+const INTENT_MULT={flurry:1.3,unleash:1.5,attack:1,heavy:1.6*HEAVY_BONUS,sweep:.6,web:.6,drain:.9,curse:.9,rend:1,whirl:.8,jolt:.8,hook:.8,blast:.8,charge:.8,grasp:.8};
 function planIntent(e){
   if(!e||e.hp<=0){if(e)e.intent=null;return}
   if(e.voidPhys!=null)e.voidEl=pick(ALL_EL); // void bosses pick a new element for every attack
@@ -6400,7 +6409,7 @@ function railPick(){
   return null;
 }
 function heroRail(){
-  const H=state.heroes,party=state.run?[]:selParty(),RP=railPick(),viewId=RP?state.sel[RP[1]]:null,pick=!state.run&&state.screen==='town'&&state.tab==='adventure'&&ui.partyPick,max=partySize();
+  const H=state.heroes,party=state.run?[]:selParty(),RP=railPick(),viewId=RP?state.sel[RP[1]]:null,pick=!state.run&&state.screen==='town'&&state.tab==='adventure'&&ui.partyPick,max=partyMax();
   const card=h=>{const C=C_(h),mh=maxHp(h),mm=maxMp(h),need=xpNeed(h.level),ts=(h.traits||[]).map(id=>TRAITS[id]).filter(Boolean),busy=onRun(h),hp=shownHp(h),mp=shownMp(h);
     return `<button class="hrcard ${party.includes(h.id)?'inparty':''} ${h.id===viewId?'viewing':''} ${pick?'picking':''}" ${h.id===viewId?'aria-current="true"':''} ${pick?`data-a="partyToggle" role="checkbox" aria-checked="${party.includes(h.id)}"`:`data-a="heroSheet" ${state.run?'':'data-dbl="partyDbl"'}`} data-x="${h.id}" aria-label="${esc(h.name)}, level ${h.level} ${C.name}${party.includes(h.id)?', in this week’s party':''}. Open full sheet${state.run?'':'; double-click to add to or remove from this week’s party'}">
       <span class="hrport" style="--ct:${C.tint}">${heroArt(h,4)}<b class="hrlv">${h.level}</b></span>
@@ -6834,15 +6843,15 @@ function bankView(){
   return s;
 }
 function selParty(){
-  const max=partySize();
+  const max=partyMax();
   let p=(state.sel.party||[]).filter(id=>heroById(id)).slice(0,max);
   if(!p.length&&state.heroes.length)p=[state.heroes[0].id];
   state.sel.party=p;return p;
 }
 function advView(){
-  const max=partySize(),p=state.heroes.length?selParty():[],un=descentUnlocked(),hg=bestHaggler(),bIds=p.length?p:state.heroes.map(h=>h.id);
+  let max=partyMax();const p=state.heroes.length?selParty():[],un=descentUnlocked(),hg=bestHaggler(),bIds=p.length?p:state.heroes.map(h=>h.id);
   if(!LENGTHS[state.sel.len]||(!un&&state.sel.len==='descent')||(!LENGTHS[state.sel.len].final&&!lenOpen(state.sel.len,bIds)))state.sel.len='short';
-  const final=state.sel.len==='descent',ok=p.length&&(!final||(un&&p.length===3))&&(final||LAND_PICK.includes(state.sel.biome))&&(final||lenOpen(state.sel.len,p));
+  const final=state.sel.len==='descent',ok=p.length&&(!final||(un&&p.length===3))&&(final||LAND_PICK.includes(state.sel.biome))&&(final||lenOpen(state.sel.len,p))&&!tooHighFor(state.sel.len,p).length;
   const bestLoot=k=>{const C=LOOT_CAP[k]||LOOT_CAP.short;return Object.values(C).reduce((a,x)=>RAR[x].i>RAR[a].i?x:a,'common')};
   const SHORTN={short:'Cave',medium:'Wilds',long:'Waste',expedition:'Summit',descent:'Dark'};
   const pctDark=Math.round(moonState().shown);
@@ -6852,17 +6861,20 @@ function advView(){
     const label=L.final?(un?'Dark Side':`Dark ${pctDark}%`):L.name,sl=L.final&&!un?`${pctDark}%`:SHORTN[k];
     return `<button class="lenopt ${L.final?'dark':''} ${state.sel.len===k?'cur':''} ${lock?'locked':''}" data-a="len" data-x="${k}" role="radio" aria-checked="${state.sel.len===k}" ${lock?'disabled':''} ${!L.final&&!lenOpen(k,bIds)?`data-tip="${esc(`Locked. Needs a hero with the ${BADGE_N[BADGE_NEED[k]]} badge in the party. Beat a ${BADGE_N[BADGE_NEED[k]]} adventure’s final boss and come home alive to earn it.`)}"`:''}><span class="lf">${label}</span><span class="ls">${sl}</span></button>`}).join('')}</div>`;
   if(!LENGTHS[state.sel.len].final&&!lenOpen(state.sel.len,bIds))state.sel.len='short';
+  max=partyMax();
   const L=LENGTHS[state.sel.len]||LENGTHS.short;let sum;
+  const high=tooHighFor(state.sel.len,p);
   if(L.final)sum=un?'<b>The Dark Side</b> · 100+ stages, then the Abyss and the Unlit King · needs exactly 3 heroes':`The Dark Side opens when the moon is fully dark (${pctDark}% now).`;
   else{const bosses=Math.floor(L.max/15),bl=bestLoot(state.sel.len);
-    sum=`<b>${L.name}</b> · ${L.feel}, length unknown · ${L.max>15?'major bosses along the way, ':''}a final boss at the end · ×${L.mult} gold · best loot ${state.sel.len==='expedition'?'<span class="muted">?</span>':`<span class="r-${bl}">${RAR[bl].l}</span>`}`+
+    sum=`<b>${L.name}</b> · ${L.feel}, length unknown · ${L.max>15?'major bosses along the way, ':''}a final boss at the end · ×${L.mult} gold · best loot ${state.sel.len==='expedition'?'<span class="muted">?</span>':`<span class="r-${bl}">${RAR[bl].l}</span>`} · <span data-tip="${esc(PARTY_WHY[state.sel.len]||'')}">${L.maxParty===1?'solo only':'up to '+L.maxParty+' heroes'}</span>${L.maxLv?` · <span data-tip="${esc('Heroes above level '+L.maxLv+' have outgrown this land and won’t go.')}">heroes up to level ${L.maxLv}</span>`:''}`+
       (state.sel.len==='short'?` · <span class="ok" data-tip="${esc(`In the Cave the party can run back home at any time, even mid-battle. Running costs ${FLEE.min}–${FLEE.max}% of carried gold, and each item found during this adventure (even if equipped) has a 33% chance to be lost. Running mid-battle multiplies both (×2 regular fights, ×2.5 elites, ×3 major bosses), and there is no running from the final boss. Supplies and materials come home.`)}">can run home</span>`:'')}
   const pickHint=state.guide&&!p.length&&LAND_PICK.includes(state.sel.biome);
-  let s=`${!state.guide?coachBox('gate'):''}<div class="stack" style="gap:4px"><div class="gatehead"><h2>The Gate</h2>${state.heroes.length?`<div class="gatepick ${coachMark('gate','party')}">${pickHint&&!ui.partyPick?'<p class="guidehint">② Choose your hero</p>':''}<span class="partycount ${p.length?'':'none'}">Party <b>${p.length}/${max}</b></span>${help(max===1?`Solo only for now. The War Table at the Town Hall unlocks parties: 2 heroes for ${fmt(BUILD.war.cost(0))} gold, then 3 for ${fmt(BUILD.war.cost(1))}.`:`Tick up to ${max} heroes in the list on the right. Their number is their marching spot: 1 walks in front and draws most attacks${max>2?', 2 in the middle, 3 at the back':', 2 at the back'}. Enemies grow tougher with each hero you bring, and gold grows too.`)}<button class="btn ${ui.partyPick?'on':'gold'} ${pickHint&&!ui.partyPick?'guide':''}" data-a="partyPick" aria-pressed="${!!ui.partyPick}" data-tip="${esc(ui.partyPick?'Done choosing. Tap heroes in the list on the right to add or remove them.':'Tick heroes in the list on the right. The number is their marching spot: 1 walks in front.')}">${ui.partyPick?'✓ Done':'Select Party'}</button></div>`:''}</div><p class="muted">Pick a land, a length and your heroes, then set out. ${help('Pick the land: every monster there deals and resists its element, so bring heroes who can handle it. Heroes who die are gone for good, with their gear. Monsters sometimes hunt in pairs or packs of three. In the Cave pairs only appear after stage 10 and packs of three never do; the longer the adventure, the more common packs become, and high on the Summit nearly every fight is a pack. The final boss of each adventure always fights alone.')}</p></div>
+  let s=`${!state.guide?coachBox('gate'):''}<div class="stack" style="gap:4px"><div class="gatehead"><h2>The Gate</h2>${state.heroes.length?`<div class="gatepick ${coachMark('gate','party')}">${pickHint&&!ui.partyPick?'<p class="guidehint">② Choose your hero</p>':''}<span class="partycount ${p.length?'':'none'}">Party <b>${p.length}/${max}</b></span>${help(max===1&&partySize()===1?`Solo only for now. The War Table at the Town Hall unlocks parties: 2 heroes for ${fmt(BUILD.war.cost(0))} gold, then 3 for ${fmt(BUILD.war.cost(1))}.`:`Tick up to ${max} heroes in the list on the right${max<partySize()?` (the ${(LENGTHS[state.sel.len]||{}).name||'chosen'} only fits ${max})`:''}. Their number is their marching spot: 1 walks in front and draws most attacks${max>2?', 2 in the middle, 3 at the back':', 2 at the back'}. Enemies grow tougher with each hero you bring, and gold grows too.`)}<button class="btn ${ui.partyPick?'on':'gold'} ${pickHint&&!ui.partyPick?'guide':''}" data-a="partyPick" aria-pressed="${!!ui.partyPick}" data-tip="${esc(ui.partyPick?'Done choosing. Tap heroes in the list on the right to add or remove them.':'Tick heroes in the list on the right. The number is their marching spot: 1 walks in front.')}">${ui.partyPick?'✓ Done':'Select Party'}</button></div>`:''}</div><p class="muted">Pick a land, a length and your heroes, then set out. ${help('Pick the land: every monster there deals and resists its element, so bring heroes who can handle it. Heroes who die are gone for good, with their gear. Monsters sometimes hunt in pairs or packs of three. In the Cave pairs only appear after stage 10 and packs of three never do; the longer the adventure, the more common packs become, and high on the Summit nearly every fight is a pack. The final boss of each adventure always fights alone.')}</p></div>
   <div class="gategrid"><div class="stack"><div class="stack ${coachMark('gate','len')}" style="gap:6px"><h3>Length</h3>${bar}<p class="lensum">${sum}</p></div>${final?'':(()=>{const cur=LAND_PICK.includes(state.sel.biome)?state.sel.biome:null;
     return `<div class="stack" style="gap:6px"><h3>Land</h3>${state.guide&&!cur?'<p class="guidehint">① Pick a land to explore</p>':''}<div class="lands ${state.guide&&!cur?'guide':''} ${coachMark('gate','land')}" role="radiogroup" aria-label="Land">${LAND_PICK.map(k=>{const B=BIOMES[k],lm=LAND_MOD[landMods()[k]];return `<button class="land ${cur===k?'cur':''}" style="--c:${EL_COL[B.el]}" data-a="land" data-x="${k}" role="radio" aria-checked="${cur===k}">${elIco(B.el)}<span><b>${B.name}</b><small>${cap(B.el)}</small>${lm?`<small class="lmod ${lm.bad?'bad':'good'}">${lm.n}</small>`:''}${huntLand(k).length?`<small class="lmod lost">Lost gear ×${huntLand(k).length}</small>`:''}</span></button>`}).join('')}</div>${cur&&huntLand(cur).length?`<p class="lmodnote lost"><b>Lost gear here:</b> ${huntLand(cur).map(x=>`${aAn(esc(x.base))} carries ${esc(x.owner)}’s ${itemName(x.it)} <span class="muted">(${LENGTHS[x.len]?LENGTHS[x.len].name:'any length'}, stage ${x.stage||1}+)</span>`).join('; ')}. On that length, from that stage on, ${Math.round(HUNT_ODDS*100)}% of fights bring you face to face with it${huntLand(cur).some(x=>x.kind!=='normal')?' (bosses carry theirs every time you meet them there)':''}. Look for the white outline: the same kind of monster without the loot has none.</p>`:''}${cur?landModNote(landMods()[cur]):'<p class="muted" style="font-size:18px">Conditions change every week. Some lands carry a twist this week.</p>'}${cur?`<p class="muted" style="font-size:18px">${BIOMES[cur].flavor} Monsters here deal and resist ${elTag(BIOMES[cur].el)}.</p>`:'<p class="warn" style="font-size:18px">Choose where to go.</p>'}</div>`})()}`;
   if(!state.heroes.length)return s+'<p class="muted">Recruit a hero at the Barracks first.</p></div></div>';
   s+=`<div class="setout ${coachMark('gate','go')}">    ${final&&p.length!==3?'<p class="warn">The Dark Side needs exactly 3 heroes.</p>':''}
+    ${high.length?`<p class="warn">${high.map(h=>`<b>${esc(h.name)}</b> (Lv ${h.level}): “I’ve done this too many times. It’s too easy, I need more of a challenge.”`).join('<br>')}<br><span class="muted">Heroes above level ${L.maxLv} won’t take the ${L.name}. Pick a longer adventure or another hero.</span></p>`:''}
     ${(()=>{const g=greenFor(state.sel.len,p);return g.length?`<p class="warn">${esc(listNames(g.map(h=>h.name)))} ${g.length>1?'look':'looks'} green for a trip like this. Perhaps ${g.length>1?'they need':(g[0].name?'this hero needs':'they need')} more training and experience before adventuring here.</p>`:''})()}
     ${state.guide&&ok?'<p class="guidehint">③ Set out!</p>':''}<button class="btn gold big ${state.guide&&ok?'guide':''}" data-a="setOut" ${ok?'':'disabled'}>Equip &amp; set out: ${L.final?'The Dark Side':L.name} with ${esc(listNames(p.map(id=>heroById(id).name)))}</button></div>`;
   s+='</div><div class="stack">';
@@ -8305,11 +8317,11 @@ const ACT={
   draught:el=>{const h=heroById(state.sel.alch),c=priced(60,h);if(!h||state.gold<c)return;state.gold-=c;h.draught={el,v:20}},
   build:k=>{const B=BUILD[k],L=state.b[k],c=B.cost(L);if(L>=B.max||!canUp(k,L))return;state.gold-=c;payMats(upStone(k,L));state.b[k]++;sfx('build')},
   sell:id=>{const it=state.bank.find(x=>x.id===id);if(!it||it.rarity==='perfect')return;state.gold+=sellVal(it);state.bank=state.bank.filter(x=>x.id!==id)},
-  partyDbl:id=>{if(state.run||!heroById(id))return;const p=selParty();if(!p.includes(id)&&p.length>=partySize()&&partySize()>1)return;state.sel.party=p;ACT.partyToggle(id)},
-  partyToggle:id=>{const p=selParty();if(p.includes(id))state.sel.party=p.filter(x=>x!==id);else if(p.length<partySize()){const R={warrior:0,archer:1,mage:2},c=h=>R[(heroById(h)||{}).cls]??3;state.sel.party=[...p,id].sort((a,b)=>c(a)-c(b))}else if(partySize()===1)state.sel.party=[id]},
+  partyDbl:id=>{if(state.run||!heroById(id))return;const p=selParty();if(!p.includes(id)&&p.length>=partyMax()&&partyMax()>1)return;state.sel.party=p;ACT.partyToggle(id)},
+  partyToggle:id=>{const p=selParty();if(p.includes(id))state.sel.party=p.filter(x=>x!==id);else if(p.length<partyMax()){const R={warrior:0,archer:1,mage:2},c=h=>R[(heroById(h)||{}).cls]??3;state.sel.party=[...p,id].sort((a,b)=>c(a)-c(b))}else if(partyMax()===1)state.sel.party=[id]},
   prepOrder:x=>{const [id,d]=x.split('|'),p=[...selParty()],i=p.indexOf(id),j=i+(+d);if(i<0||j<0||j>=p.length)return;[p[i],p[j]]=[p[j],p[i]];state.sel.party=p},
   len:k=>{if(k==='descent'&&!descentUnlocked())return;state.sel.len=k},
-  setOut:x=>{if(x!=='anyway'&&greenFor(state.sel.len,selParty()).length){ui.greenWarn=true;return}ui.greenWarn=false;state.summary=null;ui.prep=true;ui.prepSlot=null;ui.prepHero=null},
+  setOut:x=>{if(tooHighFor(state.sel.len,selParty()).length)return;if(x!=='anyway'&&greenFor(state.sel.len,selParty()).length){ui.greenWarn=true;return}ui.greenWarn=false;state.summary=null;ui.prep=true;ui.prepSlot=null;ui.prepHero=null},
   greenNo:()=>{ui.greenWarn=false},
   prepClose:()=>{ui.prep=false},
   prepGo:()=>{ui.prep=false;startRun()},
