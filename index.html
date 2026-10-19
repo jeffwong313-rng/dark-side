@@ -3304,8 +3304,9 @@ const SKILLS={
   tempestk:{cls:'monk',tier:3,line:'elem',n:'Elemental Tempest',mp:38,tgt:'all',mult:2.1,acc:100,crit:6,el:'attune',weak:1.75,d:'A whirlwind of your chosen element through every enemy. Weakness hits deal 1.75×.'},
   avatar:{cls:'monk',tier:4,line:'elem',n:'Elemental Avatar',mp:44,tgt:'self',avatar:{n:4,m:1.5},d:'For 4 turns every strike is infused with the element that hurts its target most and deals 1.5× damage. Lasts through several blows, unlike Channel.'},
 };
-const SKILL_LV={1:6,2:13,3:21,4:30};
-const SKILL_TIERS=[1,2,3,4],KIT_MAX=4;
+// Tier 0 is a pick from the starting pool (the class skills a hero didn't start with); tiers 1-4 are the newer skills.
+const SKILL_LV={0:4,1:11,2:18,3:25,4:32};
+const SKILL_TIERS=[0,1,2,3,4],KIT_MAX=4;
 const CHAN_MULT=1.75;
 /* Cleansing: what a skill clears from the heroes it helps. 1 poison and bleeding; 2 also curses; 3 also burns;
    4 everything, including a chill (their turn comes back sooner) and a jolt (locked actions are freed). */
@@ -3315,16 +3316,16 @@ for(const [id,n] of Object.entries(CLEANSE)){const K=SKILLS[id];K.clean=n;K.d+='
 // Retired skills (from before the three-line rework) and what heroes who knew them now have instead.
 const SKILL_RETIRED={taunt:'rally',undying:'warlord',imbue2:'hail'};
 const tierOpts=(cls,t)=>Object.keys(SKILLS).filter(k=>SKILLS[k].cls===cls&&SKILLS[k].tier===t);
-const hasTier=(h,t)=>h.skills.some(id=>SKILLS[id]&&SKILLS[id].tier===t);
+const hasTier=(h,t)=>t===0?h.skills.filter(id=>SKILLS[id]&&!SKILLS[id].tier).length>=3:h.skills.some(id=>SKILLS[id]&&SKILLS[id].tier===t);
 // The first skill tier this hero has reached but not chosen yet, or 0.
-const pendingTier=h=>SKILL_TIERS.find(t=>h.level>=SKILL_LV[t]&&!hasTier(h,t))||0;
-// At levels 6, 13, 21 and 30 a hero learns one of their class's skills for that tier. A hero can bring at most KIT_MAX skills along.
-const learnOpts=(h,t)=>tierOpts(h.cls,t);
+const pendingTier=h=>{const t=SKILL_TIERS.find(t=>h.level>=SKILL_LV[t]&&!hasTier(h,t));return t==null?-1:t};
+// At levels 4, 11, 18, 25 and 32 a hero learns one skill: at 4 any starting-pool skill they lack, then one of the newer skills for that tier. A hero can bring at most KIT_MAX skills along.
+const learnOpts=(h,t)=>t===0?classSkills(h.cls).filter(k=>!h.skills.includes(k)):tierOpts(h.cls,t);
 // The Witch can reroll a learned skill. 15% of the time fate lands on the same skill again (less with Luck).
 const REROLL_COST={1:300,2:1500,3:4000,4:9000};
 const skillRerollCost=(h,t)=>REROLL_COST[t]*Math.pow(2,((h.rerolls||{})[t])||0);
 const rerollSame=h=>Math.max(5,15-stat(h,'lck')*.4);
-/* Level-up choices. At levels 6, 13, 21 and 30 a hero picks one of their class's skills for that level. At 10, 20 and 30 (and
+/* Level-up choices. At levels 4, 11, 18, 25 and 32 a hero picks one of their class's skills for that level. At 10, 20 and 30 (and
    every 10th level after) they pick a new trait from 2, 3 or 4 offers (4 from level 30 on). The hero's Charisma and Luck
    tilt the offers toward positive traits, and at least one offer is always positive. Choices wait until the player decides. */
 const traitOfferN=h=>Math.min(4,Math.max(2,(h.traits||[]).length));
@@ -3336,7 +3337,7 @@ function traitOffers(h){
   return out;
 }
 function queueLevelPicks(h){
-  const t=pendingTier(h);if(t&&!h.pickSkill)h.pickSkill={t,opts:learnOpts(h,t)};
+  const t=pendingTier(h);if(t>=0&&!h.pickSkill)h.pickSkill={t,opts:learnOpts(h,t)};
   if(!h.pickTrait&&(h.traits||[]).length<traitSlots(h.level))h.pickTrait={opts:traitOffers(h)};
   if(h.pickSkill||h.pickTrait)ui.pickHide=false;
 }
@@ -3346,14 +3347,14 @@ function levelPickModal(){
   const h=pickWaiting();if(!h)return '';
   let body='';
   if(h.pickSkill){const {t,opts}=h.pickSkill;
-    body=`<p>${esc(h.name)} has reached level ${SKILL_LV[t]} and can learn one new skill. Choose carefully: it stays unless the Witch rerolls it.${kit(h).length>=KIT_MAX?` ${esc(h.name)} already carries ${KIT_MAX} skills, so the new one waits at home until you swap it in on the hero sheet or at the Gate.`:''}</p><div class="stack" style="gap:8px">${opts.map(id=>{const k=SKILLS[id];
+    body=`<p>${esc(h.name)} has reached level ${SKILL_LV[t]} and can learn one new skill${t===0?` from the skills ${esc(h.name)} didn’t start with`:''}. Choose carefully: ${t===0?'it stays for good':'it stays unless the Witch rerolls it'}.${kit(h).length>=KIT_MAX?` ${esc(h.name)} already carries ${KIT_MAX} skills, so the new one waits at home until you swap it in on the hero sheet or at the Gate.`:''}</p><div class="stack" style="gap:8px">${opts.map(id=>{const k=SKILLS[id];
       return `<div class="item pickopt"><span class="iname">${skillIco(id)} ${k.n} <span class="muted">· ${skillMp(h,id)} MP</span></span><span class="afx">${skillStats(id)}</span><span class="meta">${k.d}</span><div class="row"><button class="btn gold" data-a="pickSkill" data-x="${h.id}|${id}">Learn ${k.n}</button></div></div>`}).join('')}</div>`}
   else{const {opts}=h.pickTrait,tilt=clamp(Math.round((stat(h,'cha')+stat(h,'lck')-8)*2),-20,30);
     body=`<p>${esc(h.name)} has grown at level ${h.level}. Choose one new trait. <span class="muted" style="font-size:18px">${tilt>0?`Their Charisma and Luck tipped the offers ${tilt}% toward good traits.`:tilt<0?`Their low Charisma and Luck tipped the offers toward bad traits.`:''} At least one offer is always good.</span></p><div class="stack" style="gap:8px">${opts.map(id=>{const T=TRAITS[id];
       return `<div class="item pickopt"><span class="iname"><span class="tk-${T.kind}">${T.n}</span> <span class="muted" style="font-size:16px">${({good:'positive',neutral:'mixed',bad:'negative'})[T.kind]}</span></span><span class="meta">${traitDesc(T,h)}</span><div class="row"><button class="btn ${T.kind==='good'?'gold':''}" data-a="pickTrait" data-x="${h.id}|${id}">Take ${T.n}</button></div></div>`}).join('')}</div>`}
   return modalShell(`<span class="gold">${esc(h.name)}: ${h.pickSkill?'choose a skill':'choose a trait'}</span>`,body+`<div class="row" style="margin-top:8px"><button class="btn small" data-a="pickLater">Decide later</button></div>`,'pickLater','pickmodal');
 }
-function autoLearn(h){const got=[];let t;while((t=pendingTier(h))){const id=pick(learnOpts(h,t));h.skills.push(id);kitAdd(h,id);got.push(id)}return got}
+function autoLearn(h){const got=[];let t;while((t=pendingTier(h))>=0){const id=pick(learnOpts(h,t));h.skills.push(id);kitAdd(h,id);got.push(id)}return got}
 const skillIco=id=>{const k=SKILLS[id];if(['mend','wind','circle','revive','resurrect'].includes(id))return ico('heart');if(['wall','taunt','bulwark','undying'].includes(id))return ico('shield','#8fa8c8');if(['rally','warlord'].includes(id))return ico('fist','#e3b341');if(['feather','shadow','phantom'].includes(id))return ico('eye','#cfc6b0');if(['blessing','calm','mantra','nirvana'].includes(id))return ico('heart','#f2d36b');if(['mark','seal','doom','brand'].includes(id))return ico('crescent','#e0736c');if(id==='channel')return ico('bolt','#9fd6ff');if(['focus','ward','fleet'].includes(id))return ico(id==='ward'?'shield':id==='fleet'?'feather':'eye','#f2d36b');if(id==='hail'||id==='thousand')return ico('bolt','#b9a8ff');if(id==='imbue'||id==='imbue2')return ico('bolt','#e3b341');if(id==='sniper')return ico('star','#e3b341');if(id==='warcry')return ico('fist','#e3b341');if(id==='hex')return ico('crescent','#b56fe3');
   if(k.el&&k.el!=='weapon'&&k.el!=='attune')return elIco(k.el);return ico(({warrior:'sword',archer:'bow',mage:'staff',monk:'fist'})[k.cls],CLASSES[k.cls].tint)};
 /* The skills a hero brings: at most KIT_MAX of the ones they know. Choose them at the Gate or on the hero sheet, in town. */
@@ -5876,7 +5877,7 @@ const TUT_B=[
   ['top',h=>`${esc(h.name)} is a ${C_(h).name}. ${h.cls==='warrior'?'Warriors wear heavy armor, have the most health and belong in front, where most blows land.':h.cls==='archer'?'Archers hit hard and dodge a lot, but can’t take many hits.':'Mages wield the elements but are fragile.'} The letter by the name is their grade, from S (best) to D: how well their natural stats suit the class.`],
   ['vit',h=>`<b class="hpc">HP</b> is health. If it hits 0 in a fight they fall, and a fallen hero is gone for good, along with their gear. <b class="mpc">MP</b> is mana: skills spend it, and it refills a little every turn. Both refill fully in town.`],
   ['traits',h=>`Traits are quirks they were born with. <span class="tk-good">Green</span> ones help, <span class="tk-neutral">yellow</span> ones are a mixed bag, <span class="tk-bad">red</span> ones hurt. Hover or tap a trait to read it. Another trait shows up every 10 levels.`],
-  ['skills',h=>`They start with two skills. Skills cost MP but hit harder than a plain attack. New skills arrive at levels 6, 13, 21 and 30, and a hero can bring up to four on each adventure.`],
+  ['skills',h=>`They start with two skills. Skills cost MP but hit harder than a plain attack. New skills arrive at levels 4, 11, 18, 25 and 32, and a hero can bring up to four on each adventure.`],
   ['xp',h=>`Fights earn experience. Every level-up restores them fully and brings attribute points to spend.`],
   ['stats',h=>`Seven attributes shape everything. STR: power. PER: accuracy and spotting what enemies plan. END: health and resistances. CHA: better prices and events. INT: mana. AGI: speed and dodging. LCK: crits and good fortune. The ${C_(h).name}’s main one is outlined. Tap any of them to learn more.`],
   ['el',h=>`Everyone is born a little different against the elements. This shows what they resist, what they’re weak to, and any elemental damage bonus.`],
@@ -7622,9 +7623,9 @@ function loadoutBlock(ids){
 function skillList(h){const own=state.heroes.includes(h);
   return `${own&&h.skills.length>1?`<p style="margin:0 0 4px">${kitCount(h)} <span class="muted" style="font-size:18px">· ${kitLocked(h)?'Locked while on an adventure.':`Switch skills on or off. A hero brings up to ${KIT_MAX}.`}</span></p>${kitWarn(h)}${ui.kitMsg?`<p class="warn">${esc(ui.kitMsg)}</p>`:''}`:''}${rankLegend}<div class="stack" style="gap:6px">${h.skills.map(id=>skillCard(h,id,-1)).join('')}</div>`}
 function learnBlock(h){
-  const nx=SKILL_TIERS.find(k=>!hasTier(h,k));if(!nx)return '';
+  const nx=SKILL_TIERS.find(k=>!hasTier(h,k));if(nx==null)return '';
   const o=learnOpts(h,nx).map(id=>`<b>${SKILLS[id].n}</b>`),list=o.length>2?'one of '+o.slice(0,-1).join(', ')+' or '+o[o.length-1]:'either '+o.join(' or ');
-  return `<p class="muted" style="font-size:20px">At level ${SKILL_LV[nx]}, ${esc(h.name)} will learn ${list}. You choose which.${nx<4?` More skills come at level ${SKILL_TIERS.filter(k=>k>nx).map(k=>SKILL_LV[k]).join(', ')}.`:''}</p>`;
+  return `<p class="muted" style="font-size:20px">At level ${SKILL_LV[nx]}, ${esc(h.name)} will learn ${list}${nx===0?', the skills they didn’t start with':''}. You choose which.${nx<4?` More skills come at level ${SKILL_TIERS.filter(k=>k>nx).map(k=>SKILL_LV[k]).join(', ')}.`:''}</p>`;
 }
 function traitChips(h){
   const ts=(h.traits||[]).map(id=>TRAITS[id]).filter(Boolean);
@@ -7925,7 +7926,7 @@ function witchView(){
       <h3>${WITCH_HERO.respec.n} · <span class="gold">${fmt(rc)} gold</span></h3><p class="muted">${WITCH_HERO.respec.d} ${h.spent?`${h.spent} point${h.spent>1?'s':''} would come back.`:'Nothing spent to undo yet.'}</p>
       <div class="row"><button class="btn" data-a="witchRespec" data-x="${h.id}" ${state.gold<rc||!h.spent?'disabled':''}>Rebalance ${esc(h.name)}</button></div>`;
     {const learned=h.skills.filter(id=>SKILLS[id]&&SKILLS[id].tier);
-     s+=`<h3>Reroll a learned skill</h3><p class="muted">Skills learned at levels 6, 13, 21 and 30 come down to fate. The Witch can roll the dice again. There is a ${Math.round(rerollSame(h))}% chance (less with Luck) it lands on the same skill. Each reroll of the same skill doubles the price.</p>`;
+     s+=`<h3>Reroll a learned skill</h3><p class="muted">Skills learned at levels 11, 18, 25 and 32 come down to fate. The Witch can roll the dice again. There is a ${Math.round(rerollSame(h))}% chance (less with Luck) it lands on the same skill. Each reroll of the same skill doubles the price.</p>`;
      s+=learned.length?`<div class="stack" style="gap:6px">${learned.map(id=>{const t=SKILLS[id].tier,c=skillRerollCost(h,t),others=learnOpts(h,t).filter(x=>x!==id).map(x=>SKILLS[x].n);
        return `<div class="row" style="gap:8px;justify-content:space-between;flex-wrap:nowrap"><span><b>${SKILLS[id].n}</b> <span class="muted" style="font-size:18px">Lv ${SKILL_LV[t]} skill · could become ${others.join(' or ')}</span></span><button class="btn small" data-a="witchReroll" data-x="${h.id}|${id}" ${state.gold<c||onRun(h)||!others.length?'disabled':''}>Reroll · ${fmt(c)}g</button></div>`}).join('')}</div>`:'<p class="muted">No learned skills yet. The first comes at level 6.</p>'}
     return s;
@@ -9036,6 +9037,8 @@ function start(d){
   // Skills v3 (three lines): swap retired skills for their replacements, then offer any picks now due.
   if(!state.skills3){state.skills3=true;for(const h of [...state.heroes,...(state.candidates||[])]){h.skills=[...new Set((h.skills||[]).map(id=>SKILL_RETIRED[id]||id).filter(id=>SKILLS[id]))];
     if(h.pickSkill)h.pickSkill=null}}
+  // Skills v5: levels 4, 11, 18, 25, 32; anything waiting is recomputed.
+  if(!state.skills5){state.skills5=true;for(const h of [...state.heroes,...(state.candidates||[])])h.pickSkill=null}
   // Skills v4: four tiers (6, 13, 21, 30) and a four-skill loadout. Heroes bring their newest four to start.
   if(!state.skills4){state.skills4=true;for(const h of [...state.heroes,...(state.candidates||[])]){h.kit=(h.skills||[]).slice(-KIT_MAX)}}
   if(!state.pts2){state.pts2=true;for(const h of state.heroes){let add=0;for(let L=2;L<=h.level;L++)add+=pointsFor(L)-oldPointsFor(L);if(add>0)h.points+=add}}
