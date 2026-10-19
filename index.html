@@ -3186,7 +3186,7 @@ const CLASSES={
   mage:{name:'Mage',primary:'int',hp:30,startHp:10,mp:25,tint:'#3d3c86',var:[.9,1.1],crit:0,critDmg:150,spd:0,elem:15,
     style:'Light cloth: the most fragile class, with the least health and armor. Every attack is elemental (+15% damage), and weakness hits deal 1.75× instead of 1.5×. Attune to any element mid-battle.'},
   monk:{name:'Monk',primary:'per',hp:40,startHp:18,mp:24,tint:'#d9a441',var:[.85,1.15],crit:5,critDmg:150,spd:1,
-    style:'Light armor and bare fists: a monk never carries a weapon, but their strikes hit three times as hard as a weapon-less baseline, and rings and amulets count double. Every 8th action is a Chi action and does double. Blessings ease fatigue, marks make enemies take more damage, and Channel unleashes elements. A monk can stand and strike from any rank.'},
+    style:'Light armor and bare fists (Perception is their class stat, Luck their second): a monk never carries a weapon, but their strikes hit three times as hard as a weapon-less baseline, and rings and amulets count double. Every 8th action is a Chi action and does double. Blessings ease fatigue, marks make enemies take more damage, and Channel unleashes elements. A monk can stand and strike from any rank.'},
 };
 // Basic attacks. acc = base hit chance before agility and enemy evasion.
 const ATTACK={warrior:{mult:1,acc:95,crit:0,el:'weapon'},archer:{mult:1,acc:85,crit:5,el:'weapon'},mage:{mult:.9,acc:100,crit:0,el:'attune'},monk:{mult:1,acc:92,crit:5,el:'physical'}};
@@ -3732,7 +3732,7 @@ const weaponDmg=h=>h.cls==='monk'?fistDmg(h):h.gear.weapon?baseVal(h.gear.weapon
 // Each level past 1 adds a little raw power, so experience matters on its own.
 const LEVEL_POWER=.08;
 // Each point of the class's main stat adds 1 damage (archers 0.85: their speed and crits make up the rest); the other two add a quarter.
-function power(h){const p=C_(h).primary;let v=weaponDmg(h);for(const k of (h.cls==='monk'?['str','agi','int','per']:['str','agi','int']))v+=stat(h,k)*(k===p?(h.cls==='archer'?.85:1):.25);return v*(1+LEVEL_POWER*(h.level-1))}
+function power(h){const p=C_(h).primary;let v=weaponDmg(h);for(const k of (h.cls==='monk'?['str','agi','int','per']:['str','agi','int']))v+=stat(h,k)*(k===p?(h.cls==='archer'?.85:1):.25);if(h.cls==='monk')v+=stat(h,'lck')*.5;return v*(1+LEVEL_POWER*(h.level-1))}
 const critChance=h=>clamp(5+C_(h).crit+stat(h,'agi')*(h.cls==='archer'?.5:.3)+luckRate(h,'crit')+aff(h,'crit'),0,75);
 const critDmg=h=>C_(h).critDmg+aff(h,'critdmg');
 // Medium armor (archer pieces) adds evasion: 2% per piece plus a little per item level.
@@ -3827,7 +3827,7 @@ const statCost=v=>{const t=v+1;return t<=6?1:2+Math.floor((t-7)/3)};
 const pointsFor=L=>2+Math.ceil(L/5);
 const oldPointsFor=L=>L%5===0?5:2;
 // Suggested build: keeps raising whichever stat is furthest below its class weight until points run out.
-const BUILD_W={warrior:{str:3,end:2.5,agi:1,per:1,lck:.8,cha:.4,int:.3},archer:{agi:3,per:2,end:1.8,lck:1.2,str:.6,cha:.4,int:.3},mage:{int:3,end:1.8,lck:1.5,per:1.2,agi:.8,cha:.6,str:.3},monk:{per:3,end:2,agi:1.2,str:1,lck:1,int:.8,cha:.6}};
+const BUILD_W={warrior:{str:3,end:2.5,agi:1,per:1,lck:.8,cha:.4,int:.3},archer:{agi:3,per:2,end:1.8,lck:1.2,str:.6,cha:.4,int:.3},mage:{int:3,end:1.8,lck:1.5,per:1.2,agi:.8,cha:.6,str:.3},monk:{per:3,lck:1.5,end:2,agi:1,str:.8,int:.6,cha:.6}};
 function autoAssign(h){
   const W=BUILD_W[h.cls];let guard=0;
   while(h.points>0&&guard++<200){
@@ -4046,7 +4046,7 @@ const MAP_COLS=5,MAP_TRAILS=3,MAP_AHEAD=6,MAP_SHOW=5; // trail shapes show MAP_S
 //  6+: enemy health numbers and damage numbers.   10+: enemy intents.
 const PER_NUMBERS=6,PER_INTENT=6;
 // Harder lands expect a sharper, more persuasive party: the baseline rises with adventure length.
-const LEN_BASE={short:{per:0,cha:8,lck:6},medium:{per:6,cha:14,lck:12},long:{per:12,cha:20,lck:18},expedition:{per:20,cha:28,lck:26},descent:{per:24,cha:32,lck:30}};
+const LEN_BASE={short:{per:0,cha:8,lck:6},medium:{per:12,cha:14,lck:12},long:{per:18,cha:20,lck:18},expedition:{per:24,cha:28,lck:26},descent:{per:30,cha:32,lck:30}};
 const curLen=()=>state.run?state.run.length:state.sel.len;
 const lenBase=()=>LEN_BASE[curLen()]||LEN_BASE.short;
 const partyMembers=()=>state.run?living():(state.sel.party||[]).map(heroById).filter(Boolean);
@@ -4719,6 +4719,8 @@ const stanceOf=h=>{const b=state.run&&state.run.battle;return (b&&b.stance&&b.st
 /* Monk Chi: every 8th action a monk takes is a Chi action and does double: damage, fatigue relief, healing, buff strength,
    mark length and Channel power. The count carries across battles for the whole adventure. */
 const CHI_N=8;
+// Perception is the monk's class stat and Luck their second: together they strengthen blessings and buffs (Luck counts half as much).
+const monkAmp=h=>1+(stat(h,'per')+.5*stat(h,'lck'))/100;
 const chiCount=h=>{const r=state.run;return (r&&r.chi&&r.chi[h.id])||0};
 const chiReady=h=>!!h&&h.cls==='monk'&&(chiCount(h)+1)%CHI_N===0;
 const chiNow=h=>{const b=state.run&&state.run.battle;return !!(b&&h&&h.cls==='monk'&&b.chiNow===h.id)};
@@ -4952,7 +4954,7 @@ function applyMark(h,t,sk){
   blog(`${esc(h.name)} marks ${t.name} for ${n} turns: heroes deal 1.5× damage to it (archers 3×)${M.weak?', and it deals 30% less damage':''}.`)}
 // Monk blessings and buffs (fatigue relief, healing, mana, damage, defense, evasion). A Chi action doubles every number.
 function monkSupport(h,K,ally){
-  const b=state.run.battle,n=esc(h.name),X=chiMult(h);
+  const b=state.run.battle,n=esc(h.name),X=chiMult(h)*monkAmp(h);
   const T=K.tgt==='party'?(darkIs('selfish')?[h]:living()):K.tgt==='self'?[h]:[(darkIs('selfish')?h:ally)||h].filter(x=>x&&x.hp>0);
   const out=[];
   for(const x of T){const bits=[];
@@ -4961,9 +4963,9 @@ function monkSupport(h,K,ally){
       if(B.hp){const v=Math.round(maxHp(x)*B.hp*X*healMult(x));x.hp=Math.min(maxHp(x),x.hp+v);b.pops.push({s:'h',hid:x.id,t:'+'+v});bits.push(`+${v} HP`)}
       if(B.mp){const v=Math.round(maxMp(x)*B.mp*X*manaMult());x.mp=Math.min(maxMp(x),x.mp+v);bits.push(`+${v} MP`)}}
     if(K.buff){const B=K.buff;
-      if(B.def){const v=Math.min(80,B.def*X),c=heroBuff(x,'def');if(!c||c.v<v)setBuff(x,'def',B.n,v);bits.push(`${v}% less damage`)}
-      if(B.eva){const v=Math.min(95,B.eva*X),c=heroBuff(x,'eva');if(!c||(c.v||90)<v)setBuff(x,'eva',B.n,v);bits.push(`${v}% evasion`)}
-      if(B.dmg){setBuff(x,'might',B.n,B.dmg*X,{crit:(B.crit||0)*X});bits.push(`+${B.dmg*X}% damage${B.crit?`, +${B.crit*X}% crit`:''}`)}
+      if(B.def){const v=Math.min(80,Math.round(B.def*X)),c=heroBuff(x,'def');if(!c||c.v<v)setBuff(x,'def',B.n,v);bits.push(`${v}% less damage`)}
+      if(B.eva){const v=Math.min(95,Math.round(B.eva*X)),c=heroBuff(x,'eva');if(!c||(c.v||90)<v)setBuff(x,'eva',B.n,v);bits.push(`${v}% evasion`)}
+      if(B.dmg){setBuff(x,'might',B.n,Math.round(B.dmg*X),{crit:Math.round((B.crit||0)*X)});bits.push(`+${Math.round(B.dmg*X)}% damage${B.crit?`, +${Math.round(B.crit*X)}% crit`:''}`)}
       if(B.quick){b.ct['h:'+x.id]-=delayOf('h:'+x.id)*.25;bits.push('acts sooner')}}
     out.push(`${x===h&&T.length>1?'themselves':esc(x===h?x.name:x.name)}: ${bits.join(', ')}`)}
   blog(`<b class="gold">${n} uses ${K.n}</b>${chiNow(h)?' <span class="gold">(chi ×2)</span>':''} · ${out.join(' · ')}.`)}
@@ -5831,7 +5833,7 @@ function bars(h){
 function statTip(h,k){
   const C=C_(h),own=C.primary===k;
   if(k==='str')return `Strength. ${own?'Warriors add 1 damage per point':'Adds 0.25 damage per point (Warriors get 1)'}. Each point the hero has (not from gear or elixirs) also adds 0.75 max health every time they level up.`;
-  if(k==='per')return `Perception. Accuracy +0.3% per point. Perception adds up across the whole party on the map and in battle: with 1–2 total every choice on the map is unknown; with 3–8 some choices are fogged; from 9 every choice is clear and you see 1 stage ahead, +1 more per 6 points (up to 6). At 6+ you see enemy health and damage numbers; at 10+ you see what each enemy will do next. The party’s best single Perception also fully reads unknown enemies at the start of a fight (${Math.round(fullScoutChance(stat(h,'per')))}%, adding them to the Moon Ledger), spots trapped chests (${Math.round(spotChance(stat(h,'per')))}%), and finds bonus gold or items after fights (${Math.round(findChance(stat(h,'per')))}%).`;
+  if(k==='per')return `Perception. Accuracy +0.3% per point.${h.cls==='monk'?' It is the Monk’s class stat: it adds to their damage and the strength of their blessings and buffs, and Luck adds half as much.':''} Perception adds up across the whole party on the map and in battle: with 1–2 total every choice on the map is unknown; with 3–8 some choices are fogged; from 9 every choice is clear and you see 1 stage ahead, +1 more per 6 points (up to 6). At 6+ you see enemy health and damage numbers; at 10+ you see what each enemy will do next. The party’s best single Perception also fully reads unknown enemies at the start of a fight (${Math.round(fullScoutChance(stat(h,'per')))}%, adding them to the Moon Ledger), spots trapped chests (${Math.round(spotChance(stat(h,'per')))}%), and finds bonus gold or items after fights (${Math.round(findChance(stat(h,'per')))}%).`;
   if(k==='end')return `Endurance. Each point the hero has (not from gear or elixirs) adds 1.25 max health every time they level up, +0.5% resistance to every element (${(stat(h,'end')*.5).toFixed(1)}% now), and health recovered between fights: 0.5% per point, up to 30% (${Math.round(restPct(h))}% now).`;
   if(k==='cha')return `Charisma. The whole party’s Charisma adds up for every non-battle event (chests, gold caches, shrines, strangers). Each point above the land’s baseline makes results 3% better, each point below 3% worse (Cave 8, Wilds 14, Wasteland 20, Summit 28). Also lowers the Witch’s brew and supply prices by 1.5% per point, up to 40% (${Math.round(chaDiscount(h))}% now). Treatments use this hero’s Charisma; supplies use your most charming hero.`;
   if(k==='agi')return `Agility. ${own?'Archers add 0.85 damage per point':'Adds 0.25 damage per point (Archers get 0.85)'}. Raises speed, so more turns, plus crit chance, evasion and accuracy.`;
