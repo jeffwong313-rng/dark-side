@@ -1694,6 +1694,16 @@ body:not(.padmode) .padfocus{outline:none}
 .trait.kit{cursor:pointer;font:inherit}.trait.kit.on{box-shadow:inset 0 0 0 2px #8fd3ff;background:#1d3140}.trait.kit.off{opacity:.55}.trait.kit .kmark{color:#8fd3ff}.trait.kit small{opacity:.8}
 .kitbox{background:#171120;box-shadow:inset 0 0 0 2px #3a2f4a;padding:8px}.kitgrid{display:flex;flex-wrap:wrap;gap:6px}
 .item.kitoff{opacity:.6}
+.skcard{background:#171120;box-shadow:inset 0 0 0 2px #3a2f4a;padding:8px 10px;display:flex;flex-direction:column;gap:3px}
+.skcard.on{box-shadow:inset 0 0 0 2px #8fd3ff;background:#1b2634}.skcard.off .skname,.skcard.off .afx,.skcard.off .meta{opacity:.6}
+.skcard .skhead{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.skcard .skname{font-weight:bold}.skcard .skbad{box-shadow:inset 0 0 0 2px #7a4a2a}
+.rk{display:inline-flex;align-items:center;gap:3px;vertical-align:middle}.rk i{display:inline-block;width:10px;height:10px;border-radius:50%;box-shadow:inset 0 0 0 2px #5a4d6e}
+.rk i.on{background:#e3b341;box-shadow:none}.rk.hit i.on{background:#e0736c}.rk i.cur{outline:2px solid #8fd3ff;outline-offset:1px}
+.rk.hit{margin-right:8px}.rk .bar{display:inline-block;width:2px;height:16px;background:#9a8ab0;margin:0 5px}
+.skrk{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:17px}
+.kitwarn{background:#2a1a12;box-shadow:inset 0 0 0 2px #7a4a2a;padding:4px 8px;margin:0}
+.skgrid .btn .rk{margin-left:6px}.skgrid .btn .rk i{width:8px;height:8px}
 </style>
 
 </head>
@@ -5938,7 +5948,7 @@ function heroCard(h,footer,sel,tut){
     <div class="hc-top" data-tut="top"><div class="portrait big">${heroArt(h,6)}<span class="clsbadge" data-tip="${esc(C.name+': '+C.style)}">${ico(({warrior:'sword',archer:'bow',mage:'staff',monk:'fist'})[h.cls],C.tint,2)}</span></div>
       <div class="stack" style="gap:2px"><span class="hname">${esc(h.name)}<span class="grade" style="color:${gc}" data-tip="Roll grade from S to D: how well the stats fit the class. The class stat counts most." tabindex="0">${g}</span></span>
       <span class="muted" data-tut="vit">Lv ${h.level} ${C.name} · <b class="hpc">${maxHp(h)} HP</b> · <b class="mpc">${maxMp(h)} MP</b> ${badgeIco(h.badge||0)}</span>${injOf(h)?`<span class="warn" style="font-size:18px" data-tip="${esc('Injured from exhaustion: '+INJURY[injOf(h)].d+'. Heals after week '+h.injury.until+'. Campsites don’t heal injuries.')}">✚ ${INJURY[injOf(h)].n}: ${INJURY[injOf(h)].d} (heals after week ${h.injury.until})</span>`:''}${h.points?`<span class="gold" style="font-size:20px">${h.points} points to assign</span>`:''}</div></div>
-    <div data-tut="traits">${traitChips(h)}</div><div class="traits" data-tut="skills">${h.skills.map(id=>skillChip(h,id)).join('')}</div>${state.heroes.includes(h)&&h.skills.length>KIT_MAX?kitCount(h):''}<div data-tut="xp">${xpBar(h)}</div><div data-tut="stats">${statPips(h,true)}</div><div data-tut="el">${innateLine(h)}${heroElTable(h)}</div><div data-tut="go">${footer||''}</div></div>`;
+    <div data-tut="traits">${traitChips(h)}</div><div class="traits" data-tut="skills">${h.skills.map(id=>skillChip(h,id)).join('')}</div>${state.heroes.includes(h)&&h.skills.length>1?kitCount(h):''}<div data-tut="xp">${xpBar(h)}</div><div data-tut="stats">${statPips(h,true)}</div><div data-tut="el">${innateLine(h)}${heroElTable(h)}</div><div data-tut="go">${footer||''}</div></div>`;
 }
 
 /* ---------- installing as an app (only on the hosted site, never inside Claude) ---------- */
@@ -7514,7 +7524,7 @@ function actBar(){
   s+=`<div class="asec"><div class="alabel">${czBtn('bat.attack')}<span data-tip="Basic attacks cost no mana. Attack is reliable, Power Attack hits harder but misses more, Accurate Attack rarely misses but hits softer.">Attack</span></div><div class="skgrid atk3 atk4 ${czShut('bat.attack')?'czhide':''}">${Object.entries(ATK_KINDS).map(([k,K])=>`<button class="btn skillbtn ${k}" data-a="atk" data-x="${k}" ${jammed(h,'atk:'+k)?'disabled':''} data-tip="${esc(K.n+': '+K.d)}"><span>${wico} ${K.n}</span><span class="sub2">${odds(atkOpts(h,k))}</span></button>`).join('')}${(()=>{const S=STANCE[h.cls],c=h.cls==='mage'?manaWallCost(h):0;return `<button class="btn skillbtn stance" data-a="stance" ${h.mp<c||jammed(h,'stance')?'disabled':''} data-tip="${esc(S.n+': '+S.d(h)+' Uses the turn.')}"><span>${ico(S.ico[0],S.ico[1],2)} ${S.n}${c?` <span class="muted">· ${c} MP</span>`:''}</span><span class="sub2">${h.cls==='warrior'?`−${stoneDef(h)}% damage · holds position`:h.cls==='archer'?`${rollDodge(h)}% dodge`:h.cls==='monk'?'−35% damage · eases fatigue':'no elemental damage · −25% physical'}</span></button>`})()}</div>
     <div class="alabel">${czBtn('bat.skills')}<span data-tip="Skills cost mana (shown on each). Mana comes back a little every turn.">Skills</span></div><div class="skgrid ${czShut('bat.skills')?'czhide':''}">${kit(h).map(id=>{const k=SKILLS[id],c=skillMp(h,id);
       const info=k.mult?odds({...k,mult:skillMult(h,k)}):k.tgt==='enemy'?`${known?Math.round(hitChance(h,tgt,k.acc)):'?'}% hit · ${k.d}`:k.d;
-      return `<button class="btn skillbtn" data-a="skill" data-x="${id}" ${h.mp<c||jammed(h,id)||(k.tgt==='dead'&&!partyAll().some(x=>x.hp<=0))?'disabled':''} data-tip="${esc(k.n+': '+skillStats(id)+'. '+k.d+(frontBlocked(h,id)?' Not usable from the front rank: move back.':benched(h)&&k.mult?' Too far back to reach.':''))}"><span>${skillIco(id)} ${k.n} <span class="muted">· ${c} MP</span></span><span class="sub2">${frontBlocked(h,id)?'needs the middle or back rank':info}</span></button>`}).join('')}</div>`;
+      return `<button class="btn skillbtn" data-a="skill" data-x="${id}" ${h.mp<c||jammed(h,id)||(k.tgt==='dead'&&!partyAll().some(x=>x.hp<=0))?'disabled':''} data-tip="${esc(k.n+': '+skillStats(id)+'. '+k.d+(frontBlocked(h,id)?' Not usable from the front rank: move back.':benched(h)&&k.mult?' Too far back to reach.':''))}"><span>${skillIco(id)} ${k.n} <span class="muted">· ${c} MP</span></span><span class="sub2">${frontBlocked(h,id)?'needs the middle or back rank':benched(h)&&k.mult?'too far back to reach':info}</span><span class="sub2">${rankDots(id,(L=>L.length>1?(L.length===2&&L.indexOf(h)===1?2:L.indexOf(h)):-1)(living()))}</span></button>`}).join('')}</div>`;
   if(h.cls==='mage'||heroBuff(h,'imbue')||(h.cls==='monk'&&(heroBuff(h,'chan')||kit(h).some(id=>SKILLS[id]&&SKILLS[id].el==='attune'))))s+=`<div class="hscroll"><span class="lab">${h.cls==='mage'?'Attune (free)':h.cls==='monk'?'Channel (free to change)':`Arrows (${heroBuff(h,'imbue').n} turns)`}</span>${ELEMENTS.map(el=>`<button class="btn small ${attuned(h)===el?'on':''}" data-a="attune" data-x="${h.id}|${el}" aria-label="${cap(el)}"><span class="el" style="--c:${EL_COL[el]}" data-tip="${elTip(el)}">${elIco(el)}</span>${known?` ×${effOf(el).toFixed(2)}`:''}</button>`).join('')}</div>`;
   s+='</div>';
   const bag=Object.entries(r.bag||{}).filter(([id,n])=>n>0&&CONSUMABLES[id]&&!CONSUMABLES[id].fieldOnly);
@@ -7571,20 +7581,46 @@ function eventView(){
   if(ev.chest)return `<h2>${ev.chest.opened?'The chest is open':(CHEST_TIER[ev.chest.tier]||CHEST_TIER.map).n}</h2>${chestScene()}${ev.chest.opened?`<p>${ev.text}</p>${state.run.invNote?`<p class="gold" style="font-size:18px">${state.run.invNote}</p>`:''}${dropActions((ev.chest.got||[]).filter(x=>x.k==='item').map(x=>x.it))}<div class="row"><button class="btn gold" data-a="cont">${last?'Head home':'Continue'}</button></div>`:'<p class="muted">Old iron bands, a heavy lid. Open it to see what spills out.</p>'}`;
   return `<div class="row" style="gap:12px;flex-wrap:nowrap;align-items:flex-start">${ev.approach?`<span class="approach"><span class="afar">${foeArt({base:BIOMES[state.run.biome].boss,kind:'boss',type:BIOMES[state.run.biome].el,spr:'boss'},5,'bob')}</span><span class="portrait">${sprite('camp',null,5,'bob')}</span></span>`:ev.icon?`<span class="portrait">${sprite(ev.icon,null,5,'bob')}</span>`:''}<div class="stack" style="gap:6px"><h2>${ev.title}</h2><p class="${wf?'wheelres':''}">${ev.text}</p></div></div>${wheel}<div class="row">${ev.choices?ev.choices.map(c=>`<button class="btn ${c.x==='leave'?'':'gold'}" data-a="${c.myst?'myst':c.ev?'evPick':'gamble'}" data-x="${c.x}" ${c.off?'disabled':''}>${c.l}</button>`).join(''):`<button class="btn gold" data-a="cont">${ev.intro?'Press on':'Continue'}</button>`}</div>`;
 }
+/* Where a skill can be used from, and what it can hit. Ranks run Front, Middle, Back (counted among living heroes). */
+function skillReach(id){const k=SKILLS[id];let from=[1,1,1],hit=null;
+  if(k.cls==='warrior'&&k.mult)from=[1,1,0];
+  if(k.cls==='archer'&&!ARCHER_FRONT_OK.includes(id))from=[0,1,1];
+  if(k.mult||k.tgt==='enemy'||k.tgt==='all'||k.tgt==='rand'){
+    if(k.cls==='warrior')hit=k.tgt==='all'?(id==='quake'?[1,1,1]:[1,1,0]):[1,0,0];else hit=[1,1,1]}
+  return {from,hit,who:hit?'':({self:'self',ally:'one ally',party:'the party',dead:'a fallen ally'})[k.tgt]||'allies'}}
+const RANK_N=['Front','Middle','Back'];
+// 3 dots, a bar, 3 dots: the hero's own rank on the left (back to front), the enemy rank on the right (front to back). cur = rank the hero stands in now.
+function rankDots(id,cur){const R=skillReach(id),L=[2,1,0],Rt=[0,1,2];
+  const dot=(on,i,c)=>`<i class="${on?'on':''}${c===i?' cur':''}"></i>`;
+  return `<span class="rk" role="img" aria-label="${esc(reachTxt(id))}" data-tip="${esc(reachTxt(id))}">${L.map(i=>dot(R.from[i],i,cur)).join('')}<span class="bar"></span></span><span class="rk hit" aria-hidden="true">${R.hit?Rt.map(i=>dot(R.hit[i],i)).join(''):'<i></i><i></i><i></i>'}</span>`}
+function reachTxt(id){const R=skillReach(id),f=RANK_N.filter((n,i)=>R.from[i]),t=R.hit?RANK_N.filter((n,i)=>R.hit[i]):[];
+  return `Left dots: the ranks this skill can be used from (back to front): ${f.length===3?'any rank':f.join(' or ')}. Right dots: the enemy ranks it can hit (front to back): ${R.hit?(t.length===3?'any enemy':t.join(' and ')+' enemy only'):'none, it is for '+R.who+'.'} A skill that is equipped but out of reach can't be used until the hero moves to a rank that works.`}
+const skillNeedsTxt=id=>{const R=skillReach(id),f=skillNeeds(id),t=R.hit?RANK_N.filter((n,i)=>R.hit[i]):[];return `Use from: ${f} · ${R.hit?(t.length===3?'hits any enemy':'hits the '+t.join(' and ').toLowerCase()+' enemy'+(t.length>1?'':' only')):'for '+R.who}`};
+const skillOkAt=(id,rank)=>skillReach(id).from[rank]===1;
+const skillNeeds=id=>{const f=skillReach(id).from,n=RANK_N.filter((x,i)=>f[i]);return n.length===3?'any rank':n.join(' or ')+' rank'};
+const kitNeed=h=>Math.min(KIT_MAX,h.skills.length);
+const kitCount=h=>`<span class="muted" style="font-size:18px">Skills to bring: <b class="${kit(h).length>=kitNeed(h)?'ok':'warn'}">${kit(h).length}/${kitNeed(h)}</b></span>`;
+const kitWarn=h=>kit(h).length<kitNeed(h)?`<p class="warn kitwarn" style="font-size:18px">${esc(h.name)} brings ${kit(h).length} of ${kitNeed(h)} skills. Switch on ${kitNeed(h)-kit(h).length} more before setting out.</p>`:'';
+// One skill as a card: name and on/off switch, the rank diagram right under the name, then the numbers and the description.
+function skillCard(h,id,rank){const k=SKILLS[id],own=state.heroes.includes(h),inKit=kit(h).includes(id),lock=kitLocked(h),tg=own&&!lock&&h.skills.length>1,bad=own&&inKit&&rank>=0&&!skillOkAt(id,rank);
+  const sw=!own?'':tg?`<button class="btn small ${inKit?'gold':''}" data-a="kitToggle" data-x="${h.id}|${id}" aria-pressed="${inKit}">${inKit?'✓ On':'Off'}</button>`:`<span class="${inKit?'gold':'muted'}" style="font-size:18px">${inKit?'✓ Equipped':'Left home'}</span>`;
+  return `<div class="skcard ${own&&inKit?'on':'off'} ${bad?'skbad':''}"><div class="skhead"><span class="skname">${skillIco(id)} ${k.n} <span class="muted">· ${skillMp(h,id)} MP</span></span>${sw}</div>
+    <div class="skrk">${rankDots(id,rank)}<span class="muted">${skillNeedsTxt(id)}</span></div>
+    ${bad?`<span class="warn" style="font-size:17px">Not usable from the starting ${RANK_N[rank].toLowerCase()} rank. Reorder the party or move in battle.</span>`:''}
+    <span class="afx">${skillStats(id).replace(/ · (front or middle rank|middle or back rank|any rank)$/,'')}</span><span class="meta">${k.d}</span></div>`}
+const rankLegend=`<p class="muted" style="font-size:17px;margin:0">Under each name: <span class="rk"><i></i><i class="on"></i><i class="on"></i><span class="bar"></span></span><span class="rk hit"><i class="on"></i><i class="on"></i><i></i></span> the left three dots are your hero's ranks (back, middle, front): lit means the skill works from there. The right three are the enemy's ranks (front, middle, back): lit means it can hit them. A skill can be equipped but out of reach if the hero gets pushed to the wrong rank.</p>`;
 function skillChip(h,id){const k=SKILLS[id],own=state.heroes.includes(h),inKit=kit(h).includes(id),tg=own&&!kitLocked(h)&&h.skills.length>1;
   const tip=esc(k.n+' · '+skillMp(h,id)+' MP. '+skillStats(id)+'. '+k.d+(own?(inKit?' Brought on adventures.':' Left at home.')+(tg?' Click to '+(inKit?'leave it behind.':'bring it.'):''):''));
   if(tg)return `<button class="trait tk-skill kit ${inKit?'on':'off'}" data-a="kitToggle" data-x="${h.id}|${id}" aria-pressed="${inKit}" data-tip="${tip}"><span class="kmark">${inKit?'✓':'○'}</span> ${k.n}${inKit?'':' <small>(at home)</small>'}</button>`;
   return `<span class="trait tk-skill ${own&&!inKit?'kit off':''}" tabindex="0" data-tip="${tip}">${k.n}</span>`}
-const kitCount=h=>`<span class="muted" style="font-size:18px">Skills to bring: <b class="${kit(h).length===KIT_MAX?'ok':''}">${kit(h).length}/${KIT_MAX}</b></span>`;
-// The Gate: pick what each hero in the party brings.
-const kitNeed=h=>Math.min(KIT_MAX,h.skills.length);
 const kitShort=ids=>ids.map(heroById).filter(h=>h&&kit(h).length<kitNeed(h));
 function loadoutBlock(ids){
-  const L=ids.map(heroById).filter(h=>h&&h.skills.length>KIT_MAX);if(!L.length)return '';
-  return `<div class="stack kitbox" style="gap:6px"><h3>Choose ${KIT_MAX} skills to bring ${help(`A hero can bring ${KIT_MAX} skills on an adventure, but may know more. Tap a skill to bring it (✓) or leave it at home. Starter skills and learned ones all count, so different parties can call for different choices. You can't change them once the party has set out.`)}</h3>
-    <p class="muted" style="font-size:18px;margin:0">Tap a skill to switch it on or off. Only the ✓ skills go on the adventure.</p>${ui.kitMsg?`<p class="warn">${esc(ui.kitMsg)}</p>`:''}
-    ${L.map(h=>`<div class="stack kitrow" style="gap:4px"><span><b>${esc(h.name)}</b> <span class="muted">Lv ${h.level} ${C_(h).name}</span> · ${kitCount(h)}${kit(h).length<KIT_MAX?` <span class="warn">Pick ${KIT_MAX-kit(h).length} more</span>`:''}</span><div class="kitgrid">${h.skills.map(id=>skillChip(h,id)).join('')}</div></div>`).join('')}</div>`}
-function skillList(h){const own=state.heroes.includes(h),tg=own&&!kitLocked(h)&&h.skills.length>1;return `${own&&h.skills.length>KIT_MAX?`<p class="muted" style="font-size:18px">${kitCount(h)} · A hero can bring ${KIT_MAX}. Tap a skill to bring it or leave it at home.${kitLocked(h)?' (Locked while on an adventure.)':''}</p>${ui.kitMsg?`<p class="warn">${esc(ui.kitMsg)}</p>`:''}`:''}<div class="stack" style="gap:6px">${h.skills.map(id=>{const k=SKILLS[id],inKit=kit(h).includes(id);return `<div class="item ${own&&!inKit&&h.skills.length>KIT_MAX?'kitoff':''}"><span class="iname">${k.n} <span class="muted">· ${skillMp(h,id)} MP</span>${tg&&h.skills.length>KIT_MAX?` <button class="btn small ${inKit?'on':''}" data-a="kitToggle" data-x="${h.id}|${id}" aria-pressed="${inKit}">${inKit?'✓ Bringing':'Bring'}</button>`:''}</span><span class="afx">${skillStats(id)}</span><span class="meta">${k.d}</span></div>`}).join('')}</div>`}
+  const L=ids.map(heroById).filter(h=>h&&h.skills.length>1);if(!L.length)return '';
+  return `<div class="stack kitbox" style="gap:8px"><h3>Skills to bring ${help(`A hero can bring up to ${KIT_MAX} skills on an adventure, but may know more. Switch each skill on or off. Starter skills and learned ones all count, so different parties can call for different choices. You can't change them once the party has set out. The dots under each name show which ranks it works from and which enemy ranks it hits.`)}</h3>
+    <p class="muted" style="font-size:18px;margin:0">Switch skills on or off. Only the ones that are on go on the adventure.</p>${rankLegend}${ui.kitMsg?`<p class="warn">${esc(ui.kitMsg)}</p>`:''}
+    ${L.map(h=>{const rk=ids.length>1?ids.indexOf(h.id):-1;return `<div class="stack kitrow" style="gap:6px"><span><b>${esc(h.name)}</b> <span class="muted">Lv ${h.level} ${C_(h).name}${rk>=0?' · starts in the '+(posName(rk,ids.length)||'back').toLowerCase()+' rank':''}</span> · ${kitCount(h)}</span>${kitWarn(h)}${h.skills.map(id=>skillCard(h,id,rk>=0?(ids.length===2&&rk===1?2:rk):-1)).join('')}</div>`}).join('')}</div>`}
+function skillList(h){const own=state.heroes.includes(h);
+  return `${own&&h.skills.length>1?`<p style="margin:0 0 4px">${kitCount(h)} <span class="muted" style="font-size:18px">· ${kitLocked(h)?'Locked while on an adventure.':`Switch skills on or off. A hero brings up to ${KIT_MAX}.`}</span></p>${kitWarn(h)}${ui.kitMsg?`<p class="warn">${esc(ui.kitMsg)}</p>`:''}`:''}${rankLegend}<div class="stack" style="gap:6px">${h.skills.map(id=>skillCard(h,id,-1)).join('')}</div>`}
 function learnBlock(h){
   const nx=SKILL_TIERS.find(k=>!hasTier(h,k));if(!nx)return '';
   const o=learnOpts(h,nx).map(id=>`<b>${SKILLS[id].n}</b>`),list=o.length>2?'one of '+o.slice(0,-1).join(', ')+' or '+o[o.length-1]:'either '+o.join(' or ');
