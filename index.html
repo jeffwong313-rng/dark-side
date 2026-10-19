@@ -5269,7 +5269,7 @@ function foeStrike(e,i,h,mult,o){
   const mix=foeMix(e,o.act||(o.heavy?'heavy':'attack')),el=Object.keys(mix).filter(k=>k!=='physical'&&mix[k]>0).sort((a,c)=>mix[c]-mix[a])[0]||'physical';
   d=mitigate(h,d,mix);
   const bigE=e.kind==='boss'||e.kind==='warden';
-  const crit=chance(.06+(bigE&&e.type==='fighting'?.19:0)+(spOf(e)&&spOf(e)[0]==='keen'?spOf(e)[1]/100:0));if(crit)d*=1.5;
+  const crit=chance(.06+(e.type==='fighting'&&afflictsOn(e)?afflictOf(e).crit:0)+(spOf(e)&&spOf(e)[0]==='keen'?spOf(e)[1]/100:0));if(crit)d*=1.5;
   d*=Math.max(.1,1+tr(h,'taken')/100)*(o.heavy?Math.max(.1,1+tr(h,'heavyTaken')/100):1)*(1-heroDef(h)/100);
   d=Math.max(1,Math.round(d));
   runStat(h).taken+=Math.min(d,h.hp);h.hp=Math.max(0,h.hp-d);b.fx['h'+h.id]=1;if(crit){b.fx.crit=1;b.fx.shake=1}b.pops.push({s:'h',hid:h.id,t:d,crit,el});e.lastHit=h.id;
@@ -5277,7 +5277,7 @@ function foeStrike(e,i,h,mult,o){
   blog(`${e.name} ${o.verb||'strikes'} ${esc(h.name)}${el!=='physical'?` (${elTag(el)})`:''} for <b>${d}</b>${crit?' <b class="gold">CRIT</b>':''}.`);
   const th=tr(h,'thorns')+(heroBuff(h,'thorn')?heroBuff(h,'thorn').v:0);
   if(th>0&&e.hp>0){const x=Math.max(1,Math.round(d*th/100*stunMult(e)));e.hp=Math.max(0,e.hp-x);blog(`Spikes return ${x} damage to ${e.name}.`);if(e.hp<=0){b.fx['die'+i]=1;blog(`${e.name} falls.`)}}
-  if(h.hp>0&&bigE)bossAfflict(e,h,d);
+  if(h.hp>0&&afflictsOn(e))bossAfflict(e,h,d);
   if(h.hp<=0)heroDown(h);
   if(h.hp>0&&e.hp>0&&h.gear.weapon&&h.gear.weapon.fx==='riposte'&&chance(.3)){
     blog(`<span class="r-perfect">Oathkeeper</span> answers the blow.`);
@@ -5304,12 +5304,25 @@ function foeSkillPick(e){
   return self.length&&chance(SELF_RATE)?pick(self):null;
 }
 const JAM_N=a=>a==='atk:normal'?'Attack':a==='atk:power'?'Power Attack':a==='atk:aim'?'Accurate Attack':a==='stance'?'their stance':(SKILLS[a]||{}).n||a;
+/* Elemental afflictions. Elites and the land's elemental majors (bosses, wardens, the King) all carry the land's element and
+   pass it on when they hit a hero. Elites apply the base version; bosses and wardens apply a stronger one. */
+const bigFoeKind=e=>e.kind==='boss'||e.kind==='warden'||e.kind==='king';
+const afflictsOn=e=>e.kind==='elite'||bigFoeKind(e);
+const AFFLICT={
+  grass:{elite:{chance:.5,n:3,pct:.2},big:{chance:.75,n:4,pct:.25}},
+  ice:{elite:{push:.35},big:{push:.55}},
+  fire:{elite:{step:10,cap:40},big:{step:15,cap:60}},
+  thunder:{elite:{locks:1},big:{locks:2}},
+  fighting:{elite:{crit:.12},big:{crit:.25}}
+};
+const afflictOf=e=>{const A=AFFLICT[e.type];return A?(bigFoeKind(e)?A.big:A.elite):null};
+const afflictText=(e,A)=>({grass:`Its hits may poison: ${Math.round(A.chance*100)}% chance, ${A.n} turns, ${Math.round(A.pct*100)}% of the hit each turn.`,ice:`Its hits chill: the hero's next turn comes ${Math.round(A.push*100)}% of a turn later.`,fire:`Its hits burn: −${A.step}% Fire resistance per hit, up to −${A.cap}%.`,thunder:`Its hits jolt: ${A.locks} of the hero's actions are locked for their next turn.`,fighting:`Its hits crit ${Math.round(A.crit*100)}% more often.`})[e.type]||'';
 function bossAfflict(e,h,d){
-  const b=state.run.battle,n=esc(h.name);
-  if(e.type==='grass'&&chance(.5)){b.hpois=b.hpois||{};b.hpois[h.id]={n:3,dmg:Math.max(1,Math.round(d*.2))};blog(`${n} is poisoned.`)}
-  else if(e.type==='ice'){b.ct['h:'+h.id]+=delayOf('h:'+h.id)*.35;b.chill=b.chill||{};b.chill[h.id]=1;blog(`${n} is chilled. Their next turn comes later.`)}
-  else if(e.type==='fire'){b.burn=b.burn||{};const was=b.burn[h.id]||0;b.burn[h.id]=Math.min(40,was+10);if(b.burn[h.id]>was)blog(`${n} is burned: −${b.burn[h.id]}% Fire resistance for this fight.`)}
-  else if(e.type==='thunder'){const opts=['atk:normal','atk:power','atk:aim','stance',...kit(h)];b.jam=b.jam||{};b.jam[h.id]=pick(opts);blog(`${n} is jolted: ${JAM_N(b.jam[h.id])} is locked for their next turn.`)}
+  const b=state.run.battle,n=esc(h.name),A=afflictOf(e);if(!A)return;const big=bigFoeKind(e);
+  if(e.type==='grass'&&chance(A.chance)){b.hpois=b.hpois||{};b.hpois[h.id]={n:A.n,dmg:Math.max(1,Math.round(d*A.pct))};blog(`${n} is poisoned${big?' badly':''}.`)}
+  else if(e.type==='ice'){b.ct['h:'+h.id]+=delayOf('h:'+h.id)*A.push;b.chill=b.chill||{};b.chill[h.id]=1;blog(`${n} is chilled. Their next turn comes later.`)}
+  else if(e.type==='fire'){b.burn=b.burn||{};const was=b.burn[h.id]||0;b.burn[h.id]=Math.min(A.cap,was+A.step);if(b.burn[h.id]>was)blog(`${n} is burned: −${b.burn[h.id]}% Fire resistance for this fight.`)}
+  else if(e.type==='thunder'){const opts=['atk:normal','atk:power','atk:aim','stance',...kit(h)].sort(()=>Math.random()-.5);b.jam=b.jam||{};b.jam[h.id]=opts.slice(0,A.locks);blog(`${n} is jolted: ${listNames(b.jam[h.id].map(JAM_N))} ${b.jam[h.id].length>1?'are':'is'} locked for their next turn.`)}
 }
 // A Warrior standing third in the line can't reach the enemy: no attacks or damaging skills, only buffs (or step forward).
 const benched=h=>{const r=state.run;if(!r||!r.battle||!h||h.cls!=='warrior')return false;const L=living();return L.length>=3&&L.indexOf(h)===2};
@@ -5321,7 +5334,7 @@ const ARCHER_FRONT_OK=['double','cripple','imbue','assassin','feather','shadow',
 const archerCrowded=h=>{const r=state.run;if(!r||!r.battle||!h||h.cls!=='archer')return false;const L=living();return L.length>=2&&L.indexOf(h)===0};
 const frontBlocked=(h,act)=>archerCrowded(h)&&!!SKILLS[act]&&SKILLS[act].cls==='archer'&&!ARCHER_FRONT_OK.includes(act);
 const reachBlocked=(h,act)=>(benched(h)&&(act==='atk'||String(act).startsWith('atk:')||!!(SKILLS[act]&&SKILLS[act].mult)))||frontBlocked(h,act);
-const jammed=(h,act)=>{if(reachBlocked(h,act))return true;const b=state.run&&state.run.battle,j=b&&b.jam&&b.jam[h.id];if(!j)return false;return j===(act==='atk'?'atk:normal':act)};
+const jammed=(h,act)=>{if(reachBlocked(h,act))return true;const b=state.run&&state.run.battle,j=b&&b.jam&&b.jam[h.id];if(!j)return false;return [].concat(j).includes(act==='atk'?'atk:normal':act)};
 function swapHeroes(a,c){const r=state.run,p=r.party,i=p.indexOf(a.id),j=p.indexOf(c.id);if(i<0||j<0)return;[p[i],p[j]]=[p[j],p[i]]}
 function foeSkill(e,i,id,h){
   const b=state.run.battle,S=FOE_SKILLS[id];
@@ -7166,7 +7179,7 @@ function heroInfo(h){
   if(b.hpois&&b.hpois[h.id])tags.push(`<span class="utag" style="color:#6fb35a" data-tip="Poisoned: loses ${b.hpois[h.id].dmg} health at the start of each of their next ${b.hpois[h.id].n} turns.">Poisoned</span>`);
   if(b.chill&&b.chill[h.id])tags.push('<span class="utag" style="color:#8fd0ea" data-tip="Chilled: their next turn was pushed back.">Chilled</span>');
   if(b.burn&&b.burn[h.id])tags.push(`<span class="utag" style="color:#e0643a" data-tip="Burned: −${b.burn[h.id]}% Fire resistance for the rest of this fight.">Burned −${b.burn[h.id]}%</span>`);
-  if(b.jam&&b.jam[h.id])tags.push(`<span class="utag" style="color:#e6d55a" data-tip="Jammed: ${esc(JAM_N(b.jam[h.id]))} can’t be used on their next turn.">Jammed</span>`);
+  if(b.jam&&b.jam[h.id])tags.push(`<span class="utag" style="color:#e6d55a" data-tip="Jammed: ${esc(listNames([].concat(b.jam[h.id]).map(JAM_N)))} can’t be used on their next turn.">Jammed</span>`);
   if(stanceOf(h))tags.push(`<span class="utag" style="color:#8fa8c8" data-tip="${esc(STANCE[h.cls].n+': '+STANCE[h.cls].d(h)+' Ends when this hero acts again.')}">${STANCE[h.cls].n.split(' ')[0]}</span>`);
   if(heroBuff(h,'crit'))tags.push(`<span class="utag gold" data-tip="Sniper: at least 80% crit chance for ${heroBuff(h,'crit').n} more turn${heroBuff(h,'crit').n>1?'s':''}.">Sniper ×${heroBuff(h,'crit').n}</span>`);
   if(heroBuff(h,'focus'))tags.push(`<span class="utag gold" data-tip="Starsight Elixir: +${heroBuff(h,'focus').v}% crit chance for ${heroBuff(h,'focus').n} more turn${heroBuff(h,'focus').n>1?'s':''}.">Starsight ×${heroBuff(h,'focus').n}</span>`);
@@ -7193,6 +7206,7 @@ function nameTip(e){const lv=scoutLv(e),S=spOf(e),w=e.type!=='dark'&&e.type!=='p
   let t=`${e.name}: level ${Math.round(e.lvl)} ${TIER_N[e.tier]||''} ${e.kind!=='normal'?e.kind+', ':''}${cap(e.type)} type. It attacks with ${cap(e.type)} and resists it heavily.${w?` Weak to ${cap(w)} (1.5× damage).`:''}`;
   if(e.mutation)t+=` Mutation: ${MUT[e.mutation].n}, ${MUT[e.mutation].d}.`;
   if(e.bossType)t+=' '+BOSS_STYLE[e.bossType].d;
+  {const A=afflictsOn(e)&&afflictOf(e);if(A)t+=' '+afflictText(e,A)}
   if(e.carry&&e.carry.length)t+=` Carrying ${listNames(e.carry.map(c=>c.owner+'’s '+c.it.name))}: kill it to get ${e.carry.length>1?'them':'it'} back.`;
   if(!lv)t+=' Not scouted yet: better Perception reads it, and every 3 kills of it guarantee progress.';
   else if(S&&lv>=4)t+=` Signature ability, ${S[3]}: ${ABIL[S[0]](S[1])} Habit: ${HABIT[S[2]]}`;
