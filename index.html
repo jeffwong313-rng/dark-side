@@ -1699,8 +1699,8 @@ body:not(.padmode) .padfocus{outline:none}
 .skcard .skhead{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .skcard .skname{font-weight:bold}.skcard .skbad{box-shadow:inset 0 0 0 2px #7a4a2a}
 .rk{display:inline-flex;align-items:center;gap:3px;vertical-align:middle}.rk i{display:inline-block;width:10px;height:10px;border-radius:50%;box-shadow:inset 0 0 0 2px #5a4d6e}
-.rk i.on{background:#e3b341;box-shadow:none}.rk.hit i.on{background:#e0736c}.rk i.cur{outline:2px solid #8fd3ff;outline-offset:1px}
-.rk.hit{margin-right:8px}.rk .bar{display:inline-block;width:2px;height:16px;background:#9a8ab0;margin:0 5px}
+.rk i.on{background:#e3b341;box-shadow:none}.rk.tgt i.on{background:#e0736c}.rk i.cur{outline:2px solid #8fd3ff;outline-offset:1px}
+.rk.tgt{margin-right:8px;gap:0}.rk .ln{display:inline-block;width:5px;height:2px;background:transparent}.rk .ln.on{background:#e0736c}.rk .bar{display:inline-block;width:2px;height:16px;background:#9a8ab0;margin:0 5px}
 .skrk{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:17px}
 .kitwarn{background:#2a1a12;box-shadow:inset 0 0 0 2px #7a4a2a;padding:4px 8px;margin:0}
 .skgrid .btn .rk{margin-left:6px}.skgrid .btn .rk i{width:8px;height:8px}
@@ -7588,14 +7588,15 @@ function skillReach(id){const k=SKILLS[id];let from=[1,1,1],hit=null;
   if(k.cls==='archer'&&!ARCHER_FRONT_OK.includes(id))from=[0,1,1];
   if(k.mult||k.tgt==='enemy'||k.tgt==='all'||k.tgt==='rand'){
     if(k.cls==='warrior')hit=k.tgt==='all'?(id==='quake'?[1,1,1]:[1,1,0]):[1,0,0];else hit=[1,1,1]}
-  return {from,hit,who:hit?'':({self:'self',ally:'one ally',party:'the party',dead:'a fallen ally'})[k.tgt]||'allies'}}
+  const multi=!!hit&&(k.tgt==='all'||k.tgt==='rand');
+  return {from,hit,multi,who:hit?'':({self:'self',ally:'one ally',party:'the party',dead:'a fallen ally'})[k.tgt]||'allies'}}
 const RANK_N=['Front','Middle','Back'];
 // 3 dots, a bar, 3 dots: the hero's own rank on the left (back to front), the enemy rank on the right (front to back). cur = rank the hero stands in now.
 function rankDots(id,cur){const R=skillReach(id),L=[2,1,0],Rt=[0,1,2];
   const dot=(on,i,c)=>`<i class="${on?'on':''}${c===i?' cur':''}"></i>`;
-  return `<span class="rk" role="img" aria-label="${esc(reachTxt(id))}" data-tip="${esc(reachTxt(id))}">${L.map(i=>dot(R.from[i],i,cur)).join('')}<span class="bar"></span></span><span class="rk hit" aria-hidden="true">${R.hit?Rt.map(i=>dot(R.hit[i],i)).join(''):'<i></i><i></i><i></i>'}</span>`}
+  return `<span class="rk" role="img" aria-label="${esc(reachTxt(id))}" data-tip="${esc(reachTxt(id))}">${L.map(i=>dot(R.from[i],i,cur)).join('')}<span class="bar"></span></span><span class="rk tgt${R.multi?' multi':''}" aria-hidden="true">${R.hit?Rt.map(i=>dot(R.hit[i],i)+(i<2?`<s class="ln${R.multi&&R.hit[i]&&R.hit[i+1]?' on':''}"></s>`:'')).join(''):'<i></i><s class="ln"></s><i></i><s class="ln"></s><i></i>'}</span>`}
 function reachTxt(id){const R=skillReach(id),f=RANK_N.filter((n,i)=>R.from[i]),t=R.hit?RANK_N.filter((n,i)=>R.hit[i]):[];
-  return `Left dots: the ranks this skill can be used from (back to front): ${f.length===3?'any rank':f.join(' or ')}. Right dots: the enemy ranks it can hit (front to back): ${R.hit?(t.length===3?'any enemy':t.join(' and ')+' enemy only'):'none, it is for '+R.who+'.'} A skill that is equipped but out of reach can't be used until the hero moves to a rank that works.`}
+  return `Left dots: the ranks this skill can be used from (back to front): ${f.length===3?'any rank':f.join(' or ')}. Right dots: the enemy ranks it can hit (front to back): ${R.hit?(t.length===3?'any enemy':t.join(' and ')+' enemy only'):'none, it is for '+R.who+'.'} ${R.multi?' A line between the dots means it hits every enemy it reaches.':''} A skill that is equipped but out of reach can't be used until the hero moves to a rank that works.`}
 const skillNeedsTxt=id=>{const R=skillReach(id),f=skillNeeds(id),t=R.hit?RANK_N.filter((n,i)=>R.hit[i]):[];return `Use from: ${f} · ${R.hit?(t.length===3?'hits any enemy':'hits the '+t.join(' and ').toLowerCase()+' enemy'+(t.length>1?'':' only')):'for '+R.who}`};
 const skillOkAt=(id,rank)=>skillReach(id).from[rank]===1;
 const skillNeeds=id=>{const f=skillReach(id).from,n=RANK_N.filter((x,i)=>f[i]);return n.length===3?'any rank':n.join(' or ')+' rank'};
@@ -7609,7 +7610,7 @@ function skillCard(h,id,rank){const k=SKILLS[id],own=state.heroes.includes(h),in
     <div class="skrk">${rankDots(id,rank)}<span class="muted">${skillNeedsTxt(id)}</span></div>
     ${bad?`<span class="warn" style="font-size:17px">Not usable from the starting ${RANK_N[rank].toLowerCase()} rank. Reorder the party or move in battle.</span>`:''}
     <span class="afx">${skillStats(id).replace(/ · (front or middle rank|middle or back rank|any rank)$/,'')}</span><span class="meta">${k.d}</span></div>`}
-const rankLegend=`<p class="muted" style="font-size:17px;margin:0">Under each name: <span class="rk"><i></i><i class="on"></i><i class="on"></i><span class="bar"></span></span><span class="rk hit"><i class="on"></i><i class="on"></i><i></i></span> the left three dots are your hero's ranks (back, middle, front): lit means the skill works from there. The right three are the enemy's ranks (front, middle, back): lit means it can hit them. A skill can be equipped but out of reach if the hero gets pushed to the wrong rank.</p>`;
+const rankLegend=`<p class="muted" style="font-size:17px;margin:0">Under each name: <span class="rk"><i></i><i class="on"></i><i class="on"></i><span class="bar"></span></span><span class="rk tgt"><i class="on"></i><s class="ln on"></s><i class="on"></i><s class="ln"></s><i></i></span> the left three dots are your hero's ranks (back, middle, front): lit means the skill works from there. The right three are the enemy's ranks (front, middle, back): lit means it can hit them, and a line joining the dots means it hits all of them at once. A skill can be equipped but out of reach if the hero gets pushed to the wrong rank.</p>`;
 function skillChip(h,id){const k=SKILLS[id],own=state.heroes.includes(h),inKit=kit(h).includes(id),tg=own&&!kitLocked(h)&&h.skills.length>1;
   const tip=esc(k.n+' · '+skillMp(h,id)+' MP. '+skillStats(id)+'. '+k.d+(own?(inKit?' Brought on adventures.':' Left at home.')+(tg?' Click to '+(inKit?'leave it behind.':'bring it.'):''):''));
   if(tg)return `<button class="trait tk-skill kit ${inKit?'on':'off'}" data-a="kitToggle" data-x="${h.id}|${id}" aria-pressed="${inKit}" data-tip="${tip}"><span class="kmark">${inKit?'✓':'○'}</span> ${k.n}${inKit?'':' <small>(at home)</small>'}</button>`;
