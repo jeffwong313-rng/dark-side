@@ -3185,7 +3185,7 @@ const CLASSES={
     style:'High risk, high reward. Medium armor that adds evasion with every piece, so many blows miss, but the ones that land hurt 10% more. Swingy damage, the most crits, the biggest crit damage, and extra turns from speed.'},
   mage:{name:'Mage',primary:'int',hp:30,startHp:10,mp:25,tint:'#3d3c86',var:[.9,1.1],crit:0,critDmg:150,spd:0,elem:15,
     style:'Light cloth: the most fragile class, with the least health and armor. Every attack is elemental (+15% damage), and weakness hits deal 1.75× instead of 1.5×. Attune to any element mid-battle.'},
-  monk:{name:'Monk',primary:'per',hp:40,startHp:18,mp:18,tint:'#d9a441',var:[.85,1.15],crit:5,critDmg:150,spd:1,
+  monk:{name:'Monk',primary:'per',hp:40,startHp:18,mp:24,tint:'#d9a441',var:[.85,1.15],crit:5,critDmg:150,spd:1,
     style:'Light armor and bare fists: a monk never carries a weapon, but their strikes hit three times as hard as a weapon-less baseline, and rings and amulets count double. Every 8th action is a Chi action and does double. Blessings ease fatigue, marks make enemies take more damage, and Channel unleashes elements. A monk can stand and strike from any rank.'},
 };
 // Basic attacks. acc = base hit chance before agility and enemy evasion.
@@ -3206,6 +3206,7 @@ const SKILLS={
   storm:{cls:'mage',n:'Elemental Storm',mp:21,tgt:'all',mult:1.15,acc:100,crit:5,el:'attune',d:'Engulfs every enemy in the attuned element.'},
   hex:{cls:'mage',n:'Hex',mp:12,tgt:'enemy',acc:100,d:'On hit, the target takes 33% more damage from everyone for 3 rounds.'},
   mend:{cls:'mage',n:'Mend',mp:18,tgt:'ally',d:'Heals one ally for 40% of their max health plus 2.7× the caster’s INT.'},
+  purify:{cls:'mage',n:'Purify',mp:16,tgt:'ally',heal:{hp:.15,int:1.3},d:'Heals one ally for 15% of their max health plus 1.3× the caster’s INT.'},
   drain:{cls:'mage',n:'Life Drain',mp:15,tgt:'enemy',mult:1.5,acc:100,crit:5,el:'dark',d:'Dark damage. Heals the caster for half the damage dealt.'},
   /* Learned skills: at levels 6, 13, 21 and 30 each hero picks one skill for that tier. Every class has three lines (archers and
      monks have a fourth), and each tier is a bit stronger than the last, though never a strict upgrade.
@@ -3250,6 +3251,7 @@ const SKILLS={
   wave:{cls:'monk',n:'Shockwave',mp:15,tgt:'all',mult:1.1,acc:100,crit:3,el:'physical',d:'A ripple of force through every enemy.'},
   channel:{cls:'monk',n:'Channel',mp:12,tgt:'self',chan:true,d:'Spend the turn gathering chi into an element (pick it below). The next attack or damaging skill is infused with that element and deals 1.75× damage. Lasts 3 turns.'},
   mark:{cls:'monk',n:'Mark of Weakness',mp:8,tgt:'enemy',acc:100,mark:{n:4},d:'On hit, marks the target for 4 turns. Heroes deal 1.5× damage to a marked enemy, and archers deal 3×.'},
+  cleanse:{cls:'monk',n:'Cleansing Breath',mp:14,tgt:'ally',bless:{fat:10},d:'Eases 10% fatigue on one ally.'},
   blessing:{cls:'monk',n:'Blessing of Rest',mp:12,tgt:'ally',bless:{fat:18},d:'Eases 18% fatigue on one ally.'},
   focus:{cls:'monk',n:'Inner Focus',mp:12,tgt:'self',buff:{dmg:30,crit:12,n:3},d:'For 3 turns this monk deals 30% more damage and has +12% crit chance.'},
   ward:{cls:'monk',n:'Ward of Stone',mp:14,tgt:'ally',buff:{def:30,n:3},d:'One ally takes 30% less damage for 3 turns.'},
@@ -3295,6 +3297,11 @@ const SKILLS={
 const SKILL_LV={1:6,2:13,3:21,4:30};
 const SKILL_TIERS=[1,2,3,4],KIT_MAX=4;
 const CHAN_MULT=1.75;
+/* Cleansing: what a skill clears from the heroes it helps. 1 poison and bleeding; 2 also curses; 3 also burns;
+   4 everything, including a chill (their turn comes back sooner) and a jolt (locked actions are freed). */
+const CLEAN_TXT={1:'Cleanses poison and bleeding.',2:'Cleanses poison, bleeding and curses.',3:'Cleanses poison, bleeding, curses and burns.',4:'Cleanses every status: poison, bleeding, curses, burns, chills and jolts.'};
+const CLEANSE={mend:1,purify:4,circle:2,revive:3,resurrect:4,sanctuary:4,cleanse:4,blessing:1,calm:2,mantra:3,nirvana:4,ground:4};
+for(const [id,n] of Object.entries(CLEANSE)){const K=SKILLS[id];K.clean=n;K.d+=' '+CLEAN_TXT[n]}
 // Retired skills (from before the three-line rework) and what heroes who knew them now have instead.
 const SKILL_RETIRED={taunt:'rally',undying:'warlord',imbue2:'hail'};
 const tierOpts=(cls,t)=>Object.keys(SKILLS).filter(k=>SKILLS[k].cls===cls&&SKILLS[k].tier===t);
@@ -3350,7 +3357,7 @@ function skillStats(id){const k=SKILLS[id];const p=[];
   if(k.forceCrit)p.push('always crits');else if(k.crit)p.push(`${k.crit>0?'+':''}${k.crit}% crit`);
   if(k.cdmg)p.push(`+${k.cdmg}% crit dmg`);
   const el={fighting:'Fighting',weapon:'weapon element',attune:'attuned element',dark:'Dark',prism:'best element per target'}[k.el];if(el)p.push(el);
-  if(k.haste)p.push('haste '+k.haste.n+' actions');if(k.slow)p.push('next turn '+Math.round(k.slow*100)+'% later');if(k.mpPct)p.push('costs '+Math.round(k.mpPct*100)+'% of max MP');if(k.weak)p.push(`weakness ${k.weak}×`);if(k.pierce)p.push('ignores armor');if(k.noRes)p.push('ignores resistance');if(k.low)p.push('+50% vs wounded');
+  if(k.haste)p.push('haste '+k.haste.n+' actions');if(k.clean)p.push(['','cleanses poison/bleed','cleanses to curses','cleanses to burns','cleanses all'][k.clean]);if(k.slow)p.push('next turn '+Math.round(k.slow*100)+'% later');if(k.mpPct)p.push('costs '+Math.round(k.mpPct*100)+'% of max MP');if(k.weak)p.push(`weakness ${k.weak}×`);if(k.pierce)p.push('ignores armor');if(k.noRes)p.push('ignores resistance');if(k.low)p.push('+50% vs wounded');
   if(k.stun)p.push('stuns');if(k.coup)p.push('may kill outright');if(k.dur)p.push(k.dur+' turns');p.push(k.cls==='warrior'&&k.tgt==='all'&&id!=='quake'?'front 2 enemies':{enemy:'one enemy',all:'all enemies',self:'self',ally:'one ally',party:'party',rand:'random enemies',dead:'a fallen ally'}[k.tgt]);
   if(k.cls==='warrior'&&k.mult)p.push('front or middle rank');
   else if(k.cls==='archer'&&!ARCHER_FRONT_OK.includes(id))p.push('middle or back rank');
@@ -3702,9 +3709,11 @@ const HP_CUT=.85,FRAGILE={archer:.9,mage:.9};
    STR point, and 0.5 mana per INT point, using the points the hero has at that moment, so stats build health over levels. */
 const GROW={hp:{end:1.25,str:.75},mp:{int:.5}};
 const growOf=h=>h.grow||(h.grow=growGuess(h));
-function levelGrow(h){const g=growOf(h);g.hp+=GROW.hp.end*h.end+GROW.hp.str*h.str;g.mp+=GROW.mp.int*h.int}
+// Monks draw their mana from Perception (their class stat), not Intelligence.
+const manaStat=h=>h.cls==='monk'?h.per:h.int;
+function levelGrow(h){const g=growOf(h);g.hp+=GROW.hp.end*h.end+GROW.hp.str*h.str;g.mp+=GROW.mp.int*manaStat(h)}
 // Heroes from before this change: assume their stats rose evenly from their starting roll to now.
-function growGuess(h){const B=h.baseStats||h,avg=k=>((B[k]||0)+(h[k]||0))/2,n=Math.max(0,(h.level||1)-1);return {hp:n*(GROW.hp.end*avg('end')+GROW.hp.str*avg('str')),mp:n*GROW.mp.int*avg('int')}}
+function growGuess(h){const B=h.baseStats||h,avg=k=>((B[k]||0)+(h[k]||0))/2,n=Math.max(0,(h.level||1)-1);return {hp:n*(GROW.hp.end*avg('end')+GROW.hp.str*avg('str')),mp:n*GROW.mp.int*(h.cls==='monk'?avg('per'):avg('int'))}}
 // Starting bonus: a flat amount per class (warrior 25, archer 15, mage 10) plus the growth formula applied once
 // to the hero's rolled STR and END (the dice, before any points are spent).
 const startHp=h=>{const B=h.baseStats||h;return (C_(h).startHp||0)+GROW.hp.end*(B.end||0)+GROW.hp.str*(B.str||0)};
@@ -4825,6 +4834,8 @@ function heroAction(act,allyId){
     if(!F.tg.length&&sk.tgt==='enemy'&&tgt)F.tg.push(b.enemies.indexOf(tgt));
     if(act==='imbue'||act==='imbue2')F.c=EL_COL[attuned(h)]||F.c;
     if(act==='drain')F.al=[h.id];
+    if(sk.heal&&ally){const H=sk.heal,v=Math.round((maxHp(ally)*H.hp+stat(h,'int')*H.int)*healMult(ally));ally.hp=Math.min(maxHp(ally),ally.hp+v);b.pops.push({s:'h',hid:ally.id,t:'+'+v});blog(`${esc(h.name)} uses ${sk.n} on ${ally===h?'themselves':esc(ally.name)}: +${v} HP.`)}
+    if(sk.clean)cleanseTargets(h,sk,ally);
   }
   if(h.hp>0&&(SKILLS[act]||(isAtk&&h.cls==='mage'))&&chance(luckRate(h,'surge')/100))luckySurge(h);
   {const x=heroBuff(h,'crit');if(x&&act!=='sniper'){x.n--;if(!x.n)blog(`${esc(h.name)} lowers the Sniper’s sight.`)}}
@@ -4918,6 +4929,23 @@ function afterHit(h,t,act,d){
 }
 function reviveHero(x,pct,b){x.hp=Math.max(1,Math.round(maxHp(x)*pct*healMult(x)));if(b.dot)delete b.dot[x.id];if(b.curse)delete b.curse[x.id];
   const me=b.ct['h:'+(b.cur||'')]||Math.min(...Object.values(b.ct));b.ct['h:'+x.id]=me+delayOf('h:'+x.id)*.5;b.pops.push({s:'h',hid:x.id,t:'REVIVED'})}
+function cleanseHero(x,lv){
+  const b=state.run.battle,got=[];
+  if(b.hpois&&b.hpois[x.id]){delete b.hpois[x.id];got.push('poison')}
+  if(b.dot&&b.dot[x.id]){delete b.dot[x.id];got.push('bleeding')}
+  if(lv>=2&&b.curse&&b.curse[x.id]){delete b.curse[x.id];got.push('curse')}
+  if(lv>=3&&b.burn&&b.burn[x.id]){delete b.burn[x.id];got.push('burn')}
+  if(lv>=4){if(b.chill&&b.chill[x.id]){delete b.chill[x.id];b.ct['h:'+x.id]-=delayOf('h:'+x.id)*.35;got.push('chill')}
+    if(b.jam&&b.jam[x.id]){delete b.jam[x.id];got.push('jolt')}}
+  if(got.length)b.pops.push({s:'h',hid:x.id,t:'CLEANSED',sk:1});
+  return got;
+}
+const statusOf=x=>{const b=state.run&&state.run.battle;return !!(b&&((b.hpois&&b.hpois[x.id])||(b.dot&&b.dot[x.id])||(b.curse&&b.curse[x.id])||(b.burn&&b.burn[x.id])||(b.chill&&b.chill[x.id])||(b.jam&&b.jam[x.id])))};
+function cleanseTargets(h,K,ally){
+  const b=state.run.battle,T=K.tgt==='party'?(darkIs('selfish')?[h]:living()):[(darkIs('selfish')?h:ally)||h].filter(x=>x&&x.hp>0);
+  const out=[];for(const x of T){const g=cleanseHero(x,K.clean);if(g.length)out.push(`${esc(x.name)}: ${g.join(', ')}`)}
+  if(out.length)blog(`<span class="ok">${esc(h.name)}’s ${K.n} cleanses ${out.join(' · ')}.</span>`);
+}
 function applyMark(h,t,sk){
   const b=state.run.battle,M=sk.mark,n=Math.round(M.n*chiMult(h));t.mark=Math.max(t.mark||0,n);if(M.weak)t.weak=Math.max(t.weak||0,n);
   b.pops.push({s:'e',i:b.enemies.indexOf(t),t:'MARKED',skill:1});
@@ -5319,10 +5347,10 @@ const afflictOf=e=>{const A=AFFLICT[e.type];return A?(bigFoeKind(e)?A.big:A.elit
 const afflictText=(e,A)=>({grass:`Its hits may poison: ${Math.round(A.chance*100)}% chance, ${A.n} turns, ${Math.round(A.pct*100)}% of the hit each turn.`,ice:`Its hits chill: the hero's next turn comes ${Math.round(A.push*100)}% of a turn later.`,fire:`Its hits burn: −${A.step}% Fire resistance per hit, up to −${A.cap}%.`,thunder:`Its hits jolt: ${A.locks} of the hero's actions are locked for their next turn.`,fighting:`Its hits crit ${Math.round(A.crit*100)}% more often.`})[e.type]||'';
 function bossAfflict(e,h,d){
   const b=state.run.battle,n=esc(h.name),A=afflictOf(e);if(!A)return;const big=bigFoeKind(e);
-  if(e.type==='grass'&&chance(A.chance)){b.hpois=b.hpois||{};b.hpois[h.id]={n:A.n,dmg:Math.max(1,Math.round(d*A.pct))};blog(`${n} is poisoned${big?' badly':''}.`)}
-  else if(e.type==='ice'){b.ct['h:'+h.id]+=delayOf('h:'+h.id)*A.push;b.chill=b.chill||{};b.chill[h.id]=1;blog(`${n} is chilled. Their next turn comes later.`)}
-  else if(e.type==='fire'){b.burn=b.burn||{};const was=b.burn[h.id]||0;b.burn[h.id]=Math.min(A.cap,was+A.step);if(b.burn[h.id]>was)blog(`${n} is burned: −${b.burn[h.id]}% Fire resistance for this fight.`)}
-  else if(e.type==='thunder'){const opts=['atk:normal','atk:power','atk:aim','stance',...kit(h)].sort(()=>Math.random()-.5);b.jam=b.jam||{};b.jam[h.id]=opts.slice(0,A.locks);blog(`${n} is jolted: ${listNames(b.jam[h.id].map(JAM_N))} ${b.jam[h.id].length>1?'are':'is'} locked for their next turn.`)}
+  if(e.type==='grass'&&chance(A.chance)){b.hpois=b.hpois||{};b.hpois[h.id]={n:A.n,dmg:Math.max(1,Math.round(d*A.pct))};b.pops.push({s:'h',hid:h.id,t:'POISONED',sk:1});blog(`${n} is poisoned${big?' badly':''}.`)}
+  else if(e.type==='ice'){b.ct['h:'+h.id]+=delayOf('h:'+h.id)*A.push;b.chill=b.chill||{};b.chill[h.id]=1;b.pops.push({s:'h',hid:h.id,t:'CHILLED',sk:1});blog(`${n} is chilled. Their next turn comes later.`)}
+  else if(e.type==='fire'){b.burn=b.burn||{};const was=b.burn[h.id]||0;b.burn[h.id]=Math.min(A.cap,was+A.step);if(b.burn[h.id]>was)b.pops.push({s:'h',hid:h.id,t:'BURNED',sk:1}),blog(`${n} is burned: −${b.burn[h.id]}% Fire resistance for this fight.`)}
+  else if(e.type==='thunder'){const opts=['atk:normal','atk:power','atk:aim','stance',...kit(h)].sort(()=>Math.random()-.5);b.jam=b.jam||{};b.jam[h.id]=opts.slice(0,A.locks);b.pops.push({s:'h',hid:h.id,t:'JOLTED',sk:1});blog(`${n} is jolted: ${listNames(b.jam[h.id].map(JAM_N))} ${b.jam[h.id].length>1?'are':'is'} locked for their next turn.`)}
 }
 // A Warrior standing third in the line can't reach the enemy: no attacks or damaging skills, only buffs (or step forward).
 const benched=h=>{const r=state.run;if(!r||!r.battle||!h||h.cls!=='warrior')return false;const L=living();return L.length>=3&&L.indexOf(h)===2};
@@ -7176,7 +7204,7 @@ function heroInfo(h){
   {const E=heroBuff(h,'eva');if(E)tags.push(`<span class="utag" style="color:#cfc6b0" data-tip="Evasion: ${E.v||90}% chance to dodge every attack${E.dmg?` and +${E.dmg}% damage`:''} for ${E.n} more turn${E.n>1?'s':''}.">${E.v||90}% evade ×${E.n}</span>`)}
   if(b.rally&&b.rally.n>0&&b.rally.by===h.id)tags.push(`<span class="utag gold" data-tip="${esc(b.rally.name)}: the whole party deals ${b.rally.dmg}% more damage and takes ${b.rally.def}% less${b.rally.crit?`, +${b.rally.crit}% crit chance`:''} for ${b.rally.n} more round${b.rally.n>1?'s':''}.">${esc(b.rally.name)} ×${b.rally.n}</span>`);
   if(heroBuff(h,'imbue'))tags.push(`<span class="utag" style="color:${EL_COL[attuned(h)]}" data-tip="Elemental Arrows: arrows deal ${cap(attuned(h))} damage for ${heroBuff(h,'imbue').n} more turn${heroBuff(h,'imbue').n>1?'s':''}. Pick another element under the skills.">${cap(attuned(h))} arrows ×${heroBuff(h,'imbue').n}</span>`);
-  if(b.hpois&&b.hpois[h.id])tags.push(`<span class="utag" style="color:#6fb35a" data-tip="Poisoned: loses ${b.hpois[h.id].dmg} health at the start of each of their next ${b.hpois[h.id].n} turns.">Poisoned</span>`);
+  if(b.hpois&&b.hpois[h.id])tags.push(`<span class="utag" style="color:#6fb35a" data-tip="Poisoned: loses ${b.hpois[h.id].dmg} health at the start of each of their next ${b.hpois[h.id].n} turns.">Poisoned ×${b.hpois[h.id].n}</span>`);
   if(b.chill&&b.chill[h.id])tags.push('<span class="utag" style="color:#8fd0ea" data-tip="Chilled: their next turn was pushed back.">Chilled</span>');
   if(b.burn&&b.burn[h.id])tags.push(`<span class="utag" style="color:#e0643a" data-tip="Burned: −${b.burn[h.id]}% Fire resistance for the rest of this fight.">Burned −${b.burn[h.id]}%</span>`);
   if(b.jam&&b.jam[h.id])tags.push(`<span class="utag" style="color:#e6d55a" data-tip="Jammed: ${esc(listNames([].concat(b.jam[h.id]).map(JAM_N)))} can’t be used on their next turn.">Jammed</span>`);
@@ -8647,7 +8675,9 @@ function render(){
 const mpOk=h=>h.mp>=maxMp(h)*.45;
 // The Monk's own auto-battle: keep the party blessed and the enemy marked, then strike.
 function monkAuto(h,e,L,n,avg,hurt,can){
-  const b=state.run.battle,tired=L.some(x=>fatOf(x)>=40);
+  const b=state.run.battle,tired=L.some(x=>fatOf(x)>=40),sick=L.find(statusOf);
+  if(sick&&can('cleanse'))return ['cleanse',sick.id];
+  if(sick&&can('blessing'))return ['blessing',sick.id];
   if(can('ground')&&!heroBuff(h,'might')&&(avg<.7||tired))return ['ground'];
   if(can('nirvana')&&(avg<.55||(tired&&L.length>1)))return ['nirvana'];
   if(can('mantra')&&L.length>1&&!heroBuff(L[0],'might'))return ['mantra'];
@@ -8670,9 +8700,10 @@ function autoStep(){
   const can=id=>kit(h).includes(id)&&h.mp>=skillMp(h,id)&&!selfishBlock(id)&&!jammed(h,id);
   const hurt=L.reduce((a,x)=>x.hp/maxHp(x)<a.hp/maxHp(a)?x:a,L[0]);
   let act='atk',ally=h.id;
-  const dead=partyAll().filter(x=>x.hp<=0),avg=L.reduce((a,x)=>a+x.hp/maxHp(x),0)/L.length;
+  const sickAlly=L.find(statusOf),dead=partyAll().filter(x=>x.hp<=0),avg=L.reduce((a,x)=>a+x.hp/maxHp(x),0)/L.length;
   const bigHit=aliveFoes().some(x=>x.intent&&(x.intent.act==='heavy'||x.intent.act==='unleash'||SHIFT_SK[x.intent.act])&&(x.intent.act==='unleash'||intentTarget(x)===h));
   if(bigHit&&h.hp/maxHp(h)<.6&&(h.cls!=='mage'||h.mp>=manaWallCost(h))&&!jammed(h,'stance'))act='stance';
+  else if(sickAlly&&['purify'].some(can)){act='purify';ally=sickAlly.id}
   else if(h.cls==='monk'){const r=monkAuto(h,e,L,n,avg,hurt,can);act=r[0];ally=r[1]||h.id}
   else if(dead.length&&can('resurrect'))act='resurrect';
   else if(dead.length&&can('revive')){act='revive';ally=dead[0].id}
