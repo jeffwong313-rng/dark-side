@@ -539,20 +539,6 @@ body.nomotion .unit.foe.carrier .fo img.px{animation:none}
 .spot:hover .plaque{color:var(--gold)}
 .spot .alert{left:auto;right:10%;top:8%}
 .bld .bready{left:auto;right:14%;top:0;font-size:15px}
-.d3iso{aspect-ratio:16/10;background:#0a0814}
-.d3iso .d3slot{position:absolute;inset:0}
-.d3b{position:absolute;font:inherit;background:none;border:0;cursor:pointer;padding:0;display:flex;align-items:flex-end;justify-content:center}
-.d3b .soon{display:none}
-.d3b:hover .soon,.d3b:focus-visible .soon{display:inline}
-.d3b .plaque{font-size:12px;position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);white-space:nowrap}
-.d3b:hover,.d3b:focus-visible{outline:2px solid #ffd76a88;outline-offset:-2px}
-.d3b.mystery{opacity:.9}
-.d3h{position:absolute;font:inherit;background:none;border:0;cursor:pointer;padding:0}
-.d3h:hover{outline:2px solid #ffd76a88}
-.d3h .alert{position:absolute;left:60%}
-.d3g{position:absolute;width:22px;height:22px;transform:translate(-50%,-100%);cursor:help}
-.d3moon{position:absolute;font:inherit;background:none;border:0;cursor:pointer;transform:translate(-50%,-50%);width:70px;height:70px;border-radius:50%;display:flex;align-items:flex-end;justify-content:center}
-.d3moon .moonpct{transform:translateY(60%);white-space:nowrap;text-shadow:2px 2px 0 #000}
 .isohero{position:absolute;transform:translate(-50%,-94%);font:inherit;background:none;border:0;cursor:pointer;padding:0;width:4.4%;line-height:0}
 .isohero img{width:100%;height:auto;filter:drop-shadow(0 2px 0 #0009)}
 .isohero::after{content:"";position:absolute;left:10%;right:10%;bottom:-3%;height:12%;background:radial-gradient(ellipse,#000a,transparent 70%);z-index:-1}
@@ -1704,48 +1690,10 @@ body:not(.padmode) .padfocus{outline:none}
 .padmap .pk{color:var(--gold);white-space:nowrap}
 
 /* ---------- 3D mode (loaded only when switched on in Settings) ---------- */
-.d3canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
-.d3slot{position:absolute;inset:0;overflow:hidden}
-.d3off{display:none!important}
-.d3note{font-size:18px;color:var(--dim)}
-.scene.stage.d3st{display:block;padding:0;background:#0a0810}
-.scene.stage.d3st::before{display:none}
-.d3st .side{position:absolute;inset:0;display:block;gap:0;pointer-events:none;z-index:2}
-.d3st .unit{position:absolute;left:0;top:0;width:var(--uw,120px);margin:0;pointer-events:none;will-change:transform}
-.d3st .unit .fo{pointer-events:auto;width:var(--fw,60px);height:var(--fh,80px);margin:0 auto;line-height:0}
-.d3st .unit .fo img.px{opacity:0;width:100%;height:100%}
-.d3st .unit .fo::after{display:none}
-.d3st .unit .uinfo{pointer-events:auto;margin-top:2px}
-.d3st .unit.foe .fo{cursor:pointer}
-.d3st .unit.down{opacity:1}
-.d3st .unit.down .uinfo{opacity:.55}
-.d3st .unit.act .fo img.px{filter:none}
-.d3st .unit.act .uinfo{box-shadow:0 0 0 2px #000,inset 0 0 0 2px var(--gold),0 0 14px #e3b34188}
-.d3st .gnd,.d3st .lay{display:none}
-.d3st .intentarrows{z-index:3}
 
-.d3run{position:fixed;left:0;top:0;width:calc(100vw / var(--z,1));height:calc(100dvh / var(--z,1));z-index:12;background:#0a0810;overflow:hidden}
-.d3slotwrap{position:absolute;inset:0}
-.d3run .runhdr{position:absolute;left:6px;right:6px;top:6px;z-index:5;margin:0}
-.d3hud{position:absolute;left:0;right:0;bottom:12px;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;z-index:4;padding:0 10px}
-.d3hud>*{pointer-events:auto}
-.d3title{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;background:#0a0810d8;box-shadow:0 0 0 2px #060509,inset 0 0 0 2px var(--edge);padding:4px 12px}
-.d3title h3{margin:0}
-.d3msg{margin:0;background:#0a0810d8;padding:3px 10px;font-size:18px;color:var(--dim)}
-.d3evt{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:min(760px,calc(100% - 16px));max-height:calc(100% - 130px);overflow-y:auto;z-index:4}
-.d3n{position:absolute;left:0;top:0;visibility:hidden;display:flex;flex-direction:column;align-items:center;gap:1px;pointer-events:none;font-family:inherit;color:var(--bone)}
-.d3n .mlab{font-family:'DsHead',monospace;font-size:18px;text-shadow:2px 2px 0 #000;white-space:nowrap}
-.d3n.can{pointer-events:auto;cursor:pointer;background:#0a0810d8;border:0;padding:3px 9px 4px;box-shadow:0 0 0 2px #060509,inset 0 0 0 2px var(--gold),0 0 16px #e3b34166}
-.d3n.can:hover,.d3n.can:focus-visible{background:#2a2030f0;box-shadow:0 0 0 2px #060509,inset 0 0 0 2px #fff,0 0 22px #e3b341aa}
-.d3n.can.trap{box-shadow:0 0 0 2px #060509,inset 0 0 0 2px #e0736c}
-.d3n.can .alert{position:absolute;right:-6px;top:-8px;background:#e0736c;color:#fff;font-weight:bold;padding:0 6px}
-.d3n.off,.d3n.far{opacity:.0}
-.d3n.far{opacity:.85}
-.d3n.far:not(.big) .mlab{font-size:15px;opacity:.8}
-.d3n.far .ico,.d3n.far canvas,.d3n.far img{opacity:.7}
-.d3n.far:empty{display:none}
-body.d3mapmode{overflow:hidden}
-
+.trait.kit{cursor:pointer;font:inherit}.trait.kit.on{box-shadow:inset 0 0 0 2px #8fd3ff;background:#1d3140}.trait.kit.off{opacity:.55}.trait.kit .kmark{color:#8fd3ff}.trait.kit small{opacity:.8}
+.kitbox{background:#171120;box-shadow:inset 0 0 0 2px #3a2f4a;padding:8px}.kitgrid{display:flex;flex-wrap:wrap;gap:6px}
+.item.kitoff{opacity:.6}
 </style>
 
 </head>
@@ -2901,8 +2849,6 @@ function chunkStrip(Gs,pal,crop){
   return {url:c2.toDataURL(),side};
 }
 function heroArt(h,scale,cls){
-  if(D3on()&&d3st==='ready'&&DS3D.heroThumb){let u=null;try{u=DS3D.heroThumb(h,true)}catch(e){}
-    if(u)return `<img class="px d3hero ${cls||''}" src="${u}" alt="" style="width:${scale*9}px;height:${scale*9}px">`}
   const w=h.gear&&h.gear.weapon,wr=w?w.rarity:null;
   const LK=h.look||h.id?heroLook(h):{cw:COLORWAYS[CW_DEFAULT[h.cls]||0],skin:H_SKIN[strHash(h.name)%H_SKIN.length],hair:H_HAIR[0]};
   const rows=CHIBI[h.cls];if(!rows)return sprite(h.cls,LK.cw.A,scale,cls);
@@ -3261,8 +3207,8 @@ const SKILLS={
   hex:{cls:'mage',n:'Hex',mp:12,tgt:'enemy',acc:100,d:'On hit, the target takes 33% more damage from everyone for 3 rounds.'},
   mend:{cls:'mage',n:'Mend',mp:18,tgt:'ally',d:'Heals one ally for 40% of their max health plus 2.7× the caster’s INT.'},
   drain:{cls:'mage',n:'Life Drain',mp:15,tgt:'enemy',mult:1.5,acc:100,crit:5,el:'dark',d:'Dark damage. Heals the caster for half the damage dealt.'},
-  /* Learned skills: at levels 8, 18 and 28 each hero picks one of three. Every class has three lines, and each line's
-     level 18 skill outdoes its level 8 skill, and its level 28 skill outdoes both.
+  /* Learned skills: at levels 6, 13, 21 and 30 each hero picks one skill for that tier. Every class has three lines (archers and
+     monks have a fourth), and each tier is a bit stronger than the last, though never a strict upgrade.
      Warrior: stunner (Battle Stun > Earthshatter > Titan's Wrath), buffer (Rallying Cry > Bulwark > Warlord's Banner),
        damage (Sunder > Executioner > Coup de Grâce).
      Archer: elemental (Elemental Arrows > Prism Hail > Prism Storm), critical (Sniper > Assassinate > Killshot),
@@ -3317,22 +3263,51 @@ const SKILLS={
   calm:{cls:'monk',tier:1,line:'bless',n:'Circle of Calm',mp:24,tgt:'party',bless:{fat:12,hp:.08},d:'Eases 12% fatigue and heals 8% of max health for every ally.'},
   mantra:{cls:'monk',tier:2,line:'bless',n:'Mantra of Fortitude',mp:32,tgt:'party',bless:{fat:15},buff:{def:25,dmg:20,n:3},d:'Eases 15% fatigue for every ally, who also take 25% less damage and deal 20% more for 3 turns.'},
   nirvana:{cls:'monk',tier:3,line:'bless',n:'Enlightenment',mp:44,tgt:'party',bless:{fat:30,hp:.15,mp:.15},buff:{def:35,dmg:30,crit:12,eva:25,n:4},d:'Eases 30% fatigue, heals 15% health and restores 15% mana for every ally, who also take 35% less damage, deal 30% more, gain +12% crit and 25% evasion for 4 turns.'},
+  /* ---- Tier 4 (level 30) and the two new lines. Tier 4 is a bit stronger than tier 3 but never a strict upgrade: it trades
+     something away (a heavier cost, a recovery turn, a narrower job), so earlier skills are still worth bringing. ----
+     Warrior: Fault Line (stun) locks down two enemies, Fortress (buffer) is a one-hero wall, Worldbreaker (damage) is the biggest hit.
+     Archer: Convergence (elemental), Bullseye (critical), Counter Shot (evasion), and a new SPEED line (Quickstep > Flurry >
+       Windrunner > Perfect Tempo): haste makes the archer act twice as often for a few actions.
+     Mage: Elemental Rift (area), Singularity (pinpoint), Sanctuary (healing).
+     Monk: Hundred Fists (force), Sentence of Ruin (mark), Sanctified Ground (blessing), and a new ELEMENTAL line
+       (Elemental Palm > Five-Element Strike > Elemental Tempest > Elemental Avatar). */
+  fault:{cls:'warrior',tier:4,line:'stun',n:'Fault Line',mp:34,tgt:'all',mult:2.2,acc:100,crit:5,el:'physical',pierce:true,stun:1,d:'Splits the ground under the front two enemies. Ignores armor and stuns both for 1 turn. Weaker than Titan’s Wrath, but it locks down a pair.'},
+  fortress:{cls:'warrior',tier:4,line:'buff',n:'Fortress',mp:36,tgt:'self',fort:{n:3,def:70,thorn:40,regen:.08},d:'For 3 rounds every enemy must attack this hero, who takes 70% less damage, reflects 40% of what gets through and recovers 8% of max health each turn. It guards only this hero, where Warlord’s Banner lifts the whole party.'},
+  breaker:{cls:'warrior',tier:4,line:'dmg',n:'Worldbreaker',mp:48,tgt:'enemy',mult:8,acc:85,crit:15,cdmg:40,el:'physical',pierce:true,slow:.6,d:'The biggest blow a warrior can swing. Ignores armor. Exhausting: this hero’s next turn comes 60% later, and it can miss.'},
+  converge:{cls:'archer',tier:4,line:'el',n:'Convergence',mp:42,tgt:'enemy',mult:1.1,hits:5,acc:95,crit:10,el:'prism',weak:1.75,d:'Five arrows into one enemy, each in the element that hurts it most. Weakness hits deal 1.75×. Prism Storm spreads out; this one finishes a single big target.'},
+  bullseye:{cls:'archer',tier:4,line:'crit',n:'Bullseye',mp:40,mpPct:.5,tgt:'enemy',mult:6.5,sure:true,forceCrit:true,cdmg:80,el:'weapon',d:'Never misses and always crits, for far more damage than Killshot. Costs half of max MP.'},
+  counter:{cls:'archer',tier:4,line:'eva',n:'Counter Shot',mp:34,tgt:'self',eva:{v:90,n:4,max:6,ctr:true},d:'Evasion rises to 90% for 4 turns, up to 6 with high AGI and Luck. Every attack this archer dodges is answered with a free shot at the attacker.'},
+  quick:{cls:'archer',tier:1,line:'speed',n:'Quickstep',mp:14,tgt:'self',haste:{n:4},d:'Haste: the next 4 actions come twice as fast, about 2 actions a turn for 2 turns.'},
+  flurry:{cls:'archer',tier:2,line:'speed',n:'Flurry',mp:22,tgt:'enemy',mult:.7,hits:4,acc:95,crit:8,el:'weapon',haste:{n:2},d:'Four quick arrows at one enemy (leftover arrows move on if it dies), then haste for the next 2 actions.'},
+  windrun:{cls:'archer',tier:3,line:'speed',n:'Windrunner',mp:32,tgt:'self',haste:{n:6,crit:20},d:'Haste for the next 6 actions (about 3 turns of double speed) with +20% crit chance for 3 turns.'},
+  tempo:{cls:'archer',tier:4,line:'speed',n:'Perfect Tempo',mp:40,tgt:'self',haste:{n:8,party:30},d:'Haste for the next 8 actions, and every ally’s next turn comes 30% sooner. Lasts long but adds no damage of its own.'},
+  rift:{cls:'mage',tier:4,line:'aoe',n:'Elemental Rift',mp:48,tgt:'all',mult:1.6,acc:100,crit:5,el:'prism',weak:2,d:'Tears open every element at once: each enemy is hit by the element it is weakest to, and weakness hits deal 2×. No stun like Cataclysm, but it never needs attuning.'},
+  singularity:{cls:'mage',tier:4,line:'pin',n:'Singularity',mp:55,mpPct:.8,tgt:'enemy',mult:13,acc:100,crit:10,el:'attune',weak:2,noRes:true,d:'Collapses a point of pure force onto one enemy in the attuned element and ignores resistance. Costs 80% of max MP. Weakness hits deal 2×.'},
+  sanctuary:{cls:'mage',tier:4,line:'heal',n:'Sanctuary',mp:50,tgt:'party',sanct:{hp:.35,int:2,def:35,n:3},d:'Heals every ally for 35% of max health plus 2× the caster’s INT, cleanses poison, bleeding and curses, and wards the party: 35% less damage for 3 rounds. Heals less than Resurrection, but needs no fallen ally and protects afterwards.'},
+  hundred:{cls:'monk',tier:4,line:'force',n:'Hundred Fists',mp:36,tgt:'enemy',mult:1,hits:6,acc:95,crit:12,el:'physical',pierce:true,d:'Six rapid strikes at one enemy, each ignoring armor and rolling its own crit. Heaven-Splitting Fist hits harder once; this one scales with crits and marks.'},
+  ruin:{cls:'monk',tier:4,line:'mark',n:'Sentence of Ruin',mp:34,tgt:'enemy',mult:3.2,acc:100,crit:8,el:'physical',mark:{n:6,weak:true},d:'A heavy strike that marks one enemy for 6 turns: heroes deal 1.5× damage to it (archers 3×) and it deals 30% less damage.'},
+  ground:{cls:'monk',tier:4,line:'bless',n:'Sanctified Ground',mp:40,tgt:'party',bless:{fat:20,hp:.12},buff:{def:25,dmg:20,eva:20,n:5},d:'Eases 20% fatigue and heals 12% of max health for every ally, who also take 25% less damage, deal 20% more and gain 20% evasion for 5 turns. Gentler than Enlightenment, but it lasts.'},
+  elpalm:{cls:'monk',tier:1,line:'elem',n:'Elemental Palm',mp:16,tgt:'enemy',mult:2.4,acc:100,crit:8,el:'attune',d:'A palm strike in your chosen element (pick it below), so it can hit weaknesses like a mage’s spell.'},
+  fiveel:{cls:'monk',tier:2,line:'elem',n:'Five-Element Strike',mp:28,tgt:'enemy',mult:3.4,acc:100,crit:8,el:'prism',weak:1.75,d:'A strike in the element that hurts the target most. Weakness hits deal 1.75×.'},
+  tempestk:{cls:'monk',tier:3,line:'elem',n:'Elemental Tempest',mp:38,tgt:'all',mult:2.1,acc:100,crit:6,el:'attune',weak:1.75,d:'A whirlwind of your chosen element through every enemy. Weakness hits deal 1.75×.'},
+  avatar:{cls:'monk',tier:4,line:'elem',n:'Elemental Avatar',mp:44,tgt:'self',avatar:{n:4,m:1.5},d:'For 4 turns every strike is infused with the element that hurts its target most and deals 1.5× damage. Lasts through several blows, unlike Channel.'},
 };
-const SKILL_LV={1:8,2:18,3:28};
+const SKILL_LV={1:6,2:13,3:21,4:30};
+const SKILL_TIERS=[1,2,3,4],KIT_MAX=4;
 const CHAN_MULT=1.75;
 // Retired skills (from before the three-line rework) and what heroes who knew them now have instead.
 const SKILL_RETIRED={taunt:'rally',undying:'warlord',imbue2:'hail'};
 const tierOpts=(cls,t)=>Object.keys(SKILLS).filter(k=>SKILLS[k].cls===cls&&SKILLS[k].tier===t);
 const hasTier=(h,t)=>h.skills.some(id=>SKILLS[id]&&SKILLS[id].tier===t);
 // The first skill tier this hero has reached but not chosen yet, or 0.
-const pendingTier=h=>[1,2,3].find(t=>h.level>=SKILL_LV[t]&&!hasTier(h,t))||0;
-// At levels 8, 18 and 28 a hero learns one of their class's three skills for that level.
+const pendingTier=h=>SKILL_TIERS.find(t=>h.level>=SKILL_LV[t]&&!hasTier(h,t))||0;
+// At levels 6, 13, 21 and 30 a hero learns one of their class's skills for that tier. A hero can bring at most KIT_MAX skills along.
 const learnOpts=(h,t)=>tierOpts(h.cls,t);
 // The Witch can reroll a learned skill. 15% of the time fate lands on the same skill again (less with Luck).
-const REROLL_COST={1:300,2:1500,3:4000};
+const REROLL_COST={1:300,2:1500,3:4000,4:9000};
 const skillRerollCost=(h,t)=>REROLL_COST[t]*Math.pow(2,((h.rerolls||{})[t])||0);
 const rerollSame=h=>Math.max(5,15-stat(h,'lck')*.4);
-/* Level-up choices. At levels 8, 18 and 28 a hero picks one of their class's skills for that level. At 10, 20 and 30 (and
+/* Level-up choices. At levels 6, 13, 21 and 30 a hero picks one of their class's skills for that level. At 10, 20 and 30 (and
    every 10th level after) they pick a new trait from 2, 3 or 4 offers (4 from level 30 on). The hero's Charisma and Luck
    tilt the offers toward positive traits, and at least one offer is always positive. Choices wait until the player decides. */
 const traitOfferN=h=>Math.min(4,Math.max(2,(h.traits||[]).length));
@@ -3354,23 +3329,28 @@ function levelPickModal(){
   const h=pickWaiting();if(!h)return '';
   let body='';
   if(h.pickSkill){const {t,opts}=h.pickSkill;
-    body=`<p>${esc(h.name)} has reached level ${SKILL_LV[t]} and can learn one new skill. Choose carefully: it stays unless the Witch rerolls it.</p><div class="stack" style="gap:8px">${opts.map(id=>{const k=SKILLS[id];
+    body=`<p>${esc(h.name)} has reached level ${SKILL_LV[t]} and can learn one new skill. Choose carefully: it stays unless the Witch rerolls it.${kit(h).length>=KIT_MAX?` ${esc(h.name)} already carries ${KIT_MAX} skills, so the new one waits at home until you swap it in on the hero sheet or at the Gate.`:''}</p><div class="stack" style="gap:8px">${opts.map(id=>{const k=SKILLS[id];
       return `<div class="item pickopt"><span class="iname">${skillIco(id)} ${k.n} <span class="muted">· ${skillMp(h,id)} MP</span></span><span class="afx">${skillStats(id)}</span><span class="meta">${k.d}</span><div class="row"><button class="btn gold" data-a="pickSkill" data-x="${h.id}|${id}">Learn ${k.n}</button></div></div>`}).join('')}</div>`}
   else{const {opts}=h.pickTrait,tilt=clamp(Math.round((stat(h,'cha')+stat(h,'lck')-8)*2),-20,30);
     body=`<p>${esc(h.name)} has grown at level ${h.level}. Choose one new trait. <span class="muted" style="font-size:18px">${tilt>0?`Their Charisma and Luck tipped the offers ${tilt}% toward good traits.`:tilt<0?`Their low Charisma and Luck tipped the offers toward bad traits.`:''} At least one offer is always good.</span></p><div class="stack" style="gap:8px">${opts.map(id=>{const T=TRAITS[id];
       return `<div class="item pickopt"><span class="iname"><span class="tk-${T.kind}">${T.n}</span> <span class="muted" style="font-size:16px">${({good:'positive',neutral:'mixed',bad:'negative'})[T.kind]}</span></span><span class="meta">${traitDesc(T,h)}</span><div class="row"><button class="btn ${T.kind==='good'?'gold':''}" data-a="pickTrait" data-x="${h.id}|${id}">Take ${T.n}</button></div></div>`}).join('')}</div>`}
   return modalShell(`<span class="gold">${esc(h.name)}: ${h.pickSkill?'choose a skill':'choose a trait'}</span>`,body+`<div class="row" style="margin-top:8px"><button class="btn small" data-a="pickLater">Decide later</button></div>`,'pickLater','pickmodal');
 }
-function autoLearn(h){const got=[];let t;while((t=pendingTier(h))){const id=pick(learnOpts(h,t));h.skills.push(id);got.push(id)}return got}
+function autoLearn(h){const got=[];let t;while((t=pendingTier(h))){const id=pick(learnOpts(h,t));h.skills.push(id);kitAdd(h,id);got.push(id)}return got}
 const skillIco=id=>{const k=SKILLS[id];if(['mend','wind','circle','revive','resurrect'].includes(id))return ico('heart');if(['wall','taunt','bulwark','undying'].includes(id))return ico('shield','#8fa8c8');if(['rally','warlord'].includes(id))return ico('fist','#e3b341');if(['feather','shadow','phantom'].includes(id))return ico('eye','#cfc6b0');if(['blessing','calm','mantra','nirvana'].includes(id))return ico('heart','#f2d36b');if(['mark','seal','doom','brand'].includes(id))return ico('crescent','#e0736c');if(id==='channel')return ico('bolt','#9fd6ff');if(['focus','ward','fleet'].includes(id))return ico(id==='ward'?'shield':id==='fleet'?'feather':'eye','#f2d36b');if(id==='hail'||id==='thousand')return ico('bolt','#b9a8ff');if(id==='imbue'||id==='imbue2')return ico('bolt','#e3b341');if(id==='sniper')return ico('star','#e3b341');if(id==='warcry')return ico('fist','#e3b341');if(id==='hex')return ico('crescent','#b56fe3');
   if(k.el&&k.el!=='weapon'&&k.el!=='attune')return elIco(k.el);return ico(({warrior:'sword',archer:'bow',mage:'staff',monk:'fist'})[k.cls],CLASSES[k.cls].tint)};
+/* The skills a hero brings: at most KIT_MAX of the ones they know. Choose them at the Gate or on the hero sheet, in town. */
+const kit=h=>{const have=h.skills||[];if(!h.kit)return have.slice(-KIT_MAX);return [...new Set(h.kit)].filter(id=>have.includes(id)).slice(0,KIT_MAX)};
+const fixKit=h=>{h.kit=kit(h)};
+const kitAdd=(h,id)=>{fixKit(h);if(h.kit.length<KIT_MAX&&!h.kit.includes(id))h.kit.push(id)};
+const kitLocked=h=>!!(state.run&&(state.run.party||[]).includes(h.id));
 const classSkills=cls=>Object.keys(SKILLS).filter(k=>SKILLS[k].cls===cls&&!SKILLS[k].tier);
 function skillStats(id){const k=SKILLS[id];const p=[];
   if(k.mult)p.push(`${k.mult}× dmg${k.hits?` ×${k.hits}`:''}`);if(k.acc)p.push(`${k.acc}% acc`);
   if(k.forceCrit)p.push('always crits');else if(k.crit)p.push(`${k.crit>0?'+':''}${k.crit}% crit`);
   if(k.cdmg)p.push(`+${k.cdmg}% crit dmg`);
   const el={fighting:'Fighting',weapon:'weapon element',attune:'attuned element',dark:'Dark',prism:'best element per target'}[k.el];if(el)p.push(el);
-  if(k.mpPct)p.push('costs '+Math.round(k.mpPct*100)+'% of max MP');if(k.weak)p.push(`weakness ${k.weak}×`);if(k.pierce)p.push('ignores armor');if(k.noRes)p.push('ignores resistance');if(k.low)p.push('+50% vs wounded');
+  if(k.haste)p.push('haste '+k.haste.n+' actions');if(k.slow)p.push('next turn '+Math.round(k.slow*100)+'% later');if(k.mpPct)p.push('costs '+Math.round(k.mpPct*100)+'% of max MP');if(k.weak)p.push(`weakness ${k.weak}×`);if(k.pierce)p.push('ignores armor');if(k.noRes)p.push('ignores resistance');if(k.low)p.push('+50% vs wounded');
   if(k.stun)p.push('stuns');if(k.coup)p.push('may kill outright');if(k.dur)p.push(k.dur+' turns');p.push(k.cls==='warrior'&&k.tgt==='all'&&id!=='quake'?'front 2 enemies':{enemy:'one enemy',all:'all enemies',self:'self',ally:'one ally',party:'party',rand:'random enemies',dead:'a fallen ally'}[k.tgt]);
   if(k.cls==='warrior'&&k.mult)p.push('front or middle rank');
   else if(k.cls==='archer'&&!ARCHER_FRONT_OK.includes(id))p.push('middle or back rank');
@@ -3613,6 +3593,7 @@ function makePerfect(ilvl,favor){
     base:Math.round(WBASE[P.cls]*(1+ilvl*.12)),b2:true,name:P.n,affixes:P.aff.map(([k,v])=>({k,v:Math.max(1,Math.round(v*sc))}))};
 }
 function makeItem(table,ilvl,favor){
+  if(favor==='monk'&&!state.monkSeen)favor=null; // monk-minded loot only appears once a monk has gone on a mission
   const tbl=rarityTable(table);
   let rarity=weighted(tbl);
   if(rarity==='perfect'){const pw=makePerfect(ilvl,favor);if(pw)return pw;rarity='godlike'}
@@ -3873,7 +3854,9 @@ const monkOpen=()=>!!(state&&(state.monkOpen||(state.cleared&&state.cleared.medi
 const CLASS_ODDS={warrior:30,archer:30,mage:30,monk:10};
 const rollClass=()=>monkOpen()?weighted(CLASS_ODDS):pick(GEAR_CLS);
 const recruitCls=()=>state.unlock!=null&&state.unlock<3?UNLOCK_CLS[state.unlock]:null;
-function rollCandidates(){state.lastRecruits=(state.candidates||[]).map(c=>c.name);state.candidates=[];for(let i=0;i<recruitCount();i++)state.candidates.push(makeHero(recruitCls()))}
+function rollCandidates(){state.lastRecruits=(state.candidates||[]).map(c=>c.name);state.candidates=[];for(let i=0;i<recruitCount();i++)state.candidates.push(makeHero(recruitCls()));
+  // The first Barracks roll after the Wilds are beaten always offers a monk.
+  if(state.monkGuarantee&&state.candidates.length){state.monkGuarantee=false;if(!state.candidates.some(c=>c.cls==='monk')){state.candidates.pop();state.candidates.push(makeHero('monk'))}}}
 function newGame(){
   // firstLv: 0 = no hero has leveled yet in this save (the governor explains the first one).
   state={v:1,unlock:0,hideBld:true,reveal:{},guide:true,tutorial:true,week:1,gold:150,scrolls:1,b:{smith:1,alch:1,academy:1,barracks:1,bank:1,pack:1,bag:1,war:0,potency:0,feed:0},bossKills:0,won:null,firstLv:0,items:{potion:2},mats:{},farm:{lvl:0},farm2:true,mat2:true,still:0,ration3:true,built:{},built2:true,heroes:[],candidates:[],bank:[],graveyard:[],
@@ -4234,9 +4217,10 @@ function startRun(){
   const len=state.sel.len,final=len==='descent';
   const ids=(state.sel.party||[]).filter(id=>heroById(id)).slice(0,Math.min(partySize(),lenParty(len)));
   if(!ids.length||!LENGTHS[len])return;
-  if(tooHighFor(len,ids).length)return;
+  if(tooHighFor(len,ids).length||kitShort(ids).length)return;
   if(final&&(ids.length<3||!descentUnlocked()))return;
   if(['long','expedition','descent'].includes(len))state.reachedLong=true;
+  if(ids.some(id=>{const x=heroById(id);return x&&x.cls==='monk'}))state.monkSeen=true;
   const L=LENGTHS[len];
   for(const id of ids){const h=heroById(id);h.hp=maxHp(h);h.mp=maxMp(h)}
   let scrolls=0;if(state.sel.carry&&state.scrolls>0){state.scrolls--;scrolls=1}state.sel.carry=false;
@@ -4686,7 +4670,7 @@ function queueHero(act,allyId){
   const r=state.run,b=r&&r.battle;if(!b||b.over)return;
   const h=currentActor();if(!h)return;
   if(window.__instant||(act.startsWith('item:')&&CONSUMABLES[act.slice(5)]&&CONSUMABLES[act.slice(5)].quick))return heroAction(act,allyId);
-  if(SKILLS[act]&&(!h.skills.includes(act)||h.mp<skillMp(h,act)))return;
+  if(SKILLS[act]&&(!kit(h).includes(act)||h.mp<skillMp(h,act)))return;
   if(jammed(h,act))return;
   if(act.startsWith('item:')&&!(r.bag[act.slice(5)]>0))return;
   b.pending=null;b.windup=heroWindup(h,act,allyId);b.busy=true;
@@ -4703,7 +4687,7 @@ const heroBuff=(h,k)=>{const b=state.run&&state.run.battle,x=b&&b.hb&&b.hb[h.id]
 const heroEva=h=>Math.max(heroBuff(h,'eva')?heroBuff(h,'eva').v||90:0,stanceOf(h)==='archer'?rollDodge(h):0,evasion(h));
 const heroDef=h=>{const b=state.run.battle,x=heroBuff(h,'def'),m=Math.max(x?x.v:0,b.bulwark&&b.bulwark.n>0?67:0,b.rally&&b.rally.n>0?b.rally.def:0),p=posV(h,'def'),q=bulwarkCut(h);let v=p?100-(100-m)*(1-p/100):m;return q?100-(100-v)*(1-q/100):v};
 function setBuff(h,k,n,v,more){const b=state.run.battle;b.hb=b.hb||{};const x=b.hb[h.id]=b.hb[h.id]||{};x[k]={n,v,...(more||{})}}
-const BUFF_N={def:'guard',eva:'evasion',crit:'Sniper',undying:'Undying Vow',focus:'Starsight',might:'Inner Focus',chan:'Channel'};
+const BUFF_N={def:'guard',eva:'evasion',crit:'Sniper',undying:'Undying Vow',focus:'Starsight',might:'Inner Focus',chan:'Channel',thorn:'spiked guard',fort:'Fortress',haste:'haste'};
 // Food and mana items restore a slice at the start of each of the hero's next 3 turns.
 function regenAmt(h,x,n){if(x.k==='fat')return x.p*n;const mx=x.k==='hp'?maxHp(h):maxMp(h);return Math.max(1,Math.round(mx*x.p*n*(x.k==='hp'?healMult(h):manaMult())))}
 function tickRegen(h,b){if(!h.regen||!h.regen.length||h.hp<=0)return;let hp=0,mp=0;
@@ -4740,7 +4724,8 @@ function startHeroTurn(h){
   if(b.guard[h.id]){b.guard[h.id]=false;if(b.taunt===h.id&&!b.tauntN)b.taunt=null}
   if(b.tauntN&&b.taunt===h.id){b.tauntN--;if(b.tauntN<=0){b.taunt=null;b.tauntN=0;blog(`Enemies are free to choose their targets again.`)}}
   if(b.bulwark&&b.bulwark.by===h.id){b.bulwark.n--;if(b.bulwark.n<=0){b.bulwark=null;blog('The Bulwark falls.')}}
-  {const x=b.hb&&b.hb[h.id];if(x)for(const k of ['def','eva','undying','focus','might','chan'])if(x[k]&&x[k].n>0){x[k].n--;if(!x[k].n&&k!=='def')blog(`${esc(h.name)}’s ${BUFF_N[k]} fades.`)}}
+  {const f=heroBuff(h,'fort');if(f&&h.hp>0){const v=Math.round(maxHp(h)*f.v*healMult(h));h.hp=Math.min(maxHp(h),h.hp+v);b.pops.push({s:'h',hid:h.id,t:'+'+v});blog(`${esc(h.name)} holds the line and recovers ${v} HP.`)}}
+  {const x=b.hb&&b.hb[h.id];if(x)for(const k of ['def','eva','undying','focus','might','chan','thorn','fort'])if(x[k]&&x[k].n>0){x[k].n--;if(!x[k].n&&k!=='def')blog(`${esc(h.name)}’s ${BUFF_N[k]} fades.`)}}
   if(b.rally&&b.rally.by===h.id){b.rally.n--;if(b.rally.n<=0){blog(`${esc(h.name)}’s ${b.rally.name} fades.`);b.rally=null}}
   if(b.warcry&&b.warcry.by===h.id){b.warcry.n--;if(b.warcry.n<=0){b.warcry=null;blog('The War Cry fades.')}}
   const dt=b.dot&&b.dot[h.id];
@@ -4759,7 +4744,7 @@ function atkEl(h,spec){
   // Warriors fight with steel alone. Archers can borrow an element while Elemental Arrows lasts.
   if(h.cls==='warrior')return 'physical';
   // Monks strike with force until they Channel: then their next blow carries the chosen element.
-  if(h.cls==='monk')return heroBuff(h,'chan')&&spec!=='dark'?attuned(h):'physical';
+  if(h.cls==='monk'){if(spec==='prism')return 'prism';if(spec==='attune')return attuned(h);const c=heroBuff(h,'chan');return c&&spec!=='dark'?(c.prism?'prism':attuned(h)):'physical'}
   if(spec==='weapon'&&h.cls==='archer'&&heroBuff(h,'imbue'))return attuned(h);
   if(spec==='attune')return attuned(h);
   if(spec==='prism')return 'prism';
@@ -4819,7 +4804,7 @@ function heroAction(act,allyId){
     const id=act.slice(5),ally=heroById(allyId)||h;
     if(!useConsumable(id,ally,h))return;
   }else{
-    const sk=SKILLS[act];if(!sk||!h.skills.includes(act))return;
+    const sk=SKILLS[act];if(!sk||!kit(h).includes(act))return;
     const cost=skillMp(h,act);if(h.mp<cost)return;
     let ally=null;
     if(selfishBlock(act))return;
@@ -4846,10 +4831,17 @@ function heroAction(act,allyId){
   {const x=heroBuff(h,'imbue');if(x&&act!=='imbue'&&act!=='imbue2'){x.n--;if(!x.n)blog(`${esc(h.name)}’s Elemental Arrows fade.`)}}
   if(b.jam&&b.jam[h.id])delete b.jam[h.id];
   if(h.cls==='monk'){const R=state.run;R.chi=R.chi||{};R.chi[h.id]=(R.chi[h.id]||0)+1;
-    if(b.chanNow===h.id){const x=b.hb&&b.hb[h.id]&&b.hb[h.id].chan;if(x)x.n=0;blog(`<span class="gold">${esc(h.name)}’s channeled chi is spent.</span>`)}
+    if(b.chanNow===h.id){const x=b.hb&&b.hb[h.id]&&b.hb[h.id].chan;if(x&&!x.keep)x.n=0;if(x&&!x.keep)blog(`<span class="gold">${esc(h.name)}’s channeled chi is spent.</span>`)}
     b.chiNow=null;b.chanNow=null}
+  {const Kh=SKILLS[act];if(Kh&&Kh.haste&&h.hp>0){const H=Kh.haste;setBuff(h,'haste',H.n+1,0);
+      if(H.crit)setBuff(h,'might',3,0,{crit:H.crit});
+      if(H.party){for(const x of living())if(x!==h)b.ct['h:'+x.id]-=delayOf('h:'+x.id)*H.party/100}
+      blog(`<b class="gold">${esc(h.name)} is hasted!</b> The next ${H.n} actions come twice as fast${H.crit?`, with +${H.crit}% crit chance`:''}${H.party?`, and every ally’s next turn comes ${H.party}% sooner`:''}.`)}}
   b.opened.push(h.id);
-  b.ct['h:'+h.id]+=delayOf('h:'+h.id);
+  {const hs=heroBuff(h,'haste'),Ks=SKILLS[act];let dl=delayOf('h:'+h.id);
+    if(hs&&!darkIs('inertia')){dl*=.5;hs.n--;if(hs.n<=0)blog(`${esc(h.name)} slows to a normal pace.`)}
+    if(Ks&&Ks.slow){dl*=1+Ks.slow;blog(`${esc(h.name)} is spent, and will act later.`)}
+    b.ct['h:'+h.id]+=dl}
   if(b.quick===h.id&&!b.quickChain&&h.hp>0&&!darkIs('inertia')){b.ct['h:'+h.id]-=delayOf('h:'+h.id);b.quickChain=true;blog(`<span class="r-perfect">Stormstring</span> hums. ${esc(h.name)} acts again!`)}else b.quickChain=false;
   b.quick=null;
   fixTarget();
@@ -4955,11 +4947,19 @@ function applyUtility(h,act,tgt,ally){
      b.attune[h.id]=best;setBuff(h,'chan',3,0,{m:CHAN_MULT*chiMult(h)});blog(`${n} channels ${elTag(best)}${chiNow(h)?' with surging chi':''}: the next strike is infused and deals ${+(CHAN_MULT*chiMult(h)).toFixed(2)}× damage. Change the element any time.`);return}
    if(K&&K.mark&&!K.mult){const L=K.tgt==='all'?aliveFoes():[tgt];for(const t of L){if(!t)continue;if(K.acc&&K.tgt!=='all'&&!chance(hitChance(h,t,K.acc)/100)){blog(`${n}’s mark slips off ${t.name}.`);continue}applyMark(h,t,K)}return}
    if(K&&(K.bless||K.buff)){monkSupport(h,K,ally);return}}
+  {const K=SKILLS[act];
+   if(K&&K.fort){const F=K.fort;b.taunt=h.id;b.tauntN=F.n;setBuff(h,'def',F.n,F.def);setBuff(h,'thorn',F.n,F.thorn);setBuff(h,'fort',F.n,F.regen);
+     blog(`<b class="gold">${n} raises a Fortress!</b> For ${F.n} rounds every enemy must face ${n}, who takes ${F.def}% less damage, reflects ${F.thorn}% and recovers ${Math.round(F.regen*100)}% health each turn.`);return}
+   if(K&&K.sanct){const S=K.sanct,L=darkIs('selfish')?[h]:living();
+     const parts=L.map(x=>{const v=Math.round((maxHp(x)*S.hp+stat(h,'int')*S.int)*healMult(x));x.hp=Math.min(maxHp(x),x.hp+v);b.pops.push({s:'h',hid:x.id,t:'+'+v});if(b.dot)delete b.dot[x.id];if(b.hpois)delete b.hpois[x.id];if(b.curse)delete b.curse[x.id];setBuff(x,'def',S.n,Math.max(S.def,(heroBuff(x,'def')||{v:0}).v));return `${esc(x.name)} +${v}`});
+     blog(`<b class="gold">${n} opens a Sanctuary:</b> ${parts.join(', ')} HP. Poison, bleeding and curses are cleansed, and the party takes ${S.def}% less damage for ${S.n} rounds.`);return}
+   if(K&&K.avatar){const A=K.avatar;setBuff(h,'chan',A.n,0,{m:A.m,keep:true,prism:true});blog(`<b class="gold">${n} becomes an Elemental Avatar!</b> For ${A.n} turns every strike carries the element that hurts its target most, and deals ${A.m}× damage.`);return}
+   if(K&&K.haste){return}}
   if(act==='taunt'){const v=Math.min(75,47+Math.round(stat(h,'end')*.5));b.taunt=h.id;b.tauntN=3;setBuff(h,'def',3,v);blog(`${n} bellows an Iron Challenge! Every enemy must attack ${n} for 3 rounds, and ${n} takes ${v}% less damage.`);return}
   if(act==='imbue'||act==='imbue2'){const t=SKILLS[act].dur,tg=fixTarget();let best=attuned(h),bv=-1;if(tg&&isScouted(tg))for(const el of ELEMENTS){const v=matchup(el,tg.type)*(1-(tg.res[el]||0)/100);if(v>bv){bv=v;best=el}}b.attune[h.id]=best;setBuff(h,'imbue',t);blog(`${n} nocks Elemental Arrows: ${elTag(best)} for the next ${t} turns. Change the element any time.`);return}
-  {const E=SKILLS[act]&&SKILLS[act].eva;if(E){const t=Math.min(E.max,E.n+Math.floor((stat(h,'agi')+stat(h,'lck'))/20));setBuff(h,'eva',t,E.v,{dmg:E.dmg||0});
+  {const E=SKILLS[act]&&SKILLS[act].eva;if(E){const t=Math.min(E.max,E.n+Math.floor((stat(h,'agi')+stat(h,'lck'))/20));setBuff(h,'eva',t,E.v,{dmg:E.dmg||0,ctr:!!E.ctr});
     let extra='';if(E.party){const o=living().filter(x=>x!==h);for(const x of o)if(!(heroBuff(x,'eva')&&(heroBuff(x,'eva').v||90)>E.party))setBuff(x,'eva',3,E.party);if(o.length)extra=` The rest of the party gets ${E.party}% evasion for 3 turns.`}
-    blog(`${n} uses ${SKILLS[act].n}: ${E.v}% evasion for ${t} turns${E.dmg?` and +${E.dmg}% damage`:''}.${extra}`);return}}
+    blog(`${n} uses ${SKILLS[act].n}: ${E.v}% evasion for ${t} turns${E.dmg?` and +${E.dmg}% damage`:''}${E.ctr?', and every dodge is answered with a shot':''}.${extra}`);return}}
   {const R=SKILLS[act]&&SKILLS[act].rally;if(R){b.rally={by:h.id,n:R.n,dmg:R.dmg,def:R.def,crit:R.crit||0,name:SKILLS[act].n};if(R.taunt){b.taunt=h.id;b.tauntN=R.n}if(R.undying)setBuff(h,'undying',R.n);
     blog(`<b class="gold">${n} raises ${SKILLS[act].n}!</b> For ${R.n} rounds the party deals ${R.dmg}% more damage and takes ${R.def}% less${R.crit?`, with +${R.crit}% crit chance`:''}.${R.taunt?` Every enemy must face ${n}.`:''}${R.undying?` ${n} cannot fall while it stands.`:''}`);return}}
   if(act==='sniper'){const t=turns('per','lck',2);setBuff(h,'crit',t);blog(`${n} settles into a Sniper’s stance: 80% crit chance for the next ${t} turns.`);return}
@@ -5262,7 +5262,9 @@ function intentHtml(e){
 // One enemy blow against one hero. Returns the damage dealt, or -1 if the hero dodged.
 function foeStrike(e,i,h,mult,o){
   const r=state.run,b=r.battle;o=o||{};
-  if(chance(heroEva(h)/100)){blog(`${esc(h.name)} dodges ${e.name}’s ${o.name||'attack'}.`);b.pops.push({s:'h',hid:h.id,t:'miss'});return -1}
+  if(chance(heroEva(h)/100)){blog(`${esc(h.name)} dodges ${e.name}’s ${o.name||'attack'}.`);b.pops.push({s:'h',hid:h.id,t:'miss'});
+    {const E=heroBuff(h,'eva');if(E&&E.ctr&&e.hp>0&&h.hp>0)hitEnemy(h,e,{mult:1,acc:100,sure:true,crit:5,el:atkEl(h,'weapon'),label:'counter-shoots',proc:true})}
+    return -1}
   let d=e.atk*mult*rand(.85,1.15)*(e.weak?.7:1)*(b.guard[h.id]?.33:1)*(b.howl&&b.howl.n>0?1.2:1)*(1+(e.rage||0))*(1+.25*(e.grief||0))*(e.rallied?1.35:1)*spDmg(e,h);e.struck=true;e.rallied=false;
   const mix=foeMix(e,o.act||(o.heavy?'heavy':'attack')),el=Object.keys(mix).filter(k=>k!=='physical'&&mix[k]>0).sort((a,c)=>mix[c]-mix[a])[0]||'physical';
   d=mitigate(h,d,mix);
@@ -5273,7 +5275,7 @@ function foeStrike(e,i,h,mult,o){
   runStat(h).taken+=Math.min(d,h.hp);h.hp=Math.max(0,h.hp-d);b.fx['h'+h.id]=1;if(crit){b.fx.crit=1;b.fx.shake=1}b.pops.push({s:'h',hid:h.id,t:d,crit,el});e.lastHit=h.id;
   {const S=spOf(e);if(S&&S[0]==='leech'&&e.hp>0){const x=Math.round(d*S[1]/100);if(x>0){e.hp=Math.min(e.maxHp,e.hp+x);b.pops.push({s:'e',i,t:'+'+x})}}}
   blog(`${e.name} ${o.verb||'strikes'} ${esc(h.name)}${el!=='physical'?` (${elTag(el)})`:''} for <b>${d}</b>${crit?' <b class="gold">CRIT</b>':''}.`);
-  const th=tr(h,'thorns');
+  const th=tr(h,'thorns')+(heroBuff(h,'thorn')?heroBuff(h,'thorn').v:0);
   if(th>0&&e.hp>0){const x=Math.max(1,Math.round(d*th/100*stunMult(e)));e.hp=Math.max(0,e.hp-x);blog(`Spikes return ${x} damage to ${e.name}.`);if(e.hp<=0){b.fx['die'+i]=1;blog(`${e.name} falls.`)}}
   if(h.hp>0&&bigE)bossAfflict(e,h,d);
   if(h.hp<=0)heroDown(h);
@@ -5307,7 +5309,7 @@ function bossAfflict(e,h,d){
   if(e.type==='grass'&&chance(.5)){b.hpois=b.hpois||{};b.hpois[h.id]={n:3,dmg:Math.max(1,Math.round(d*.2))};blog(`${n} is poisoned.`)}
   else if(e.type==='ice'){b.ct['h:'+h.id]+=delayOf('h:'+h.id)*.35;b.chill=b.chill||{};b.chill[h.id]=1;blog(`${n} is chilled. Their next turn comes later.`)}
   else if(e.type==='fire'){b.burn=b.burn||{};const was=b.burn[h.id]||0;b.burn[h.id]=Math.min(40,was+10);if(b.burn[h.id]>was)blog(`${n} is burned: −${b.burn[h.id]}% Fire resistance for this fight.`)}
-  else if(e.type==='thunder'){const opts=['atk:normal','atk:power','atk:aim','stance',...h.skills];b.jam=b.jam||{};b.jam[h.id]=pick(opts);blog(`${n} is jolted: ${JAM_N(b.jam[h.id])} is locked for their next turn.`)}
+  else if(e.type==='thunder'){const opts=['atk:normal','atk:power','atk:aim','stance',...kit(h)];b.jam=b.jam||{};b.jam[h.id]=pick(opts);blog(`${n} is jolted: ${JAM_N(b.jam[h.id])} is locked for their next turn.`)}
 }
 // A Warrior standing third in the line can't reach the enemy: no attacks or damaging skills, only buffs (or step forward).
 const benched=h=>{const r=state.run;if(!r||!r.battle||!h||h.cls!=='warrior')return false;const L=living();return L.length>=3&&L.indexOf(h)===2};
@@ -5315,7 +5317,7 @@ const benched=h=>{const r=state.run;if(!r||!r.battle||!h||h.cls!=='warrior')retu
    Warriors: every attack and damaging skill works from the front and middle ranks but not the 3rd; buffs and support work anywhere.
    Archers: they need room. In the front rank only the close-quarters and self-buff skills work; the rest need the middle or back.
    Mages and Monks: any skill from any rank. */
-const ARCHER_FRONT_OK=['double','cripple','imbue','assassin','feather','shadow','phantom'];
+const ARCHER_FRONT_OK=['double','cripple','imbue','assassin','feather','shadow','phantom','counter','quick','flurry','windrun','tempo'];
 const archerCrowded=h=>{const r=state.run;if(!r||!r.battle||!h||h.cls!=='archer')return false;const L=living();return L.length>=2&&L.indexOf(h)===0};
 const frontBlocked=(h,act)=>archerCrowded(h)&&!!SKILLS[act]&&SKILLS[act].cls==='archer'&&!ARCHER_FRONT_OK.includes(act);
 const reachBlocked=(h,act)=>(benched(h)&&(act==='atk'||String(act).startsWith('atk:')||!!(SKILLS[act]&&SKILLS[act].mult)))||frontBlocked(h,act);
@@ -5688,7 +5690,7 @@ function endRun(outcome){
   else if(outcome==='scroll'){title=`${names} read a Return Scroll`;sub=`Escaped ${where} on stage ${r.stage}.`}
   else{title=`${names} returned from ${where}`;sub=`Beat the final boss on stage ${r.total}.`;state.cleared=state.cleared||{};state.cleared[r.length]=(state.cleared[r.length]||0)+1;
     {const rk=BADGE_RANK[r.length]||0,got=survivors.filter(h=>(h.badge||0)<rk);for(const h of got)h.badge=rk;
-     if(rk===2&&!state.monkOpen){state.monkOpen=true;lines.push(`<b class="gold">Word of the Wilds spreads, and the road to the Wasteland is open. A different kind of wanderer has taken notice: monks, who fight bare-handed and bless the weary, may now turn up at the Barracks (about 1 recruit in 10).</b>`)}
+     if(rk===2&&!state.monkOpen){state.monkOpen=true;state.monkGuarantee=true;if(state.candidates&&state.candidates.length&&!state.candidates.some(c=>c.cls==='monk')){state.candidates.pop();state.candidates.push(makeHero('monk'))}lines.push(`<b class="gold">Word of the Wilds spreads, and the road to the Wasteland is open. A different kind of wanderer has taken notice: a monk, who fights bare-handed and blesses the weary, waits at the Barracks. More will turn up now and then.</b>`)}
      if(got.length)lines.push(`<b class="gold">${esc(listNames(got.map(h=>h.name)))} earned the ${BADGE_N[rk]} badge!</b> ${rk<4?`${LENGTHS[Object.keys(BADGE_NEED).find(k=>BADGE_NEED[k]===rk)].name} adventures are now open to any party with ${got.length>1?'them':'this hero'}.`:''}`)}
     const G=state.gov;if(G&&['medium','long','expedition'].includes(r.length)&&!(G.miles||[]).includes(r.length)){(G.miles=G.miles||[]).push(r.length);G.pend=(G.pend||0)+1;
       lines.push(`<b class="gold">The town celebrates, and I’ve earned a promotion! I’ll choose how to grow from my portrait.</b>`)}}
@@ -5712,12 +5714,10 @@ function afxIco(k){
 }
 function afxLine(it,a){const A=AFX[a.k],v=affVal(it,a),dead=a.k.startsWith('dmg_')&&!it.cls;return `<span class="afx" data-tip="${esc(A.l+(dead?'. No effect for warriors: they only deal physical damage.':''))}">${afxIco(a.k)}+${v<10?+v.toFixed(1):Math.round(v)}${A.p?'%':''} ${A.e?`<span class="el" style="--c:${EL_COL[A.e]}">${A.l}</span>`:A.l}${dead?' <small class="muted">(not warriors)</small>':''}</span>`}
 function itemIcon(it,sc=4){
-  if(D3on()&&d3st==='ready'&&DS3D.itemThumb){let u=null;try{u=DS3D.itemThumb(it)}catch(e){}
-    if(u)return `<span class="ibox r-${it.rarity}-bg d3ico"><img class="px" src="${u}" alt="" style="width:${sc*9}px;height:${sc*9}px"></span>`}
   const col=getRarCol(it.rarity),nm=it.slot==='weapon'?({warrior:'sword',archer:'bow',mage:'staff',monk:'fist'})[it.cls]||'sword':({helmet:'helmet',chest:'chestplate',pants:'pants',ring:'ring',amulet:'amulet'})[it.slot];
   return `<span class="ibox r-${it.rarity}-bg">${sprite(nm,col,sc)}</span>`;
 }
-const itemArt=(it,spr,col,sc)=>{if(it&&D3on()&&DS3D.itemThumb){let u=null;try{u=DS3D.itemThumb(it)}catch(e){}if(u)return `<img class="px d3ico" src="${u}" alt="" style="width:${sc*9}px;height:${sc*9}px">`}return sprite(spr,col,sc)};
+const itemArt=(it,spr,col,sc)=>sprite(spr,col,sc);
 const getRarCol=r=>({common:'#b9b1a3',rare:'#5f97e3',epic:'#b56fe3',godlike:'#f2a83a',perfect:'#ff5c7a'})[r];
 function itemBody(it){
   if(it.pid){const P=PERF[it.pid];
@@ -5823,7 +5823,7 @@ const TUT_B=[
   ['top',h=>`${esc(h.name)} is a ${C_(h).name}. ${h.cls==='warrior'?'Warriors wear heavy armor, have the most health and belong in front, where most blows land.':h.cls==='archer'?'Archers hit hard and dodge a lot, but can’t take many hits.':'Mages wield the elements but are fragile.'} The letter by the name is their grade, from S (best) to D: how well their natural stats suit the class.`],
   ['vit',h=>`<b class="hpc">HP</b> is health. If it hits 0 in a fight they fall, and a fallen hero is gone for good, along with their gear. <b class="mpc">MP</b> is mana: skills spend it, and it refills a little every turn. Both refill fully in town.`],
   ['traits',h=>`Traits are quirks they were born with. <span class="tk-good">Green</span> ones help, <span class="tk-neutral">yellow</span> ones are a mixed bag, <span class="tk-bad">red</span> ones hurt. Hover or tap a trait to read it. Another trait shows up every 10 levels.`],
-  ['skills',h=>`They start with two skills. Skills cost MP but hit harder than a plain attack. New skills arrive at levels 8, 18 and 28.`],
+  ['skills',h=>`They start with two skills. Skills cost MP but hit harder than a plain attack. New skills arrive at levels 6, 13, 21 and 30, and a hero can bring up to four on each adventure.`],
   ['xp',h=>`Fights earn experience. Every level-up restores them fully and brings attribute points to spend.`],
   ['stats',h=>`Seven attributes shape everything. STR: power. PER: accuracy and spotting what enemies plan. END: health and resistances. CHA: better prices and events. INT: mana. AGI: speed and dodging. LCK: crits and good fortune. The ${C_(h).name}’s main one is outlined. Tap any of them to learn more.`],
   ['el',h=>`Everyone is born a little different against the elements. This shows what they resist, what they’re weak to, and any elemental damage bonus.`],
@@ -5895,7 +5895,7 @@ function heroCard(h,footer,sel,tut){
     <div class="hc-top" data-tut="top"><div class="portrait big">${heroArt(h,6)}<span class="clsbadge" data-tip="${esc(C.name+': '+C.style)}">${ico(({warrior:'sword',archer:'bow',mage:'staff',monk:'fist'})[h.cls],C.tint,2)}</span></div>
       <div class="stack" style="gap:2px"><span class="hname">${esc(h.name)}<span class="grade" style="color:${gc}" data-tip="Roll grade from S to D: how well the stats fit the class. The class stat counts most." tabindex="0">${g}</span></span>
       <span class="muted" data-tut="vit">Lv ${h.level} ${C.name} · <b class="hpc">${maxHp(h)} HP</b> · <b class="mpc">${maxMp(h)} MP</b> ${badgeIco(h.badge||0)}</span>${injOf(h)?`<span class="warn" style="font-size:18px" data-tip="${esc('Injured from exhaustion: '+INJURY[injOf(h)].d+'. Heals after week '+h.injury.until+'. Campsites don’t heal injuries.')}">✚ ${INJURY[injOf(h)].n}: ${INJURY[injOf(h)].d} (heals after week ${h.injury.until})</span>`:''}${h.points?`<span class="gold" style="font-size:20px">${h.points} points to assign</span>`:''}</div></div>
-    <div data-tut="traits">${traitChips(h)}</div><div class="traits" data-tut="skills">${h.skills.map(id=>skillChip(h,id)).join('')}</div><div data-tut="xp">${xpBar(h)}</div><div data-tut="stats">${statPips(h,true)}</div><div data-tut="el">${innateLine(h)}${heroElTable(h)}</div><div data-tut="go">${footer||''}</div></div>`;
+    <div data-tut="traits">${traitChips(h)}</div><div class="traits" data-tut="skills">${h.skills.map(id=>skillChip(h,id)).join('')}</div>${state.heroes.includes(h)&&h.skills.length>KIT_MAX?kitCount(h):''}<div data-tut="xp">${xpBar(h)}</div><div data-tut="stats">${statPips(h,true)}</div><div data-tut="el">${innateLine(h)}${heroElTable(h)}</div><div data-tut="go">${footer||''}</div></div>`;
 }
 
 /* ---------- installing as an app (only on the hosted site, never inside Claude) ---------- */
@@ -6927,7 +6927,8 @@ const bankCat=(it,f)=>f==='all'||(f==='armor'?!['weapon','ring','amulet'].includ
 const itemTier=it=>RAR[it.rarity].i*1e4+it.ilvl*10+(it.plus||0);
 // Class filter (items a class can use: its own gear plus any-class gear) and class order for sorting.
 const CLS_ALL=['warrior','archer','mage','monk'],CLS_F=['warrior','archer','mage'],clsOk=(it,c)=>!c||(c==='monk'?fits(it,{cls:'monk'}):!it.cls||it.cls===c),clsRank=it=>it.cls?CLS_F.indexOf(it.cls):3;
-const clsTabs=()=>monkOpen()||(state.heroes||[]).some(h=>h.cls==='monk')?CLS_ALL:CLS_F;
+// The Monk filter stays hidden until a monk has actually gone on a mission, so the class isn't spoiled early.
+const clsTabs=()=>state.monkSeen?CLS_ALL:CLS_F;
 function clsRow(list,cur,act){return `<div class="subtabs invf clsf" role="tablist" aria-label="Class">${clsTabs().map(c=>{const n=list.filter(it=>clsOk(it,c)).length;return `<button class="subtab ${cur===c?'cur':''} ${n?'':'empty'}" role="tab" aria-selected="${cur===c}" data-a="${act}" data-x="${c}" data-tip="${esc('Gear a '+CLASSES[c].name+' can use (including any-class pieces). Tap again to show every class.')}">${CLASSES[c].name} <small>${n}</small></button>`}).join('')}</div>`}
 function bankSorted(L,srt){const o=L.slice();if(srt==='new')return o.reverse();if(srt==='cls')return o.reverse().sort((a,b)=>clsRank(a)-clsRank(b)||itemScore(b)-itemScore(a));if(srt==='up')return o.reverse().sort((a,b)=>(bankUpFor(b).length>0)-(bankUpFor(a).length>0)||itemScore(b)-itemScore(a));
   const k=srt.startsWith('tier')?itemTier:sellVal,d=srt.endsWith('D')?-1:1;return o.sort((a,b)=>d*(k(a)-k(b))||d*(sellVal(a)-sellVal(b)))}
@@ -6955,7 +6956,7 @@ function selParty(){
 function advView(){
   let max=partyMax();const p=state.heroes.length?selParty():[],un=descentUnlocked(),hg=bestHaggler(),bIds=p.length?p:state.heroes.map(h=>h.id);
   if(!LENGTHS[state.sel.len]||(!un&&state.sel.len==='descent')||(!LENGTHS[state.sel.len].final&&!lenOpen(state.sel.len,bIds)))state.sel.len='short';
-  const final=state.sel.len==='descent',ok=p.length&&(!final||(un&&p.length===3))&&(final||LAND_PICK.includes(state.sel.biome))&&(final||lenOpen(state.sel.len,p))&&!tooHighFor(state.sel.len,p).length;
+  const final=state.sel.len==='descent',ok=p.length&&(!final||(un&&p.length===3))&&(final||LAND_PICK.includes(state.sel.biome))&&(final||lenOpen(state.sel.len,p))&&!tooHighFor(state.sel.len,p).length&&!kitShort(p).length;
   const bestLoot=k=>{const C=LOOT_CAP[k]||LOOT_CAP.short;return Object.values(C).reduce((a,x)=>RAR[x].i>RAR[a].i?x:a,'common')};
   const SHORTN={short:'Cave',medium:'Wilds',long:'Waste',expedition:'Summit',descent:'Dark'};
   const pctDark=Math.round(moonState().shown);
@@ -6980,6 +6981,8 @@ function advView(){
   s+=`<div class="setout ${coachMark('gate','go')}">    ${final&&p.length!==3?'<p class="warn">The Dark Side needs exactly 3 heroes.</p>':''}
     ${high.length?`<p class="warn">${high.map(h=>`<b>${esc(h.name)}</b> (Lv ${h.level}): “I’ve done this too many times. It’s too easy, I need more of a challenge.”`).join('<br>')}<br><span class="muted">Heroes above level ${L.maxLv} won’t take the ${L.name}. Pick a longer adventure or another hero.</span></p>`:''}
     ${(()=>{const g=greenFor(state.sel.len,p);return g.length?`<p class="warn">${esc(listNames(g.map(h=>h.name)))} ${g.length>1?'look':'looks'} green for a trip like this. Perhaps ${g.length>1?'they need':(g[0].name?'this hero needs':'they need')} more training and experience before adventuring here.</p>`:''})()}
+    ${loadoutBlock(p)}
+    ${kitShort(p).length?`<p class="warn">${esc(listNames(kitShort(p).map(h=>h.name)))} still ${kitShort(p).length>1?'need':'needs'} to choose ${KIT_MAX} skills to bring.</p>`:''}
     ${state.guide&&ok?'<p class="guidehint">③ Set out!</p>':''}<button class="btn gold big ${state.guide&&ok?'guide':''}" data-a="setOut" ${ok?'':'disabled'}>Equip &amp; set out: ${L.final?'The Dark Side':L.name} with ${esc(listNames(p.map(id=>heroById(id).name)))}</button></div>`;
   s+='</div><div class="stack">';
   // outfitter: supplies
@@ -7025,18 +7028,6 @@ function homeView(){
   const heroes=state.heroes.slice(0,HERO_SPOTS.length).map((h,i)=>{const [gx,gy]=HERO_SPOTS[i],p=isoPt(ISO.ox,ISO.oy,gx+.5,gy+.5);
     return `<button class="isohero" style="left:${pct(p[0],ISO.W)};top:${pct(p[1],ISO.Hh)}" data-a="openHero" data-x="${h.id}" data-tip="${esc(`${h.name} · Lv ${h.level} ${C_(h).name} · ${maxHp(h)} HP`)}">${heroArt(h,4,'bob')}${h.points?'<span class="alert">!</span>':''}</button>`}).join('');
   const graves=graveSpots(Math.min(10,state.graveyard.length)).map(([x,y],i)=>{const G=state.graveyard[i];return `<span class="tomb" style="left:${pct(x,ISO.W)};top:${pct(y,ISO.Hh)}" data-tip="${esc(`Here lies ${G.name}, Lv ${G.level} ${CLASSES[G.cls].name}. Fell in ${G.biome} on stage ${G.stage}, week ${G.week}.`)}">${sprite('tomb',null,2)}</span>`}).join('');
-  if(D3on()){
-    const TI=townInfo(),bl=Object.entries(T.spots).map(([k])=>{const open=k==='adventure'||bldOpen(k),known=bldKnown(k);
-      return `<button class="d3b ${k==='adventure'?'gatespot':''} ${open?'':'building'} ${known?'':'mystery'} ${guideAt()===k?'guide':''}" data-nb="${k}" ${known?`data-a="tab" data-x="${k}"`:'disabled'} aria-label="${known?NAMES[k]:'Unknown building'}${open?'':': under construction'}" ${known?'':'data-tip="The builders are waiting to hear what this lot is for."'}><span class="plaque ${k==='adventure'?'gold':''}">${!known?'?':NAMES[k]+(open?(lv[k]?` <span class="lvpill">${lv[k]}</span>`:''):` <span class="soon">${hasMats(BLD_NEED[k])?'ready to build!':`needs ${Object.entries(BLD_NEED[k]).map(([m,v])=>v+' '+MATS[m].n).join(', ')}`}</span>`)}</span>${open&&alert[k]?'<span class="alert">!</span>':''}</button>`}).join('');
-    const hs=state.heroes.slice(0,HERO_SPOTS.length).map(h=>`<button class="d3h" data-nh="${h.id}" data-a="openHero" data-x="${h.id}" data-tip="${esc(`${h.name} · Lv ${h.level} ${C_(h).name} · ${maxHp(h)} HP`)}" aria-label="${esc(h.name)}">${h.points?'<span class="alert">!</span>':''}</button>`).join('');
-    const gv=state.graveyard.slice(0,TI.graves.length).map((G,i)=>`<span class="d3g" data-ng="${i}" data-tip="${esc(`Here lies ${G.name}, Lv ${G.level} ${CLASSES[G.cls].name}. Fell in ${G.biome} on stage ${G.stage}, week ${G.week}.`)}"></span>`).join('');
-    return `<div class="iso d3iso"><div class="d3slot" data-d3="town"></div>
-      <div class="iso-title"><span class="hname">Week ${state.week}</span><span class="muted">Your town</span></div>
-      <button class="d3moon" data-nmoon data-tip="${esc(moonTip())}" data-a="tab" data-x="ledger" aria-label="Open the Moon Ledger"><span class="moonpct">${moonKnown()?`${Math.round(m.shown)}% dark · `:''}Ledger</span>${ledgerNewCount()?`<span class="alert">${ledgerNewCount()}</span>`:''}</button>
-      ${gv}${bl}${hs}</div>
-    ${townEventBlock()}
-    <button class="nextstep ${guidePts()?'guide':''}" data-a="${n.a}" data-x="${n.x}">${n.i}<span><small>Next step</small><b>${esc(n.t)}</b></span><span class="arrow">→</span></button>`;
-  }
   let s=`<div class="iso">
     <img class="px isoimg" src="${T.url}" alt="Your town at night">
     <div class="iso-title"><span class="hname">Week ${state.week}</span><span class="muted">Your town</span></div>
@@ -7074,7 +7065,7 @@ function partyPanel(){
       <div class="pc-head"><div class="portrait">${heroArt(h,3)}</div><div class="stack" style="gap:3px;flex:1;min-width:0"><span class="hname">${posBadge(h)}${esc(h.name)} <small class="muted">Lv ${h.level} ${C_(h).name}</small>${h.hp<=0?' <span class="warn">fallen</span>':''}</span>
         ${bars(h)}${fatLine(h)}<button class="linkbtn ${h.points&&h.hp>0&&!open?'guide':''}" data-a="pdet" data-x="${h.id}" aria-expanded="${open}">${open?'Hide details ▴':'Details ▾'}${h.points?` <span class="gold">· ${h.points} pts</span>`:''}</button></div>
         ${gearDoll(h,'pslot',sel[0]===h.id?sel[1]:null,true)}</div>${pslotDetail(h)}
-      ${open?`<div class="stack pdetail" style="gap:2px">${czSec('run.traits','Traits & skills',`${traitChips(h)}<div class="traits">${h.skills.map(id=>skillChip(h,id)).join('')}</div>${h.hp>0?learnBlock(h):''}`)}${czSec('run.xp','Level',`${xpBar(h)}${h.hp>0?allocBtns(h):''}`)}${czSec('run.attr','Attributes',statPips(h))}${czSec('run.combat','Combat',statTable(h))}${czSec('run.res','Resistances',heroElTable(h))}</div>`:''}</div>`}).join('')}
+      ${open?`<div class="stack pdetail" style="gap:2px">${czSec('run.traits','Traits & skills',`${traitChips(h)}<div class="traits">${kit(h).map(id=>skillChip(h,id)).join('')}</div>${h.hp>0?learnBlock(h):''}`)}${czSec('run.xp','Level',`${xpBar(h)}${h.hp>0?allocBtns(h):''}`)}${czSec('run.attr','Attributes',statPips(h))}${czSec('run.combat','Combat',statTable(h))}${czSec('run.res','Resistances',heroElTable(h))}</div>`:''}</div>`}).join('')}
     ${r.scrolls&&!(b&&b.over)?(ui.scrollAsk?`<div class="scrollask"><p><b class="gold">Read the Return Scroll?</b> The adventure ends here and ${many?'the whole party goes':'the hero goes'} home with everything carried. ${r.scrolls>1?`(${r.scrolls-1} left after this.)`:'It’s your only scroll.'}</p><div class="row"><button class="btn gold" data-a="scroll">Read it, go home</button><button class="btn" data-a="scrollAsk" data-x="0">Keep going</button></div></div>`:`<button class="btn" data-a="scrollAsk" data-x="1">Read Return Scroll${many?' (whole party)':''}</button>`):''}
     ${czSec('run.bag','Bag',(()=>{const bag=Object.entries(r.bag||{}).filter(([id,n])=>n>0&&CONSUMABLES[id]),field=!(b&&!b.over);
       if(!bag.length)return '<p class="muted">No supplies.</p>';
@@ -7084,42 +7075,6 @@ function partyPanel(){
     ${backpackBlock()}`;
 }
 const stageText=r=>r.final?(r.stage>finStages(r)?`Stage <b class="num">${r.stage}</b> · <span class="bossmark">the King stirs</span>`:`Stage <b class="num">${r.stage}/${finStages(r)}+</b>`):`Stage <b class="num">${r.stage}</b>`;
-/* ---------- 3D road map: the data and the overlay the 3D scene needs ---------- */
-function mapInfo(){
-  const r=state.run;if(!r||!r.plan)return null;
-  const pp=effPer(),sight=sightRange(pp),bot=r.plan[r.stage-1]?r.stage-1:r.stage,top=r.stage+MAP_SHOW,rows=[];
-  const vis=k=>{const P=r.plan[k];return !!P&&(k<=r.stage+sight||k<=r.stage||k<=(r.scoutTo||0))};
-  for(let k=bot;k<=top;k++){const P=r.plan[k];
-    if(!P){rows.push({k,none:true});continue}
-    const v=vis(k),cur=k===r.stage;
-    rows.push({k,nc:ncOf(P),vis:v,cols:P.cols,next:P.next,
-      nodes:P.nodes.map((t,i)=>({i,t:v?t:null,col:P.cols[i],can:cur&&(r.reach||[]).includes(i),here:k===r.stage-1&&i===r.pos,trap:!!(cur&&P.spotted&&P.spotted[i]),fog:!!(cur&&P.fog&&P.fog[i])}))})}
-  return {id:r.id,biome:r.biome,stage:r.stage,pos:r.pos,reach:r.reach||[],evt:!!r.event,rows};
-}
-// The clickable labels over the 3D nodes. The 3D scene moves each one to its node every frame.
-function mapOverlay3d(){
-  const r=state.run,I=mapInfo(),pp=effPer(),sight=sightRange(pp);if(!I)return '';let h='';
-  for(const row of I.rows){if(row.none)continue;
-    if(row.k===r.stage){
-      for(const n of row.nodes){const t=n.t,fog=n.fog,big=['boss','warden','king'].includes(t);
-        const tip=fog?'Unknown. Your party’s Perception is too low to make this out. Could be anything: a fight, an elite, a chest, a rest…':`${NODE[t].n}: ${NODE[t].d}${n.trap?' Your Perception spotted a trap: it is a Mimic.':''}`;
-        const inner=fog?'<span class="qfog">≋</span>':nodeIco(t,big?4:3);
-        if(n.can)h+=`<button class="d3n can ${big?'big':''} ${n.trap?'trap':''}" data-nk="${row.k}:${n.i}" data-h="${big?7.2:4.6}" data-a="d3node" data-x="${n.i}" data-tip="${esc(tip)}" aria-label="${esc(fog?'Unknown':NODE[t].n)}">${inner}<span class="mlab">${fog?'Unknown':NODE[t].s}</span>${n.trap&&!fog?'<span class="alert">!</span>':''}</button>`;
-        else h+=`<span class="d3n off" data-nk="${row.k}:${n.i}" data-h="${big?7.2:4.6}" data-tip="${esc(tip)}">${inner}</span>`}
-    }else if(row.k>r.stage){
-      for(const n of row.nodes){if(!row.vis){h+=`<span class="d3n far" data-nk="${row.k}:${n.i}" data-h="3.4" data-tip="${esc(`Stage ${row.k}: you can see where the paths go, but not what waits on them. The party’s combined Perception (${pp}) ${sight?`reads ${sight} stage${sight>1?'s':''} past your choices`:'only reads the choices right in front of you'}; it reads 1 stage further at 9 and 2 at 21.`)}">?</span>`;continue}
-        const big=['boss','warden','king'].includes(n.t);
-        h+=`<span class="d3n far ${big?'big':''}" data-nk="${row.k}:${n.i}" data-h="${big?7.2:4.6}" data-tip="${esc(`${NODE[n.t].n}: ${NODE[n.t].d}`)}">${nodeIco(n.t,2)}<span class="mlab">${NODE[n.t].s}</span></span>`}
-    }
-  }
-  return h;
-}
-function mapHud3d(){
-  const r=state.run,pp=effPer();
-  return `<div class="d3hud"><div class="d3title"><h3>${r.nodes[0]==='king'?'There is no other path':'Choose your path'}</h3>
-    <span class="chip mstat" data-tip="${esc(perNow(pp))}">${ico('eye','#9fd6ff',2)}Perception <b>${partyPer()}</b>${lenBase().per?` <span class="muted">/ ${lenBase().per}</span>`:''}</span><span class="chip mstat" data-tip="${esc(chaNow())}">${ico('crown','#e3b341',2)}Charisma <b>${partyCha()}</b> <span class="${partyChaEvent()>0?'ok':partyChaEvent()<0?'warn':'muted'}">${partyChaEvent()>0?'+':''}${partyChaEvent()}%</span></span><span class="chip mstat" data-tip="${esc(lckNow())}">${ico('clover','#78ab60',2)}Luck <b>${partyLck()}</b> <span class="${partyLckEvent()>0?'ok':partyLckEvent()<0?'warn':'muted'}">${partyLckEvent()>0?'+':''}${partyLckEvent()}%</span></span></div>
-    ${r.fatMsg?`<p class="d3msg">${r.fatMsg}</p>`:''}</div>`;
-}
 function runView(){
   const r=state.run,B=BIOMES[r.biome];
   if(r.battle)return battleScreen();
@@ -7131,8 +7086,7 @@ function runView(){
     <div class="rh-scrap">${scrapStrip(r.mats,'Scrap gathered this trip. It comes home if the party returns or flees, and is lost if everyone falls.').replace('class="scrapline"','class="scrapline rhs"')}</div>
     <div class="res"><span class="chip" data-tip="Gold carried">${sprite('coin',null,2)}<b class="num">${r.gold}</b></span><span class="chip" data-tip="Backpack">${sprite('chest',null,2)}<b class="num">${r.loot.length}/${bagCap()}</b></span><span class="chip" data-tip="Return Scrolls">${sprite('scroll',null,2)}<b class="num">${r.scrolls}</b></span><button class="btn small ${(r.ground||[]).length?'guide':''}" data-a="inv" data-tip="Gear, backpack and anything on the ground">Inventory</button><button class="btn small partybtn ${partyAll().some(x=>x.hp>0&&x.points)&&ui.drawer!=='party'?'guide':''}" data-a="drawer" data-x="party" ${partyAll().some(x=>x.hp>0&&x.points)?'data-tip="Level up! Open the party to spend attribute points."':''}>Party</button>${fleeBtn('small red')}</div></div>
     ${r.final?`<div class="prog" title="Red marks are bosses">${prog}</div>`:''}</section>`;
-  if(D3on()&&!ui.menu)s=`<div class="d3run"><div class="d3slotwrap"><div class="d3slot" data-d3="map"></div>${r.event?'':mapOverlay3d()}</div>${s}${r.event?`<div class="d3evt"><section class="panel">${eventView()}</section></div>`:mapHud3d()}</div>`;
-  else s+=`<div class="runlay"><section class="panel">${r.event?eventView():nodesView()}</section><aside class="panel partycol">${partyPanel()}</aside></div>`;
+  s+=`<div class="runlay"><section class="panel">${r.event?eventView():nodesView()}</section><aside class="panel partycol">${partyPanel()}</aside></div>`;
   if(ui.drawer==='party')s+=`<div class="drawer fx"><div class="drawer-top"><h2>Party</h2><button class="xbtn" data-a="drawer" data-x="" aria-label="Close">×</button></div><div class="drawgrid">${partyPanel()}</div></div>`;
   return s+fleeModal();
 }
@@ -7216,6 +7170,10 @@ function heroInfo(h){
   if(stanceOf(h))tags.push(`<span class="utag" style="color:#8fa8c8" data-tip="${esc(STANCE[h.cls].n+': '+STANCE[h.cls].d(h)+' Ends when this hero acts again.')}">${STANCE[h.cls].n.split(' ')[0]}</span>`);
   if(heroBuff(h,'crit'))tags.push(`<span class="utag gold" data-tip="Sniper: at least 80% crit chance for ${heroBuff(h,'crit').n} more turn${heroBuff(h,'crit').n>1?'s':''}.">Sniper ×${heroBuff(h,'crit').n}</span>`);
   if(heroBuff(h,'focus'))tags.push(`<span class="utag gold" data-tip="Starsight Elixir: +${heroBuff(h,'focus').v}% crit chance for ${heroBuff(h,'focus').n} more turn${heroBuff(h,'focus').n>1?'s':''}.">Starsight ×${heroBuff(h,'focus').n}</span>`);
+  if(heroBuff(h,'haste'))tags.push(`<span class="utag gold" data-tip="Haste: acts twice as fast for ${heroBuff(h,'haste').n} more action${heroBuff(h,'haste').n>1?'s':''}.">Haste ×${heroBuff(h,'haste').n}</span>`);
+  if(heroBuff(h,'fort'))tags.push(`<span class="utag" style="color:#8fa8c8" data-tip="Fortress: every enemy must face this hero, who takes ${heroBuff(h,'def')?heroBuff(h,'def').v:0}% less damage, reflects ${heroBuff(h,'thorn')?heroBuff(h,'thorn').v:0}% and recovers health each turn, for ${heroBuff(h,'fort').n} more round${heroBuff(h,'fort').n>1?'s':''}.">Fortress ×${heroBuff(h,'fort').n}</span>`);
+  if(heroBuff(h,'chan'))tags.push(`<span class="utag gold" data-tip="${heroBuff(h,'chan').keep?'Elemental Avatar: every strike carries the element that hurts its target most and deals '+heroBuff(h,'chan').m+'× damage.':'Channel: the next strike is infused with '+cap(attuned(h))+' and deals '+heroBuff(h,'chan').m+'× damage.'}">${heroBuff(h,'chan').keep?'Avatar':'Channeled'} ×${heroBuff(h,'chan').n}</span>`);
+  if(heroBuff(h,'might'))tags.push(`<span class="utag gold" data-tip="${heroBuff(h,'might').v?'+'+heroBuff(h,'might').v+'% damage':''}${heroBuff(h,'might').crit?' +'+heroBuff(h,'might').crit+'% crit chance':''} for ${heroBuff(h,'might').n} more turn${heroBuff(h,'might').n>1?'s':''}.">Empowered ×${heroBuff(h,'might').n}</span>`);
   if(b.wards&&b.wards[h.id]&&b.wards[h.id].all)tags.push(`<span class="utag" style="color:#c9d4e8" data-tip="Moonveil: +${b.wards[h.id].all}% resistance to every element until this battle ends.">Moonveil</span>`);
   if(heroBuff(h,'undying'))tags.push('<span class="utag gold" data-tip="Undying: cannot drop below 1 health until it fades.">Undying</span>');
   const inc=b.over||!seeIntent()?0:aliveFoes().filter(e=>e.intent&&(aoeAct(e.intent.act)||intentTarget(e)===h)).length;
@@ -7449,8 +7407,7 @@ function kingMorph(){const b=state.run&&state.run.battle;if(!b)return;
 function battleScreen(){kingMorph();
   collectMarks();
   const r=state.run,b=r.battle,B=BIOMES[r.biome],P=partyAll(),cur=!b.over?currentActor():null,fx=b.fx||{},pops=b.pops||[];
-  const d3=D3on(),Ly=d3?null:biomeLayers(r.biome);
-  if(d3&&DS3D.battleFx)DS3D.battleFx(fx,b);
+  const Ly=biomeLayers(r.biome);
   const tstrip=!b.over?`<div class="tstrip" aria-label="Turn order"><span class="lbl">Next</span>${turnOrder(8).map((k,i)=>{const id=k.slice(2);
     if(k[0]==='h'){const h=heroById(id);return `<div class="tb ${i===0?'now':''}">${heroArt(h,2)}<span>${esc(h.name)}</span></div>`}
     const e=b.enemies[+id];return `<div class="tb foe ${i===0?'now':''}">${foeArt(e,2)}<span>${esc(e.name)}</span></div>`}).join('')}</div>`:'<div class="tstrip"></div>';
@@ -7460,8 +7417,8 @@ function battleScreen(){kingMorph();
       <span class="chip">${sprite('coin',null,2)}<b class="num">${r.gold}</b></span><span class="chip packchip">${sprite('chest',null,2)}<b class="num">${r.loot.length}/${bagCap()}</b></span>
       <button class="btn" data-a="drawer" data-x="party">Party</button><button class="btn ${(r.ground||[]).length?'guide':''}" data-a="inv">Inventory</button>${fleeBtn('red')}${helpBtn()}<button class="btn" data-a="settings" data-x="1" aria-label="Settings">Settings</button></div>
     ${tstrip}
-    <div class="scene stage wx-${r.biome} ${fx.shake&&!d3?'shake':''} ${fx.crit?'critfx':''} ${d3?'d3st':''}" style="--s1:${B.s[0]};--s2:${B.s[1]}">
-      ${d3?'<div class="d3slot" data-d3="battle"></div>':`<div class="lay far" style="background-image:url(${Ly.far});animation-delay:${panDelay(480)}"></div><div class="lay mid" style="background-image:url(${Ly.mid});animation-delay:${panDelay(240)}"></div><div class="gnd" style="background-image:url(${Ly.gnd})"></div>`}
+    <div class="scene stage wx-${r.biome} ${fx.shake?'shake':''} ${fx.crit?'critfx':''}" style="--s1:${B.s[0]};--s2:${B.s[1]}">
+      ${`<div class="lay far" style="background-image:url(${Ly.far});animation-delay:${panDelay(480)}"></div><div class="lay mid" style="background-image:url(${Ly.mid});animation-delay:${panDelay(240)}"></div><div class="gnd" style="background-image:url(${Ly.gnd})"></div>`}
       ${label?`<span class="stage-label">${label}</span>`:''}
       ${b.windup?`<div class="wbanner ${b.windup.foe?'foe':''}" role="status">${b.windup.txt}</div>`:''}
       <div class="side heroes">${lineup(P).map(({h})=>heroUnit(h,cur,fx,pops)).join('')}</div>
@@ -7503,16 +7460,18 @@ function actBar(){
   if(b.pending==='move'){const L=living(),i=L.indexOf(h);return s+`<p class="gold">Move ${esc(h.name)} (uses the turn)</p><div class="skgrid">${(()=>{const at=j=>{const F=posFxAt(h.cls,j,L.length);return F?` · <span class="${F.good?'posgood':'posbad'}">${F.n}</span>`:''};
     return `<button class="btn" data-a="moveGo" data-x="b" ${i>=L.length-1?'disabled':''}><span>◀ Back</span><span class="sub2">${i<L.length-1?'swap with '+esc(L[i+1].name)+at(i+1):'already at the back'}</span></button><button class="btn" data-a="moveGo" data-x="f" ${i<=0?'disabled':''}><span>Forward ▶</span><span class="sub2">${i>0?'swap with '+esc(L[i-1].name)+at(i-1):'already in front'}</span></button>`})()}<button class="btn" data-a="cancelCast">Cancel</button></div>`}
   if(b.pending){const nm=SKILLS[b.pending]?SKILLS[b.pending].n:CONSUMABLES[b.pending.slice(5)].n;
-    return s+`<p class="gold">${nm}: choose a hero</p><div class="skgrid">${(SKILLS[b.pending]&&SKILLS[b.pending].tgt==='dead'?partyAll().filter(x=>x.hp<=0):living()).map(x=>`<button class="btn" data-a="allyCast" data-x="${x.id}"><span>${esc(x.name)}</span><span class="sub2">${x.hp}/${maxHp(x)} HP · ${x.mp}/${maxMp(x)} MP</span></button>`).join('')}<button class="btn" data-a="cancelCast">Cancel</button></div>`}
+    return s+`<p class="gold">${nm}: choose a hero</p><div class="skgrid">${(()=>{const dead=SKILLS[b.pending]&&SKILLS[b.pending].tgt==='dead',L=living(),pool=dead?partyAll().filter(x=>x.hp<=0):[...L].reverse();
+      /* Same left-to-right order as the heroes on screen (back on the left, front on the right), each labelled with the rank it holds right now. */
+      return pool.map(x=>{const rk=!dead&&L.length>1?posName(L.indexOf(x),L.length):'';return `<button class="btn" data-a="allyCast" data-x="${x.id}"><span>${esc(x.name)}${rk?` <span class="muted">· ${rk}</span>`:''}</span><span class="sub2">${x.hp}/${maxHp(x)} HP · ${x.mp}/${maxMp(x)} MP</span></button>`}).join('')})()}<button class="btn" data-a="cancelCast">Cancel</button></div>`}
   const wico=ico(({warrior:'sword',archer:'bow',mage:'staff',monk:'fist'})[h.cls],C_(h).tint,2);
   if(benched(h))s+=`<p class="warn" style="margin:0 0 4px">${esc(h.name)} is too far back to reach the enemy. Use a buff, or Move forward.</p>`;
-  if(archerCrowded(h)){const bl=h.skills.filter(id=>frontBlocked(h,id));if(bl.length)s+=`<p class="warn" style="margin:0 0 4px">${esc(h.name)} is in the front rank and has no room to draw: ${esc(listNames(bl.map(id=>SKILLS[id].n)))} need${bl.length>1?'':'s'} the middle or back. Basic attacks still work. Move back to use them.</p>`}
+  if(archerCrowded(h)){const bl=kit(h).filter(id=>frontBlocked(h,id));if(bl.length)s+=`<p class="warn" style="margin:0 0 4px">${esc(h.name)} is in the front rank and has no room to draw: ${esc(listNames(bl.map(id=>SKILLS[id].n)))} need${bl.length>1?'':'s'} the middle or back. Basic attacks still work. Move back to use them.</p>`}
   if(h.cls==='monk')s+=`<p class="muted" style="margin:0 0 4px;font-size:18px">${chiLine(h)}</p>`;
   s+=`<div class="asec"><div class="alabel">${czBtn('bat.attack')}<span data-tip="Basic attacks cost no mana. Attack is reliable, Power Attack hits harder but misses more, Accurate Attack rarely misses but hits softer.">Attack</span></div><div class="skgrid atk3 atk4 ${czShut('bat.attack')?'czhide':''}">${Object.entries(ATK_KINDS).map(([k,K])=>`<button class="btn skillbtn ${k}" data-a="atk" data-x="${k}" ${jammed(h,'atk:'+k)?'disabled':''} data-tip="${esc(K.n+': '+K.d)}"><span>${wico} ${K.n}</span><span class="sub2">${odds(atkOpts(h,k))}</span></button>`).join('')}${(()=>{const S=STANCE[h.cls],c=h.cls==='mage'?manaWallCost(h):0;return `<button class="btn skillbtn stance" data-a="stance" ${h.mp<c||jammed(h,'stance')?'disabled':''} data-tip="${esc(S.n+': '+S.d(h)+' Uses the turn.')}"><span>${ico(S.ico[0],S.ico[1],2)} ${S.n}${c?` <span class="muted">· ${c} MP</span>`:''}</span><span class="sub2">${h.cls==='warrior'?`−${stoneDef(h)}% damage · holds position`:h.cls==='archer'?`${rollDodge(h)}% dodge`:h.cls==='monk'?'−35% damage · eases fatigue':'no elemental damage · −25% physical'}</span></button>`})()}</div>
-    <div class="alabel">${czBtn('bat.skills')}<span data-tip="Skills cost mana (shown on each). Mana comes back a little every turn.">Skills</span></div><div class="skgrid ${czShut('bat.skills')?'czhide':''}">${h.skills.map(id=>{const k=SKILLS[id],c=skillMp(h,id);
+    <div class="alabel">${czBtn('bat.skills')}<span data-tip="Skills cost mana (shown on each). Mana comes back a little every turn.">Skills</span></div><div class="skgrid ${czShut('bat.skills')?'czhide':''}">${kit(h).map(id=>{const k=SKILLS[id],c=skillMp(h,id);
       const info=k.mult?odds({...k,mult:skillMult(h,k)}):k.tgt==='enemy'?`${known?Math.round(hitChance(h,tgt,k.acc)):'?'}% hit · ${k.d}`:k.d;
       return `<button class="btn skillbtn" data-a="skill" data-x="${id}" ${h.mp<c||jammed(h,id)||(k.tgt==='dead'&&!partyAll().some(x=>x.hp<=0))?'disabled':''} data-tip="${esc(k.n+': '+skillStats(id)+'. '+k.d+(frontBlocked(h,id)?' Not usable from the front rank: move back.':benched(h)&&k.mult?' Too far back to reach.':''))}"><span>${skillIco(id)} ${k.n} <span class="muted">· ${c} MP</span></span><span class="sub2">${frontBlocked(h,id)?'needs the middle or back rank':info}</span></button>`}).join('')}</div>`;
-  if(h.cls==='mage'||heroBuff(h,'imbue')||(h.cls==='monk'&&heroBuff(h,'chan')))s+=`<div class="hscroll"><span class="lab">${h.cls==='mage'?'Attune (free)':h.cls==='monk'?'Channel (free to change)':`Arrows (${heroBuff(h,'imbue').n} turns)`}</span>${ELEMENTS.map(el=>`<button class="btn small ${attuned(h)===el?'on':''}" data-a="attune" data-x="${h.id}|${el}" aria-label="${cap(el)}"><span class="el" style="--c:${EL_COL[el]}" data-tip="${elTip(el)}">${elIco(el)}</span>${known?` ×${effOf(el).toFixed(2)}`:''}</button>`).join('')}</div>`;
+  if(h.cls==='mage'||heroBuff(h,'imbue')||(h.cls==='monk'&&(heroBuff(h,'chan')||kit(h).some(id=>SKILLS[id]&&SKILLS[id].el==='attune'))))s+=`<div class="hscroll"><span class="lab">${h.cls==='mage'?'Attune (free)':h.cls==='monk'?'Channel (free to change)':`Arrows (${heroBuff(h,'imbue').n} turns)`}</span>${ELEMENTS.map(el=>`<button class="btn small ${attuned(h)===el?'on':''}" data-a="attune" data-x="${h.id}|${el}" aria-label="${cap(el)}"><span class="el" style="--c:${EL_COL[el]}" data-tip="${elTip(el)}">${elIco(el)}</span>${known?` ×${effOf(el).toFixed(2)}`:''}</button>`).join('')}</div>`;
   s+='</div>';
   const bag=Object.entries(r.bag||{}).filter(([id,n])=>n>0&&CONSUMABLES[id]&&!CONSUMABLES[id].fieldOnly);
   s+=`<div class="asec"><div class="alabel">${czBtn('bat.items')}<span data-tip="Healing potions use up this hero’s turn. Food and mana drinks are free: they don’t cost the turn.">Items</span></div><div class="hscroll ${czShut('bat.items')?'czhide':''}">${bag.length?bag.map(([id,n])=>`<button class="btn small ${CONSUMABLES[id].quick?'quick':''}" data-a="useItem" data-x="${id}" data-tip="${esc(CONSUMABLES[id].d)}">${consIco(id,2)}${CONSUMABLES[id].n} ${stackHtml(n)}${CONSUMABLES[id].quick?' <small class="gold">free</small>':''}</button>`).join(''):'<span class="lab">No supplies in the bag. Buy them from the Witch or at the Gate.</span>'}</div></div>`;
@@ -7568,12 +7527,24 @@ function eventView(){
   if(ev.chest)return `<h2>${ev.chest.opened?'The chest is open':(CHEST_TIER[ev.chest.tier]||CHEST_TIER.map).n}</h2>${chestScene()}${ev.chest.opened?`<p>${ev.text}</p>${state.run.invNote?`<p class="gold" style="font-size:18px">${state.run.invNote}</p>`:''}${dropActions((ev.chest.got||[]).filter(x=>x.k==='item').map(x=>x.it))}<div class="row"><button class="btn gold" data-a="cont">${last?'Head home':'Continue'}</button></div>`:'<p class="muted">Old iron bands, a heavy lid. Open it to see what spills out.</p>'}`;
   return `<div class="row" style="gap:12px;flex-wrap:nowrap;align-items:flex-start">${ev.approach?`<span class="approach"><span class="afar">${foeArt({base:BIOMES[state.run.biome].boss,kind:'boss',type:BIOMES[state.run.biome].el,spr:'boss'},5,'bob')}</span><span class="portrait">${sprite('camp',null,5,'bob')}</span></span>`:ev.icon?`<span class="portrait">${sprite(ev.icon,null,5,'bob')}</span>`:''}<div class="stack" style="gap:6px"><h2>${ev.title}</h2><p class="${wf?'wheelres':''}">${ev.text}</p></div></div>${wheel}<div class="row">${ev.choices?ev.choices.map(c=>`<button class="btn ${c.x==='leave'?'':'gold'}" data-a="${c.myst?'myst':c.ev?'evPick':'gamble'}" data-x="${c.x}" ${c.off?'disabled':''}>${c.l}</button>`).join(''):`<button class="btn gold" data-a="cont">${ev.intro?'Press on':'Continue'}</button>`}</div>`;
 }
-function skillChip(h,id){const k=SKILLS[id];return `<span class="trait tk-skill" tabindex="0" data-tip="${esc(k.n+' · '+k.mp+' MP. '+skillStats(id)+'. '+k.d)}">${k.n}</span>`}
-function skillList(h){return `<div class="stack" style="gap:6px">${h.skills.map(id=>{const k=SKILLS[id];return `<div class="item"><span class="iname">${k.n} <span class="muted">· ${skillMp(h,id)} MP</span></span><span class="afx">${skillStats(id)}</span><span class="meta">${k.d}</span></div>`}).join('')}</div>`}
+function skillChip(h,id){const k=SKILLS[id],own=state.heroes.includes(h),inKit=kit(h).includes(id),tg=own&&!kitLocked(h)&&h.skills.length>1;
+  const tip=esc(k.n+' · '+skillMp(h,id)+' MP. '+skillStats(id)+'. '+k.d+(own?(inKit?' Brought on adventures.':' Left at home.')+(tg?' Click to '+(inKit?'leave it behind.':'bring it.'):''):''));
+  if(tg)return `<button class="trait tk-skill kit ${inKit?'on':'off'}" data-a="kitToggle" data-x="${h.id}|${id}" aria-pressed="${inKit}" data-tip="${tip}"><span class="kmark">${inKit?'✓':'○'}</span> ${k.n}${inKit?'':' <small>(at home)</small>'}</button>`;
+  return `<span class="trait tk-skill ${own&&!inKit?'kit off':''}" tabindex="0" data-tip="${tip}">${k.n}</span>`}
+const kitCount=h=>`<span class="muted" style="font-size:18px">Skills to bring: <b class="${kit(h).length===KIT_MAX?'ok':''}">${kit(h).length}/${KIT_MAX}</b></span>`;
+// The Gate: pick what each hero in the party brings.
+const kitNeed=h=>Math.min(KIT_MAX,h.skills.length);
+const kitShort=ids=>ids.map(heroById).filter(h=>h&&kit(h).length<kitNeed(h));
+function loadoutBlock(ids){
+  const L=ids.map(heroById).filter(h=>h&&h.skills.length>KIT_MAX);if(!L.length)return '';
+  return `<div class="stack kitbox" style="gap:6px"><h3>Choose ${KIT_MAX} skills to bring ${help(`A hero can bring ${KIT_MAX} skills on an adventure, but may know more. Tap a skill to bring it (✓) or leave it at home. Starter skills and learned ones all count, so different parties can call for different choices. You can't change them once the party has set out.`)}</h3>
+    <p class="muted" style="font-size:18px;margin:0">Tap a skill to switch it on or off. Only the ✓ skills go on the adventure.</p>${ui.kitMsg?`<p class="warn">${esc(ui.kitMsg)}</p>`:''}
+    ${L.map(h=>`<div class="stack kitrow" style="gap:4px"><span><b>${esc(h.name)}</b> <span class="muted">Lv ${h.level} ${C_(h).name}</span> · ${kitCount(h)}${kit(h).length<KIT_MAX?` <span class="warn">Pick ${KIT_MAX-kit(h).length} more</span>`:''}</span><div class="kitgrid">${h.skills.map(id=>skillChip(h,id)).join('')}</div></div>`).join('')}</div>`}
+function skillList(h){const own=state.heroes.includes(h),tg=own&&!kitLocked(h)&&h.skills.length>1;return `${own&&h.skills.length>KIT_MAX?`<p class="muted" style="font-size:18px">${kitCount(h)} · A hero can bring ${KIT_MAX}. Tap a skill to bring it or leave it at home.${kitLocked(h)?' (Locked while on an adventure.)':''}</p>${ui.kitMsg?`<p class="warn">${esc(ui.kitMsg)}</p>`:''}`:''}<div class="stack" style="gap:6px">${h.skills.map(id=>{const k=SKILLS[id],inKit=kit(h).includes(id);return `<div class="item ${own&&!inKit&&h.skills.length>KIT_MAX?'kitoff':''}"><span class="iname">${k.n} <span class="muted">· ${skillMp(h,id)} MP</span>${tg&&h.skills.length>KIT_MAX?` <button class="btn small ${inKit?'on':''}" data-a="kitToggle" data-x="${h.id}|${id}" aria-pressed="${inKit}">${inKit?'✓ Bringing':'Bring'}</button>`:''}</span><span class="afx">${skillStats(id)}</span><span class="meta">${k.d}</span></div>`}).join('')}</div>`}
 function learnBlock(h){
-  const nx=[1,2,3].find(k=>!hasTier(h,k));if(!nx)return '';
+  const nx=SKILL_TIERS.find(k=>!hasTier(h,k));if(!nx)return '';
   const o=learnOpts(h,nx).map(id=>`<b>${SKILLS[id].n}</b>`),list=o.length>2?'one of '+o.slice(0,-1).join(', ')+' or '+o[o.length-1]:'either '+o.join(' or ');
-  return `<p class="muted" style="font-size:20px">At level ${SKILL_LV[nx]}, ${esc(h.name)} will learn ${list}. You choose which.${nx<3?` More skills come at level ${[1,2,3].filter(k=>k>nx).map(k=>SKILL_LV[k]).join(' and ')}.`:''}</p>`;
+  return `<p class="muted" style="font-size:20px">At level ${SKILL_LV[nx]}, ${esc(h.name)} will learn ${list}. You choose which.${nx<4?` More skills come at level ${SKILL_TIERS.filter(k=>k>nx).map(k=>SKILL_LV[k]).join(', ')}.`:''}</p>`;
 }
 function traitChips(h){
   const ts=(h.traits||[]).map(id=>TRAITS[id]).filter(Boolean);
@@ -7647,66 +7618,10 @@ function ledgerView(){
 /* ---------- settings ---------- */
 const SET_KEY='dsotm-settings';
 const PAD_GUIDE=[['Left stick / D-pad','Move between buttons'],['✕','Press the highlighted button'],['○','Back: close a window, cancel a skill, or return to town'],['□','Auto-battle on/off · add or remove a hero from the party'],['△','Inventory on an adventure · the Bank in town'],['L1 / R1','Previous / next building, enemy target, or hero (on a hero sheet)'],['L2','Jump to the menu on the left (buildings, or attacks in battle)'],['Hold R2','Hero menu (let go to return)'],['OPTIONS or PS','Settings'],['SHARE','Moon Ledger'],['Right stick','Scroll']];
-const set={profile:'auto',gfx3d:false,gfxq:'high',speed:'normal',motion:true,autoDefault:false,confirmFlee:true,tips:true,govTips:true,sfx:2,music:2,pad:true};
+const set={profile:'auto',speed:'normal',motion:true,autoDefault:false,confirmFlee:true,tips:true,govTips:true,sfx:2,music:2,pad:true};
 try{Object.assign(set,JSON.parse(localStorage.getItem(SET_KEY)||'{}'))}catch(e){}
 const saveSet=()=>{try{localStorage.setItem(SET_KEY,JSON.stringify(set))}catch(e){}};
 
-/* ---------- 3D mode glue ----------
-   The 3D scripts load only when the player turns 3D mode on, so the normal game stays small and fast.
-   If anything about 3D fails (no WebGL, a script that will not load, a render error) the game drops back to the 2D mode. */
-let d3st='idle'; // idle | loading | ready | failed
-const D3_FILES=['lib/three.min.js','d3/core.js','d3/hero.js','d3/foes.js','d3/props.js','d3/town.js','d3/map.js','d3/battle.js'];
-const D3on=()=>!!set.gfx3d&&d3st==='ready';
-function d3fail(why){console.warn('3D mode off:',why);set.gfx3d=false;d3st='failed';saveSet();ui.d3msg='3D mode could not start on this device, so the game is back in pixel mode.';try{window.DS3D&&DS3D.unmount&&DS3D.unmount()}catch(e){}document.body.classList.remove('d3on','d3mapmode');render()}
-function d3load(){
-  if(d3st==='loading'||d3st==='ready')return;
-  d3st='loading';
-  const probe=document.createElement('canvas');let ok=false;try{ok=!!(probe.getContext('webgl2')||probe.getContext('webgl'))}catch(e){}
-  if(!ok){d3fail('no WebGL');return}
-  const next=i=>{
-    if(i>=D3_FILES.length){
-      try{
-        window.DS3D.G=d3bridge();
-        if(!DS3D.init()){d3fail('init');return}
-        d3st='ready';document.body.classList.add('d3on');render();
-      }catch(e){d3fail(e)}
-      return}
-    const sc=document.createElement('script');sc.src=D3_FILES[i]+'?v=1';sc.onload=()=>next(i+1);sc.onerror=()=>d3fail('could not load '+D3_FILES[i]);document.head.appendChild(sc)};
-  next(0);
-}
-// Everything the 3D town needs, in grid tiles. Screen pixels of the pixel town are turned back into grid positions.
-function townInfo(){
-  const inv=(x,y)=>[((x-ISO.ox)/ISO.T+(y-ISO.oy)/ISO.H)/2,((y-ISO.oy)/ISO.H-(x-ISO.ox)/ISO.T)/2];
-  const sq=inv(TOWN_SQUARE[0],TOWN_SQUARE[1]),ev=townEv(),gr=state.graveyard||[];
-  const gs=graveSpots(Math.min(10,gr.length)).map(([x,y])=>inv(x,y)),gc=inv(GRAVE_BOX[0]+30,GRAVE_BOX[1]+8);
-  const lamps=[[100,105],[238,114],[102,180],[260,156],[34,128],[201,92],[178,150]].map(([x,y])=>isoAt(x,y));
-  const open=k=>k==='adventure'||bldOpen(k);
-  return {sig:Object.keys(BLD_DEF).map(k=>(open(k)?'o':'c')+bldStage(k)).join('')+'|'+gr.length+'|'+(ev?ev.ev:'')+'|'+Math.round(moonState().shown/5),
-    center:isoAt(TOWN_SQUARE[0],TOWN_SQUARE[1]),layout:TOWN_LAYOUT,def:BLD_DEF,open,stage:k=>bldStage(k),tiles:townTiles(),lamps,square:sq,
-    heroSpots:HERO_SPOTS.map(([gx,gy])=>[gx+.5,gy+.5]).map(p=>p),graves:gs,graveBox:{x:gc[0]-3,y:gc[1]-2,w:6,d:4},
-    moon:moonState().shown,event:ev?ev.ev:null};
-}
-// What the 3D scenes may read from the game. Getters, so they always see the current save.
-function d3bridge(){
-  return {
-    get state(){return state},get set(){return set},get ui(){return ui},ACT,render,BIOMES,EL_COL,NODE,
-    foeSpec:e=>foeSpec(e.base||e.name,e.kind,e.type,kph(e)),
-    heroLook:h=>heroLook(h),perfLook:id=>PERF_LOOK[id],perfBase:id=>PERF[id]&&PERF[id].base,
-    partyAll,lineup,living,currentActor,heroById,aliveFoes,sfx,esc,
-    fail3d:d3fail,mapInfo,
-    townInfo,
-    moonPct:()=>(typeof moonPct==='function'?moonPct():null)
-  };
-}
-// After every redraw: move the one 3D canvas into the slot the new screen made, or park it when no screen wants it.
-function d3after(){
-  if(!D3on()||DS3D.failed)return;
-  const slot=document.querySelector('[data-d3]');
-  if(slot){if(!DS3D.mount(slot,slot.dataset.d3)){d3fail('mount')}}
-  else if(DS3D.cur)DS3D.unmount();
-  document.body.classList.toggle('d3mapmode',!!(slot&&slot.dataset.d3==='map'));
-  if(slot&&DS3D.after&&DS3D.after[slot.dataset.d3])try{DS3D.after[slot.dataset.d3](slot)}catch(e){console.error(e)}
-}
 /* Collapsible sections. A section the player hides stays hidden on every hero and screen until they show it again.
    Keys are per place: 'sheet.*' is the town hero sheet, 'run.*' the hero panel on adventures, 'bat.*' the combat screen. */
 const czShut=k=>!!(set.cz&&set.cz[k]);
@@ -7852,8 +7767,6 @@ function settingsModal(){
     <div class="mhead"><h2>Settings</h2><button class="xbtn" data-a="settings" data-x="" aria-label="Close">×</button></div>
     <h3>Screen</h3><div class="optgrid">${Object.entries(PROFILES).map(([k,P])=>`<button class="opt ${set.profile===k?'cur':''}" data-a="setProfile" data-x="${k}" aria-pressed="${set.profile===k}"><b>${P.n}</b><span>${P.d}</span></button>`).join('')}</div>
     <p class="muted" style="font-size:18px">Now using the ${LAY_N[layMode()]} layout. The game is played in landscape.</p>
-    <h3>Graphics</h3><div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn small ${set.gfx3d?'on':''}" data-a="gfx3d" aria-pressed="${!!set.gfx3d}">3D mode: ${set.gfx3d?(d3st==='loading'?'Loading…':'On'):'Off'}</button>${set.gfx3d?['low','med','high'].map(q=>`<button class="btn small ${set.gfxq===q?'on':''}" data-a="gfxq" data-x="${q}" aria-pressed="${set.gfxq===q}">${({low:'Battery saver',med:'Balanced',high:'Best'})[q]}</button>`).join(''):''}</div>
-    <p class="muted" style="font-size:18px">3D mode turns the town, the road map, battles and all equipment into 3D scenes. It runs on your device’s graphics chip; Battery saver draws fewer frames and a sharper-than-needed picture is not forced. Your save is the same in both modes.${ui.d3msg?` <b class="warn">${ui.d3msg}</b>`:''}</p>
     ${set.masteryMax?`<h3>Mastery Level</h3><div class="row" style="gap:6px;flex-wrap:wrap">${Array.from({length:set.masteryMax+1},(_,m)=>`<button class="btn small ${(set.mastery||0)===m?'on':''}" data-a="setMastery" data-x="${m}" aria-pressed="${(set.mastery||0)===m}">${m?'Mastery '+m:'Off'}</button>`).join('')}</div>
     <p class="muted" style="font-size:18px">Applies to new towns you start. Each level: the governor carries one more dark side (the 5th question takes ${1+(set.mastery||0)} answer${(set.mastery||0)?'s':''}), and monsters deal 3% more damage with 3% more health (now +${3*(set.mastery||0)}%). Beat the Unlit King at your highest level to unlock the next, up to Mastery 8, full ascension.${state&&state.mastery?` This town: Mastery ${state.mastery}.`:''}</p>`:''}
     <h3>Zoom</h3><div class="row">${zoomCtl()}<button class="btn small" data-a="zoomReset">Reset to ${Math.round(((PROFILES[set.profile]||{}).zoom||1)*100)}%</button></div>
@@ -7932,9 +7845,9 @@ function witchView(){
       <h3>${WITCH_HERO.respec.n} · <span class="gold">${fmt(rc)} gold</span></h3><p class="muted">${WITCH_HERO.respec.d} ${h.spent?`${h.spent} point${h.spent>1?'s':''} would come back.`:'Nothing spent to undo yet.'}</p>
       <div class="row"><button class="btn" data-a="witchRespec" data-x="${h.id}" ${state.gold<rc||!h.spent?'disabled':''}>Rebalance ${esc(h.name)}</button></div>`;
     {const learned=h.skills.filter(id=>SKILLS[id]&&SKILLS[id].tier);
-     s+=`<h3>Reroll a learned skill</h3><p class="muted">Skills learned at levels 8, 18 and 28 come down to fate. The Witch can roll the dice again. There is a ${Math.round(rerollSame(h))}% chance (less with Luck) it lands on the same skill. Each reroll of the same skill doubles the price.</p>`;
+     s+=`<h3>Reroll a learned skill</h3><p class="muted">Skills learned at levels 6, 13, 21 and 30 come down to fate. The Witch can roll the dice again. There is a ${Math.round(rerollSame(h))}% chance (less with Luck) it lands on the same skill. Each reroll of the same skill doubles the price.</p>`;
      s+=learned.length?`<div class="stack" style="gap:6px">${learned.map(id=>{const t=SKILLS[id].tier,c=skillRerollCost(h,t),others=learnOpts(h,t).filter(x=>x!==id).map(x=>SKILLS[x].n);
-       return `<div class="row" style="gap:8px;justify-content:space-between;flex-wrap:nowrap"><span><b>${SKILLS[id].n}</b> <span class="muted" style="font-size:18px">Lv ${SKILL_LV[t]} skill · could become ${others.join(' or ')}</span></span><button class="btn small" data-a="witchReroll" data-x="${h.id}|${id}" ${state.gold<c||onRun(h)||!others.length?'disabled':''}>Reroll · ${fmt(c)}g</button></div>`}).join('')}</div>`:'<p class="muted">No learned skills yet. The first comes at level 8.</p>'}
+       return `<div class="row" style="gap:8px;justify-content:space-between;flex-wrap:nowrap"><span><b>${SKILLS[id].n}</b> <span class="muted" style="font-size:18px">Lv ${SKILL_LV[t]} skill · could become ${others.join(' or ')}</span></span><button class="btn small" data-a="witchReroll" data-x="${h.id}|${id}" ${state.gold<c||onRun(h)||!others.length?'disabled':''}>Reroll · ${fmt(c)}g</button></div>`}).join('')}</div>`:'<p class="muted">No learned skills yet. The first comes at level 6.</p>'}
     return s;
   }
   const items=allItems().filter(x=>x.it.rarity!=='perfect');
@@ -8504,7 +8417,9 @@ const ACT={
   campGo:()=>campGo(),
   bless:id=>{const r=state.run;if(!r||!r.blessOffer||!r.blessOffer.includes(id))return;r.bless=r.bless||[];r.bless.push(id);r.blessOffer=null;const hp=living().map(h=>[h,maxHp(h)]);
     blog(`<b class="gold">Blessing: ${BLESSINGS[id].n}.</b> ${BLESSINGS[id].d}`);for(const [h] of hp)h.hp=Math.min(maxHp(h),h.hp)},
-  pickSkill:x=>{const [hid,id]=x.split('|'),h=heroById(hid);if(!h||!h.pickSkill||!h.pickSkill.opts.includes(id))return;h.skills.push(id);h.newSkill=[...(h.newSkill||[]),id];h.pickSkill=null;queueLevelPicks(h)},
+  kitToggle:x=>{const [hid,id]=x.split('|'),h=heroById(hid);if(!h||!h.skills.includes(id)||kitLocked(h)||(state.run&&state.run.battle))return;
+    fixKit(h);if(h.kit.includes(id))h.kit=h.kit.filter(k=>k!==id);else if(h.kit.length<KIT_MAX)h.kit.push(id);else ui.kitMsg=`${h.name} can only bring ${KIT_MAX} skills. Leave one behind first.`},
+  pickSkill:x=>{const [hid,id]=x.split('|'),h=heroById(hid);if(!h||!h.pickSkill||!h.pickSkill.opts.includes(id))return;h.skills.push(id);kitAdd(h,id);h.newSkill=[...(h.newSkill||[]),id];h.pickSkill=null;queueLevelPicks(h)},
   pickTrait:x=>{const [hid,id]=x.split('|'),h=heroById(hid);if(!h||!h.pickTrait||!h.pickTrait.opts.includes(id))return;h.traits=h.traits||[];h.traits.push(id);h.pickTrait=null;queueLevelPicks(h)},
   pickLater:()=>{ui.pickHide=true},
   pickOpen:()=>{ui.pickHide=false},
@@ -8545,9 +8460,6 @@ const ACT={
   lbiome:x=>{state.sel.lbiome=x;state.sel.lent=null},
   lent:x=>{state.sel.lent=x||null;if(x&&state.ledgerNew)delete state.ledgerNew[x]},
   settings:x=>{ui.settings=!!x;state.sel.reset=false},
-  d3node:x=>{if(window.DS3D&&DS3D.mapGo)DS3D.mapGo(+x)},
-  gfx3d:()=>{ui.d3msg=null;if(set.gfx3d){set.gfx3d=false;saveSet();document.body.classList.remove('d3on','d3mapmode');try{DS3D.unmount()}catch(e){}}else{set.gfx3d=true;saveSet();if(d3st==='failed')d3st='idle';d3load()}},
-  gfxq:q=>{if(['low','med','high'].includes(q)){set.gfxq=q;saveSet();try{DS3D.resize()}catch(e){}}},
   setProfile:k=>{if(!PROFILES[k])return;set.profile=k;saveSet();if(PROFILES[k].zoom)applyZoom(PROFILES[k].zoom)},
   setSpeed:k=>{if(SPEED[k]){set.speed=k;saveSet()}},
   setToggle:k=>{if(k in set&&typeof set[k]==='boolean'){set[k]=!set[k];saveSet();if(k==='pad'){if(set.pad)PAD.start();else document.body.classList.remove('padmode')}}},
@@ -8582,7 +8494,7 @@ const ACT={
     const t=sk.tier,c=skillRerollCost(h,t),others=learnOpts(h,t).filter(k=>k!==id);if(state.gold<c||!others.length)return;
     state.gold-=c;h.rerolls=h.rerolls||{};h.rerolls[t]=(h.rerolls[t]||0)+1;
     if(chance(rerollSame(h)/100)){state.sel.witchMsg=`The bones fall the same way. ${esc(h.name)} keeps ${sk.n}.`;return}
-    const nw=pick(others);h.skills[h.skills.indexOf(id)]=nw;state.sel.witchMsg=`The Witch rattles her bones. ${esc(h.name)} forgets ${sk.n} and learns <b>${SKILLS[nw].n}</b>.`},
+    const nw=pick(others);h.skills[h.skills.indexOf(id)]=nw;if(h.kit)h.kit=h.kit.map(x=>x===id?nw:x);state.sel.witchMsg=`The Witch rattles her bones. ${esc(h.name)} forgets ${sk.n} and learns <b>${SKILLS[nw].n}</b>.`},
   witchRespec:id=>{const h=heroById(id);if(!h||state.run||!h.spent||!h.baseStats)return;const c=heroWitchCost(h,'respec');if(state.gold<c)return;
     state.gold-=c;h.witch=(h.witch||0)+1;for(const k of STATS)h[k]=h.baseStats[k];h.bonusHp=(h.baseBonus||{}).hp||0;h.bonusMp=(h.baseBonus||{}).mp||0;h.points+=h.spent;state.sel.witchMsg=`${esc(h.name)} has ${h.points} points to reassign (${h.spent} refunded).`;h.spent=0;h.hp=Math.min(h.hp,maxHp(h));h.mp=Math.min(h.mp,maxMp(h))},
   witchItem:x=>{const [id,k,line]=x.split('|'),e=allItems().find(y=>y.it.id===id);if(!e||!WITCH_ITEM[k]||e.it.rarity==='perfect')return;const it=e.it,c=itemWitchCost(it,k);if(state.gold<c)return;
@@ -8713,11 +8625,27 @@ function render(){
   if(key===lastView){window.scrollTo(0,y);keepScroll(kept);if(!inBattle)holdAnchor()}else if(!inBattle)window.scrollTo(0,0);ui.anchor=null;
   if(inBattle){requestAnimationFrame(drawIntentArrows);if(flyNow)requestAnimationFrame(flyLoot)}
   lastView=key;
-  d3after();
   save();
   clearTimeout(autoTimer);
   const b=state.run&&state.run.battle;
   if(b&&b.auto&&!b.over&&!b.busy)autoTimer=setTimeout(autoStep,pace().hold);
+}
+const mpOk=h=>h.mp>=maxMp(h)*.45;
+// The Monk's own auto-battle: keep the party blessed and the enemy marked, then strike.
+function monkAuto(h,e,L,n,avg,hurt,can){
+  const b=state.run.battle,tired=L.some(x=>fatOf(x)>=40);
+  if(can('ground')&&!heroBuff(h,'might')&&(avg<.7||tired))return ['ground'];
+  if(can('nirvana')&&(avg<.55||(tired&&L.length>1)))return ['nirvana'];
+  if(can('mantra')&&L.length>1&&!heroBuff(L[0],'might'))return ['mantra'];
+  if(can('calm')&&(avg<.7||tired))return ['calm'];
+  if(can('blessing')&&tired){const w=L.reduce((a,x)=>fatOf(x)>fatOf(a)?x:a,L[0]);return ['blessing',w.id]}
+  if(!(e.mark>0)&&(bigFoe(e)||e.kind==='elite'||n>1)){const m=['doom','seal','ruin','brand','mark'].find(can);if(m)return [m]}
+  if(can('avatar')&&!heroBuff(h,'chan'))return ['avatar'];
+  if(can('focus')&&!heroBuff(h,'might')&&(bigFoe(e)||n>1))return ['focus'];
+  if(can('ward')&&b.fx&&hurt.hp/maxHp(hurt)<.5)return ['ward',hurt.id];
+  const S=n>1?['tempestk','doom','wave']:[];
+  const act=[...S,'heaven','ruin','hundred','shatter','fiveel','ironfist','brand','elpalm','palm'].find(can);
+  return [act||'atk'];
 }
 function autoStep(){
   const b=state.run&&state.run.battle;if(!b||b.over||!b.auto)return;
@@ -8725,25 +8653,31 @@ function autoStep(){
   const alive=aliveFoes(),n=alive.length,L=living();
   const e=alive.reduce((a,x)=>x.hp<a.hp?x:a,alive[0]);b.target=b.enemies.indexOf(e);b.pending=null;
   if(h.cls==='mage'&&isScouted(e)){let best='fire',bv=-1;for(const el of ELEMENTS){const v=matchup(el,e.type)*(1-e.res[el]/100)*(1+aff(h,'dmg_'+el)/100);if(v>bv){bv=v;best=el}}b.attune[h.id]=best}
-  const can=id=>h.skills.includes(id)&&h.mp>=skillMp(h,id)&&!selfishBlock(id)&&!jammed(h,id);
+  const can=id=>kit(h).includes(id)&&h.mp>=skillMp(h,id)&&!selfishBlock(id)&&!jammed(h,id);
   const hurt=L.reduce((a,x)=>x.hp/maxHp(x)<a.hp/maxHp(a)?x:a,L[0]);
   let act='atk',ally=h.id;
   const dead=partyAll().filter(x=>x.hp<=0),avg=L.reduce((a,x)=>a+x.hp/maxHp(x),0)/L.length;
   const bigHit=aliveFoes().some(x=>x.intent&&(x.intent.act==='heavy'||x.intent.act==='unleash'||SHIFT_SK[x.intent.act])&&(x.intent.act==='unleash'||intentTarget(x)===h));
   if(bigHit&&h.hp/maxHp(h)<.6&&(h.cls!=='mage'||h.mp>=manaWallCost(h))&&!jammed(h,'stance'))act='stance';
+  else if(h.cls==='monk'){const r=monkAuto(h,e,L,n,avg,hurt,can);act=r[0];ally=r[1]||h.id}
   else if(dead.length&&can('resurrect'))act='resurrect';
   else if(dead.length&&can('revive')){act='revive';ally=dead[0].id}
+  else if(can('sanctuary')&&L.length>1&&avg<.6)act='sanctuary';
   else if(can('circle')&&L.length>1&&avg<.55)act='circle';
   else if(can('revive')&&L.length>1&&avg<.5)act='revive';
   else if(!(b.rally&&b.rally.n>0)&&(n>1||bigFoe(e))&&['warlord','bulwark','rally'].some(can))act=['warlord','bulwark','rally'].find(can);
   else if(!heroBuff(h,'eva')&&h.hp/maxHp(h)<.7&&['phantom','shadow'].some(can))act=['phantom','shadow'].find(can);
   else if(can('feather')&&h.hp/maxHp(h)<.5&&!heroBuff(h,'eva'))act='feather';
-  else if((bigFoe(e)||e.kind==='elite')&&e.hp>e.maxHp*.3&&['meteor','combo','lance'].some(can))act=['meteor','combo','lance'].find(can);
+  else if((bigFoe(e)||e.kind==='elite')&&e.hp>e.maxHp*.3&&['singularity','meteor','combo','lance'].some(can))act=['singularity','meteor','combo','lance'].find(can);
+  else if(can('fortress')&&n>1&&!(b.tauntN&&b.taunt===h.id)&&h.hp/maxHp(h)>.4)act='fortress';
+  else if(['tempo','windrun','quick'].some(can)&&!heroBuff(h,'haste')&&mpOk(h))act=['tempo','windrun','quick'].find(can);
+  else if(can('counter')&&!heroBuff(h,'eva')&&h.hp/maxHp(h)<.8)act='counter';
   else if(can('sniper')&&!heroBuff(h,'crit'))act='sniper';
   else if((can('imbue')||can('imbue2'))&&!heroBuff(h,'imbue')&&isScouted(e)&&ELEMENTS.some(el=>matchup(el,e.type)>1))act=can('imbue2')?'imbue2':'imbue';
   else if(can('coup')&&e.kind!=='warden'&&e.kind!=='king'&&e.hp>e.maxHp*.4)act='coup';
-  else if(n>1&&['cataclysm','thousand','nova','quake','hail','chain'].some(can))act=['cataclysm','thousand','nova','quake','hail','chain'].find(can);
-  else if(['titan','coup','killshot','execute','assassin','sunder','stunblow'].some(can))act=['titan','coup','killshot','execute','assassin','sunder','stunblow'].find(can);
+  else if(n>1&&['cataclysm','rift','thousand','nova','quake','fault','hail','chain'].some(can))act=['cataclysm','rift','thousand','nova','quake','fault','hail','chain'].find(can);
+  else if((bigFoe(e)||e.kind==='elite')&&['breaker','bullseye'].some(can))act=['breaker','bullseye'].find(can);
+  else if(['converge','titan','coup','killshot','execute','assassin','flurry','sunder','stunblow'].some(can))act=['converge','titan','coup','killshot','execute','assassin','flurry','sunder','stunblow'].find(can);
   else if(can('mend')&&(darkIs('selfish')?h:hurt).hp/maxHp(darkIs('selfish')?h:hurt)<.45){act='mend';ally=darkIs('selfish')?h.id:hurt.id}
   else if(can('wind')&&h.hp/maxHp(h)<.4)act='wind';
   else if(n>1&&can('cleave'))act='cleave';else if(n>1&&can('storm'))act='storm';else if(n>2&&can('volley'))act='volley';
@@ -9016,9 +8950,11 @@ function start(d){
   if(!state.recruit1){state.recruit1=true;state.candidates=state.candidates.slice(0,recruitCount())}
   // Growth v1: health and mana now come from class base plus per-level growth.
   if(!state.grow1){state.grow1=true;for(const h of [...state.heroes,...(state.candidates||[])]){h.grow=growGuess(h);h.hp=Math.min(h.hp,maxHp(h));h.mp=Math.min(h.mp,maxMp(h))}}
-  // Skills v3 (three lines, learned at 8, 18 and 28): swap retired skills for their replacements, then offer any picks now due.
+  // Skills v3 (three lines): swap retired skills for their replacements, then offer any picks now due.
   if(!state.skills3){state.skills3=true;for(const h of [...state.heroes,...(state.candidates||[])]){h.skills=[...new Set((h.skills||[]).map(id=>SKILL_RETIRED[id]||id).filter(id=>SKILLS[id]))];
     if(h.pickSkill)h.pickSkill=null}}
+  // Skills v4: four tiers (6, 13, 21, 30) and a four-skill loadout. Heroes bring their newest four to start.
+  if(!state.skills4){state.skills4=true;for(const h of [...state.heroes,...(state.candidates||[])]){h.kit=(h.skills||[]).slice(-KIT_MAX)}}
   if(!state.pts2){state.pts2=true;for(const h of state.heroes){let add=0;for(let L=2;L<=h.level;L++)add+=pointsFor(L)-oldPointsFor(L);if(add>0)h.points+=add}}
   // Gear v3: capes and shoes are gone (sold automatically); chest and pants are now class-locked.
   if(!state.gear3){state.gear3=true;let refund=0,n=0;const gone=it=>it&&(it.slot==='shoes'||it.slot==='cape');
@@ -9043,6 +8979,7 @@ function start(d){
   if(b&&!b.enemies){b.enemies=[b.enemy];b.target=0}
   for(const h of [...state.heroes,...state.candidates]){
     if(!h.skills||!h.skills.length)h.skills=classSkills(h.cls).sort(()=>Math.random()-.5).slice(0,2);
+    if(h.kit)fixKit(h);
     // A skill tier the hero has reached but not learned (old saves, or tiers that moved earlier) is offered as a choice.
     if(state.heroes.includes(h))queueLevelPicks(h);
     if(!h.affinity)h.affinity=pick(ELEMENTS);
@@ -9074,7 +9011,6 @@ if(/[?&]d3dev/.test(location.search))window.DS_DEV={
     if(opt.run){startRun();if(opt.battle)startBattle(opt.battle===true?'normal':opt.battle)}
     ui.menu=false;lastView=null;render()}
 };
-if(set.gfx3d)d3load();
 try{window.claude&&window.claude.hot&&window.claude.hot.snapshot&&window.claude.hot.snapshot(()=>({state}))}catch(e){}
 if(window.claude&&window.claude.hot&&window.claude.hot.ready)window.claude.hot.ready(start);
 else start(window.claude&&window.claude.hot&&window.claude.hot.data||{});
